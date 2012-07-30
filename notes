@@ -1,0 +1,6 @@
+appears you don't need -fomit-frame-pointer on gcc 4.6+:
+  http://stackoverflow.com/questions/6099919/why-does-gcc-drop-the-frame-pointer-on-64-bit
+
+-O3 not recommended for gcc 4.x gentoo [?] but maybe it would work...
+
+libfaac is supposed to be poor quality, libaacplus "up there" I believe, but somebody said libfdk-aac was "super high quality" so I must trust them, right? :)
