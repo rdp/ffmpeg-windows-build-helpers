@@ -39,7 +39,7 @@ install_cross_compiler() {
   You will be prompted with a few questions as it installs (it takes quite awhile).
   Enter to continue:'
 
-  wget http://zeranoe.com/scripts/mingw_w64_build/mingw-w64-build-3.0.6
+  wget http://zeranoe.com/scripts/mingw_w64_build/mingw-w64-build-3.0.6 -O mingw-w64-build-3.0.6
   chmod u+x mingw-w64-build-3.0.6
   ./mingw-w64-build-3.0.6 || exit 1
   clear
@@ -53,6 +53,14 @@ if [ ! -d "ffmpeg_git" ]; then
   git clone https://github.com/FFmpeg/FFmpeg.git ffmpeg_git.tmp
   mv ffmpeg_git.tmp ffmpeg_git
 fi
+cd ffmpeg_git
+echo "Updating to latest FFmpeg version..."
+git pull
+if [ ! -f "Makefile" ]; then
+  ./configure --enable-memalign-hack  --arch=x86   --target-os=mingw32    --cross-prefix=i686-w64-mingw32-  --pkg-config=pkg-config
+fi
+make
+cd ..
 }
 
 intro
