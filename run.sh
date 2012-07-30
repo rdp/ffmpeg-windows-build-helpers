@@ -50,13 +50,13 @@ install_cross_compiler() {
 build_ffmpeg() {
 if [ ! -d "ffmpeg_git" ]; then
   echo "Downloading FFmpeg..."
-  git clone https://github.com/FFmpeg/FFmpeg.git ffmpeg_git.tmp
+  git clone https://github.com/FFmpeg/FFmpeg.git ffmpeg_git.tmp || (echo "need git installed? try $ sudo apt-get install git" && exit 1)
   mv ffmpeg_git.tmp ffmpeg_git
 fi
 cd ffmpeg_git
 echo "Updating to latest FFmpeg version..."
 git pull
-if [ ! -f "Makefile" ]; then
+if [ ! -f "config.mak" ]; then
   ./configure --enable-memalign-hack  --arch=x86   --target-os=mingw32    --cross-prefix=i686-w64-mingw32-  --pkg-config=pkg-config
 fi
 make
