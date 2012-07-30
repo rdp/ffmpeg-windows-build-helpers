@@ -1,11 +1,62 @@
 #!/usr/bin/env bash
 
-read -p '##################### Welcome ######################
-First we will download and compile a gcc cross-compiler (MinGW-w64).
-You will be prompted with a few questions as it installs (it takes quite awhile).
-Enter to continue:'
+yes_no_sel () {
+unset user_input
+local question="$1"
+shift
+while [[ "$user_input" != [YyNn] ]]; do
+  echo -n "$question"
+  read user_input
+  if [[ "$user_input" != [YyNn] ]]; then
+    clear; echo 'Your selection was not vaild, please try again.'; echo
+  fi
+done
+# downcase it
+user_input=`echo $user_input | tr '[A-Z]' '[a-z]'`
+}
 
-wget http://zeranoe.com/scripts/mingw_w64_build/mingw-w64-build-3.0.6
-chmod u+x mingw-w64-build-3.0.6
-./mingw-w64-build-3.0.6
+pwd=`pwd`
 
+intro () {
+  echo "##################### Welcome ######################
+  Welcome to the ffmpeg cross-compile builder-helper script.
+  Downloads and builds will be installed to directories within $pwd.
+  If this is not ok, then exit now, and cd to the directory where you'd
+  like them installed, then run this script again."
+
+  yes_no_sel "Is using $pwd as your scratch directory ok [y/n]?"
+  if [[ "$user_input" = "n" ]]; then
+    exit 1;
+  fi
+}
+
+install_cross_compiler() {
+  if [ -f "mingw-w64-i686/compiler.done" ]; then
+   echo "compiler already installed..."
+   return
+  fi
+  read -p 'First we will download and compile a gcc cross-compiler (MinGW-w64).
+  You will be prompted with a few questions as it installs (it takes quite awhile).
+  Enter to continue:'
+
+  wget http://zeranoe.com/scripts/mingw_w64_build/mingw-w64-build-3.0.6
+  chmod u+x mingw-w64-build-3.0.6
+  ./mingw-w64-build-3.0.6 || exit 1
+  clear
+  echo "Ok, done building MinGW-w64 cross-compiler..."
+  touch mingw-w64-i686/compiler.done
+}
+
+build_ffmpeg() {
+if [ ! -d "ffmpeg_git" ]; then
+  echo "Downloading FFmpeg..."
+  git clone https://github.com/FFmpeg/FFmpeg.git ffmpeg_git.tmp
+  mv ffmpeg_git.tmp ffmpeg_git
+fi
+}
+
+intro
+install_cross_compiler
+build_ffmpeg
+
+echo 'done'
