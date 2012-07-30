@@ -9,7 +9,6 @@
 libvpx, libfaac, All the current builds' 
 
 == optimized builds ==
--fomit-frame-pointer? http://freecode.com/articles/gcc-myths-and-facts a comment lists several...hmm...try them each out?
 
 profile guided? +- libx264
 
