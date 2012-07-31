@@ -138,10 +138,13 @@ generic_download_and_install() {
   cd ..
 }
 
-#http://downloads.sourceforge.net/faac/faac-1.28.tar.gz
 
 build_fdk_aac() {
   generic_download_and_install http://sourceforge.net/projects/opencore-amr/files/fdk-aac/fdk-aac-0.1.0.tar.gz/download fdk-aac-0.1.0
+}
+
+build_faac() {
+  generic_download_and_install http://downloads.sourceforge.net/faac/faac-1.28.tar.gz faac-1.28
 }
 
 build_lame() {
@@ -156,9 +159,9 @@ build_ffmpeg() {
   do_git_checkout https://github.com/FFmpeg/FFmpeg.git ffmpeg_git
   cd ffmpeg_git
   
-  config_options="--enable-memalign-hack --enable-gpl --enable-libx264 --enable-avisynth --arch=x86 --target-os=mingw32  --cross-prefix=../mingw-w64-i686/bin/i686-w64-mingw32- --pkg-config=pkg-config --enable-libmp3lame --enable-libfdk-aac"
+  config_options="--enable-memalign-hack --enable-gpl --enable-libx264 --enable-avisynth --arch=x86 --target-os=mingw32  --cross-prefix=../mingw-w64-i686/bin/i686-w64-mingw32- --pkg-config=pkg-config --enable-libmp3lame"
   if [[ "$non_free" = "y" ]]; then
-    config_options="$config_options --enable-nonfree --enable-libfdk-aac"
+    config_options="$config_options --enable-nonfree --enable-libfdk-aac --enable-libfaac"
   fi
   do_configure "$config_options"
   rm *.exe # just in case some library dependency was updated, force it to re-link
@@ -173,6 +176,7 @@ build_x264
 build_lame
 if [[ "$non_free" = "y" ]]; then
   build_fdk_aac
+  build_faac
 fi
 build_ffmpeg
 cd ..
