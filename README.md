@@ -15,6 +15,8 @@ $ wget https://raw.github.com/rdp/ffmpeg-windows-build-helpers/master/cross_comp
 $ chmod u+x cross_compile_ffmpeg.sh
 
 cd to where it is, if necessary, then run
+
 $ ./cross_compile_ffmpeg.sh
+
 And follow the prompts.
 Enjoy!
