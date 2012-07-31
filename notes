@@ -8,3 +8,7 @@ PKG_CONFIG_PATH=$HOME/win32_build/lib/pkgconfig ./configure --prefix=$HOME/win32
 
 -O3 not recommended for gcc 4.x gentoo [?] but maybe it would work... (it's already enabled in ffmpeg builds)
 
+I think -march=XXX is enough to get away from i386 default land...
+is ffmpeg internally using the right sse cpu instructions?
+
+libfaac:./configure --enable-static -disable-shared --prefix=/opt/ffmpegbuildarea/extralibs --host=x86_64-w64-mingw32 --with-mp4v2=no

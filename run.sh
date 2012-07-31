@@ -91,6 +91,14 @@ build_x264() {
   cd ..
 }
 
+build_lame() {
+  if [ ! -f lame-3.99.5/unpacked.successfully ]; then
+   wget http://sourceforge.net/projects/lame/files/lame/3.99/lame-3.99.5.tar.gz/download -O lame-3.99.5.tar.gz
+   tar -xzf lame-3.99.5.tar.gz || exit 1
+   touch lame-3.99.5/unpacked.successfully
+  fi
+  echo 'lameo'
+}
 
 build_ffmpeg() {
   do_git_checkout https://github.com/FFmpeg/FFmpeg.git ffmpeg_git
@@ -104,5 +112,6 @@ build_ffmpeg() {
 intro
 install_cross_compiler
 build_x264
-build_ffmpeg
-echo 'exiting run.sh'
+build_lame
+#build_ffmpeg
+echo 'done with ffmpeg cross compiler script'
