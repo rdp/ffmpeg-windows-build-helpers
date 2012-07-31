@@ -21,7 +21,7 @@ pwd="$pwd/sandbox_ffmpeg_build"
 intro() {
   echo "##################### Welcome ######################
   Welcome to the ffmpeg cross-compile builder-helper script.
-  Downloads and builds will be installed to directories within $pwd.
+  Downloads and builds will be installed to directories within $pwd
   If this is not ok, then exit now, and cd to the directory where you'd
   like them installed, then run this script again."
 
@@ -34,6 +34,7 @@ intro() {
 }
 
 install_cross_compiler() {
+  PATH="$PATH:$pwd/mingw-w64-i686/bin" # a few need it in the path...
   if [ -f "mingw-w64-i686/compiler.done" ]; then
    echo "MinGW-w64 compiler already installed..."
    return
@@ -68,7 +69,6 @@ do_git_checkout() {
   fi
 }
 
-
 do_configure() {
   configure_options="$1"
   pwd2=`pwd`
@@ -83,28 +83,30 @@ do_configure() {
   else
     echo "already configured $english_name" 
   fi
-  echo "making $english_name"
-  make || exit 1
+}
+
+do_make_install() {
+  make || (echo "make failed" && exit 1)
+  make install || (echo "make install failed" && exit 1)
 }
 
 build_x264() {
   do_git_checkout "http://repo.or.cz/r/x264.git" "x264"
   cd x264
   do_configure "--host=i686-w64-mingw32 --enable-static --cross-prefix=../mingw-w64-i686/bin/i686-w64-mingw32- --prefix=../mingw-w64-i686/i686-w64-mingw32 --enable-win32thread"
-  make
-  make install
+  do_make_install
   cd ..
 }
-
 
 download_and_unpack_file() {
   url="$1"
   output_name="$2"
   output_dir="$3"
   if [ ! -f "$output_dir/unpacked.successfully" ]; then
-   wget "$url" -O "$output_name" || exit 1
-   tar -xzf "$output_name" || exit 1
-   touch "$output_dir/unpacked.successfully"
+    wget "$url" -O "$output_name" || exit 1
+    tar -xzf "$output_name" || exit 1
+    touch "$output_dir/unpacked.successfully"
+    rm "$output_name"
   fi
 }
 
@@ -112,14 +114,15 @@ build_fdk_aac() {
   download_and_unpack_file http://sourceforge.net/projects/opencore-amr/files/fdk-aac/fdk-aac-0.1.0.tar.gz/download fdk-aac-0.1.0.tar.gz fdk-aac-0.1.0
   cd fdk-aac-0.1.0
   do_configure "--host=i686-w64-mingw32 --prefix=$pwd/mingw-w64-i686/i686-w64-mingw32"
+  do_make_install
+  cd ..
 }
 
 build_lame() {
   download_and_unpack_file http://sourceforge.net/projects/lame/files/lame/3.99/lame-3.99.5.tar.gz/download lame-3.99.5.tar.gz lame-3.99.5
   cd lame-3.99.5
   do_configure "--host=i686-w64-mingw32 --prefix=$pwd/mingw-w64-i686/i686-w64-mingw32 --enable-static --disable-shared"
-  make
-  make install 
+  do_make_install
   cd ..
 }
 
@@ -127,12 +130,12 @@ build_ffmpeg() {
   do_git_checkout https://github.com/FFmpeg/FFmpeg.git ffmpeg_git
   cd ffmpeg_git
   do_configure "--enable-memalign-hack --enable-gpl --enable-libx264 --enable-avisynth --arch=x86 --target-os=mingw32  --cross-prefix=../mingw-w64-i686/bin/i686-w64-mingw32- --pkg-config=pkg-config --enable-libmp3lame"
-  make
+  make || (echo "make ffmpeg failed" && exit 1)
   cd ..
   echo 'you can find binaries in ffmpeg_git/ff*.exe, for instance ffmpeg_git/ffmpeg.exe'
 }
 
-intro # always run the intro, since it adjust paths
+intro # remember to always run the intro, since it adjust paths
 install_cross_compiler
 build_x264
 build_lame
