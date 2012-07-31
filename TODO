@@ -1,14 +1,8 @@
-== add more libraries==
- x264, lame
-
-== prompt for non free ==
---enable-libfdk-aac "said to be very high quality"--enable-libmp3lame
-
-do the prompts all up front, so that they can let it build over night [yikes]
+both 32 and 64-bits
 
 == more libraries ==
 
-libvpx, libfaac, All the current builds' 
+libvpx, All the current builds'  (faac? the other aac one?)
 
 == optimized builds ==
 
