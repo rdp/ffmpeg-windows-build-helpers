@@ -70,12 +70,13 @@ do_git_checkout() {
 
 
 do_configure() {
-  configure_options="$1"
+  configure_options="already_configured_$1"
   pwd2=`pwd`
   english_name=`basename $pwd2`
   touch_name=`echo -- $configure_options | tr '[/\-\. ]' '_'` # sanitize
   if [ ! -f "$touch_name" ]; then
     echo "configuring $english_name as $configure_options"
+    rm already_configured* # any old configuration options, since they'll be out of date after the next configure
     ./configure $configure_options || exit 1
     touch -- "$touch_name"
   else
