@@ -145,7 +145,7 @@ build_fdk_aac() {
 }
 
 build_faac() {
-  generic_download_and_install http://downloads.sourceforge.net/faac/faac-1.28.tar.gz faac-1.28
+  generic_download_and_install http://downloads.sourceforge.net/faac/faac-1.28.tar.gz faac-1.28 "--with-mp4v2=no"
 }
 
 build_lame() {
@@ -158,7 +158,7 @@ build_ffmpeg() {
   
   config_options="--enable-memalign-hack --enable-gpl --enable-libx264 --enable-avisynth --arch=x86 --target-os=mingw32  --cross-prefix=../mingw-w64-i686/bin/i686-w64-mingw32- --pkg-config=pkg-config --enable-libmp3lame"
   if [[ "$non_free" = "y" ]]; then
-    config_options="$config_options --enable-nonfree --enable-libfdk-aac --enable-libfaac"
+    config_options="$config_options --enable-nonfree --enable-libfdk-aac"
   fi
   do_configure "$config_options"
   rm *.exe # just in case some library dependency was updated, force it to re-link
@@ -173,7 +173,7 @@ build_x264
 build_lame
 if [[ "$non_free" = "y" ]]; then
   build_fdk_aac
-  build_faac
+#  build_faac
 fi
 build_ffmpeg
 cd ..
