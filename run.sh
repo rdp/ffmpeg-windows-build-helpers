@@ -16,18 +16,21 @@ user_input=`echo $user_input | tr '[A-Z]' '[a-z]'`
 }
 
 pwd=`pwd`
+pwd="$pwd/sandbox_ffmpeg_build"
 
-intro () {
+intro() {
   echo "##################### Welcome ######################
   Welcome to the ffmpeg cross-compile builder-helper script.
   Downloads and builds will be installed to directories within $pwd.
   If this is not ok, then exit now, and cd to the directory where you'd
   like them installed, then run this script again."
 
-  yes_no_sel "Is using $pwd as your scratch directory ok [y/n]?"
+  yes_no_sel "Is ./sandbox_ffmpeg_build ok [y/n]?"
   if [[ "$user_input" = "n" ]]; then
     exit 1;
   fi
+  mkdir -p "$pwd"
+  cd "$pwd"
 }
 
 install_cross_compiler() {
@@ -97,21 +100,26 @@ build_lame() {
    tar -xzf lame-3.99.5.tar.gz || exit 1
    touch lame-3.99.5/unpacked.successfully
   fi
-  echo 'lameo'
+  cd lame-3.99.5
+  do_configure "--host=i686-w64-mingw32 --prefix=$pwd/mingw-w64-i686/i686-w64-mingw32 --enable-static --disable-shared"
+  make
+  make install 
+  cd ..
 }
 
 build_ffmpeg() {
   do_git_checkout https://github.com/FFmpeg/FFmpeg.git ffmpeg_git
   cd ffmpeg_git
-  do_configure "--enable-memalign-hack --enable-gpl --enable-libx264 --enable-avisynth --arch=x86 --target-os=mingw32  --cross-prefix=../mingw-w64-i686/bin/i686-w64-mingw32- --pkg-config=pkg-config"
+  do_configure "--enable-memalign-hack --enable-gpl --enable-libx264 --enable-avisynth --arch=x86 --target-os=mingw32  --cross-prefix=../mingw-w64-i686/bin/i686-w64-mingw32- --pkg-config=pkg-config --enable-libmp3lame"
   make
   cd ..
   echo 'you can find binaries in ffmpeg_git/ff*.exe, for instance ffmpeg_git/ffmpeg.exe'
 }
 
-intro
+intro # always run the intro, since it adjust paths
 install_cross_compiler
 build_x264
 build_lame
-#build_ffmpeg
+build_ffmpeg
+cd ..
 echo 'done with ffmpeg cross compiler script'
