@@ -71,4 +71,4 @@ intro
 install_cross_compiler
 build_ffmpeg
 
-echo 'done'
+echo 'done -- you can find your binaries in ffmpeg_git/*.exe'
