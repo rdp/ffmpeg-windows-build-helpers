@@ -35,7 +35,9 @@ intro() {
 The resultant binary will not be distributable, but might be useful for in-house use. Include non-free [y/n]?"
   non_free="$user_input" # save it away
   yes_no_sel "Would you like to compile with -march=native, which can get a few percent speedup
-but also makes it so you cannot distribute the binary to machines of other architecture/cpu [y/n]?"
+but also makes it so you cannot distribute the binary to machines of other architecture/cpu 
+(also note that you should only enable this if compiling on a VM on the same box you intend to target, otherwise
+it makes no sense)  Use march=native? [y/n]?" 
   if [[ "$user_input" = "y" ]]; then
     CFLAGS="$CFLAGS -march=native -pipe"
   fi
@@ -87,7 +89,7 @@ do_configure() {
   configure_options="$1"
   pwd2=`pwd`
   english_name=`basename $pwd2`
-  touch_name=`echo -- $configure_options | /usr/bin/env md5sum` # sanitize, disallow too long of length
+  touch_name=`echo -- $configure_options $CFLAGS | /usr/bin/env md5sum` # sanitize, disallow too long of length
   touch_name="already_configured_$touch_name" # add something so we can delete it easily
   if [ ! -f "$touch_name" ]; then
     echo "configuring $english_name as $configure_options"
