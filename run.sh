@@ -42,46 +42,67 @@ install_cross_compiler() {
   wget http://zeranoe.com/scripts/mingw_w64_build/mingw-w64-build-3.0.6 -O mingw-w64-build-3.0.6
   chmod u+x mingw-w64-build-3.0.6
   ./mingw-w64-build-3.0.6 || exit 1
+  touch mingw-w64-i686/compiler.done
   clear
   echo "Ok, done building MinGW-w64 cross-compiler..."
-  touch mingw-w64-i686/compiler.done
+}
+
+do_git_checkout() {
+  repo_url="$1"
+  to_dir="$2"
+  shift
+  if [ ! -d $to_dir ]; then
+    echo "Downloading (via git clone) $to_dir"
+    # prevent partial checkouts by renaming it only after success
+    git clone $repo_url $to_dir.tmp
+    mv $to_dir.tmp $to_dir
+    echo "done downloading $to_dir"
+  else
+    cd $to_dir
+    echo "Updating to latest $to_dir version..."
+    git pull
+    cd ..
+  fi
+}
+
+
+do_configure() {
+  configure_options="$1"
+  pwd2=`pwd`
+  english_name=`basename $pwd2`
+  touch_name=`echo -- $configure_options | tr '[/\-\. ]' '_'` # sanitize
+  if [ ! -f "$touch_name" ]; then
+    echo "configuring $english_name as $configure_options"
+    ./configure $configure_options
+    touch -- "$touch_name"
+  else
+    echo "already configured $english_name" 
+  fi
+  echo "making $english_name"
+  make
 }
 
 build_x264() {
-  
-
-
+  do_git_checkout "http://repo.or.cz/r/x264.git" "x264"
+  cd x264
+  do_configure "--host=i686-w64-mingw32 --enable-static --cross-prefix=../mingw-w64-i686/bin/i686-w64-mingw32- --prefix=../mingw-w64-i686/i686-w64-mingw32 --enable-win32thread"
+  make
+  make install
+  cd ..
 }
 
 
-
 build_ffmpeg() {
-
-if [ ! -d "ffmpeg_git" ]; then
-  echo "Downloading FFmpeg..."
-  git clone https://github.com/FFmpeg/FFmpeg.git ffmpeg_git.tmp || (echo "need git installed? try $ sudo apt-get install git" && exit 1)
-  mv ffmpeg_git.tmp ffmpeg_git
+  do_git_checkout https://github.com/FFmpeg/FFmpeg.git ffmpeg_git
   cd ffmpeg_git
-else
-  cd ffmpeg_git
-  echo "Updating to latest FFmpeg version..."
-  git pull
-fi
-
-# be able to not reconfigure if settings haven't changed
-configure_options="--enable-memalign-hack --enable-avisynth --arch=x86   --target-os=mingw32    --cross-prefix=i686-w64-mingw32-  --pkg-config=pkg-config"
-
-if [ ! -f "$configure_options" ]; then
-  echo "configuring FFmpeg..."
-  ./configure $configure_options 
-  touch "$configure_options"
-fi
-echo "making FFmpeg"
-make
-cd ..
-echo 'done -- you can find your binaries in ffmpeg_git/*.exe'
+  do_configure "--enable-memalign-hack --enable-avisynth --arch=x86   --target-os=mingw32    --cross-prefix=i686-w64-mingw32-  --pkg-config=pkg-config"
+  make
+  cd ..
+  echo 'you can find your binaries in ffmpeg_git/*.exe'
 }
 
 intro
 install_cross_compiler
+build_x264
 build_ffmpeg
+echo 'exiting run.sh'

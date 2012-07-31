@@ -1,6 +1,10 @@
 appears you don't need -fomit-frame-pointer on gcc 4.6+:
   http://stackoverflow.com/questions/6099919/why-does-gcc-drop-the-frame-pointer-on-64-bit
 
--O3 not recommended for gcc 4.x gentoo [?] but maybe it would work...
-
 libfaac is supposed to be poor quality, libaacplus "up there" I believe, but somebody said libfdk-aac was "super high quality" so I must trust them, right? :)
+
+libx264 compilation by one guy:
+PKG_CONFIG_PATH=$HOME/win32_build/lib/pkgconfig ./configure --prefix=$HOME/win32_build --cross-prefix=i586-mingw32msvc- --extra-cflags="-I$HOME/win32_build/include -march=pentium3" --extra-ldflags="-L$HOME/win32_build/lib" --qtsdk=$HOME/qtsdk --host=i586-mingw32msvc
+
+-O3 not recommended for gcc 4.x gentoo [?] but maybe it would work... (it's already enabled in ffmpeg builds)
+
