@@ -144,6 +144,10 @@ build_fdk_aac() {
   generic_download_and_install http://sourceforge.net/projects/opencore-amr/files/fdk-aac/fdk-aac-0.1.0.tar.gz/download fdk-aac-0.1.0
 }
 
+build_vo_aacenc() {
+  generic_download_and_install http://sourceforge.net/projects/opencore-amr/files/vo-aacenc/vo-aacenc-0.1.2.tar.gz/download vo-aacenc-0.1.2
+}
+
 build_faac() {
   generic_download_and_install http://downloads.sourceforge.net/faac/faac-1.28.tar.gz faac-1.28 "--with-mp4v2=no"
 }
@@ -158,7 +162,9 @@ build_ffmpeg() {
   
   config_options="--enable-memalign-hack --enable-gpl --enable-libx264 --enable-avisynth --arch=x86 --target-os=mingw32  --cross-prefix=../mingw-w64-i686/bin/i686-w64-mingw32- --pkg-config=pkg-config --enable-libmp3lame"
   if [[ "$non_free" = "y" ]]; then
-    config_options="$config_options --enable-nonfree --enable-libfdk-aac"
+    config_options="$config_options --enable-libvo-aacenc --enable-nonfree --enable-libfdk-aac" # --enable-libfaac -- faac too poor quality and becomes the default
+  else
+    config_options="$config_options --enable-libvo-aacenc"
   fi
   do_configure "$config_options"
   rm *.exe # just in case some library dependency was updated, force it to re-link
@@ -171,10 +177,13 @@ intro # remember to always run the intro, since it adjust paths
 install_cross_compiler
 build_x264
 build_lame
+build_vo_aacenc
 if [[ "$non_free" = "y" ]]; then
   build_fdk_aac
 #  build_faac
-fi
+else
+  build_vo_aacenc
+end
 build_ffmpeg
 cd ..
 echo 'done with ffmpeg cross compiler script'
