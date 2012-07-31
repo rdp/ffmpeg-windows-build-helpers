@@ -12,3 +12,7 @@ I think -march=XXX is enough to get away from i386 default land...
 is ffmpeg internally using the right sse cpu instructions?
 
 libfaac:./configure --enable-static -disable-shared --prefix=/opt/ffmpegbuildarea/extralibs --host=x86_64-w64-mingw32 --with-mp4v2=no
+
+libx264 uses this... : -Wshadow -O3 -ffast-math -m32  -Wall -I. -I. -march=i686 -mfpmath=sse -msse -std=gnu99 -fomit-frame-pointer -fno-tree-vectorize -fno-zero-initialized-in-bss   -c -o common/pixel.o common/pixel.c
+
+

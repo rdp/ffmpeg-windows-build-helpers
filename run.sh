@@ -76,13 +76,14 @@ do_configure() {
   configure_options="$1"
   pwd2=`pwd`
   english_name=`basename $pwd2`
-  touch_name=`echo -- $configure_options | tr '[/\-\. ]' '_'` # sanitize
-  touch_name="already_configured_$touch_name"
+  touch_name=`echo -- $configure_options | /usr/bin/env md5sum` # sanitize, disallow too long of length
+  touch_name="already_configured_$touch_name" # add something so we can delete it easily
   if [ ! -f "$touch_name" ]; then
     echo "configuring $english_name as $configure_options"
     rm -f already_configured* # any old configuration options, since they'll be out of date after the next configure
     ./configure $configure_options || exit 1
     touch -- "$touch_name"
+    make clean # just in case
   else
     echo "already configured $english_name" 
   fi
@@ -116,7 +117,7 @@ download_and_unpack_file() {
 build_fdk_aac() {
   download_and_unpack_file http://sourceforge.net/projects/opencore-amr/files/fdk-aac/fdk-aac-0.1.0.tar.gz/download fdk-aac-0.1.0.tar.gz fdk-aac-0.1.0
   cd fdk-aac-0.1.0
-  do_configure "--host=i686-w64-mingw32 --prefix=$pwd/mingw-w64-i686/i686-w64-mingw32"
+  do_configure "--host=i686-w64-mingw32 --prefix=$pwd/mingw-w64-i686/i686-w64-mingw32 --disable-shared" # disable-shared to avoid confusion...
   do_make_install
   cd ..
 }
@@ -138,9 +139,10 @@ build_ffmpeg() {
     config_options="$config_options --enable-nonfree --enable-libfdk-aac"
   fi
   do_configure "$config_options"
+  rm *.exe # just in case some library dependency was updated, force it to re-link
   make || (echo "make ffmpeg failed" && exit 1)
   cd ..
-  echo 'you can find binaries in ffmpeg_git/ff*.exe, for instance ffmpeg_git/ffmpeg.exe'
+  echo "you will find binaries in $pwd/ffmpeg_git/ff*.exe, for instance ffmpeg.exe"
 }
 
 intro # remember to always run the intro, since it adjust paths
