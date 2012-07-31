@@ -47,7 +47,16 @@ install_cross_compiler() {
   touch mingw-w64-i686/compiler.done
 }
 
+build_x264() {
+  
+
+
+}
+
+
+
 build_ffmpeg() {
+
 if [ ! -d "ffmpeg_git" ]; then
   echo "Downloading FFmpeg..."
   git clone https://github.com/FFmpeg/FFmpeg.git ffmpeg_git.tmp || (echo "need git installed? try $ sudo apt-get install git" && exit 1)
@@ -58,17 +67,21 @@ else
   echo "Updating to latest FFmpeg version..."
   git pull
 fi
-if [ ! -f "config.mak" ]; then
+
+# be able to not reconfigure if settings haven't changed
+configure_options="--enable-memalign-hack --enable-avisynth --arch=x86   --target-os=mingw32    --cross-prefix=i686-w64-mingw32-  --pkg-config=pkg-config"
+
+if [ ! -f "$configure_options" ]; then
   echo "configuring FFmpeg..."
-  ./configure --enable-memalign-hack --enable-avisynth --arch=x86   --target-os=mingw32    --cross-prefix=i686-w64-mingw32-  --pkg-config=pkg-config
+  ./configure $configure_options 
+  touch "$configure_options"
 fi
 echo "making FFmpeg"
 make
 cd ..
+echo 'done -- you can find your binaries in ffmpeg_git/*.exe'
 }
 
 intro
 install_cross_compiler
 build_ffmpeg
-
-echo 'done -- you can find your binaries in ffmpeg_git/*.exe'
