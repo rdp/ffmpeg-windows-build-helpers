@@ -127,12 +127,21 @@ download_and_unpack_file() {
   fi
 }
 
-build_fdk_aac() {
-  download_and_unpack_file http://sourceforge.net/projects/opencore-amr/files/fdk-aac/fdk-aac-0.1.0.tar.gz/download fdk-aac-0.1.0.tar.gz fdk-aac-0.1.0
-  cd fdk-aac-0.1.0
-  do_configure "--host=i686-w64-mingw32 --prefix=$pwd/mingw-w64-i686/i686-w64-mingw32 --disable-shared" # disable-shared to avoid confusion...
+generic_download_and_install() {
+  local url="$1"
+  local english_name="$2" 
+  local url_filename="$2.tar.gz"
+  download_and_unpack_file $url $url_filename $english_name
+  cd $english_name
+  do_configure "--host=i686-w64-mingw32 --prefix=$pwd/mingw-w64-i686/i686-w64-mingw32 --disable-shared --enable-static"
   do_make_install
   cd ..
+}
+
+#http://downloads.sourceforge.net/faac/faac-1.28.tar.gz
+
+build_fdk_aac() {
+  generic_download_and_install http://sourceforge.net/projects/opencore-amr/files/fdk-aac/fdk-aac-0.1.0.tar.gz/download fdk-aac-0.1.0
 }
 
 build_lame() {

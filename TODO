@@ -12,4 +12,9 @@ profile guided? +- libx264
 
 other "-mtune" like options? fastmath
 is there a way to specify to swscale "trust me, I'll just always have these options available" or the like? Or within ffmpeg?
-does mplayer builds use any others?
+does mplayer builds use any others? what did his options do? Do I need anything like that?
+
+== random ==
+
+make -j 2 (more than one core)
+test on mac LOL
