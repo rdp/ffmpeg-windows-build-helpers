@@ -70,13 +70,14 @@ do_git_checkout() {
 
 
 do_configure() {
-  configure_options="already_configured_$1"
+  configure_options="$1"
   pwd2=`pwd`
   english_name=`basename $pwd2`
   touch_name=`echo -- $configure_options | tr '[/\-\. ]' '_'` # sanitize
+  touch_name="already_configured_$touch_name"
   if [ ! -f "$touch_name" ]; then
     echo "configuring $english_name as $configure_options"
-    rm already_configured* # any old configuration options, since they'll be out of date after the next configure
+    rm -f already_configured* # any old configuration options, since they'll be out of date after the next configure
     ./configure $configure_options || exit 1
     touch -- "$touch_name"
   else
@@ -95,12 +96,26 @@ build_x264() {
   cd ..
 }
 
-build_lame() {
-  if [ ! -f lame-3.99.5/unpacked.successfully ]; then
-   wget http://sourceforge.net/projects/lame/files/lame/3.99/lame-3.99.5.tar.gz/download -O lame-3.99.5.tar.gz
-   tar -xzf lame-3.99.5.tar.gz || exit 1
-   touch lame-3.99.5/unpacked.successfully
+
+download_and_unpack_file() {
+  url="$1"
+  output_name="$2"
+  output_dir="$3"
+  if [ ! -f "$output_dir/unpacked.successfully" ]; then
+   wget "$url" -O "$output_name" || exit 1
+   tar -xzf "$output_name" || exit 1
+   touch "$output_dir/unpacked.successfully"
   fi
+}
+
+build_fdk_aac() {
+  download_and_unpack_file http://sourceforge.net/projects/opencore-amr/files/fdk-aac/fdk-aac-0.1.0.tar.gz/download fdk-aac-0.1.0.tar.gz fdk-aac-0.1.0
+  cd fdk-aac-0.1.0
+  do_configure "--host=i686-w64-mingw32 --prefix=$pwd/mingw-w64-i686/i686-w64-mingw32"
+}
+
+build_lame() {
+  download_and_unpack_file http://sourceforge.net/projects/lame/files/lame/3.99/lame-3.99.5.tar.gz/download lame-3.99.5.tar.gz lame-3.99.5
   cd lame-3.99.5
   do_configure "--host=i686-w64-mingw32 --prefix=$pwd/mingw-w64-i686/i686-w64-mingw32 --enable-static --disable-shared"
   make
@@ -121,6 +136,7 @@ intro # always run the intro, since it adjust paths
 install_cross_compiler
 build_x264
 build_lame
+build_fdk_aac
 build_ffmpeg
 cd ..
 echo 'done with ffmpeg cross compiler script'
