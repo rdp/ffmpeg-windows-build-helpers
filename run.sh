@@ -32,7 +32,7 @@ intro () {
 
 install_cross_compiler() {
   if [ -f "mingw-w64-i686/compiler.done" ]; then
-   echo "compiler already installed..."
+   echo "MinGW-w64 compiler already installed..."
    return
   fi
   read -p 'First we will download and compile a gcc cross-compiler (MinGW-w64).
@@ -54,7 +54,7 @@ do_git_checkout() {
   if [ ! -d $to_dir ]; then
     echo "Downloading (via git clone) $to_dir"
     # prevent partial checkouts by renaming it only after success
-    git clone $repo_url $to_dir.tmp
+    git clone $repo_url $to_dir.tmp || exit 1
     mv $to_dir.tmp $to_dir
     echo "done downloading $to_dir"
   else
@@ -73,13 +73,13 @@ do_configure() {
   touch_name=`echo -- $configure_options | tr '[/\-\. ]' '_'` # sanitize
   if [ ! -f "$touch_name" ]; then
     echo "configuring $english_name as $configure_options"
-    ./configure $configure_options
+    ./configure $configure_options || exit 1
     touch -- "$touch_name"
   else
     echo "already configured $english_name" 
   fi
   echo "making $english_name"
-  make
+  make || exit 1
 }
 
 build_x264() {
@@ -95,10 +95,10 @@ build_x264() {
 build_ffmpeg() {
   do_git_checkout https://github.com/FFmpeg/FFmpeg.git ffmpeg_git
   cd ffmpeg_git
-  do_configure "--enable-memalign-hack --enable-avisynth --arch=x86   --target-os=mingw32    --cross-prefix=i686-w64-mingw32-  --pkg-config=pkg-config"
+  do_configure "--enable-memalign-hack --enable-gpl --enable-libx264 --enable-avisynth --arch=x86 --target-os=mingw32  --cross-prefix=../mingw-w64-i686/bin/i686-w64-mingw32- --pkg-config=pkg-config"
   make
   cd ..
-  echo 'you can find your binaries in ffmpeg_git/*.exe'
+  echo 'you can find binaries in ffmpeg_git/ff*.exe, for instance ffmpeg_git/ffmpeg.exe'
 }
 
 intro
