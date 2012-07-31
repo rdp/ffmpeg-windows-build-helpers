@@ -1,3 +1,6 @@
+
+enable all instruction subsets supported by the local machine (hence the result might not run on different machines)
+
 appears you don't need -fomit-frame-pointer on gcc 4.6+:
   http://stackoverflow.com/questions/6099919/why-does-gcc-drop-the-frame-pointer-on-64-bit
 
@@ -15,4 +18,4 @@ libfaac:./configure --enable-static -disable-shared --prefix=/opt/ffmpegbuildare
 
 libx264 uses this... : -Wshadow -O3 -ffast-math -m32  -Wall -I. -I. -march=i686 -mfpmath=sse -msse -std=gnu99 -fomit-frame-pointer -fno-tree-vectorize -fno-zero-initialized-in-bss   -c -o common/pixel.o common/pixel.c
 
-
+ specifying -march=cpu-type implies -mtune=cpu-type.
