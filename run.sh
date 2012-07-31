@@ -31,10 +31,13 @@ intro() {
   fi
   mkdir -p "$pwd"
   cd "$pwd"
+  yes_no_sel "Would you like to include non-free (non GPL compatible) libraries, like certain high quality aac encoders
+The resultant binary will not be distributable, but might be useful for in-house use. Include non-free [y/n]?"
+  non_free="$user_input" # save it away
 }
 
 install_cross_compiler() {
-  PATH="$PATH:$pwd/mingw-w64-i686/bin" # a few need it in the path...
+  PATH="$PATH:$pwd/mingw-w64-i686/bin" # a few need it available in the path...
   if [ -f "mingw-w64-i686/compiler.done" ]; then
    echo "MinGW-w64 compiler already installed..."
    return
@@ -129,7 +132,12 @@ build_lame() {
 build_ffmpeg() {
   do_git_checkout https://github.com/FFmpeg/FFmpeg.git ffmpeg_git
   cd ffmpeg_git
-  do_configure "--enable-memalign-hack --enable-gpl --enable-libx264 --enable-avisynth --arch=x86 --target-os=mingw32  --cross-prefix=../mingw-w64-i686/bin/i686-w64-mingw32- --pkg-config=pkg-config --enable-libmp3lame"
+  
+  config_options="--enable-memalign-hack --enable-gpl --enable-libx264 --enable-avisynth --arch=x86 --target-os=mingw32  --cross-prefix=../mingw-w64-i686/bin/i686-w64-mingw32- --pkg-config=pkg-config --enable-libmp3lame --enable-libfdk-aac"
+  if [[ "$non_free" = "y" ]]; then
+    config_options="$config_options --enable-nonfree --enable-libfdk-aac"
+  fi
+  do_configure "$config_options"
   make || (echo "make ffmpeg failed" && exit 1)
   cd ..
   echo 'you can find binaries in ffmpeg_git/ff*.exe, for instance ffmpeg_git/ffmpeg.exe'
@@ -139,7 +147,9 @@ intro # remember to always run the intro, since it adjust paths
 install_cross_compiler
 build_x264
 build_lame
-build_fdk_aac
+if [[ "$non_free" = "y" ]]; then
+  build_fdk_aac
+fi
 build_ffmpeg
 cd ..
 echo 'done with ffmpeg cross compiler script'
