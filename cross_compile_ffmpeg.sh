@@ -160,7 +160,7 @@ build_ffmpeg() {
   do_git_checkout https://github.com/FFmpeg/FFmpeg.git ffmpeg_git
   cd ffmpeg_git
   
-  config_options="--enable-memalign-hack --enable-gpl --enable-libx264 --enable-avisynth --arch=x86 --target-os=mingw32  --cross-prefix=../mingw-w64-i686/bin/i686-w64-mingw32- --pkg-config=pkg-config --enable-libmp3lame"
+  config_options="--enable-memalign-hack --enable-gpl --enable-libx264 --enable-avisynth --arch=x86 --target-os=mingw32  --cross-prefix=../mingw-w64-i686/bin/i686-w64-mingw32- --pkg-config=pkg-config --enable-libmp3lame --enable-version3"
   if [[ "$non_free" = "y" ]]; then
     config_options="$config_options --enable-libvo-aacenc --enable-nonfree --enable-libfdk-aac" # --enable-libfaac -- faac too poor quality and becomes the default
   else
@@ -182,8 +182,7 @@ if [[ "$non_free" = "y" ]]; then
   build_fdk_aac
 #  build_faac
 else
-  build_vo_aacenc
-end
+fi
 build_ffmpeg
 cd ..
 echo 'done with ffmpeg cross compiler script'
