@@ -103,8 +103,8 @@ do_configure() {
 }
 
 do_make_install() {
-  make || (echo "make failed" && exit 1)
-  make install || (echo "make install failed" && exit 1)
+  make || exit 1
+  make install || exit 1
 }
 
 build_x264() {
@@ -131,9 +131,10 @@ generic_download_and_install() {
   local url="$1"
   local english_name="$2" 
   local url_filename="$2.tar.gz"
+  local extra_configure_options="$3"
   download_and_unpack_file $url $url_filename $english_name
   cd $english_name
-  do_configure "--host=i686-w64-mingw32 --prefix=$pwd/mingw-w64-i686/i686-w64-mingw32 --disable-shared --enable-static"
+  do_configure "--host=i686-w64-mingw32 --prefix=$pwd/mingw-w64-i686/i686-w64-mingw32 --disable-shared --enable-static $extra_configure_options"
   do_make_install
   cd ..
 }
@@ -148,11 +149,7 @@ build_faac() {
 }
 
 build_lame() {
-  download_and_unpack_file http://sourceforge.net/projects/lame/files/lame/3.99/lame-3.99.5.tar.gz/download lame-3.99.5.tar.gz lame-3.99.5
-  cd lame-3.99.5
-  do_configure "--host=i686-w64-mingw32 --prefix=$pwd/mingw-w64-i686/i686-w64-mingw32 --enable-static --disable-shared"
-  do_make_install
-  cd ..
+  generic_download_and_install http://sourceforge.net/projects/lame/files/lame/3.99/lame-3.99.5.tar.gz/download lame-3.99.5
 }
 
 build_ffmpeg() {
@@ -165,7 +162,7 @@ build_ffmpeg() {
   fi
   do_configure "$config_options"
   rm *.exe # just in case some library dependency was updated, force it to re-link
-  make || (echo "make ffmpeg failed" && exit 1)
+  make || exit 1
   cd ..
   echo "you will find binaries in $pwd/ffmpeg_git/ff*.exe, for instance ffmpeg.exe"
 }
