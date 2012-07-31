@@ -49,7 +49,13 @@ install_cross_compiler() {
   wget http://zeranoe.com/scripts/mingw_w64_build/mingw-w64-build-3.0.6 -O mingw-w64-build-3.0.6
   chmod u+x mingw-w64-build-3.0.6
   ./mingw-w64-build-3.0.6 || exit 1
-  touch mingw-w64-i686/compiler.done
+  cd mingw-w64-i686
+    touch compiler.done
+    rm -rf build
+    rm -rf packages
+    rm -rf source
+  cd ..
+  
   clear
   echo "Ok, done building MinGW-w64 cross-compiler..."
 }
