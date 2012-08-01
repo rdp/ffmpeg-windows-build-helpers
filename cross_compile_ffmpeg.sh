@@ -160,11 +160,11 @@ build_ffmpeg() {
   do_git_checkout https://github.com/FFmpeg/FFmpeg.git ffmpeg_git
   cd ffmpeg_git
   
-  config_options="--enable-memalign-hack --enable-gpl --enable-libx264 --enable-avisynth --arch=x86 --target-os=mingw32  --cross-prefix=../mingw-w64-i686/bin/i686-w64-mingw32- --pkg-config=pkg-config --enable-libmp3lame --enable-version3"
+  config_options="--enable-memalign-hack --enable-gpl --enable-libx264 --enable-avisynth --arch=x86 --target-os=mingw32  --cross-prefix=../mingw-w64-i686/bin/i686-w64-mingw32- --pkg-config=pkg-config --enable-libmp3lame --enable-version3 --enable-libvo-aacenc"
   if [[ "$non_free" = "y" ]]; then
-    config_options="$config_options --enable-libvo-aacenc --enable-nonfree --enable-libfdk-aac" # --enable-libfaac -- faac too poor quality and becomes the default
+    config_options="$config_options --enable-nonfree --enable-libfdk-aac" # --enable-libfaac -- faac too poor quality and becomes the default -- add it in and uncomment the build_faac line to include it
   else
-    config_options="$config_options --enable-libvo-aacenc"
+    config_options="$config_options"
   fi
   do_configure "$config_options"
   rm *.exe # just in case some library dependency was updated, force it to re-link
