@@ -44,9 +44,8 @@ it makes no sense)  Use march=native? [y/n]?"
 }
 
 install_cross_compiler() {
-  PATH="$PATH:$pwd/mingw-w64-i686/bin" # a few need it available in the path...
-  if [ -f "mingw-w64-i686/compiler.done" ]; then
-   echo "MinGW-w64 compiler already installed..."
+  if [ -f "mingw-w64-i686/compiler.done" || -f "mingw-w64-x86_64/compiler.done" ]; then
+   echo "MinGW-w64 compiler of some type already installed, not re-installing..."
    return
   fi
   read -p 'First we will download and compile a gcc cross-compiler (MinGW-w64).
@@ -56,13 +55,23 @@ install_cross_compiler() {
   wget http://zeranoe.com/scripts/mingw_w64_build/mingw-w64-build-3.0.6 -O mingw-w64-build-3.0.6
   chmod u+x mingw-w64-build-3.0.6
   ./mingw-w64-build-3.0.6 || exit 1
-  cd mingw-w64-i686
+  if [ -d mingw-w64-x86_64 ]; then
+    cd mingw-w64-x86_64
+    touch compiler.done
+    rm -rf build # LODO not have to cleanup here?
+    rm -rf packages
+    rm -rf source
+    cd ..
+  fi
+  if [ -d mingw-w64-i686 ]; then
+    cd mingw-w64-i686
     touch compiler.done
     rm -rf build
     rm -rf packages
     rm -rf source
-  cd ..
-  
+    cd ..
+  fi
+  PATH="$PATH:$pwd/mingw-w64-i686/bin:$pwd/mingw-w64-x86_64/bin" # a few need it in the path...
   clear
   echo "Ok, done building MinGW-w64 cross-compiler..."
 }
@@ -110,7 +119,7 @@ do_make_install() {
 build_x264() {
   do_git_checkout "http://repo.or.cz/r/x264.git" "x264"
   cd x264
-  do_configure "--host=i686-w64-mingw32 --enable-static --cross-prefix=../mingw-w64-i686/bin/i686-w64-mingw32- --prefix=../mingw-w64-i686/i686-w64-mingw32 --enable-win32thread"
+  do_configure "--host=$host_target --enable-static --cross-prefix=$cross_prefix --prefix=../mingw-w64-i686/$host_target --enable-win32thread"
   do_make_install
   cd ..
 }
@@ -134,11 +143,10 @@ generic_download_and_install() {
   local extra_configure_options="$3"
   download_and_unpack_file $url $url_filename $english_name
   cd $english_name
-  do_configure "--host=i686-w64-mingw32 --prefix=$pwd/mingw-w64-i686/i686-w64-mingw32 --disable-shared --enable-static $extra_configure_options"
+  do_configure "--host=$host_target --prefix=$pwd/mingw-w64-i686/$host_target --disable-shared --enable-static $extra_configure_options"
   do_make_install
   cd ..
 }
-
 
 build_fdk_aac() {
   generic_download_and_install http://sourceforge.net/projects/opencore-amr/files/fdk-aac/fdk-aac-0.1.0.tar.gz/download fdk-aac-0.1.0
@@ -160,7 +168,7 @@ build_ffmpeg() {
   do_git_checkout https://github.com/FFmpeg/FFmpeg.git ffmpeg_git
   cd ffmpeg_git
   
-  config_options="--enable-memalign-hack --enable-gpl --enable-libx264 --enable-avisynth --arch=x86 --target-os=mingw32  --cross-prefix=../mingw-w64-i686/bin/i686-w64-mingw32- --pkg-config=pkg-config --enable-libmp3lame --enable-version3 --enable-libvo-aacenc"
+  config_options="--enable-memalign-hack --enable-gpl --enable-libx264 --enable-avisynth --arch=x86 --target-os=mingw32  --cross-prefix=$cross_prefix --pkg-config=pkg-config --enable-libmp3lame --enable-version3 --enable-libvo-aacenc"
   if [[ "$non_free" = "y" ]]; then
     config_options="$config_options --enable-nonfree --enable-libfdk-aac" # --enable-libfaac -- faac too poor quality and becomes the default -- add it in and uncomment the build_faac line to include it
   else
@@ -173,16 +181,39 @@ build_ffmpeg() {
   echo "you will find binaries in $pwd/ffmpeg_git/ff*.exe, for instance ffmpeg.exe"
 }
 
-intro # remember to always run the intro, since it adjust paths
-install_cross_compiler
-build_x264
-build_lame
-build_vo_aacenc
-if [[ "$non_free" = "y" ]]; then
-  build_fdk_aac
-#  build_faac
-else
+intro # remember to always run the intro, since it adjust pwd
+install_cross_compiler # always run this, too, since it adjust the PATH
+
+build_all() {
+  build_x264
+  build_lame
+  build_vo_aacenc
+  if [[ "$non_free" = "y" ]]; then
+    build_fdk_aac
+  #  build_faac
+  else
+  fi
+  build_ffmpeg
+}
+
+if [ -d "mingw-w64-i686" ]; then # they installed a 32-bit compiler
+  mingw_w64_x86_64_prefix="$pwd/mingw-w64-i686"
+  host_target='i686-w64-mingw32'
+  cross_prefix='../../mingw-w64-i686/bin/i686-w64-mingw32-'
+  mkdir -p win32
+  cd win32
+  build_all
+  cd ..
 fi
-build_ffmpeg
+
+if [ -d "mingw-w64-x86_64" ]; then # they installed a 64-bit compiler
+  mingw_w64_x86_64_prefix="$pwd/mingw-w64-x86_64"
+  host_target='x86_64-w64-mingw32'
+  mkdir -p x86_64
+  cd x86_64
+  build_all
+  cd ..
+fi
+
 cd ..
 echo 'done with ffmpeg cross compiler script'
