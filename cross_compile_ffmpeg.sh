@@ -59,6 +59,8 @@ but also makes it so you cannot distribute the binary to machines of other archi
 it makes no sense)  Use march=native? [y/n]?" 
   if [[ "$user_input" = "y" ]]; then
     CFLAGS="$CFLAGS -march=native -pipe"
+  else
+    CFLAGS="$CFLAGS -pipe"
   fi
 }
 
