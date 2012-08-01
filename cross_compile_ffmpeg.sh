@@ -135,7 +135,7 @@ build_x264() {
   do_git_checkout "http://repo.or.cz/r/x264.git" "x264"
   cd x264
   do_configure "--host=$host_target --enable-static --cross-prefix=$cross_prefix --prefix=$mingw_w64_x86_64_prefix --enable-win32thread"
-  rm already_ran_make # just in case the git checkout did something
+  rm -f already_ran_make # just in case the git checkout did something, re-make
   do_make_install
   cd ..
 }
@@ -226,8 +226,8 @@ build_all() {
 }
 
 if [ -d "mingw-w64-i686" ]; then # they installed a 32-bit compiler
-  mingw_w64_x86_64_prefix="$pwd/mingw-w64-i686"
   host_target='i686-w64-mingw32'
+  mingw_w64_x86_64_prefix="$pwd/mingw-w64-i686/$host_target"
   cross_prefix='../../mingw-w64-i686/bin/i686-w64-mingw32-'
   ffmpeg_arch='x86'
   mkdir -p win32
@@ -237,8 +237,8 @@ if [ -d "mingw-w64-i686" ]; then # they installed a 32-bit compiler
 fi
 
 if [ -d "mingw-w64-x86_64" ]; then # they installed a 64-bit compiler
-  mingw_w64_x86_64_prefix="$pwd/mingw-w64-x86_64"
   host_target='x86_64-w64-mingw32'
+  mingw_w64_x86_64_prefix="$pwd/mingw-w64-x86_64/$host_target"
   cross_prefix='../../mingw-w64-x86_64/bin/x86_64-w64-mingw32-'
   ffmpeg_arch='x86_64'
   mkdir -p x86_64
