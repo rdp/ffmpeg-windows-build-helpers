@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 ################################################################################
-# ffmpeg cross compile script
+# ffmpeg windows cross compile helper/downloader script
 ################################################################################
 # Copyright (C) 2012 Roger Pack
 #
@@ -167,6 +167,15 @@ build_vo_aacenc() {
 
 build_sdl() {
   generic_download_and_install http://www.libsdl.org/release/SDL-1.2.15.tar.gz SDL-1.2.15
+  # apparently ffmpeg expects prefix-sdl-config not sdl-config...
+  local prefix=`basename $cross_prefix`
+  local bin_dir=`dirname $cross_prefix`
+  mkdir temp
+  cd temp # so paths will work out right
+  echo "copying" "$bin_dir/sdl-config" "$bin_dir/$(echo $prefix)sdl-config"
+  cp "$bin_dir/sdl-config" "$bin_dir/$prefixsdl-config"
+  cd ..
+  exit 1
 }
 
 build_faac() {
