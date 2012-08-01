@@ -1,4 +1,23 @@
 #!/usr/bin/env bash
+################################################################################
+# ffmpeg cross compile script
+################################################################################
+# Copyright (C) 2012 Roger Pack
+#
+# This program is free software: you can redistribute it and/or modify it under
+# the terms of the GNU General Public License as published by the Free Software
+# Foundation, either version 3 of the License, or (at your option) any later
+# version.
+#
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
+# details.
+#
+# You should have received a copy of the GNU General Public License along with
+# this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+# The GNU General Public License can be found in the LICENSE file.
 
 yes_no_sel () {
 unset user_input
@@ -54,24 +73,14 @@ install_cross_compiler() {
 
   wget http://zeranoe.com/scripts/mingw_w64_build/mingw-w64-build-3.0.6 -O mingw-w64-build-3.0.6
   chmod u+x mingw-w64-build-3.0.6
-  ./mingw-w64-build-3.0.6 || exit 1
+  ./mingw-w64-build-3.0.6 --clean-build || exit 1
   if [ -d mingw-w64-x86_64 ]; then
-    cd mingw-w64-x86_64
-    touch compiler.done
-    rm -rf build # LODO not have to cleanup here?
-    rm -rf packages
-    rm -rf source
-    cd ..
+    mingw-w64-x86_64/compiler.done
   fi
   if [ -d mingw-w64-i686 ]; then
-    cd mingw-w64-i686
-    touch compiler.done
-    rm -rf build
-    rm -rf packages
-    rm -rf source
-    cd ..
+    touch mingw-w64-i686/compiler.done
   fi
-  PATH="$PATH:$pwd/mingw-w64-i686/bin:$pwd/mingw-w64-x86_64/bin" # a few need it in the path...
+  PATH="$PATH:$pwd/mingw-w64-i686/bin:$pwd/mingw-w64-x86_64/bin" # a few need/want it in the path...
   clear
   echo "Ok, done building MinGW-w64 cross-compiler..."
 }
