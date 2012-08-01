@@ -165,6 +165,10 @@ build_vo_aacenc() {
   generic_download_and_install http://sourceforge.net/projects/opencore-amr/files/vo-aacenc/vo-aacenc-0.1.2.tar.gz/download vo-aacenc-0.1.2
 }
 
+build_sdl() {
+  generic_download_and_install http://www.libsdl.org/release/SDL-1.2.15.tar.gz SDL-1.2.15
+}
+
 build_faac() {
   generic_download_and_install http://downloads.sourceforge.net/faac/faac-1.28.tar.gz faac-1.28 "--with-mp4v2=no"
 }
@@ -185,14 +189,16 @@ build_ffmpeg() {
   do_configure "$config_options"
   rm *.exe # just in case some library dependency was updated, force it to re-link
   make || exit 1
+  local pwd=`pwd`
+  echo "you will find binaries in $pwd/ff{mpeg,probe}*.exe"
   cd ..
-  echo "you will find binaries in $pwd/ffmpeg_git/ff*.exe, for instance ffmpeg.exe"
 }
 
 intro # remember to always run the intro, since it adjust pwd
 install_cross_compiler # always run this, too, since it adjust the PATH
 
 build_all() {
+  build_sdl
   build_x264
   build_lame
   build_vo_aacenc
