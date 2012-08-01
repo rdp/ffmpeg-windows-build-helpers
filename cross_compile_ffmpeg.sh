@@ -119,7 +119,7 @@ do_make_install() {
 build_x264() {
   do_git_checkout "http://repo.or.cz/r/x264.git" "x264"
   cd x264
-  do_configure "--host=$host_target --enable-static --cross-prefix=$cross_prefix --prefix=../mingw-w64-i686/$host_target --enable-win32thread"
+  do_configure "--host=$host_target --enable-static --cross-prefix=$cross_prefix --prefix=$mingw_w64_x86_64_prefix --enable-win32thread"
   do_make_install
   cd ..
 }
@@ -143,7 +143,7 @@ generic_download_and_install() {
   local extra_configure_options="$3"
   download_and_unpack_file $url $url_filename $english_name
   cd $english_name
-  do_configure "--host=$host_target --prefix=$pwd/mingw-w64-i686/$host_target --disable-shared --enable-static $extra_configure_options"
+  do_configure "--host=$host_target --prefix=$mingw_w64_x86_64_prefix --disable-shared --enable-static $extra_configure_options"
   do_make_install
   cd ..
 }
@@ -167,8 +167,7 @@ build_lame() {
 build_ffmpeg() {
   do_git_checkout https://github.com/FFmpeg/FFmpeg.git ffmpeg_git
   cd ffmpeg_git
-  
-  config_options="--enable-memalign-hack --enable-gpl --enable-libx264 --enable-avisynth --arch=x86 --target-os=mingw32  --cross-prefix=$cross_prefix --pkg-config=pkg-config --enable-libmp3lame --enable-version3 --enable-libvo-aacenc"
+  config_options="--enable-memalign-hack --enable-gpl --enable-libx264 --enable-avisynth --target-os=mingw32  --cross-prefix=$cross_prefix --pkg-config=pkg-config --enable-libmp3lame --enable-version3 --enable-libvo-aacenc"
   if [[ "$non_free" = "y" ]]; then
     config_options="$config_options --enable-nonfree --enable-libfdk-aac" # --enable-libfaac -- faac too poor quality and becomes the default -- add it in and uncomment the build_faac line to include it
   else
@@ -190,7 +189,7 @@ build_all() {
   build_vo_aacenc
   if [[ "$non_free" = "y" ]]; then
     build_fdk_aac
-  #  build_faac
+  #  build_faac # unused for now, see comment above
   else
   fi
   build_ffmpeg

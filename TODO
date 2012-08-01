@@ -10,16 +10,15 @@ more libraries
 == optimized builds ==
 
 test if march is actually being applied [?]
+  test its effect
 
-profile guided? +- libx264
+profile guideds?
 
 "if you're not going to share your binaries with other computers, you only need -march" http://en.gentoo-wiki.com/wiki/CFLAGS#-mtune.3D.2F-mcpu.3D.3Cyour_arch.3E
 
 other "-mtune" like options? fastmath
 is there a way to specify to swscale "trust me, I'll just always have these options available" or the like? Or within ffmpeg?
 does mplayer builds use any others? what did his options do? Do I need anything like that?
-
-== random ==
 
 make -j 2 (more than one core)
 test on mac LOL
