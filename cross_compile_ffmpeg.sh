@@ -133,6 +133,7 @@ build_x264() {
   do_git_checkout "http://repo.or.cz/r/x264.git" "x264"
   cd x264
   do_configure "--host=$host_target --enable-static --cross-prefix=$cross_prefix --prefix=$mingw_w64_x86_64_prefix --enable-win32thread"
+  rm already_ran_make # just in case the git checkout did something
   do_make_install
   cd ..
 }
