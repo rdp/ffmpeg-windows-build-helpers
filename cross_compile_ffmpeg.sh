@@ -176,7 +176,7 @@ build_lame() {
 build_ffmpeg() {
   do_git_checkout https://github.com/FFmpeg/FFmpeg.git ffmpeg_git
   cd ffmpeg_git
-  config_options="--enable-memalign-hack --enable-gpl --enable-libx264 --enable-avisynth --target-os=mingw32  --cross-prefix=$cross_prefix --pkg-config=pkg-config --enable-libmp3lame --enable-version3 --enable-libvo-aacenc"
+  config_options="--enable-memalign-hack --arch=$ffmpeg_arch --enable-gpl --enable-libx264 --enable-avisynth --target-os=mingw32  --cross-prefix=$cross_prefix --pkg-config=pkg-config --enable-libmp3lame --enable-version3 --enable-libvo-aacenc"
   if [[ "$non_free" = "y" ]]; then
     config_options="$config_options --enable-nonfree --enable-libfdk-aac" # --enable-libfaac -- faac too poor quality and becomes the default -- add it in and uncomment the build_faac line to include it
   else
@@ -207,6 +207,7 @@ if [ -d "mingw-w64-i686" ]; then # they installed a 32-bit compiler
   mingw_w64_x86_64_prefix="$pwd/mingw-w64-i686"
   host_target='i686-w64-mingw32'
   cross_prefix='../../mingw-w64-i686/bin/i686-w64-mingw32-'
+  ffmpeg_arch='x86'
   mkdir -p win32
   cd win32
   build_all
@@ -216,6 +217,8 @@ fi
 if [ -d "mingw-w64-x86_64" ]; then # they installed a 64-bit compiler
   mingw_w64_x86_64_prefix="$pwd/mingw-w64-x86_64"
   host_target='x86_64-w64-mingw32'
+  cross_prefix='../../mingw-w64-x86_64/bin/i686-w64-mingw32-'
+  ffmpeg_arch='x86_64'
   mkdir -p x86_64
   cd x86_64
   build_all
