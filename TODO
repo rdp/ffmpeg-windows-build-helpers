@@ -1,6 +1,7 @@
 == todo ==
 both 32 and 64-bits
 libvpx librtmp
+try it sans pay stuff--license?
 
 == maybe do ==
 
@@ -8,6 +9,7 @@ more libraries
   All the current builds'?
 
 == optimized builds ==
+try and figure out if its pthreads that's giving me the speedup over his
 
 test if march is actually being applied [?]
   test its effect
