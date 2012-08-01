@@ -1,10 +1,15 @@
+== todo ==
 both 32 and 64-bits
+libvpx librtmp
 
-== more libraries ==
+== maybe do ==
 
-libvpx, All the current builds'  (libfaac? aacplus?)
+more libraries
+  All the current builds'?
 
 == optimized builds ==
+
+test if march is actually being applied [?]
 
 profile guided? +- libx264
 
