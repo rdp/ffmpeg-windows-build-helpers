@@ -112,6 +112,7 @@ do_configure() {
   if [ ! -f "$touch_name" ]; then
     echo "configuring $english_name as $configure_options"
     rm -f already_configured* # any old configuration options, since they'll be out of date after the next configure
+    rm -f already_ran_make
     ./configure $configure_options || exit 1
     touch -- "$touch_name"
     make clean # just in case
@@ -121,8 +122,11 @@ do_configure() {
 }
 
 do_make_install() {
-  make || exit 1
-  make install || exit 1
+  if [ ! -f already_ran_make ]; then
+    make || exit 1
+    make install || exit 1
+    touch already_ran_make
+  fi
 }
 
 build_x264() {
@@ -196,7 +200,7 @@ build_ffmpeg() {
     config_options="$config_options"
   fi
   do_configure "$config_options"
-  rm *.exe # just in case some library dependency was updated, force it to re-link
+  rm -f *.exe # just in case some library dependency was updated, force it to re-link
   make || exit 1
   local pwd=`pwd`
   echo "you will find binaries in $pwd/ff{mpeg,probe}*.exe"
