@@ -22,3 +22,10 @@ libx264 uses this... : -Wshadow -O3 -ffast-math -m32  -Wall -I. -I. -march=i686 
  specifying -march=cpu-type implies -mtune=cpu-type.
 
 specifying graphite stuff?
+
+appears -ffast-math is out [?] but maybe some of its options could be turned on...http://ffmpeg.org/pipermail/ffmpeg-devel/2010-May/095931.html
+
+-mfpmath=sse looks good for x86 builds at least https://lists.ffmpeg.org/pipermail/ffmpeg-devel/2009-August/061883.html possibly our march trick is the wrong way and ffmpeg's configure could have other things
+
+msse4?
+

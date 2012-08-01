@@ -76,7 +76,7 @@ install_cross_compiler() {
   chmod u+x mingw-w64-build-3.0.6
   ./mingw-w64-build-3.0.6 --mingw-w64-ver=2.0.4 --clean-build || exit 1
   if [ -d mingw-w64-x86_64 ]; then
-    mingw-w64-x86_64/compiler.done
+    touch mingw-w64-x86_64/compiler.done
   fi
   if [ -d mingw-w64-i686 ]; then
     touch mingw-w64-i686/compiler.done
@@ -236,7 +236,7 @@ fi
 if [ -d "mingw-w64-x86_64" ]; then # they installed a 64-bit compiler
   mingw_w64_x86_64_prefix="$pwd/mingw-w64-x86_64"
   host_target='x86_64-w64-mingw32'
-  cross_prefix='../../mingw-w64-x86_64/bin/i686-w64-mingw32-'
+  cross_prefix='../../mingw-w64-x86_64/bin/x86_64-w64-mingw32-'
   ffmpeg_arch='x86_64'
   mkdir -p x86_64
   cd x86_64
