@@ -203,7 +203,7 @@ build_ffmpeg() {
   rm -f *.exe # just in case some library dependency was updated, force it to re-link
   make || exit 1
   local pwd=`pwd`
-  echo "you will find binaries in $pwd/ff{mpeg,probe}*.exe"
+  echo "you will find binaries in $pwd/ff{mpeg,probe,play}*.exe"
   cd ..
 }
 
