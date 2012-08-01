@@ -63,7 +63,8 @@ it makes no sense)  Use march=native? [y/n]?"
 }
 
 install_cross_compiler() {
-  if [ -f "mingw-w64-i686/compiler.done" || -f "mingw-w64-x86_64/compiler.done" ]; then
+  PATH="$PATH:$pwd/mingw-w64-i686/bin:$pwd/mingw-w64-x86_64/bin" # a few need/want it in the path... set it early before potentially returning early
+  if [[ -f "mingw-w64-i686/compiler.done" || -f "mingw-w64-x86_64/compiler.done" ]]; then
    echo "MinGW-w64 compiler of some type already installed, not re-installing..."
    return
   fi
@@ -80,7 +81,6 @@ install_cross_compiler() {
   if [ -d mingw-w64-i686 ]; then
     touch mingw-w64-i686/compiler.done
   fi
-  PATH="$PATH:$pwd/mingw-w64-i686/bin:$pwd/mingw-w64-x86_64/bin" # a few need/want it in the path...
   clear
   echo "Ok, done building MinGW-w64 cross-compiler..."
 }
@@ -199,7 +199,6 @@ build_all() {
   if [[ "$non_free" = "y" ]]; then
     build_fdk_aac
   #  build_faac # unused for now, see comment above
-  else
   fi
   build_ffmpeg
 }
