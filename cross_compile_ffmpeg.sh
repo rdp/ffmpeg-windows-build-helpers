@@ -73,7 +73,7 @@ install_cross_compiler() {
 
   wget http://zeranoe.com/scripts/mingw_w64_build/mingw-w64-build-3.0.6 -O mingw-w64-build-3.0.6
   chmod u+x mingw-w64-build-3.0.6
-  ./mingw-w64-build-3.0.6 --clean-build || exit 1
+  ./mingw-w64-build-3.0.6 --mingw-w64-ver=2.0.4 --clean-build || exit 1
   if [ -d mingw-w64-x86_64 ]; then
     mingw-w64-x86_64/compiler.done
   fi
