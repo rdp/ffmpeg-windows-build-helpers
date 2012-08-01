@@ -175,7 +175,7 @@ build_sdl() {
   echo "copying" "$bin_dir/sdl-config" "$bin_dir/$(echo $prefix)sdl-config"
   cp "$bin_dir/sdl-config" "$bin_dir/$prefixsdl-config"
   cd ..
-  exit 1
+  rmdir temp
 }
 
 build_faac() {
