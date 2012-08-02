@@ -1,15 +1,13 @@
 == todo ==
 libvpx librtmp
-try it sans pay stuff--license?
 
 == maybe do ==
 
-not require prompts for the compiler
-
+== optimized builds ==
 more libraries
   All the current builds'?
 
-== optimized builds ==
+not require prompts for the compiler
 try and figure out if its pthreads that's giving me the speedup over his
 
 test if march is actually being applied [?]
