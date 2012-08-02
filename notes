@@ -29,3 +29,6 @@ appears -ffast-math is out [?] but maybe some of its options could be turned on.
 
 msse4? yeah march doesn't look good enough...http://us.generation-nt.com/gentoo-user-march-native-extremely-conservative-help-205789481.html oh wait it's ok: http://web.archiveorange.com/archive/v/aLshbnQGswttQdr9FRib
 http://forums.gentoo.org/viewtopic-t-923520-start-0.html mentions -lfto or something...
+
+license appears ok: License: GPL version 3 or later
+
