@@ -1,9 +1,8 @@
 == todo ==
 libvpx librtmp
-
+mjpeg?
 == maybe do ==
 
-== optimized builds ==
 more libraries
   All the current builds'?
 
@@ -22,4 +21,4 @@ is there a way to specify to swscale "trust me, I'll just always have these opti
 does mplayer builds use any others? what did his options do? Do I need anything like that?
 
 make -j 2 (more than one core)
-test on mac LOL
+test on mac too:)
