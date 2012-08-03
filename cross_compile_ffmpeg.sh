@@ -35,7 +35,7 @@ user_input=`echo $user_input | tr '[A-Z]' '[a-z]'`
 }
 
 pwd=`pwd`
-pwd="$pwd/sandbox_ffmpeg_build"
+pwd="$pwd/builds"
 
 intro() {
   echo "##################### Welcome ######################
@@ -44,7 +44,7 @@ intro() {
   If this is not ok, then exit now, and cd to the directory where you'd
   like them installed, then run this script again."
 
-  yes_no_sel "Is ./sandbox_ffmpeg_build ok [y/n]?"
+  yes_no_sel "Is ./builds ok [y/n]?"
   if [[ "$user_input" = "n" ]]; then
     exit 1;
   fi
@@ -111,9 +111,10 @@ do_configure() {
   english_name=`basename $pwd2`
   touch_name=`echo -- $configure_options $CFLAGS | /usr/bin/env md5sum` # sanitize, disallow too long of length
   touch_name="already_configured_$touch_name" # add something so we can delete it easily
-  echo "CROSS IS $CROSS"
+  echo "CROSS IS $CROSS $LDFLAGS"
   if [ ! -f "$touch_name" ]; then
-    echo "configuring $english_name as $configure_options with PATH $PATH"
+    echo "configuring $english_name as $configure_options
+  with PATH $PATH"
     rm -f already_configured* # any old configuration options, since they'll be out of date after the next configure
     rm -f already_ran_make
     ./configure $configure_options || exit 1
@@ -129,6 +130,9 @@ do_make_install() {
     make || exit 1
     make install || exit 1
     touch already_ran_make
+  else
+    cur_dir=`pwd`
+    echo "already did make $(basename "$cur_dir")"
   fi
 }
 
@@ -147,7 +151,8 @@ build_libvpx() {
   if [[ "$bits_target" = "32" ]]; then
     export CROSS="$cross_prefix"
     echo "cross started as is $CROSS"
-    do_configure "--target=generic-gnu  --prefix=$mingw_w64_x86_64_prefix --extra-cflags=-lpthread --enable-static --disable-shared"
+    do_configure "--target=generic-gnu --prefix=$mingw_w64_x86_64_prefix --enable-static --disable-shared"
+    export LDFLAGS=
   else
     do_configure "--target=x86_64-win64-gcc --prefix=$mingw_w64_x86_64_prefix"
   fi
@@ -210,7 +215,7 @@ build_lame() {
 build_ffmpeg() {
   do_git_checkout https://github.com/FFmpeg/FFmpeg.git ffmpeg_git
   cd ffmpeg_git
-  config_options="--enable-memalign-hack --arch=$ffmpeg_arch --enable-gpl --enable-libx264 --enable-avisynth --target-os=mingw32  --cross-prefix=$cross_prefix --pkg-config=pkg-config --enable-libmp3lame --enable-version3 --enable-libvo-aacenc --enable-libvpx"
+  config_options="--enable-memalign-hack --arch=$ffmpeg_arch --enable-gpl --enable-libx264 --enable-avisynth --target-os=mingw32  --cross-prefix=$cross_prefix --pkg-config=pkg-config --enable-libmp3lame --enable-version3 --enable-libvo-aacenc --enable-libvpx --extra-libs='-lpthread'"
   if [[ "$non_free" = "y" ]]; then
     config_options="$config_options --enable-nonfree --enable-libfdk-aac" # --enable-libfaac -- faac too poor quality and becomes the default -- add it in and uncomment the build_faac line to include it
   else
