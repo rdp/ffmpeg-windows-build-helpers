@@ -111,7 +111,6 @@ do_configure() {
   english_name=`basename $pwd2`
   touch_name=`echo -- $configure_options $CFLAGS | /usr/bin/env md5sum` # sanitize, disallow too long of length
   touch_name="already_configured_$touch_name" # add something so we can delete it easily
-  echo "CROSS IS $CROSS $LDFLAGS"
   if [ ! -f "$touch_name" ]; then
     echo "configuring $english_name as $configure_options
   with PATH $PATH"
@@ -148,14 +147,14 @@ build_x264() {
 build_libvpx() {
   download_and_unpack_file http://webm.googlecode.com/files/libvpx-v1.1.0.tar.bz2 libvpx-v1.1.0
   cd libvpx-v1.1.0
+  export CROSS="$cross_prefix"
   if [[ "$bits_target" = "32" ]]; then
     export CROSS="$cross_prefix"
-    echo "cross started as is $CROSS"
     do_configure "--target=generic-gnu --prefix=$mingw_w64_x86_64_prefix --enable-static --disable-shared"
-    export LDFLAGS=
   else
-    do_configure "--target=x86_64-win64-gcc --prefix=$mingw_w64_x86_64_prefix"
+    do_configure "--target=generic-gnu --prefix=$mingw_w64_x86_64_prefix"
   fi
+  export CROSS=
   do_make_install
   cd ..
 }
@@ -215,7 +214,13 @@ build_lame() {
 build_ffmpeg() {
   do_git_checkout https://github.com/FFmpeg/FFmpeg.git ffmpeg_git
   cd ffmpeg_git
-  config_options="--enable-memalign-hack --arch=$ffmpeg_arch --enable-gpl --enable-libx264 --enable-avisynth --target-os=mingw32  --cross-prefix=$cross_prefix --pkg-config=pkg-config --enable-libmp3lame --enable-version3 --enable-libvo-aacenc --enable-libvpx --extra-libs='-lpthread'"
+  if [ "$bits_target" = "32" ]; then
+   local arch=x86
+  else
+   local arch=x86_64
+  fi
+
+  config_options="--enable-memalign-hack --arch=$arch --enable-gpl --enable-libx264 --enable-avisynth --target-os=mingw32  --cross-prefix=$cross_prefix --pkg-config=pkg-config --enable-libmp3lame --enable-version3 --enable-libvo-aacenc --enable-libvpx --extra-libs=-lpthread"
   if [[ "$non_free" = "y" ]]; then
     config_options="$config_options --enable-nonfree --enable-libfdk-aac" # --enable-libfaac -- faac too poor quality and becomes the default -- add it in and uncomment the build_faac line to include it
   else
@@ -234,13 +239,13 @@ install_cross_compiler # always run this, too, since it adjust the PATH
 
 build_all() {
   build_sdl
-#  build_x264
-#  build_lame
+  build_x264
+  build_lame
   build_libvpx
   build_vo_aacenc
   if [[ "$non_free" = "y" ]]; then
     build_fdk_aac
-  #  build_faac # unused for now, see comment above
+    # build_faac # not included for now, see comment above
   fi
   build_ffmpeg
 }
@@ -250,7 +255,6 @@ if [ -d "mingw-w64-i686" ]; then # they installed a 32-bit compiler
   bits_target=32
   mingw_w64_x86_64_prefix="$pwd/mingw-w64-i686/$host_target"
   cross_prefix='../../mingw-w64-i686/bin/i686-w64-mingw32-'
-  ffmpeg_arch='x86'
   mkdir -p win32
   cd win32
   build_all
@@ -262,7 +266,6 @@ if [ -d "mingw-w64-x86_64" ]; then # they installed a 64-bit compiler
   host_target='x86_64-w64-mingw32'
   mingw_w64_x86_64_prefix="$pwd/mingw-w64-x86_64/$host_target"
   cross_prefix='../../mingw-w64-x86_64/bin/x86_64-w64-mingw32-'
-  ffmpeg_arch='x86_64'
   mkdir -p x86_64
   cd x86_64
   build_all
