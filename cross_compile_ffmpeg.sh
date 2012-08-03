@@ -34,13 +34,13 @@ done
 user_input=`echo $user_input | tr '[A-Z]' '[a-z]'`
 }
 
-pwd=`pwd`
-pwd="$pwd/builds"
+cur_dir=`pwd`
+cur_dir="$cur_dir/builds"
 
 intro() {
   echo "##################### Welcome ######################
   Welcome to the ffmpeg cross-compile builder-helper script.
-  Downloads and builds will be installed to directories within $pwd
+  Downloads and builds will be installed to directories within $cur_dir
   If this is not ok, then exit now, and cd to the directory where you'd
   like them installed, then run this script again."
 
@@ -48,8 +48,8 @@ intro() {
   if [[ "$user_input" = "n" ]]; then
     exit 1;
   fi
-  mkdir -p "$pwd"
-  cd "$pwd"
+  mkdir -p "$cur_dir"
+  cd "$cur_dir"
   yes_no_sel "Would you like to include non-free (non GPL compatible) libraries, like certain high quality aac encoders
 The resultant binary will not be distributable, but might be useful for in-house use. Include non-free [y/n]?"
   non_free="$user_input" # save it away
@@ -65,7 +65,7 @@ it makes no sense)  Use march=native? [y/n]?"
 }
 
 install_cross_compiler() {
-  PATH="$PATH:$pwd/mingw-w64-i686/bin:$pwd/mingw-w64-x86_64/bin" # a few need/want it in the path... set it early before potentially returning early
+  PATH="$PATH:$cur_dir/mingw-w64-x86_64/bin:$cur_dir/mingw-w64-i686/bin" # a few need/want it in the path... set it early before potentially returning early
   if [[ -f "mingw-w64-i686/compiler.done" || -f "mingw-w64-x86_64/compiler.done" ]]; then
    echo "MinGW-w64 compiler of some type already installed, not re-installing..."
    return
@@ -107,8 +107,8 @@ do_git_checkout() {
 
 do_configure() {
   configure_options="$1"
-  pwd2=`pwd`
-  english_name=`basename $pwd2`
+  local cur_dir2=`pwd`
+  english_name=`basename $cur_dir2`
   touch_name=`echo -- $configure_options $CFLAGS | /usr/bin/env md5sum` # sanitize, disallow too long of length
   touch_name="already_configured_$touch_name" # add something so we can delete it easily
   if [ ! -f "$touch_name" ]; then
@@ -130,7 +130,7 @@ do_make_install() {
     make install || exit 1
     touch already_ran_make
   else
-    cur_dir=`pwd`
+    local cur_dir2=`pwd`
     echo "already did make $(basename "$cur_dir")"
   fi
 }
@@ -229,8 +229,8 @@ build_ffmpeg() {
   do_configure "$config_options"
   rm -f *.exe # just in case some library dependency was updated, force it to re-link
   make || exit 1
-  local pwd=`pwd`
-  echo "you will find binaries in $pwd/ff{mpeg,probe,play}*.exe"
+  local cur_dir2=`pwd`
+  echo "you will find binaries in $cur_dir2/ff{mpeg,probe,play}*.exe"
   cd ..
 }
 
@@ -253,7 +253,7 @@ build_all() {
 if [ -d "mingw-w64-i686" ]; then # they installed a 32-bit compiler
   host_target='i686-w64-mingw32'
   bits_target=32
-  mingw_w64_x86_64_prefix="$pwd/mingw-w64-i686/$host_target"
+  mingw_w64_x86_64_prefix="$cur_dir/mingw-w64-i686/$host_target"
   cross_prefix='../../mingw-w64-i686/bin/i686-w64-mingw32-'
   mkdir -p win32
   cd win32
@@ -264,7 +264,7 @@ fi
 if [ -d "mingw-w64-x86_64" ]; then # they installed a 64-bit compiler
   bits_target=64
   host_target='x86_64-w64-mingw32'
-  mingw_w64_x86_64_prefix="$pwd/mingw-w64-x86_64/$host_target"
+  mingw_w64_x86_64_prefix="$cur_dir/mingw-w64-x86_64/$host_target"
   cross_prefix='../../mingw-w64-x86_64/bin/x86_64-w64-mingw32-'
   mkdir -p x86_64
   cd x86_64
