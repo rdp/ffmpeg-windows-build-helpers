@@ -29,3 +29,9 @@ does mplayer builds use any others? what did his options do? Do I need anything 
 
 make -j 2 (more than one core)
 test on mac too:)
+
+TODO: mention it to:
+http://www.bizzeh.com/687/build-libvpx-windows-ffmpeg-win32
+  after zeranoe
+
+ask the libvpx guys if I should need to use generic-gnu or not...
