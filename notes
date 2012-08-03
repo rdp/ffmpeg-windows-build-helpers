@@ -32,3 +32,6 @@ http://forums.gentoo.org/viewtopic-t-923520-start-0.html mentions -lfto or somet
 
 license appears ok: License: GPL version 3 or later
 
+old builds: --extra-libs='-lx264 -lpthread' 
+
+old build hints: http://ffmpeg.arrozcru.org/forum/viewtopic.php?f=1&t=1638

@@ -1,7 +1,14 @@
 == todo ==
 libvpx librtmp
 mjpeg?
+
+check mnative
+  vpx? ffmpeg more?
+
+--disable-decoder=libvpx
 == maybe do ==
+
+allow it to work for linux "using native gcc", too :P
 
 more libraries
   All the current builds'?

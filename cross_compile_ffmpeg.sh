@@ -111,8 +111,9 @@ do_configure() {
   english_name=`basename $pwd2`
   touch_name=`echo -- $configure_options $CFLAGS | /usr/bin/env md5sum` # sanitize, disallow too long of length
   touch_name="already_configured_$touch_name" # add something so we can delete it easily
+  echo "CROSS IS $CROSS"
   if [ ! -f "$touch_name" ]; then
-    echo "configuring $english_name as $configure_options"
+    echo "configuring $english_name as $configure_options with PATH $PATH"
     rm -f already_configured* # any old configuration options, since they'll be out of date after the next configure
     rm -f already_ran_make
     ./configure $configure_options || exit 1
@@ -140,13 +141,27 @@ build_x264() {
   cd ..
 }
 
+build_libvpx() {
+  download_and_unpack_file http://webm.googlecode.com/files/libvpx-v1.1.0.tar.bz2 libvpx-v1.1.0
+  cd libvpx-v1.1.0
+  if [[ "$bits_target" = "32" ]]; then
+    export CROSS="$cross_prefix"
+    echo "cross started as is $CROSS"
+    do_configure "--target=generic-gnu  --prefix=$mingw_w64_x86_64_prefix --extra-cflags=-lpthread --enable-static --disable-shared"
+  else
+    do_configure "--target=x86_64-win64-gcc --prefix=$mingw_w64_x86_64_prefix"
+  fi
+  do_make_install
+  cd ..
+}
+
 download_and_unpack_file() {
   url="$1"
-  output_name="$2"
-  output_dir="$3"
+  output_name=`basename $url`
+  output_dir="$2"
   if [ ! -f "$output_dir/unpacked.successfully" ]; then
     wget "$url" -O "$output_name" || exit 1
-    tar -xzf "$output_name" || exit 1
+    tar -xzf "$output_name" || tar -xjf "$output_name" || exit 1
     touch "$output_dir/unpacked.successfully"
     rm "$output_name"
   fi
@@ -155,9 +170,8 @@ download_and_unpack_file() {
 generic_download_and_install() {
   local url="$1"
   local english_name="$2" 
-  local url_filename="$2.tar.gz"
   local extra_configure_options="$3"
-  download_and_unpack_file $url $url_filename $english_name
+  download_and_unpack_file $url $english_name
   cd $english_name
   do_configure "--host=$host_target --prefix=$mingw_w64_x86_64_prefix --disable-shared --enable-static $extra_configure_options"
   do_make_install
@@ -196,7 +210,7 @@ build_lame() {
 build_ffmpeg() {
   do_git_checkout https://github.com/FFmpeg/FFmpeg.git ffmpeg_git
   cd ffmpeg_git
-  config_options="--enable-memalign-hack --arch=$ffmpeg_arch --enable-gpl --enable-libx264 --enable-avisynth --target-os=mingw32  --cross-prefix=$cross_prefix --pkg-config=pkg-config --enable-libmp3lame --enable-version3 --enable-libvo-aacenc"
+  config_options="--enable-memalign-hack --arch=$ffmpeg_arch --enable-gpl --enable-libx264 --enable-avisynth --target-os=mingw32  --cross-prefix=$cross_prefix --pkg-config=pkg-config --enable-libmp3lame --enable-version3 --enable-libvo-aacenc --enable-libvpx"
   if [[ "$non_free" = "y" ]]; then
     config_options="$config_options --enable-nonfree --enable-libfdk-aac" # --enable-libfaac -- faac too poor quality and becomes the default -- add it in and uncomment the build_faac line to include it
   else
@@ -215,8 +229,9 @@ install_cross_compiler # always run this, too, since it adjust the PATH
 
 build_all() {
   build_sdl
-  build_x264
-  build_lame
+#  build_x264
+#  build_lame
+  build_libvpx
   build_vo_aacenc
   if [[ "$non_free" = "y" ]]; then
     build_fdk_aac
@@ -227,6 +242,7 @@ build_all() {
 
 if [ -d "mingw-w64-i686" ]; then # they installed a 32-bit compiler
   host_target='i686-w64-mingw32'
+  bits_target=32
   mingw_w64_x86_64_prefix="$pwd/mingw-w64-i686/$host_target"
   cross_prefix='../../mingw-w64-i686/bin/i686-w64-mingw32-'
   ffmpeg_arch='x86'
@@ -237,6 +253,7 @@ if [ -d "mingw-w64-i686" ]; then # they installed a 32-bit compiler
 fi
 
 if [ -d "mingw-w64-x86_64" ]; then # they installed a 64-bit compiler
+  bits_target=64
   host_target='x86_64-w64-mingw32'
   mingw_w64_x86_64_prefix="$pwd/mingw-w64-x86_64/$host_target"
   cross_prefix='../../mingw-w64-x86_64/bin/x86_64-w64-mingw32-'
