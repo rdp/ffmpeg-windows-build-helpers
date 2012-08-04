@@ -6,7 +6,10 @@ check mnative
   vpx? ffmpeg more?
 vpx threading/configure?
 
+test timings for failure commits [?] (linuxes too)
+
 == maybe do ==
+
 libjpeg turbo
 
 --disable-decoder=libvpx
