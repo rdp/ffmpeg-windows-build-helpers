@@ -4,34 +4,37 @@ mjpeg?
 
 check mnative
   vpx? ffmpeg more?
+vpx threading/configure?
+
+== maybe do ==
+libjpeg turbo
 
 --disable-decoder=libvpx
-== maybe do ==
 
 allow it to work for linux "using native gcc", too :P
 
 more libraries
   All the current builds'?
 
-not require prompts for the compiler
+not require prompts at all for the compiler
 try and figure out if its pthreads that's giving me the speedup over his
 
 test if march is actually being applied [?]
   test its effect
+  everywhere
 
 profile guideds?
+  major libs
+  everything
 
 "if you're not going to share your binaries with other computers, you only need -march" http://en.gentoo-wiki.com/wiki/CFLAGS#-mtune.3D.2F-mcpu.3D.3Cyour_arch.3E
 
-other "-mtune" like options? fastmath
+other "-march" like options? fastmath
 is there a way to specify to swscale "trust me, I'll just always have these options available" or the like? Or within ffmpeg?
 does mplayer builds use any others? what did his options do? Do I need anything like that?
 
 make -j 2 (more than one core)
-test on mac too:)
 
 TODO: mention it to:
 http://www.bizzeh.com/687/build-libvpx-windows-ffmpeg-win32
-  after zeranoe
-
-ask the libvpx guys if I should need to use generic-gnu or not...
+  after vpx zeranoe...
