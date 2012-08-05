@@ -2,11 +2,14 @@
 libvpx librtmp
 mjpeg?
 
-check mnative
-  vpx? ffmpeg more?
+check march=native
+  vpx? ffmpeg more? do I need to enable runtime detection when it's not?
 vpx threading/configure?
 
-test timings for failure commits [?] (linuxes too)
+test timings for failure commits git-bisect-zy[?] (linuxes too)
+
+    Also, I wonder if x264 needs to be recompiled after every update to
+    test? Does this issue root in FFmpeg or x264 possibly?
 
 == maybe do ==
 
@@ -26,7 +29,7 @@ test if march is actually being applied [?]
   test its effect
   everywhere
 
-profile guideds?
+profile guided builds?
   major libs
   everything
 
