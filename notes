@@ -35,3 +35,5 @@ license appears ok: License: GPL version 3 or later
 old builds: --extra-libs='-lx264 -lpthread' 
 
 old build hints: http://ffmpeg.arrozcru.org/forum/viewtopic.php?f=1&t=1638
+
+currently says: enabling runtime_cpu_detect for libvpx even with march specified...
