@@ -1,24 +1,23 @@
 == todo ==
 
-does it affect "both" libx264 and/or just ffmpeg?
-    Also, I wonder if x264 needs to be recompiled after every update to
-    test? Does this issue root in FFmpeg or x264 possibly?
-
 get a debug build for kai
 
-get 0406 timings to "luke"
 libvpx
   fix, update blog/ML
     threading/configure?
 librtmp
 mjpeg?
 
-check march=native
+more check march=native
   vpx? ffmpeg more? do I need to enable runtime detection when it's not? libx264 still uses i686?
 
-test timings for failure commits git-bisect-zy[?] (linuxes too)
+test timings for first failure commits git-bisect-zy[?] (linuxes too)
 
 == maybe/never do ==
+
+does it affect "both" libx264 and/or just ffmpeg?
+    Also, I wonder if x264 needs to be recompiled after every update to
+    test? Does this issue root in FFmpeg or x264 possibly?
 
 libjpeg turbo
 
