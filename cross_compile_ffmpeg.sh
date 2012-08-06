@@ -59,9 +59,12 @@ but also makes it so you cannot distribute the binary to machines of other archi
 it makes no sense)  Use march=native? [y/n]?" 
   if [[ "$user_input" = "y" ]]; then
     CFLAGS="$CFLAGS -march=native -pipe"
+    native_build="y"
   else
     CFLAGS="$CFLAGS -pipe"
+    native_build="n"
   fi
+  export CFLAGS
 }
 
 install_cross_compiler() {
