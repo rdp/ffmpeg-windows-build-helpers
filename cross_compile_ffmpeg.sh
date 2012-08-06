@@ -154,9 +154,8 @@ build_x264() {
 build_librtmp() {
   download_and_unpack_file http://rtmpdump.mplayerhq.hu/download/rtmpdump-2.3.tgz rtmpdump-2.3
   pkg-config --libs librtmp
-  echo `which pkg-config`
   cd rtmpdump-2.3/librtmp
-  make install "SYS=mingw CROSS_COMPILE=../$cross_prefix" SHARED=no "prefix=$mingw_w64_x86_64_prefix" || exit 1 # SHARED= means a static build
+  make install "CROSS_COMPILE=$cross_prefix" SHARED=no "prefix=$mingw_w64_x86_64_prefix" || exit 1 # SHARED= means a static build
   cd ../..
 }
 
@@ -226,8 +225,10 @@ build_openssl() {
   export AR="${cross}ar"
   export RANLIB="${cross}ranlib"
   if [ "$bits_target" = "32" ]; then
-    do_configure "--prefix=$mingw_w64_x86_64_prefix mingw" Configure
+    do_configure "--prefix=$mingw_w64_x86_64_prefix no-shared mingw" ./Configure
   else
+echo no
+    exit 1
     ./Configure "--prefix=$mingw_w64_x86_64_prefix" mingw64
   fi
   do_make_install
@@ -271,9 +272,9 @@ build_ffmpeg() {
    local arch=x86_64
   fi
 
-  config_options="--enable-memalign-hack --arch=$arch --enable-gpl --enable-libx264 --enable-avisynth --target-os=mingw32  --cross-prefix=$cross_prefix --pkg-config=pkg-config --enable-libmp3lame --enable-version3 --enable-libvo-aacenc --enable-libvpx --extra-libs=-lpthread --enable-librtmp --enable-zlib --disable-gnutls"
+  config_options="--enable-memalign-hack --arch=$arch --enable-gpl --enable-libx264 --enable-avisynth --target-os=mingw32  --cross-prefix=$cross_prefix --pkg-config=pkg-config --enable-libmp3lame --enable-version3 --enable-libvo-aacenc --enable-libvpx --extra-libs=-lws2_32 --extra-libs=-lpthread --enable-librtmp --enable-zlib --extra-libs=-lwinmm --extra-libs=-lgdi32"
   if [[ "$non_free" = "y" ]]; then
-    config_options="--enable-openssl $config_options --enable-nonfree --enable-libfdk-aac" # --enable-libfaac -- faac too poor quality and becomes the default -- add it in and uncomment the build_faac line to include it
+    config_options="$config_options --enable-nonfree --enable-openssl --enable-libfdk-aac" # --enable-libfaac -- faac too poor quality and becomes the default -- add it in and uncomment the build_faac line to include it
   else
     config_options="$config_options"
   fi
@@ -297,9 +298,10 @@ intro # remember to always run the intro, since it adjust pwd
 install_cross_compiler # always run this, too, since it adjust the PATH
 
 build_all() {
-  build_libnettle
+  #build_libnettle # gnutls depends on it
   #build_gnutls
-  build_zlib
+  build_openssl # TODO replace with gnutls [?] # rtmp depends on it
+  build_zlib # rtmp depends on it [as well as ffmpeg --enable-zlib]
   build_sdl
   build_x264
   build_lame
@@ -309,13 +311,13 @@ build_all() {
   if [[ "$non_free" = "y" ]]; then
     build_fdk_aac
     # build_faac # not included for now, see comment above
-    build_openssl
   fi
   build_ffmpeg
 }
 
 if [ -d "mingw-w64-i686" ]; then # they installed a 32-bit compiler
   export PATH="$cur_dir/mingw-w64-i686/bin:$PATH" 
+  export PKG_CONFIG_PATH="$cur_dir/mingw-w64-i686/i686-w64-mingw32/lib/pkgconfig"
   host_target='i686-w64-mingw32'
   bits_target=32
   mingw_w64_x86_64_prefix="$cur_dir/mingw-w64-i686/$host_target"
@@ -328,6 +330,7 @@ fi
 
 if [ -d "mingw-w64-x86_64" ]; then # they installed a 64-bit compiler
   export PATH="$cur_dir/mingw-w64-x86_64/bin:$PATH"
+  export PKG_CONFIG_PATH="$cur_dir/mingw-w64-x86_64/x86_64-w64-mingw32/lib/pkgconfig"
   mkdir -p x86_64
   bits_target=64
   host_target='x86_64-w64-mingw32'
