@@ -69,7 +69,7 @@ it makes no sense)  Use march=native? [y/n]?"
 
 install_cross_compiler() {
   if [[ -f "mingw-w64-i686/compiler.done" || -f "mingw-w64-x86_64/compiler.done" ]]; then
-   echo "MinGW-w64 compiler of some type already installed, not re-installing..."
+   echo "MinGW-w65 compiler of some type already installed, not re-installing it..."
    return
   fi
   read -p 'First we will download and compile a gcc cross-compiler (MinGW-w64).
@@ -119,7 +119,7 @@ do_configure() {
   touch_name="already_configured_$touch_name" # add something so we can delete it easily
   if [ ! -f "$touch_name" ]; then
     echo "configuring $english_name as $configure_options
-  with PATH $PATH"
+        with PATH $PATH"
     rm -f already_configured* # any old configuration options, since they'll be out of date after the next configure
     rm -f already_ran_make
     "$configure_name" $configure_options || exit 1
@@ -142,11 +142,14 @@ do_make_install() {
 }
 
 build_x264() {
-  do_git_checkout "http://repo.or.cz/r/x264.git" "x264"
+  if [[ ! -d "x264" ]]; then
+    do_git_checkout "http://repo.or.cz/r/x264.git" "x264"
+  fi
   cd x264
   do_configure "--host=$host_target --enable-static --cross-prefix=$cross_prefix --prefix=$mingw_w64_x86_64_prefix --enable-win32thread"
   # TODO more march=native here?
-  rm -f already_ran_make # just in case the git checkout did something, re-make
+  # rm -f already_ran_make # just in case the git checkout did something, re-make
+  echo "in $(pwd) with PATH=$PATH"
   do_make_install
   cd ..
 }
@@ -169,7 +172,6 @@ build_libvpx() {
   else
     do_configure "--target=generic-gnu --prefix=$mingw_w64_x86_64_prefix"
   fi
-  export CROSS=
   do_make_install
   cd ..
 }
@@ -210,7 +212,7 @@ build_zlib() {
   cd zlib-1.2.7
     export CC=$(echo $cross_prefix)gcc
     export AR=$(echo $cross_prefix)ar
-    export RANLIB="$CC-ranlib"
+    export RANLIB=$(echo $cross_prefix)ranlib
     do_configure "--static --prefix=$mingw_w64_x86_64_prefix"
     do_make_install
   cd ..
@@ -227,9 +229,7 @@ build_openssl() {
   if [ "$bits_target" = "32" ]; then
     do_configure "--prefix=$mingw_w64_x86_64_prefix no-shared mingw" ./Configure
   else
-echo no
-    exit 1
-    ./Configure "--prefix=$mingw_w64_x86_64_prefix" mingw64
+    do_configure "--prefix=$mingw_w64_x86_64_prefix no-shared mingw64" ./Configure
   fi
   do_make_install
   cd ..
@@ -335,7 +335,7 @@ if [ -d "mingw-w64-x86_64" ]; then # they installed a 64-bit compiler
   bits_target=64
   host_target='x86_64-w64-mingw32'
   mingw_w64_x86_64_prefix="$cur_dir/mingw-w64-x86_64/$host_target"
-  cross_prefix="$cur_dir/mingw-w64-x86_64/bin/x86_64-w64-mingw32-'
+  cross_prefix="$cur_dir/mingw-w64-x86_64/bin/x86_64-w64-mingw32-"
   cd x86_64
   build_all
   cd ..
