@@ -4,10 +4,12 @@ does it affect "both" libx264 and/or just ffmpeg?
     Also, I wonder if x264 needs to be recompiled after every update to
     test? Does this issue root in FFmpeg or x264 possibly?
 
+get a debug build for kai
+
 get 0406 timings to "luke"
 libvpx
-  fix, update
-  vpx threading/configure?
+  fix, update blog/ML
+    threading/configure?
 librtmp
 mjpeg?
 
@@ -16,7 +18,7 @@ check march=native
 
 test timings for failure commits git-bisect-zy[?] (linuxes too)
 
-== maybe do ==
+== maybe/never do ==
 
 libjpeg turbo
 
