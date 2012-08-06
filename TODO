@@ -3,16 +3,15 @@
 does it affect "both" libx264 and/or just ffmpeg?
     Also, I wonder if x264 needs to be recompiled after every update to
     test? Does this issue root in FFmpeg or x264 possibly?
-    vpx threading/configure?
 
 libvpx
-  fix
+  fix, update
+  vpx threading/configure?
 librtmp
 mjpeg?
 
 check march=native
-  disable?
-  vpx? ffmpeg more? do I need to enable runtime detection when it's not?
+  vpx? ffmpeg more? do I need to enable runtime detection when it's not? libx264 still uses i686?
 
 test timings for failure commits git-bisect-zy[?] (linuxes too)
 
