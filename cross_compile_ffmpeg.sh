@@ -68,7 +68,6 @@ it makes no sense)  Use march=native? [y/n]?"
 }
 
 install_cross_compiler() {
-  PATH="$PATH:$cur_dir/mingw-w64-x86_64/bin:$cur_dir/mingw-w64-i686/bin" # a few need/want it in the path... set it early before potentially returning early
   if [[ -f "mingw-w64-i686/compiler.done" || -f "mingw-w64-x86_64/compiler.done" ]]; then
    echo "MinGW-w64 compiler of some type already installed, not re-installing..."
    return
@@ -110,16 +109,20 @@ do_git_checkout() {
 
 do_configure() {
   configure_options="$1"
+  configure_name="$2"
+  if [[ "$configure_name" = "" ]]; then
+    configure_name="./configure"
+  fi
   local cur_dir2=`pwd`
-  english_name=`basename $cur_dir2`
-  touch_name=`echo -- $configure_options $CFLAGS | /usr/bin/env md5sum` # sanitize, disallow too long of length
+  local english_name=`basename $cur_dir2`
+  local touch_name=`echo -- $configure_options $CFLAGS | /usr/bin/env md5sum` # sanitize, disallow too long of length
   touch_name="already_configured_$touch_name" # add something so we can delete it easily
   if [ ! -f "$touch_name" ]; then
     echo "configuring $english_name as $configure_options
   with PATH $PATH"
     rm -f already_configured* # any old configuration options, since they'll be out of date after the next configure
     rm -f already_ran_make
-    ./configure $configure_options || exit 1
+    "$configure_name" $configure_options || exit 1
     touch -- "$touch_name"
     make clean # just in case
   else
@@ -150,9 +153,10 @@ build_x264() {
 
 build_librtmp() {
   download_and_unpack_file http://rtmpdump.mplayerhq.hu/download/rtmpdump-2.3.tgz rtmpdump-2.3
+  pkg-config --libs librtmp
+  echo `which pkg-config`
   cd rtmpdump-2.3/librtmp
-  echo make install "CROSS_COMPILE=../$cross_prefix" CRYPTO= SHARED= "prefix=$mingw_w64_x86_64_prefix" || exit 1 # SHARED= means a static build
-   make install "CROSS_COMPILE=../$cross_prefix" CRYPTO= SHARED= "prefix=$mingw_w64_x86_64_prefix" || exit 1 # SHARED= means a static build
+  make install "SYS=mingw CROSS_COMPILE=../$cross_prefix" SHARED=no "prefix=$mingw_w64_x86_64_prefix" || exit 1 # SHARED= means a static build
   cd ../..
 }
 
@@ -177,7 +181,7 @@ download_and_unpack_file() {
   output_dir="$2"
   if [ ! -f "$output_dir/unpacked.successfully" ]; then
     wget "$url" -O "$output_name" || exit 1
-    tar -xzf "$output_name" || tar -xjf "$output_name" || exit 1
+    tar -xf "$output_name" || exit 1
     touch "$output_dir/unpacked.successfully"
     rm "$output_name"
   fi
@@ -192,6 +196,14 @@ generic_download_and_install() {
   do_configure "--host=$host_target --prefix=$mingw_w64_x86_64_prefix --disable-shared --enable-static $extra_configure_options"
   do_make_install
   cd ..
+}
+
+build_gnutls() {
+  generic_download_and_install ftp://ftp.gnu.org/gnu/gnutls/gnutls-3.0.22.tar.xz gnutls-3.0.22
+}
+
+build_libnettle() {
+  generic_download_and_install http://www.lysator.liu.se/~nisse/archive/nettle-2.5.tar.gz nettle-2.5
 }
 
 build_zlib() {
@@ -214,7 +226,7 @@ build_openssl() {
   export AR="${cross}ar"
   export RANLIB="${cross}ranlib"
   if [ "$bits_target" = "32" ]; then
-    ./Configure "--prefix=$mingw_w64_x86_64_prefix" mingw
+    do_configure "--prefix=$mingw_w64_x86_64_prefix mingw" Configure
   else
     ./Configure "--prefix=$mingw_w64_x86_64_prefix" mingw64
   fi
@@ -259,9 +271,9 @@ build_ffmpeg() {
    local arch=x86_64
   fi
 
-  config_options="--enable-memalign-hack --arch=$arch --enable-gpl --enable-libx264 --enable-avisynth --target-os=mingw32  --cross-prefix=$cross_prefix --pkg-config=pkg-config --enable-libmp3lame --enable-version3 --enable-libvo-aacenc --enable-libvpx --extra-libs=-lpthread --enable-librtmp --enable-zlib"
+  config_options="--enable-memalign-hack --arch=$arch --enable-gpl --enable-libx264 --enable-avisynth --target-os=mingw32  --cross-prefix=$cross_prefix --pkg-config=pkg-config --enable-libmp3lame --enable-version3 --enable-libvo-aacenc --enable-libvpx --extra-libs=-lpthread --enable-librtmp --enable-zlib --disable-gnutls"
   if [[ "$non_free" = "y" ]]; then
-    config_options="$config_options --enable-nonfree --enable-libfdk-aac" # --enable-libfaac -- faac too poor quality and becomes the default -- add it in and uncomment the build_faac line to include it
+    config_options="--enable-openssl $config_options --enable-nonfree --enable-libfdk-aac" # --enable-libfaac -- faac too poor quality and becomes the default -- add it in and uncomment the build_faac line to include it
   else
     config_options="$config_options"
   fi
@@ -285,8 +297,9 @@ intro # remember to always run the intro, since it adjust pwd
 install_cross_compiler # always run this, too, since it adjust the PATH
 
 build_all() {
+  build_libnettle
+  #build_gnutls
   build_zlib
-  build_openssl
   build_sdl
   build_x264
   build_lame
@@ -296,11 +309,13 @@ build_all() {
   if [[ "$non_free" = "y" ]]; then
     build_fdk_aac
     # build_faac # not included for now, see comment above
+    build_openssl
   fi
   build_ffmpeg
 }
 
 if [ -d "mingw-w64-i686" ]; then # they installed a 32-bit compiler
+  export PATH="$cur_dir/mingw-w64-i686/bin:$PATH" 
   host_target='i686-w64-mingw32'
   bits_target=32
   mingw_w64_x86_64_prefix="$cur_dir/mingw-w64-i686/$host_target"
@@ -312,11 +327,12 @@ if [ -d "mingw-w64-i686" ]; then # they installed a 32-bit compiler
 fi
 
 if [ -d "mingw-w64-x86_64" ]; then # they installed a 64-bit compiler
+  export PATH="$cur_dir/mingw-w64-x86_64/bin:$PATH"
+  mkdir -p x86_64
   bits_target=64
   host_target='x86_64-w64-mingw32'
   mingw_w64_x86_64_prefix="$cur_dir/mingw-w64-x86_64/$host_target"
   cross_prefix="$cur_dir/mingw-w64-x86_64/bin/x86_64-w64-mingw32-'
-  mkdir -p x86_64
   cd x86_64
   build_all
   cd ..
