@@ -4,6 +4,7 @@ does it affect "both" libx264 and/or just ffmpeg?
     Also, I wonder if x264 needs to be recompiled after every update to
     test? Does this issue root in FFmpeg or x264 possibly?
 
+get 0406 timings to "luke"
 libvpx
   fix, update
   vpx threading/configure?
