@@ -69,7 +69,7 @@ it makes no sense)  Use march=native? [y/n]?"
 
 install_cross_compiler() {
   if [[ -f "mingw-w64-i686/compiler.done" || -f "mingw-w64-x86_64/compiler.done" ]]; then
-   echo "MinGW-w65 compiler of some type already installed, not re-installing it..."
+   echo "MinGW-w64 compiler of some type already installed, not re-installing it..."
    return
   fi
   read -p 'First we will download and compile a gcc cross-compiler (MinGW-w64).
@@ -250,7 +250,8 @@ build_sdl() {
   local bin_dir=`dirname $cross_prefix`
   mkdir temp
   cd temp # so paths will work out right
-  cp "$bin_dir/sdl-config" "$bin_dir/$prefixsdl-config"
+  echo cp "$bin_dir/sdl-config" "$bin_dir/${prefix}sdl-config"
+  cp "$bin_dir/sdl-config" "$bin_dir/${prefix}sdl-config"
   cd ..
   rmdir temp
 }
