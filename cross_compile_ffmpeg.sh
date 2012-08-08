@@ -250,7 +250,8 @@ build_sdl() {
   cd temp # so paths will work out right
   local prefix=`basename $cross_prefix`
   local bin_dir=`dirname $cross_prefix`
-  echo cp "$mingw_w64_x86_64_prefix/bin/sdl-config" "$bin_dir/${prefix}sdl-config" # this is the only one in the PATH so use it for now
+  sed -i "s/-mwindows//" "$mingw_w64_x86_64_prefix/bin/sdl-config" # allow ffmpeg to output anything
+  sed -i "s/-mwindows//" "$PKG_CONFIG_PATH/sdl.pc"
   cp "$mingw_w64_x86_64_prefix/bin/sdl-config" "$bin_dir/${prefix}sdl-config" # this is the only one in the PATH so use it for now
   cd ..
   rmdir temp
