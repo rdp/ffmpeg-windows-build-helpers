@@ -1,17 +1,16 @@
-== todo ==
-
-get a debug build for kai
+== todos ==
 
 libvpx
   fix, update blog/ML
     threading/configure?
-librtmp
 mjpeg?
+  input at least :P
 
 more check march=native
   vpx? ffmpeg more? do I need to enable runtime detection when it's not? libx264 still uses i686?
 
 test timings for first failure commits git-bisect-zy[?] (linuxes too)
+ffplay console
 
 == maybe/never do ==
 
