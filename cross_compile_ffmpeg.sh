@@ -245,12 +245,13 @@ build_vo_aacenc() {
 
 build_sdl() {
   # apparently ffmpeg expects prefix-sdl-config not sdl-config that they give us, so rename...
-  local prefix=`basename $cross_prefix`
-  local bin_dir=`dirname $cross_prefix`
   generic_download_and_install http://www.libsdl.org/release/SDL-1.2.15.tar.gz SDL-1.2.15
   mkdir temp
   cd temp # so paths will work out right
-  cp "$bin_dir/sdl-config" "$bin_dir/${prefix}sdl-config"
+  local prefix=`basename $cross_prefix`
+  local bin_dir=`dirname $cross_prefix`
+  echo cp "$mingw_w64_x86_64_prefix/bin/sdl-config" "$bin_dir/${prefix}sdl-config" # this is the only one in the PATH so use it for now
+  cp "$mingw_w64_x86_64_prefix/bin/sdl-config" "$bin_dir/${prefix}sdl-config" # this is the only one in the PATH so use it for now
   cd ..
   rmdir temp
 }
@@ -317,11 +318,11 @@ build_all() {
 
 if [ -d "mingw-w64-i686" ]; then # they installed a 32-bit compiler
   echo "Building 32-bit ffmpeg..."
+  host_target='i686-w64-mingw32'
   mingw_w64_x86_64_prefix="$cur_dir/mingw-w64-i686/$host_target"
   echo export PATH="$cur_dir/mingw-w64-i686/bin:$PATH"
   export PATH="$cur_dir/mingw-w64-i686/bin:$PATH"
   export PKG_CONFIG_PATH="$cur_dir/mingw-w64-i686/i686-w64-mingw32/lib/pkgconfig"
-  host_target='i686-w64-mingw32'
   bits_target=32
   cross_prefix="$cur_dir/mingw-w64-i686/bin/i686-w64-mingw32-"
   mkdir -p win32
@@ -332,12 +333,12 @@ fi
 
 if [ -d "mingw-w64-x86_64" ]; then # they installed a 64-bit compiler
   echo "Building 64-bit ffmpeg..."
+  host_target='x86_64-w64-mingw32'
   mingw_w64_x86_64_prefix="$cur_dir/mingw-w64-x86_64/$host_target"
-  export PATH="$cur_dir/mingw-w64-x86_64/bin:$PATH" # TODO
+  export PATH="$cur_dir/mingw-w64-x86_64/bin:$PATH"
   export PKG_CONFIG_PATH="$cur_dir/mingw-w64-x86_64/x86_64-w64-mingw32/lib/pkgconfig"
   mkdir -p x86_64
   bits_target=64
-  host_target='x86_64-w64-mingw32'
   cross_prefix="$cur_dir/mingw-w64-x86_64/bin/x86_64-w64-mingw32-"
   cd x86_64
   build_all
