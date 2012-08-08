@@ -273,7 +273,7 @@ build_ffmpeg() {
    local arch=x86_64
   fi
 
-  config_options="--enable-memalign-hack --arch=$arch --enable-gpl --enable-libx264 --enable-avisynth --target-os=mingw32  --cross-prefix=$cross_prefix --pkg-config=pkg-config --enable-libmp3lame --enable-version3 --enable-libvo-aacenc --enable-libvpx --extra-libs=-lws2_32 --extra-libs=-lpthread --enable-librtmp --enable-zlib --extra-libs=-lwinmm --extra-libs=-lgdi32"
+  config_options="--enable-memalign-hack --arch=$arch --enable-gpl --enable-libx264 --enable-avisynth --target-os=mingw32  --cross-prefix=$cross_prefix --pkg-config=pkg-config --enable-libmp3lame --enable-version3 --enable-libvo-aacenc --enable-libvpx --extra-libs=-lws2_32 --extra-libs=-lpthread --enable-zlib --extra-libs=-lwinmm --extra-libs=-lgdi32" # --enable-librtmp
   if [[ "$non_free" = "y" ]]; then
     config_options="$config_options --enable-nonfree --enable-openssl --enable-libfdk-aac" # --enable-libfaac -- faac too poor quality and becomes the default -- add it in and uncomment the build_faac line to include it
   else
@@ -300,9 +300,9 @@ install_cross_compiler # always run this, too, since it adjust the PATH
 
 build_all() {
   #build_libnettle # gnutls depends on it
-  #build_gnutls
-  build_openssl # TODO replace with gnutls [?] # rtmp depends on it
-  build_zlib # rtmp depends on it [as well as ffmpeg --enable-zlib]
+  #build_gnutls # doesn't build because libnettle needs gmp dependency yet
+  build_openssl # TODO replace with gnutls [?] # rtmp depends on one or the other...
+  build_zlib # rtmp depends on it [as well as ffmpeg's --enable-zlib]
   build_sdl
   build_x264
   build_lame
