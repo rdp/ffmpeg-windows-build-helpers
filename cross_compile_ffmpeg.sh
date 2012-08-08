@@ -244,13 +244,12 @@ build_vo_aacenc() {
 }
 
 build_sdl() {
-  generic_download_and_install http://www.libsdl.org/release/SDL-1.2.15.tar.gz SDL-1.2.15
   # apparently ffmpeg expects prefix-sdl-config not sdl-config that they give us, so rename...
   local prefix=`basename $cross_prefix`
   local bin_dir=`dirname $cross_prefix`
+  generic_download_and_install http://www.libsdl.org/release/SDL-1.2.15.tar.gz SDL-1.2.15
   mkdir temp
   cd temp # so paths will work out right
-  echo cp "$bin_dir/sdl-config" "$bin_dir/${prefix}sdl-config"
   cp "$bin_dir/sdl-config" "$bin_dir/${prefix}sdl-config"
   cd ..
   rmdir temp
@@ -291,7 +290,7 @@ build_ffmpeg() {
   rm -f *.exe # just in case some library dependency was updated, force it to re-link
   make || exit 1
   local cur_dir2=`pwd`
-  echo "you will find binaries in $cur_dir2/ff{mpeg,probe,play}*.exe"
+  echo "Done! You will find binaries in $cur_dir2/ff{mpeg,probe,play}*.exe"
   cd ..
 }
 
@@ -299,15 +298,15 @@ intro # remember to always run the intro, since it adjust pwd
 install_cross_compiler # always run this, too, since it adjust the PATH
 
 build_all() {
+  build_sdl # for ffplay to be created
   #build_libnettle # gnutls depends on it
   #build_gnutls # doesn't build because libnettle needs gmp dependency yet
-  build_openssl # TODO replace with gnutls [?] # rtmp depends on one or the other...
+  #build_openssl # TODO replace with gnutls [?] # rtmp depends on one or the other...
   build_zlib # rtmp depends on it [as well as ffmpeg's --enable-zlib]
-  build_sdl
   build_x264
   build_lame
   build_libvpx
-  build_librtmp
+  #build_librtmp
   build_vo_aacenc
   if [[ "$non_free" = "y" ]]; then
     build_fdk_aac
@@ -317,11 +316,13 @@ build_all() {
 }
 
 if [ -d "mingw-w64-i686" ]; then # they installed a 32-bit compiler
-  export PATH="$cur_dir/mingw-w64-i686/bin:$PATH" 
+  echo "Building 32-bit ffmpeg..."
+  mingw_w64_x86_64_prefix="$cur_dir/mingw-w64-i686/$host_target"
+  echo export PATH="$cur_dir/mingw-w64-i686/bin:$PATH"
+  export PATH="$cur_dir/mingw-w64-i686/bin:$PATH"
   export PKG_CONFIG_PATH="$cur_dir/mingw-w64-i686/i686-w64-mingw32/lib/pkgconfig"
   host_target='i686-w64-mingw32'
   bits_target=32
-  mingw_w64_x86_64_prefix="$cur_dir/mingw-w64-i686/$host_target"
   cross_prefix="$cur_dir/mingw-w64-i686/bin/i686-w64-mingw32-"
   mkdir -p win32
   cd win32
@@ -330,12 +331,13 @@ if [ -d "mingw-w64-i686" ]; then # they installed a 32-bit compiler
 fi
 
 if [ -d "mingw-w64-x86_64" ]; then # they installed a 64-bit compiler
-  export PATH="$cur_dir/mingw-w64-x86_64/bin:$PATH"
+  echo "Building 64-bit ffmpeg..."
+  mingw_w64_x86_64_prefix="$cur_dir/mingw-w64-x86_64/$host_target"
+  export PATH="$cur_dir/mingw-w64-x86_64/bin:$PATH" # TODO
   export PKG_CONFIG_PATH="$cur_dir/mingw-w64-x86_64/x86_64-w64-mingw32/lib/pkgconfig"
   mkdir -p x86_64
   bits_target=64
   host_target='x86_64-w64-mingw32'
-  mingw_w64_x86_64_prefix="$cur_dir/mingw-w64-x86_64/$host_target"
   cross_prefix="$cur_dir/mingw-w64-x86_64/bin/x86_64-w64-mingw32-"
   cd x86_64
   build_all
