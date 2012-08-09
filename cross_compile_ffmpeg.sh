@@ -222,10 +222,13 @@ build_libxvid() {
   if [ "$bits_target" = "64" ]; then
     local config_opts="--build=x86_64-unknown-linux-gnu --disable-assembly"
   fi
-  do_configure "--host=$host_target --prefix=$mingw_w64_x86_64_prefix $config_opts" # no static option?
+  do_configure "--host=$host_target --prefix=$mingw_w64_x86_64_prefix $config_opts" # no static option...
   sed -i "s/-mno-cygwin//"  * # remove old compiler flags that break us
   do_make_install
   cd ../../..
+  # force a static build after the fact
+  rm $mingw_w64_x86_64_prefix/lib/xvidcore.dll
+  mv $mingw_w64_x86_64_prefix/lib/xvidcore.a $mingw_w64_x86_64_prefix/lib/libxvidcore.a
 }
 
 build_openssl() {
