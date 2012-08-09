@@ -132,8 +132,8 @@ do_configure() {
 
 do_make_install() {
   if [ ! -f already_ran_make ]; then
-    make || exit 1
-    make install || exit 1
+    make $1 || exit 1
+    make install $1 || exit 1
     touch already_ran_make
   else
     local cur_dir2=`pwd`
@@ -156,7 +156,6 @@ build_x264() {
 
 build_librtmp() {
   download_and_unpack_file http://rtmpdump.mplayerhq.hu/download/rtmpdump-2.3.tgz rtmpdump-2.3
-  pkg-config --libs librtmp
   cd rtmpdump-2.3/librtmp
   make install "CROSS_COMPILE=$cross_prefix" SHARED=no "prefix=$mingw_w64_x86_64_prefix" || exit 1 # SHARED= means a static build
   cd ../..
@@ -167,12 +166,11 @@ build_libvpx() {
   cd libvpx-v1.1.0
   export CROSS="$cross_prefix"
   if [[ "$bits_target" = "32" ]]; then
-    export CROSS="$cross_prefix"
     do_configure "--target=generic-gnu --prefix=$mingw_w64_x86_64_prefix --enable-static --disable-shared"
   else
-    do_configure "--target=generic-gnu --prefix=$mingw_w64_x86_64_prefix"
+    do_configure "--target=generic-gnu --prefix=$mingw_w64_x86_64_prefix --enable-static --disable-shared"
   fi
-  do_make_install
+  do_make_install "extralibs='-lpthread'" # weird
   cd ..
 }
 
@@ -216,6 +214,18 @@ build_zlib() {
     do_configure "--static --prefix=$mingw_w64_x86_64_prefix"
     do_make_install
   cd ..
+}
+
+build_libxvid() {
+  download_and_unpack_file http://downloads.xvid.org/downloads/xvidcore-1.3.2.tar.gz xvidcore
+  cd xvidcore/build/generic
+  if [ "$bits_target" = "64" ]; then
+    local config_opts="--build=x86_64-unknown-linux-gnu --disable-assembly"
+  fi
+  do_configure "--host=$host_target --prefix=$mingw_w64_x86_64_prefix $config_opts" # no static option?
+  sed -i "s/-mno-cygwin//"  * # remove old compiler flags that break us
+  do_make_install
+  cd ../../..
 }
 
 build_openssl() {
@@ -265,6 +275,7 @@ build_lame() {
   generic_download_and_install http://sourceforge.net/projects/lame/files/lame/3.99/lame-3.99.5.tar.gz/download lame-3.99.5
 }
 
+
 build_ffmpeg() {
   do_git_checkout https://github.com/FFmpeg/FFmpeg.git ffmpeg_git
   cd ffmpeg_git
@@ -274,7 +285,7 @@ build_ffmpeg() {
    local arch=x86_64
   fi
 
-  config_options="--enable-memalign-hack --arch=$arch --enable-gpl --enable-libx264 --enable-avisynth --target-os=mingw32  --cross-prefix=$cross_prefix --pkg-config=pkg-config --enable-libmp3lame --enable-version3 --enable-libvo-aacenc --enable-libvpx --extra-libs=-lws2_32 --extra-libs=-lpthread --enable-zlib --extra-libs=-lwinmm --extra-libs=-lgdi32" # --enable-librtmp
+  config_options="--enable-memalign-hack --arch=$arch --enable-gpl --enable-libx264 --enable-avisynth --enable-libxvid --target-os=mingw32  --cross-prefix=$cross_prefix --pkg-config=pkg-config --enable-libmp3lame --enable-version3 --enable-libvo-aacenc --enable-libvpx --extra-libs=-lws2_32 --extra-libs=-lpthread --enable-zlib --extra-libs=-lwinmm --extra-libs=-lgdi32" # --enable-librtmp
   if [[ "$non_free" = "y" ]]; then
     config_options="$config_options --enable-nonfree --enable-openssl --enable-libfdk-aac" # --enable-libfaac -- faac too poor quality and becomes the default -- add it in and uncomment the build_faac line to include it
   else
@@ -300,6 +311,7 @@ intro # remember to always run the intro, since it adjust pwd
 install_cross_compiler # always run this, too, since it adjust the PATH
 
 build_all() {
+  build_libxvid
   build_sdl # for ffplay to be created
   #build_libnettle # gnutls depends on it
   #build_gnutls # doesn't build because libnettle needs gmp dependency yet
