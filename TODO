@@ -1,19 +1,14 @@
 == todos ==
-ffplay
+librtmp git
 libvpx
   fix, update blog/ML
     threading/configure?
-mjpeg?
-  input at least, preferably both :P
 
 more check march=native (from laptop...)
   vpx? ffmpeg more? do I need to enable runtime detection when it's not? libx264 still uses i686?
 
 test timings for first failure commits bisect-like[?]
   test really old with -threads 6...
-ffplay console
-
-libxvid
 
 == maybe/never do ==
 
