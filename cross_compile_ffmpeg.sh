@@ -142,9 +142,7 @@ do_make_install() {
 }
 
 build_x264() {
-  if [[ ! -d "x264" ]]; then
-    do_git_checkout "http://repo.or.cz/r/x264.git" "x264"
-  fi
+  do_git_checkout "http://repo.or.cz/r/x264.git" "x264"
   cd x264
   do_configure "--host=$host_target --enable-static --cross-prefix=$cross_prefix --prefix=$mingw_w64_x86_64_prefix --enable-win32thread"
   # TODO more march=native here?
@@ -155,9 +153,12 @@ build_x264() {
 }
 
 build_librtmp() {
-  download_and_unpack_file http://rtmpdump.mplayerhq.hu/download/rtmpdump-2.3.tgz rtmpdump-2.3
-  cd rtmpdump-2.3/librtmp
-  make install "CROSS_COMPILE=$cross_prefix" SHARED=no "prefix=$mingw_w64_x86_64_prefix" || exit 1 # SHARED= means a static build
+  #  download_and_unpack_file http://rtmpdump.mplayerhq.hu/download/rtmpdump-2.3.tgz rtmpdump-2.3
+  #  cd rtmpdump-2.3/librtmp
+
+  do_git_checkout "http://repo.or.cz/r/rtmpdump.git" rtmpdump_git
+  cd rtmpdump_git/librtmp
+  make install OPT='-O2 -g' "CROSS_COMPILE=$cross_prefix" SHARED=no "prefix=$mingw_w64_x86_64_prefix" || exit 1 # SHARED= means a static build
   cd ../..
 }
 
@@ -288,7 +289,7 @@ build_ffmpeg() {
    local arch=x86_64
   fi
 
-  config_options="--enable-memalign-hack --arch=$arch --enable-gpl --enable-libx264 --enable-avisynth --enable-libxvid --target-os=mingw32  --cross-prefix=$cross_prefix --pkg-config=pkg-config --enable-libmp3lame --enable-version3 --enable-libvo-aacenc --enable-libvpx --extra-libs=-lws2_32 --extra-libs=-lpthread --enable-zlib --extra-libs=-lwinmm --extra-libs=-lgdi32" # --enable-librtmp
+  config_options="--enable-memalign-hack --arch=$arch --enable-gpl --enable-libx264 --enable-avisynth --enable-libxvid --target-os=mingw32  --cross-prefix=$cross_prefix --pkg-config=pkg-config --enable-libmp3lame --enable-version3 --enable-libvo-aacenc --enable-libvpx --extra-libs=-lws2_32 --extra-libs=-lpthread --enable-zlib --extra-libs=-lwinmm --extra-libs=-lgdi32 --enable-librtmp"
   if [[ "$non_free" = "y" ]]; then
     config_options="$config_options --enable-nonfree --enable-openssl --enable-libfdk-aac" # --enable-libfaac -- faac too poor quality and becomes the default -- add it in and uncomment the build_faac line to include it
   else
@@ -314,15 +315,15 @@ intro # remember to always run the intro, since it adjust pwd
 install_cross_compiler # always run this, too, since it adjust the PATH
 
 build_all() {
-  build_libxvid
-  build_sdl # for ffplay to be created
+  build_sdl # needed for ffplay to be created/exist
   #build_libnettle # gnutls depends on it
   #build_gnutls # doesn't build because libnettle needs gmp dependency yet
   build_zlib # rtmp depends on it [as well as ffmpeg's --enable-zlib]
+  build_libxvid
   build_x264
   build_lame
   build_libvpx
-  #build_librtmp
+  build_librtmp
   build_vo_aacenc
   if [[ "$non_free" = "y" ]]; then
     build_openssl # may as well
