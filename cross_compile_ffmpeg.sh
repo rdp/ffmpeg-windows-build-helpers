@@ -303,7 +303,6 @@ build_all() {
   build_sdl # for ffplay to be created
   #build_libnettle # gnutls depends on it
   #build_gnutls # doesn't build because libnettle needs gmp dependency yet
-  #build_openssl # TODO replace with gnutls [?] # rtmp depends on one or the other...
   build_zlib # rtmp depends on it [as well as ffmpeg's --enable-zlib]
   build_x264
   build_lame
@@ -311,6 +310,7 @@ build_all() {
   #build_librtmp
   build_vo_aacenc
   if [[ "$non_free" = "y" ]]; then
+    build_openssl # may as well
     build_fdk_aac
     # build_faac # not included for now, see comment above
   fi
