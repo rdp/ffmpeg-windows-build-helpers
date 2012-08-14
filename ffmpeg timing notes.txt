@@ -1,3 +1,53 @@
+== RTMP fps drops notes ==
+
+Ok it outputs "fine" to flv, or to udp...or to a pipe. No RAM leaks.
+The truly weird part being "even if flv can't write to the disk fast enough" right...no leaks...
+so the buffering can't be part of libx264, and all the way through to there...
+ probably
+ before rtmp
+ or within rtmp
+ is my guess...
+ 
+ 
+the video can get very choppy (12 fps reported while encoding and 6-7 noticed while watching with fraps running) but the audio does not.
+ 
+-analyzeduration
+
+try it with VLC as the server?
+ -max_delay, -muxpreload, and -muxdelay help? 
+ 
+ "you should set a maxrate, a buffer, and use a CRF for quality control (you're doing CBR right now). ?
+     apparently didn't help
+
+ffmpeg -t 10 -f dshow -i video=screen-capture-recorder -vcodec libx264 -f flv rtmp://localhost/live/a  -loglevel debug > output 2>&1
+ffmpeg -t 10 -i \vids\sintel.mpg -ss 90 -an  -vcodec libx264 -f flv rtmp://localhost/live/a -loglevel debug > output 2>&1
+
+
+with my proxy:
+frame=  162 fps=  1 q=19.0 Lsize=    4067kB time=00:02:51.64 bitrate= 194.1kbits/s
+
+and that's with *semingly* extra cpu.
+
+LOL.
+
+Also NB, with09-11:
+
+.+,-.+.+.+.+.+.+.+.
+
+but latest is 
+.+,.+,.+,.+,.+,.+,.+,.+,
+
+latest:
+
+[dshow @ 01C9A600] real-time buffer 199% full! frame dropped!trate=   0.0kbits/s
+    Last message repeated 1277 times3513kB time=00:02:56.02 bitrate= 163.5kbits/s
+
+09-11:
+frame=  330 fps=  1 q=17.0 Lsize=    4369kB time=00:03:16.31 bitrate= 182.3kbits/s    
+    
+
+== Timing with pthreads ==
+
 0726: ffmpeg-20120726-git-236ecc3-win32-shared\\ffmpeg-20120726-git-236ecc3-win32-shared\\bin\\ffmpeg.exe -threads 1
  6.17, 6.2088, 6.2088, 6.2414, 6.3024, 6.509, 6.5676, 6.5686, 6.5922, 11.5128]
 

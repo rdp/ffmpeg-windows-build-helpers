@@ -37,3 +37,7 @@ old builds: --extra-libs='-lx264 -lpthread'
 old build hints: http://ffmpeg.arrozcru.org/forum/viewtopic.php?f=1&t=1638
 
 currently says: enabling runtime_cpu_detect for libvpx even with march specified...
+
+@home, to 
+ffmpeg  -f dshow -i video=screen-capture-recorder -pix_fmt yuv420p -s hd720 -vcodec libx264 -preset medium -b:v 2400k -maxrate 240 -f flv rtmp://localhost/live/a 2>&1 > output 2>&1
+did *not* leak at all ever
