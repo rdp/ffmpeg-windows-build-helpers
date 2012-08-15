@@ -4,6 +4,14 @@
 
 is working now...at least :P
 
+"bitrate" in the console has no relation to what's being put out on the wire...
+  maybe the long latency to justin.tv kills it?
+    
+
+when you "don't have enough bandwidth" it slows down the cpu usage, and keeps encoding...
+
+Also is it sending like way more on the wire than it does when it writes it to file?
+
 
 Ok it outputs "fine" to flv, or to udp...or to a pipe. No RAM leaks.
 The truly weird part being "even if flv can't write to the disk fast enough" right...no leaks...
