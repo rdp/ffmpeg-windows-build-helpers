@@ -1,5 +1,10 @@
 == RTMP fps drops notes ==
 
+"C:\Downloads\ffmpeg-distro-static-2012-08-15-045f8ddc07d0d7e4a29a53b0b69a02ebbb34494b.dshow_no_overflow\ffmpeg-distro-static-2012-08-15-045f8ddc07d0d7e4a29a53b0b69a02ebbb34494b\ffmpeg-32.exe"  -f dshow -i video=screen-capture-recorder -f flv rtmp://localhost:1936/live/b	Command Line	
+
+is working now...at least :P
+
+
 Ok it outputs "fine" to flv, or to udp...or to a pipe. No RAM leaks.
 The truly weird part being "even if flv can't write to the disk fast enough" right...no leaks...
 so the buffering can't be part of libx264, and all the way through to there...
