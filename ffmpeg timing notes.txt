@@ -1,3 +1,55 @@
+== mac fps drops ==
+
+should always be at 29, 100% cpu
+
+is with -b 100k
+
+is not with "normal" 
+
+ffmpeg -i sintel.mpg -ss 90 -an -f flv rtmp://live.justin.tv/
+
+50%
+
+700 kbit upload, makes sense…
+
+
+mac:
+ffmpeg -i sintel.mpg -ss 90 -an -f flv ...:
+
+12 minutes, 37 fps, low cpu…
+
+should have been:
+frame=21654 fps=209 q=31.0 Lsize=   46193kB time=00:13:14.82 bitrate= 476.1kbits/s    
+
+says I have 0.73 Mbps
+
+frame= 5116 fps= 47 q=31.0 Lsize=    9564kB time=00:03:07.75 bitrate= 417.3kbits/s 
+
+so it's basically  47/30*40 ~ 62 KB/s
+
+did show 100K outbound, 2.2K incoming, which is good.
+
+Does show the odd pause right when it gets started…
+
+If it's a leak, it's a slow one… (this is sans --enable-librtmp though).
+
+No hint of a leak when streaming a file.
+
+135.8 MB when bandwidth limited, at least
+
+bandwidth not limited
+
+bandwidth AND cpu limited:
+
+cpu limited?
+
+"frame= 4889 fps= 21 "
+  is actually like a running average since the beginning of time [!]
+
+actually fps=5
+
+the thing that can limit it: cpu, bandwidth
+
 == RTMP fps drops notes ==
 
 "C:\Downloads\ffmpeg-distro-static-2012-08-15-045f8ddc07d0d7e4a29a53b0b69a02ebbb34494b.dshow_no_overflow\ffmpeg-distro-static-2012-08-15-045f8ddc07d0d7e4a29a53b0b69a02ebbb34494b\ffmpeg-32.exe"  -f dshow -i video=screen-capture-recorder -f flv rtmp://localhost:1936/live/b	Command Line	
