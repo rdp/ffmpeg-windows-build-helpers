@@ -1,3 +1,8 @@
+== rtmp "drops" ==
+
+maybe related to the VLC audio-desync?
+http://planet.videolan.org/
+
 == mac fps drops ==
 
 should always be at 29, 100% cpu
@@ -51,6 +56,14 @@ actually fps=5
 the thing that can limit it: cpu, bandwidth
 
 == RTMP fps drops notes ==
+
+*all night*
+"C:\Downloads\ffmpeg-distro-static-2012-08-15-045f8ddc07d0d7e4a29a53b0b69a02ebbb34494b.dshow_no_overflow\ffmpeg-distro-static-2012-08-15-045f8ddc07d0d7e4a29a53b0b69a02ebbb34494b\ffmpeg-32.exe" -analyzeduration 0 -i "rtmp://localhost:1936/live/b live=1" -vcodec libx264 -f flv "rtmp://localhost:1936/live/c"
+
+no discernable leak
+
+
+
 
 "C:\Downloads\ffmpeg-distro-static-2012-08-15-045f8ddc07d0d7e4a29a53b0b69a02ebbb34494b.dshow_no_overflow\ffmpeg-distro-static-2012-08-15-045f8ddc07d0d7e4a29a53b0b69a02ebbb34494b\ffmpeg-32.exe"  -f dshow -i video=screen-capture-recorder -f flv rtmp://localhost:1936/live/b	Command Line	
 
