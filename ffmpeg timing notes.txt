@@ -3,6 +3,23 @@
 maybe related to the VLC audio-desync?
 http://planet.videolan.org/
 
+blacky3:
+    Last message repeated 16 times
+frame=120967 fps= 10 q=31.0 size=  545552kB time=03:16:56.88 bitrate= 378.2kbitsreal-time buffer 206% full! frame dropped!
+[dshow @ 01F1D5A0] real-time buffer 206% full! frame dropped!
+    Last message repeated 16 times
+frame=120980 fps= 10 q=31.0 size=  545595kB time=03:16:57.86 bitrate= 378.2kbitsreal-time buffer 206% full! frame dropped!
+[dshow @ 01F1D5A0] real-time buffer 206% full! frame dropped!
+    Last message repeated 1017 times
+WriteN, RTMP send error 10054 (129 bytes)real-time buffer 206% full! frame dropped!
+
+WriteN, RTMP send error 10054 (79 bytes)
+WriteN, RTMP send error 10038 (42 bytes)
+av_interleaved_write_frame(): Operation not permitted
+[dshow @ 01F1D5A0] real-time buffer 206% full! frame dropped!
+    Last message repeated 3 times
+
+
 == mac fps drops ==
 
 should always be at 29, 100% cpu
