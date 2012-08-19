@@ -116,7 +116,7 @@ do_configure() {
   local cur_dir2=`pwd`
   local english_name=`basename $cur_dir2`
   local touch_name=`echo -- $configure_options $CFLAGS | /usr/bin/env md5sum` # sanitize, disallow too long of length
-  touch_name="already_configured_$touch_name" # add something so we can delete it easily
+  touch_name=`echo already_configured_$touch_name | sed "s/ //g"` # add prefix so we can delete it easily, remove spaces
   if [ ! -f "$touch_name" ]; then
     echo "configuring $english_name as $configure_options
         with PATH $PATH"
@@ -147,7 +147,6 @@ build_x264() {
   do_configure "--host=$host_target --enable-static --cross-prefix=$cross_prefix --prefix=$mingw_w64_x86_64_prefix --enable-win32thread"
   # TODO more march=native here?
   # rm -f already_ran_make # just in case the git checkout did something, re-make
-  echo "in $(pwd) with PATH=$PATH"
   do_make_install
   cd ..
 }
@@ -337,7 +336,6 @@ if [ -d "mingw-w64-i686" ]; then # they installed a 32-bit compiler
   echo "Building 32-bit ffmpeg..."
   host_target='i686-w64-mingw32'
   mingw_w64_x86_64_prefix="$cur_dir/mingw-w64-i686/$host_target"
-  echo export PATH="$cur_dir/mingw-w64-i686/bin:$PATH"
   export PATH="$cur_dir/mingw-w64-i686/bin:$PATH"
   export PKG_CONFIG_PATH="$cur_dir/mingw-w64-i686/i686-w64-mingw32/lib/pkgconfig"
   bits_target=32
