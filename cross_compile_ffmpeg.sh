@@ -58,13 +58,10 @@ but also makes it so you cannot distribute the binary to machines of other archi
 (also note that you should only enable this if compiling on a VM on the same box you intend to target, otherwise
 it makes no sense)  Use march=native? [y/n]?" 
   if [[ "$user_input" = "y" ]]; then
-    CFLAGS="$CFLAGS -march=native -pipe"
     native_build="y"
   else
-    CFLAGS="$CFLAGS -pipe"
     native_build="n"
   fi
-  export CFLAGS
 }
 
 install_cross_compiler() {
@@ -87,6 +84,15 @@ install_cross_compiler() {
   fi
   clear
   echo "Ok, done building MinGW-w64 cross-compiler..."
+}
+
+setup_cflags() {
+  if [[ "$native_build" = "y" ]]; then
+    CFLAGS="$CFLAGS -march=native -pipe"
+  else
+    CFLAGS="$CFLAGS -pipe"
+  fi;
+  export CFLAGS
 }
 
 do_git_checkout() {
@@ -113,7 +119,9 @@ do_configure() {
   if [[ "$configure_name" = "" ]]; then
     configure_name="./configure"
   fi
+  echo local cur_dir2=`pwd`
   local cur_dir2=`pwd`
+  echo local english_name=`basename $cur_dir2`
   local english_name=`basename $cur_dir2`
   local touch_name=`echo -- $configure_options $CFLAGS | /usr/bin/env md5sum` # sanitize, disallow too long of length
   touch_name=`echo already_configured_$touch_name | sed "s/ //g"` # add prefix so we can delete it easily, remove spaces
@@ -126,7 +134,7 @@ do_configure() {
     touch -- "$touch_name"
     make clean # just in case
   else
-    echo "already configured $english_name" 
+    echo "already configured $cur_dir2" 
   fi
 }
 
@@ -220,15 +228,17 @@ build_libxvid() {
   download_and_unpack_file http://downloads.xvid.org/downloads/xvidcore-1.3.2.tar.gz xvidcore
   cd xvidcore/build/generic
   if [ "$bits_target" = "64" ]; then
-    local config_opts="--build=x86_64-unknown-linux-gnu --disable-assembly"
+    local config_opts="--build=x86_64-unknown-linux-gnu --disable-assembly" # kludgey work arounds for 64 bit
   fi
   do_configure "--host=$host_target --prefix=$mingw_w64_x86_64_prefix $config_opts" # no static option...
-  sed -i "s/-mno-cygwin//"  * # remove old compiler flags that break us
+  sed -i "s/-mno-cygwin//"  * # remove old compiler flags that now apparently break us
   do_make_install
   cd ../../..
   # force a static build after the fact
-  rm $mingw_w64_x86_64_prefix/lib/xvidcore.dll
-  mv $mingw_w64_x86_64_prefix/lib/xvidcore.a $mingw_w64_x86_64_prefix/lib/libxvidcore.a
+  if [[ -f "$mingw_w64_x86_64_prefix/lib/xvidcore.dll" ]]; then
+    rm $mingw_w64_x86_64_prefix/lib/xvidcore.dll
+    mv $mingw_w64_x86_64_prefix/lib/xvidcore.a $mingw_w64_x86_64_prefix/lib/libxvidcore.a
+  fi
 }
 
 build_openssl() {
@@ -311,12 +321,13 @@ build_ffmpeg() {
 
 intro # remember to always run the intro, since it adjust pwd
 install_cross_compiler # always run this, too, since it adjust the PATH
+setup_cflags
 
 build_all() {
   build_sdl # needed for ffplay to be created/exist
   #build_libnettle # gnutls depends on it
   #build_gnutls # doesn't build because libnettle needs gmp dependency yet
-  build_zlib # rtmp depends on it [as well as ffmpeg's --enable-zlib]
+  build_zlib # rtmp depends on it [as well as ffmpeg's optional but good --enable-zlib]
   build_libxvid
   build_x264
   build_lame
