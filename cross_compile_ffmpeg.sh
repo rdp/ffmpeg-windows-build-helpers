@@ -157,7 +157,7 @@ build_librtmp() {
 
   do_git_checkout "http://repo.or.cz/r/rtmpdump.git" rtmpdump_git
   cd rtmpdump_git/librtmp
-  make install OPT='-O2 -g' "CROSS_COMPILE=$cross_prefix" SHARED=no "prefix=$mingw_w64_x86_64_prefix" || exit 1 # SHARED= means a static build
+  make install OPT='-O2 -g' "CROSS_COMPILE=$cross_prefix" SHARED=no "prefix=$mingw_w64_x86_64_prefix" || exit 1
   cd ../..
 }
 
@@ -232,7 +232,6 @@ build_libxvid() {
 }
 
 build_openssl() {
-  # librtmp appreciates this...
   download_and_unpack_file http://www.openssl.org/source/openssl-1.0.1c.tar.gz openssl-1.0.1c
   cd openssl-1.0.1c
   export cross="$cross_prefix"
@@ -322,13 +321,13 @@ build_all() {
   build_x264
   build_lame
   build_libvpx
-  build_librtmp
   build_vo_aacenc
   if [[ "$non_free" = "y" ]]; then
-    build_openssl # may as well
     build_fdk_aac
-    # build_faac # not included for now, see comment above
+    # build_faac # not included for now, see comment above, poor quality
   fi
+  build_openssl
+  build_librtmp # needs openssl
   build_ffmpeg
 }
 
