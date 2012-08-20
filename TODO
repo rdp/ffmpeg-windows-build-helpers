@@ -9,10 +9,12 @@ more check march=native (from laptop...)
 
 test timings for first failure commits bisect-like[?]
   test really old with -threads 6...
-cleanup zeranoe suggs
+cleanup zeranoe suggs (vpx?)
 
 more libraries
   All the current builds'?
+
+assert they have git and gcc installed
 
 == maybe/never do ==
 
