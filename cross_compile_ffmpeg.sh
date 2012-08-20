@@ -140,6 +140,7 @@ do_configure() {
   touch_name=`echo already_configured_$touch_name | sed "s/ //g"` # add prefix so we can delete it easily, remove spaces
   if [ ! -f "$touch_name" ]; then
     echo "configuring $english_name as $ PATH=$PATH CFLAGS='$CFLAGS' $configure_name $configure_options"
+    make clean # just in case
     if [ -f bootstrap.sh ]; then
       ./bootstrap.sh
     fi
@@ -246,8 +247,8 @@ build_libgsm() {
   sed -i "s|gcc -ansi -pedantic|${cross_prefix}gcc|" Makefile
   sed -i "s|= ar|= ${cross_prefix}ar|" Makefile
   sed -i "s|= ranlib|= ${cross_prefix}ranlib|" Makefile
-  sed -i "s|INSTALL_ROOT\s=$|INSTALL_ROOT=${mingw_w64_x86_64_prefix}|" Makefile
-  make # fails, but we expect that
+  #sed -i "s|INSTALL_ROOT\s=$|INSTALL_ROOT=${mingw_w64_x86_64_prefix}|" Makefile
+  make # fails, but we expect that LODO fix [?]
   cp lib/libgsm.a $mingw_w64_x86_64_prefix/lib
   cd ..
 }
