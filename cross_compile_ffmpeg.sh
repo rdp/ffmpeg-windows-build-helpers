@@ -116,7 +116,7 @@ do_configure() {
   local cur_dir2=`pwd`
   local english_name=`basename $cur_dir2`
   local touch_name=`echo -- $configure_options $CFLAGS | /usr/bin/env md5sum` # sanitize, disallow too long of length
-  touch_name="already_configured_$touch_name" # add something so we can delete it easily
+  touch_name=`echo already_configured_$touch_name | sed "s/ //g"` # add prefix so we can delete it easily, remove spaces
   if [ ! -f "$touch_name" ]; then
     echo "configuring $english_name as $configure_options
         with PATH $PATH"
@@ -142,22 +142,22 @@ do_make_install() {
 }
 
 build_x264() {
-  if [[ ! -d "x264" ]]; then
-    do_git_checkout "http://repo.or.cz/r/x264.git" "x264"
-  fi
+  do_git_checkout "http://repo.or.cz/r/x264.git" "x264"
   cd x264
   do_configure "--host=$host_target --enable-static --cross-prefix=$cross_prefix --prefix=$mingw_w64_x86_64_prefix --enable-win32thread"
   # TODO more march=native here?
   # rm -f already_ran_make # just in case the git checkout did something, re-make
-  echo "in $(pwd) with PATH=$PATH"
   do_make_install
   cd ..
 }
 
 build_librtmp() {
-  download_and_unpack_file http://rtmpdump.mplayerhq.hu/download/rtmpdump-2.3.tgz rtmpdump-2.3
-  cd rtmpdump-2.3/librtmp
-  make install "CROSS_COMPILE=$cross_prefix" SHARED=no "prefix=$mingw_w64_x86_64_prefix" || exit 1 # SHARED= means a static build
+  #  download_and_unpack_file http://rtmpdump.mplayerhq.hu/download/rtmpdump-2.3.tgz rtmpdump-2.3
+  #  cd rtmpdump-2.3/librtmp
+
+  do_git_checkout "http://repo.or.cz/r/rtmpdump.git" rtmpdump_git
+  cd rtmpdump_git/librtmp
+  make install OPT='-O2 -g' "CROSS_COMPILE=$cross_prefix" SHARED=no "prefix=$mingw_w64_x86_64_prefix" || exit 1 # SHARED= means a static build
   cd ../..
 }
 
@@ -222,10 +222,13 @@ build_libxvid() {
   if [ "$bits_target" = "64" ]; then
     local config_opts="--build=x86_64-unknown-linux-gnu --disable-assembly"
   fi
-  do_configure "--host=$host_target --prefix=$mingw_w64_x86_64_prefix $config_opts" # no static option?
+  do_configure "--host=$host_target --prefix=$mingw_w64_x86_64_prefix $config_opts" # no static option...
   sed -i "s/-mno-cygwin//"  * # remove old compiler flags that break us
   do_make_install
   cd ../../..
+  # force a static build after the fact
+  rm $mingw_w64_x86_64_prefix/lib/xvidcore.dll
+  mv $mingw_w64_x86_64_prefix/lib/xvidcore.a $mingw_w64_x86_64_prefix/lib/libxvidcore.a
 }
 
 build_openssl() {
@@ -285,7 +288,7 @@ build_ffmpeg() {
    local arch=x86_64
   fi
 
-  config_options="--enable-memalign-hack --arch=$arch --enable-gpl --enable-libx264 --enable-avisynth --enable-libxvid --target-os=mingw32  --cross-prefix=$cross_prefix --pkg-config=pkg-config --enable-libmp3lame --enable-version3 --enable-libvo-aacenc --enable-libvpx --extra-libs=-lws2_32 --extra-libs=-lpthread --enable-zlib --extra-libs=-lwinmm --extra-libs=-lgdi32" # --enable-librtmp
+  config_options="--enable-memalign-hack --arch=$arch --enable-gpl --enable-libx264 --enable-avisynth --enable-libxvid --target-os=mingw32  --cross-prefix=$cross_prefix --pkg-config=pkg-config --enable-libmp3lame --enable-version3 --enable-libvo-aacenc --enable-libvpx --extra-libs=-lws2_32 --extra-libs=-lpthread --enable-zlib --extra-libs=-lwinmm --extra-libs=-lgdi32 --enable-librtmp"
   if [[ "$non_free" = "y" ]]; then
     config_options="$config_options --enable-nonfree --enable-openssl --enable-libfdk-aac" # --enable-libfaac -- faac too poor quality and becomes the default -- add it in and uncomment the build_faac line to include it
   else
@@ -311,15 +314,15 @@ intro # remember to always run the intro, since it adjust pwd
 install_cross_compiler # always run this, too, since it adjust the PATH
 
 build_all() {
-  build_libxvid
-  build_sdl # for ffplay to be created
+  build_sdl # needed for ffplay to be created/exist
   #build_libnettle # gnutls depends on it
   #build_gnutls # doesn't build because libnettle needs gmp dependency yet
   build_zlib # rtmp depends on it [as well as ffmpeg's --enable-zlib]
+  build_libxvid
   build_x264
   build_lame
   build_libvpx
-  #build_librtmp
+  build_librtmp
   build_vo_aacenc
   if [[ "$non_free" = "y" ]]; then
     build_openssl # may as well
@@ -333,7 +336,6 @@ if [ -d "mingw-w64-i686" ]; then # they installed a 32-bit compiler
   echo "Building 32-bit ffmpeg..."
   host_target='i686-w64-mingw32'
   mingw_w64_x86_64_prefix="$cur_dir/mingw-w64-i686/$host_target"
-  echo export PATH="$cur_dir/mingw-w64-i686/bin:$PATH"
   export PATH="$cur_dir/mingw-w64-i686/bin:$PATH"
   export PKG_CONFIG_PATH="$cur_dir/mingw-w64-i686/i686-w64-mingw32/lib/pkgconfig"
   bits_target=32
