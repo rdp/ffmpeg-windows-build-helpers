@@ -86,13 +86,14 @@ install_cross_compiler() {
   echo "Ok, done building MinGW-w64 cross-compiler..."
 }
 
-setup_cflags() {
+setup_env() {
   if [[ "$native_build" = "y" ]]; then
     CFLAGS="$CFLAGS -march=native -pipe"
   else
     CFLAGS="$CFLAGS -pipe"
   fi;
   export CFLAGS
+  export PKG_CONFIG_LIBDIR= # disable pkg-config from reverting back to and finding system installed packages [yikes]
 }
 
 do_svn_checkout() {
@@ -375,7 +376,7 @@ build_ffmpeg() {
 
 intro # remember to always run the intro, since it adjust pwd
 install_cross_compiler # always run this, too, since it adjust the PATH
-setup_cflags
+setup_env
 
 build_all() {
   build_sdl # needed for ffplay to be created
