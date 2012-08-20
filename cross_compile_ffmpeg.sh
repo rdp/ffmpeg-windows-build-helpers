@@ -185,6 +185,7 @@ build_librtmp() {
 }
 
 build_libopenjpeg() {
+  # TRUNK didn't seem to build right...
   #do_svn_checkout http://openjpeg.googlecode.com/svn/trunk/ openjpeg
   #cd openjpeg
   #generic_configure
@@ -236,6 +237,18 @@ generic_download_and_install() {
   cd $english_name || exit "needs 2 parameters"
   generic_configure
   do_make_install
+  cd ..
+}
+
+build_libgsm() {
+  download_and_unpack_file http://www.quut.com/gsm/gsm-1.0.13.tar.gz gsm-1.0-pl13
+  cd gsm-1.0-pl13
+  sed -i "s|gcc -ansi -pedantic|${cross_prefix}gcc|" Makefile
+  sed -i "s|= ar|= ${cross_prefix}ar|" Makefile
+  sed -i "s|= ranlib|= ${cross_prefix}ranlib|" Makefile
+  sed -i "s|INSTALL_ROOT\s=$|INSTALL_ROOT=${mingw_w64_x86_64_prefix}|" Makefile
+  make # fails, but we expect that
+  cp lib/libgsm.a $mingw_w64_x86_64_prefix/lib
   cd ..
 }
 
@@ -352,7 +365,7 @@ build_ffmpeg() {
    local arch=x86_64
   fi
 
-  config_options="--enable-memalign-hack --arch=$arch --enable-gpl --enable-libx264 --enable-avisynth --enable-libxvid --target-os=mingw32  --cross-prefix=$cross_prefix --pkg-config=pkg-config --enable-libmp3lame --enable-version3 --enable-libvo-aacenc --enable-libvpx --extra-libs=-lws2_32 --extra-libs=-lpthread --enable-zlib --extra-libs=-lwinmm --extra-libs=-lgdi32 --enable-librtmp --enable-libvorbis --enable-libtheora --enable-libspeex --enable-libopenjpeg --enable-gnutls"
+  config_options="--enable-memalign-hack --arch=$arch --enable-gpl --enable-libx264 --enable-avisynth --enable-libxvid --target-os=mingw32  --cross-prefix=$cross_prefix --pkg-config=pkg-config --enable-libmp3lame --enable-version3 --enable-libvo-aacenc --enable-libvpx --extra-libs=-lws2_32 --extra-libs=-lpthread --enable-zlib --extra-libs=-lwinmm --extra-libs=-lgdi32 --enable-librtmp --enable-libvorbis --enable-libtheora --enable-libspeex --enable-libopenjpeg --enable-gnutls --enable-libgsm"
   if [[ "$non_free" = "y" ]]; then
     config_options="$config_options --enable-nonfree --enable-openssl --enable-libfdk-aac" # --enable-libfaac -- faac too poor quality and becomes the default -- add it in and uncomment the build_faac line to include it
   else
@@ -379,6 +392,7 @@ install_cross_compiler # always run this, too, since it adjust the PATH
 setup_env
 
 build_all() {
+  build_libgsm
   build_sdl # needed for ffplay to be created
   build_gmp
   build_libnettle # needs gmp
