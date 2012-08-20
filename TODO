@@ -1,4 +1,7 @@
 == todos ==
+
+get it to work in 64 bit
+
 libvpx
   fix, update blog/ML
     threading/configure?
