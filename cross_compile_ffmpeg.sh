@@ -250,6 +250,8 @@ build_libgsm() {
   #sed -i "s|INSTALL_ROOT\s=$|INSTALL_ROOT=${mingw_w64_x86_64_prefix}|" Makefile
   make # fails, but we expect that LODO fix [?]
   cp lib/libgsm.a $mingw_w64_x86_64_prefix/lib
+  mkdir -p $mingw_w64_x86_64_prefix/include/gsm
+  cp inc/gsm.h $mingw_w64_x86_64_prefix/include/gsm || exit 1
   cd ..
 }
 
