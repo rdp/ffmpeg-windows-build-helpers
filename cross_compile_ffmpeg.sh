@@ -119,9 +119,7 @@ do_configure() {
   if [[ "$configure_name" = "" ]]; then
     configure_name="./configure"
   fi
-  echo local cur_dir2=`pwd`
   local cur_dir2=`pwd`
-  echo local english_name=`basename $cur_dir2`
   local english_name=`basename $cur_dir2`
   local touch_name=`echo -- $configure_options $CFLAGS | /usr/bin/env md5sum` # sanitize, disallow too long of length
   touch_name=`echo already_configured_$touch_name | sed "s/ //g"` # add prefix so we can delete it easily, remove spaces
