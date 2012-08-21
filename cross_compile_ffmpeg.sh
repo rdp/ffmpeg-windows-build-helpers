@@ -254,6 +254,10 @@ build_libtheora() {
   generic_download_and_install http://downloads.xiph.org/releases/theora/libtheora-1.1.1.tar.bz2 libtheora-1.1.1
 }
 
+build_gmp() {
+  generic_download_and_install ftp://ftp.gnu.org/gnu/gmp/gmp-5.0.5.tar.bz2 gmp-5.0.5
+}
+
 build_gnutls() {
   generic_download_and_install ftp://ftp.gnu.org/gnu/gnutls/gnutls-3.0.22.tar.xz gnutls-3.0.22
 }
@@ -374,8 +378,9 @@ setup_cflags
 
 build_all() {
   build_sdl # needed for ffplay to be created/exist
-  #build_libnettle # gnutls depends on it
-  #build_gnutls # doesn't build because libnettle needs gmp dependency yet
+  build_gmp
+  build_libnettle # gnutls depends on it
+  build_gnutls # doesn't build because libnettle needs gmp dependency yet
   build_zlib # rtmp depends on it [as well as ffmpeg's optional but good --enable-zlib]
   build_libogg
   build_libspeex # needs libogg
