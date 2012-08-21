@@ -147,9 +147,10 @@ do_configure() {
 }
 
 do_make_install() {
+  extra_make_options="$1"
   if [ ! -f already_ran_make ]; then
-    make $1 || exit 1
-    make install $1 || exit 1
+    make $extra_make_options || exit 1
+    make install $extra_make_options || exit 1
     touch already_ran_make
   else
     local cur_dir2=$(pwd)
@@ -284,11 +285,8 @@ build_libnettle() {
 build_zlib() {
   download_and_unpack_file http://zlib.net/zlib-1.2.7.tar.gz zlib-1.2.7
   cd zlib-1.2.7
-    export CC=$(echo $cross_prefix)gcc
-    export AR=$(echo $cross_prefix)ar
-    export RANLIB=$(echo $cross_prefix)ranlib
     do_configure "--static --prefix=$mingw_w64_x86_64_prefix"
-    do_make_install
+    do_make_install "CC=$(echo $cross_prefix)gcc AR=$(echo $cross_prefix)ar RANLIB=$(echo $cross_prefix)ranlib"
   cd ..
 }
 
@@ -392,10 +390,10 @@ install_cross_compiler # always run this, too, since it adjust the PATH
 setup_env
 
 build_all() {
+  build_zlib # rtmp depends on it [as well as ffmpeg's optional but handy --enable-zlib]
   build_gmp
   build_libnettle # needs gmp
   build_gnutls #  needs libnettle
-  build_zlib # rtmp depends on it [as well as ffmpeg's optional but handy --enable-zlib]
   build_libgsm
   build_sdl # needed for ffplay to be created
   build_libogg
@@ -413,7 +411,7 @@ build_all() {
     # build_faac # not included for now, see comment above, poor quality
   fi
   build_openssl
-  build_librtmp # needs openssl
+  build_librtmp # needs openssl today [TODO use gnutls]
   build_ffmpeg
 }
 
