@@ -138,6 +138,7 @@ do_configure() {
   local english_name=`basename $cur_dir2`
   local touch_name=`echo -- $configure_options $CFLAGS | /usr/bin/env md5sum` # sanitize, disallow too long of length
   touch_name=`echo already_configured_$touch_name | sed "s/ //g"` # add prefix so we can delete it easily, remove spaces
+    echo "configuring $english_name as $ PATH=$PATH CFLAGS='$CFLAGS' $configure_name $configure_options"
   if [ ! -f "$touch_name" ]; then
     echo "configuring $english_name as $ PATH=$PATH CFLAGS='$CFLAGS' $configure_name $configure_options"
     make clean # just in case
@@ -226,6 +227,7 @@ download_and_unpack_file() {
 }
 
 generic_configure() {
+  local extra_configure_options="$1"
   do_configure "--host=$host_target --prefix=$mingw_w64_x86_64_prefix --disable-shared --enable-static $extra_configure_options"
 }
 
@@ -236,7 +238,7 @@ generic_download_and_install() {
   local extra_configure_options="$3"
   download_and_unpack_file $url $english_name
   cd $english_name || exit "needs 2 parameters"
-  generic_configure
+  generic_configure $extra_configure_options
   do_make_install
   cd ..
 }
@@ -272,7 +274,11 @@ build_libtheora() {
 }
 
 build_gmp() {
-  generic_download_and_install ftp://ftp.gnu.org/gnu/gmp/gmp-5.0.5.tar.bz2 gmp-5.0.5
+  download_and_unpack_file ftp://ftp.gnu.org/gnu/gmp/gmp-5.0.5.tar.bz2 gmp-5.0.5
+  cd gmp-5.0.5
+  generic_configure "ABI=$bits_target"
+  do_make_install
+  cd .. 
 }
 
 build_gnutls() {
@@ -395,12 +401,12 @@ install_cross_compiler # always run this, too, since it adjust the PATH
 setup_env
 
 build_all() {
-  build_libgsm
-  build_sdl # needed for ffplay to be created
   build_gmp
   build_libnettle # needs gmp
   build_gnutls #  needs libnettle
   build_zlib # rtmp depends on it [as well as ffmpeg's optional but handy --enable-zlib]
+  build_libgsm
+  build_sdl # needed for ffplay to be created
   build_libogg
   build_libspeex # needs libogg
   build_libvorbis # needs libogg
@@ -420,11 +426,12 @@ build_all() {
   build_ffmpeg
 }
 
+original_path="$PATH"
 if [ -d "mingw-w64-i686" ]; then # they installed a 32-bit compiler
   echo "Building 32-bit ffmpeg..."
   host_target='i686-w64-mingw32'
   mingw_w64_x86_64_prefix="$cur_dir/mingw-w64-i686/$host_target"
-  export PATH="$cur_dir/mingw-w64-i686/bin:$PATH"
+  export PATH="$cur_dir/mingw-w64-i686/bin:$original_path"
   export PKG_CONFIG_PATH="$cur_dir/mingw-w64-i686/i686-w64-mingw32/lib/pkgconfig"
   bits_target=32
   cross_prefix="$cur_dir/mingw-w64-i686/bin/i686-w64-mingw32-"
@@ -438,7 +445,7 @@ if [ -d "mingw-w64-x86_64" ]; then # they installed a 64-bit compiler
   echo "Building 64-bit ffmpeg..."
   host_target='x86_64-w64-mingw32'
   mingw_w64_x86_64_prefix="$cur_dir/mingw-w64-x86_64/$host_target"
-  export PATH="$cur_dir/mingw-w64-x86_64/bin:$PATH"
+  export PATH="$cur_dir/mingw-w64-x86_64/bin:$original_path"
   export PKG_CONFIG_PATH="$cur_dir/mingw-w64-x86_64/x86_64-w64-mingw32/lib/pkgconfig"
   mkdir -p x86_64
   bits_target=64
