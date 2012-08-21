@@ -179,7 +179,7 @@ build_librtmp() {
 
   do_git_checkout "http://repo.or.cz/r/rtmpdump.git" rtmpdump_git
   cd rtmpdump_git/librtmp
-  make install OPT='-O2 -g' "CROSS_COMPILE=$cross_prefix" SHARED=no "prefix=$mingw_w64_x86_64_prefix" || exit 1
+  make install OPT='-O2 -g' "CROSS_COMPILE=$cross_prefix" SHARED=no "prefix=$mingw_w64_x86_64_prefix" || exit 1 # TODO use gnutls ?
   cd ../..
 }
 
@@ -378,11 +378,11 @@ install_cross_compiler # always run this, too, since it adjust the PATH
 setup_cflags
 
 build_all() {
-  build_sdl # needed for ffplay to be created/exist
+  build_sdl # needed for ffplay to be created
   build_gmp
-  build_libnettle # gnutls depends on it
-  build_gnutls # doesn't build because libnettle needs gmp dependency yet
-  build_zlib # rtmp depends on it [as well as ffmpeg's optional but good --enable-zlib]
+  build_libnettle # needs gmp
+  build_gnutls #  needs libnettle
+  build_zlib # rtmp depends on it [as well as ffmpeg's optional but handy --enable-zlib]
   build_libogg
   build_libspeex # needs libogg
   build_libvorbis # needs libogg
