@@ -4,9 +4,9 @@ libvpx
   fix, update blog/ML
     threading/configure?
 
-more check march=native (from laptop...)
-  vpx? ffmpeg more? do I need to enable runtime detection when it's not? libx264 still uses i686?
-  build at all LOL
+check march=native (from laptop...)
+  ffmpeg more? do I need to enable runtime detection when it's not? 
+  libx264 still uses i686?
 
 cleanup zeranoe suggs (vpx?)
 
@@ -33,6 +33,8 @@ support external toolchains
 "shared" builds option, like libavcodec-54.dll
 
 == maybe/never do ==
+
+march=native vpx (others?)
 
 dynamic aac somehow...prolly for something with > 2 audios...
 
