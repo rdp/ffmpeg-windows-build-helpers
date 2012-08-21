@@ -138,7 +138,7 @@ do_configure() {
   local touch_name=`echo -- $configure_options $CFLAGS | /usr/bin/env md5sum` # sanitize, disallow too long of length
   touch_name=`echo already_configured_$touch_name | sed "s/ //g"` # add prefix so we can delete it easily, remove spaces
   if [ ! -f "$touch_name" ]; then
-    echo "configuring $english_name as $ PATH=$PATH CFLAGS='$CFLAGS' $configure_options"
+    echo "configuring $english_name as $ PATH=$PATH CFLAGS='$CFLAGS' $configure_name $configure_options"
     if [ -f bootstrap.sh ]; then
       ./bootstrap.sh
     fi
@@ -260,6 +260,7 @@ build_gmp() {
 
 build_gnutls() {
   generic_download_and_install ftp://ftp.gnu.org/gnu/gnutls/gnutls-3.0.22.tar.xz gnutls-3.0.22
+  sed -i "s/-lgnutls *$/-lgnutls -lgmp -lnettle -lhogweed/" "$PKG_CONFIG_PATH/gnutls.pc"
 }
 
 build_libnettle() {
@@ -350,7 +351,7 @@ build_ffmpeg() {
    local arch=x86_64
   fi
 
-  config_options="--enable-memalign-hack --arch=$arch --enable-gpl --enable-libx264 --enable-avisynth --enable-libxvid --target-os=mingw32  --cross-prefix=$cross_prefix --pkg-config=pkg-config --enable-libmp3lame --enable-version3 --enable-libvo-aacenc --enable-libvpx --extra-libs=-lws2_32 --extra-libs=-lpthread --enable-zlib --extra-libs=-lwinmm --extra-libs=-lgdi32 --enable-librtmp --enable-libvorbis --enable-libtheora --enable-libspeex --enable-libopenjpeg"
+  config_options="--enable-memalign-hack --arch=$arch --enable-gpl --enable-libx264 --enable-avisynth --enable-libxvid --target-os=mingw32  --cross-prefix=$cross_prefix --pkg-config=pkg-config --enable-libmp3lame --enable-version3 --enable-libvo-aacenc --enable-libvpx --extra-libs=-lws2_32 --extra-libs=-lpthread --enable-zlib --extra-libs=-lwinmm --extra-libs=-lgdi32 --enable-librtmp --enable-libvorbis --enable-libtheora --enable-libspeex --enable-libopenjpeg --enable-gnutls"
   if [[ "$non_free" = "y" ]]; then
     config_options="$config_options --enable-nonfree --enable-openssl --enable-libfdk-aac" # --enable-libfaac -- faac too poor quality and becomes the default -- add it in and uncomment the build_faac line to include it
   else
