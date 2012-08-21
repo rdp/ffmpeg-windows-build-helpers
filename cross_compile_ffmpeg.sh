@@ -260,7 +260,7 @@ build_gmp() {
 
 build_gnutls() {
   generic_download_and_install ftp://ftp.gnu.org/gnu/gnutls/gnutls-3.0.22.tar.xz gnutls-3.0.22
-  sed -i 's/-lgnutls *$/-lgnutls -lnettle -lhogweed -lgmp/' "$PKG_CONFIG_PATH/gnutls.pc"
+  sed -i 's/-lgnutls *$/-lgnutls -lnettle -lhogweed -lgmp -lcrypt32/' "$PKG_CONFIG_PATH/gnutls.pc"
 }
 
 build_libnettle() {
