@@ -327,7 +327,7 @@ build_all() {
   build_sdl # needed for ffplay to be created/exist
   #build_libnettle # gnutls depends on it
   #build_gnutls # doesn't build because libnettle needs gmp dependency yet
-  build_zlib # rtmp depends on it [as well as ffmpeg's --enable-zlib]
+  build_zlib # rtmp depends on it [as well as ffmpeg's optional but good --enable-zlib]
   build_libxvid
   build_x264
   build_lame
