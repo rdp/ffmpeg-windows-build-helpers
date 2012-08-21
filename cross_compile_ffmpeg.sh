@@ -58,11 +58,7 @@ The resultant binary will not be distributable, but might be useful for in-house
 but also makes it so you cannot distribute the binary to machines of other architecture/cpu 
 (also note that you should only enable this if compiling on a VM on the same box you intend to target, otherwise
 it makes no sense)  Use march=native? THIS IS JUST EXPERIMENTAL AND DOES NOT WORK FULLY YET--choose n typically. [y/n]?" 
-  if [[ "$user_input" = "y" ]]; then
-    native_build="y"
-  else
-    native_build="n"
-  fi
+  user_input="$user_input"
 }
 
 install_cross_compiler() {

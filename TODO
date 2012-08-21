@@ -16,6 +16,8 @@ more libraries
   
 assert they have git and gcc and autoconf libtool installed...
 
+an option to re setup-compilers
+
 == maybe/never do ==
 
 dynamic aac somehow...prolly for something with > 2 audios...
