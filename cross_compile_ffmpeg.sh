@@ -317,6 +317,10 @@ build_openssl() {
     do_configure "--prefix=$mingw_w64_x86_64_prefix no-shared mingw64" ./Configure
   fi
   do_make_install
+  unset cross
+  unset CC
+  unset AR
+  unset RANLIB
   cd ..
 }
 
