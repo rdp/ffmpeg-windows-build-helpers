@@ -194,15 +194,20 @@ download_and_unpack_file() {
   fi
 }
 
+# needs 2 parameters currently
 generic_download_and_install() {
   local url="$1"
   local english_name="$2" 
   local extra_configure_options="$3"
   download_and_unpack_file $url $english_name
-  cd $english_name
+  cd $english_name || exit "needs 2 parameters"
   do_configure "--host=$host_target --prefix=$mingw_w64_x86_64_prefix --disable-shared --enable-static $extra_configure_options"
   do_make_install
   cd ..
+}
+
+build_libogg() {
+  generic_download_and_install http://downloads.xiph.org/releases/ogg/libogg-1.3.0.tar.gz libogg-1.3.0
 }
 
 build_gnutls() {
@@ -328,6 +333,7 @@ build_all() {
   #build_libnettle # gnutls depends on it
   #build_gnutls # doesn't build because libnettle needs gmp dependency yet
   build_zlib # rtmp depends on it [as well as ffmpeg's optional but good --enable-zlib]
+  build_libogg
   build_libxvid
   build_x264
   build_lame
