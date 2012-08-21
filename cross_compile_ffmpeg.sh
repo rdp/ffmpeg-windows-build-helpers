@@ -133,6 +133,7 @@ do_configure() {
   if [ ! -f "$touch_name" ]; then
     echo "configuring $english_name as $ PATH=$PATH CFLAGS='$CFLAGS' $configure_name $configure_options"
     make clean # just in case
+    make uninstall # just in case
     if [ -f bootstrap.sh ]; then
       ./bootstrap.sh
     fi
