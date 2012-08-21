@@ -16,7 +16,21 @@ more libraries
   
 assert they have git and gcc and autoconf libtool installed...
 
-an option to re setup-compilers
+parameters to the script
+  an option to re setup-compilers --arch
+
+check for hash change when ffmpeg updates, then auto reconfigure...yeah...that seems sane...
+
+warn that we're not using it if they already have a toolchain in the PATH
+
+support external toolchains
+  then support "checking if they already have zlib installed"
+
+--enable-none --enable-x264 --enable-all-gpl --enable-all-non-free
+
+--extra-ffmpeg-options
+
+"shared" builds option, like libavcodec-54.dll
 
 == maybe/never do ==
 
