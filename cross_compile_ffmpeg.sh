@@ -95,10 +95,24 @@ setup_cflags() {
   export CFLAGS
 }
 
+do_svn_checkout() {
+  repo_url="$1"
+  to_dir="$2"
+  if [ ! -d $to_dir ]; then
+    echo "svn checking out to $to_dir"
+    svn checkout $repo_url $to_dir.tmp || exit 1
+    mv $to_dir.tmp $to_dir
+  else
+    cd $to_dir
+    echo "Updating $to_dir"
+    svn up
+    cd ..
+  fi
+}
+
 do_git_checkout() {
   repo_url="$1"
   to_dir="$2"
-  shift
   if [ ! -d $to_dir ]; then
     echo "Downloading (via git clone) $to_dir"
     # prevent partial checkouts by renaming it only after success
@@ -124,8 +138,10 @@ do_configure() {
   local touch_name=`echo -- $configure_options $CFLAGS | /usr/bin/env md5sum` # sanitize, disallow too long of length
   touch_name=`echo already_configured_$touch_name | sed "s/ //g"` # add prefix so we can delete it easily, remove spaces
   if [ ! -f "$touch_name" ]; then
-    echo "configuring $english_name as $configure_options
-        with PATH $PATH"
+    echo "configuring $english_name as $ PATH=$PATH CFLAGS='$CFLAGS' $configure_options"
+    if [ -f bootstrap.sh ]; then
+      ./bootstrap.sh
+    fi
     rm -f already_configured* # any old configuration options, since they'll be out of date after the next configure
     rm -f already_ran_make
     "$configure_name" $configure_options || exit 1
@@ -167,6 +183,20 @@ build_librtmp() {
   cd ../..
 }
 
+build_libopenjpeg() {
+  #do_svn_checkout http://openjpeg.googlecode.com/svn/trunk/ openjpeg
+  #cd openjpeg
+  #generic_configure
+  #do_make_install
+  #cd ..
+  download_and_unpack_file http://openjpeg.googlecode.com/files/openjpeg_v1_4_sources_r697.tgz openjpeg_v1_4_sources_r697
+  cd openjpeg_v1_4_sources_r697
+  generic_configure
+  sed -i "s/\/usr\/lib/\$\(libdir\)/" Makefile # install pkg_config to the right dir...
+  do_make_install
+  cd .. 
+}
+
 build_libvpx() {
   download_and_unpack_file http://webm.googlecode.com/files/libvpx-v1.1.0.tar.bz2 libvpx-v1.1.0
   cd libvpx-v1.1.0
@@ -192,6 +222,10 @@ download_and_unpack_file() {
   fi
 }
 
+generic_configure() {
+  do_configure "--host=$host_target --prefix=$mingw_w64_x86_64_prefix --disable-shared --enable-static $extra_configure_options"
+}
+
 # needs 2 parameters currently
 generic_download_and_install() {
   local url="$1"
@@ -199,7 +233,7 @@ generic_download_and_install() {
   local extra_configure_options="$3"
   download_and_unpack_file $url $english_name
   cd $english_name || exit "needs 2 parameters"
-  do_configure "--host=$host_target --prefix=$mingw_w64_x86_64_prefix --disable-shared --enable-static $extra_configure_options"
+  generic_configure
   do_make_install
   cd ..
 }
@@ -312,7 +346,7 @@ build_ffmpeg() {
    local arch=x86_64
   fi
 
-  config_options="--enable-memalign-hack --arch=$arch --enable-gpl --enable-libx264 --enable-avisynth --enable-libxvid --target-os=mingw32  --cross-prefix=$cross_prefix --pkg-config=pkg-config --enable-libmp3lame --enable-version3 --enable-libvo-aacenc --enable-libvpx --extra-libs=-lws2_32 --extra-libs=-lpthread --enable-zlib --extra-libs=-lwinmm --extra-libs=-lgdi32 --enable-librtmp --enable-libvorbis --enable-libtheora --enable-libspeex"
+  config_options="--enable-memalign-hack --arch=$arch --enable-gpl --enable-libx264 --enable-avisynth --enable-libxvid --target-os=mingw32  --cross-prefix=$cross_prefix --pkg-config=pkg-config --enable-libmp3lame --enable-version3 --enable-libvo-aacenc --enable-libvpx --extra-libs=-lws2_32 --extra-libs=-lpthread --enable-zlib --extra-libs=-lwinmm --extra-libs=-lgdi32 --enable-librtmp --enable-libvorbis --enable-libtheora --enable-libspeex --enable-libopenjpeg"
   if [[ "$non_free" = "y" ]]; then
     config_options="$config_options --enable-nonfree --enable-openssl --enable-libfdk-aac" # --enable-libfaac -- faac too poor quality and becomes the default -- add it in and uncomment the build_faac line to include it
   else
@@ -352,6 +386,7 @@ build_all() {
   build_lame
   build_libvpx
   build_vo_aacenc
+  build_libopenjpeg
   if [[ "$non_free" = "y" ]]; then
     build_fdk_aac
     # build_faac # not included for now, see comment above, poor quality

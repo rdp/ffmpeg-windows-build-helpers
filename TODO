@@ -14,7 +14,7 @@ cleanup zeranoe suggs (vpx?)
 more libraries
   All the current builds'?
 
-assert they have git and gcc installed
+assert they have git and gcc installed and autoconf libtool
 
 == maybe/never do ==
 
