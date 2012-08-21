@@ -239,12 +239,8 @@ generic_download_and_install() {
 build_libgsm() {
   download_and_unpack_file http://www.quut.com/gsm/gsm-1.0.13.tar.gz gsm-1.0-pl13
   cd gsm-1.0-pl13
-  sed -i "s|gcc -ansi -pedantic|${cross_prefix}gcc|" Makefile
-  sed -i "s|= ar|= ${cross_prefix}ar|" Makefile
-  sed -i "s|= ranlib|= ${cross_prefix}ranlib|" Makefile
-  #sed -i "s|INSTALL_ROOT\s=$|INSTALL_ROOT=${mingw_w64_x86_64_prefix}|" Makefile
-  make # fails, but we expect that LODO fix [?]
-  cp lib/libgsm.a $mingw_w64_x86_64_prefix/lib
+  make CC=${cross_prefix}gcc AR=${cross_prefix}ar RANLIB=${cross_prefix}ranlib INSTALL_ROOT=${mingw_w64_x86_64_prefix}i # fails, but we expect that LODO fix [?]
+  cp lib/libgsm.a $mingw_w64_x86_64_prefix/lib || exit 1
   mkdir -p $mingw_w64_x86_64_prefix/include/gsm
   cp inc/gsm.h $mingw_w64_x86_64_prefix/include/gsm || exit 1
   cd ..
