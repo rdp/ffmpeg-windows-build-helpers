@@ -72,7 +72,7 @@ install_cross_compiler() {
 
   wget http://zeranoe.com/scripts/mingw_w64_build/mingw-w64-build-3.0.6 -O mingw-w64-build-3.0.6
   chmod u+x mingw-w64-build-3.0.6
-  ./mingw-w64-build-3.0.6 --mingw-w64-ver=2.0.4 --clean-build || exit 1
+  ./mingw-w64-build-3.0.6 --disable-nls --disable-shared --default-configure --clean-build || exit 1
   if [ -d mingw-w64-x86_64 ]; then
     touch mingw-w64-x86_64/compiler.done
   fi
@@ -84,12 +84,6 @@ install_cross_compiler() {
 }
 
 setup_env() {
-  if [[ "$native_build" = "y" ]]; then
-    CFLAGS="$CFLAGS -march=native -pipe"
-  else
-    CFLAGS="$CFLAGS -pipe"
-  fi;
-  export CFLAGS
   export PKG_CONFIG_LIBDIR= # disable pkg-config from reverting back to and finding system installed packages [yikes]
 }
 
