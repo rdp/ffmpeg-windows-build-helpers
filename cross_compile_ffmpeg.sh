@@ -37,15 +37,17 @@ user_input=$(echo $user_input | tr '[A-Z]' '[a-z]')
 cur_dir="$(pwd)/builds"
 
 intro() {
-  echo "##################### Welcome ######################
+  cat <<EOL
+     ##################### Welcome ######################
   Welcome to the ffmpeg cross-compile builder-helper script.
   Downloads and builds will be installed to directories within $cur_dir
   If this is not ok, then exit now, and cd to the directory where you'd
-  like them installed, then run this script again."
+  like them installed, then run this script again.
+EOL
 
   yes_no_sel "Is ./builds ok [y/n]?"
   if [[ "$user_input" = "n" ]]; then
-    exit 1;
+    exit 1
   fi
   mkdir -p "$cur_dir"
   cd "$cur_dir"
