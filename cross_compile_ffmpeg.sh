@@ -127,11 +127,10 @@ do_configure() {
   fi
   local cur_dir2=$(pwd)
   local english_name=$(basename $cur_dir2)
-  local touch_name=$(echo -- $configure_options $CFLAGS | /usr/bin/env md5sum) # sanitize, disallow too long of length
+  local touch_name=$(echo -- $configure_options | /usr/bin/env md5sum) # sanitize, disallow too long of length
   touch_name=$(echo already_configured_$touch_name | sed "s/ //g") # add prefix so we can delete it easily, remove spaces
-    echo "configuring $english_name as $ PATH=$PATH CFLAGS='$CFLAGS' $configure_name $configure_options"
   if [ ! -f "$touch_name" ]; then
-    echo "configuring $english_name as $ PATH=$PATH CFLAGS='$CFLAGS' $configure_name $configure_options"
+    echo "configuring $english_name as $ PATH=$PATH $configure_name $configure_options"
     make clean # just in case
     make uninstall # just in case
     if [ -f bootstrap.sh ]; then
@@ -149,12 +148,13 @@ do_configure() {
 
 do_make_install() {
   extra_make_options="$1"
+  local cur_dir2=$(pwd)
   if [ ! -f already_ran_make ]; then
+    echo "making $cur_dir2 as $ PATH=$PATH make $extra_make_options"
     make $extra_make_options || exit 1
     make install $extra_make_options || exit 1
     touch already_ran_make
   else
-    local cur_dir2=$(pwd)
     echo "already did make $(basename "$cur_dir2")"
   fi
 }
