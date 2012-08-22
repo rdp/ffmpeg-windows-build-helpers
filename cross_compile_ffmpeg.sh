@@ -308,13 +308,13 @@ build_libxvid() {
     local config_opts="--build=x86_64-unknown-linux-gnu --disable-assembly" # kludgey work arounds for 64 bit
   fi
   do_configure "--host=$host_target --prefix=$mingw_w64_x86_64_prefix $config_opts" # no static option...
-  sed -i "s/-mno-cygwin//"  * # remove old compiler flags that now apparently break us
+  sed -i "s/-mno-cygwin//" platform.inc # remove old compiler flag that now apparently breaks us
   do_make_install
   cd ../../..
   # force a static build after the fact
   if [[ -f "$mingw_w64_x86_64_prefix/lib/xvidcore.dll" ]]; then
-    rm $mingw_w64_x86_64_prefix/lib/xvidcore.dll
-    mv $mingw_w64_x86_64_prefix/lib/xvidcore.a $mingw_w64_x86_64_prefix/lib/libxvidcore.a
+    rm $mingw_w64_x86_64_prefix/lib/xvidcore.dll || exit 1
+    mv $mingw_w64_x86_64_prefix/lib/xvidcore.a $mingw_w64_x86_64_prefix/lib/libxvidcore.a || exit 1
   fi
 }
 
