@@ -1,7 +1,5 @@
 == todos ==
 
-get it to work in 64 bit
-
 libvpx
   fix, update blog/ML
     threading/configure?
@@ -10,16 +8,22 @@ more check march=native (from laptop...)
   vpx? ffmpeg more? do I need to enable runtime detection when it's not? libx264 still uses i686?
   build at all LOL
 
-test timings for first failure commits bisect-like[?]
-  test really old with -threads 6...
 cleanup zeranoe suggs (vpx?)
 
 more libraries
-  All the current builds'?
-
-assert they have git and gcc installed and autoconf libtool
+  All the current builds'
+  compile orc/schroedinger/forum
+  
+assert they have git and gcc and autoconf libtool installed...
 
 == maybe/never do ==
+
+see if it "builds ok" 64 bit with out the path or ABI thing
+
+cleanup ramiro suggested for libgsm
+
+test timings for first failure commits bisect-like[?]
+  test really old with -threads 6...
 
 does it affect "both" libx264 and/or just ffmpeg?
     Also, I wonder if x264 needs to be recompiled after every update to
