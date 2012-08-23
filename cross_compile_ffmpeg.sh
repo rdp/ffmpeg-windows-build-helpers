@@ -31,11 +31,10 @@ while [[ "$user_input" != [YyNn] ]]; do
   fi
 done
 # downcase it
-user_input=`echo $user_input | tr '[A-Z]' '[a-z]'`
+user_input=$(echo $user_input | tr '[A-Z]' '[a-z]')
 }
 
-cur_dir=`pwd`
-cur_dir="$cur_dir/builds"
+cur_dir="$(pwd)/builds"
 
 intro() {
   echo "##################### Welcome ######################
@@ -134,10 +133,10 @@ do_configure() {
   if [[ "$configure_name" = "" ]]; then
     configure_name="./configure"
   fi
-  local cur_dir2=`pwd`
-  local english_name=`basename $cur_dir2`
-  local touch_name=`echo -- $configure_options $CFLAGS | /usr/bin/env md5sum` # sanitize, disallow too long of length
-  touch_name=`echo already_configured_$touch_name | sed "s/ //g"` # add prefix so we can delete it easily, remove spaces
+  local cur_dir2=$(pwd)
+  local english_name=$(basename $cur_dir2)
+  local touch_name=$(echo -- $configure_options $CFLAGS | /usr/bin/env md5sum) # sanitize, disallow too long of length
+  touch_name=$(echo already_configured_$touch_name | sed "s/ //g") # add prefix so we can delete it easily, remove spaces
     echo "configuring $english_name as $ PATH=$PATH CFLAGS='$CFLAGS' $configure_name $configure_options"
   if [ ! -f "$touch_name" ]; then
     echo "configuring $english_name as $ PATH=$PATH CFLAGS='$CFLAGS' $configure_name $configure_options"
@@ -161,7 +160,7 @@ do_make_install() {
     make install $1 || exit 1
     touch already_ran_make
   else
-    local cur_dir2=`pwd`
+    local cur_dir2=$(pwd)
     echo "already did make $(basename "$cur_dir2")"
   fi
 }
@@ -216,7 +215,7 @@ build_libvpx() {
 
 download_and_unpack_file() {
   url="$1"
-  output_name=`basename $url`
+  output_name=$(basename $url)
   output_dir="$2"
   if [ ! -f "$output_dir/unpacked.successfully" ]; then
     wget "$url" -O "$output_name" || exit 1
@@ -347,8 +346,8 @@ build_sdl() {
   generic_download_and_install http://www.libsdl.org/release/SDL-1.2.15.tar.gz SDL-1.2.15
   mkdir temp
   cd temp # so paths will work out right
-  local prefix=`basename $cross_prefix`
-  local bin_dir=`dirname $cross_prefix`
+  local prefix=$(basename $cross_prefix)
+  local bin_dir=$(dirname $cross_prefix)
   sed -i "s/-mwindows//" "$mingw_w64_x86_64_prefix/bin/sdl-config" # allow ffmpeg to output anything
   sed -i "s/-mwindows//" "$PKG_CONFIG_PATH/sdl.pc"
   cp "$mingw_w64_x86_64_prefix/bin/sdl-config" "$bin_dir/${prefix}sdl-config" # this is the only one in the PATH so use it for now
@@ -391,7 +390,7 @@ build_ffmpeg() {
   do_configure "$config_options"
   rm -f *.exe # just in case some library dependency was updated, force it to re-link
   make || exit 1
-  local cur_dir2=`pwd`
+  local cur_dir2=$(pwd)
   echo "Done! You will find binaries in $cur_dir2/ff{mpeg,probe,play}*.exe"
   cd ..
 }
