@@ -18,6 +18,8 @@ assert they have git and gcc and autoconf libtool installed...
 
 == maybe/never do ==
 
+dynamic aac somehow...prolly for something with > 2 audios...
+
 see if it "builds ok" 64 bit with out the path or ABI thing
 
 cleanup ramiro suggested for libgsm
