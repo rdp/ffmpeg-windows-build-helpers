@@ -338,7 +338,9 @@ build_vo_aacenc() {
 
 build_sdl() {
   # apparently ffmpeg expects prefix-sdl-config not sdl-config that they give us, so rename...
+  export CFLAGS=
   generic_download_and_install http://www.libsdl.org/release/SDL-1.2.15.tar.gz SDL-1.2.15
+  unset CFLAGS
   mkdir temp
   cd temp # so paths will work out right
   local prefix=$(basename $cross_prefix)
