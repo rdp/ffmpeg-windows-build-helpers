@@ -132,7 +132,7 @@ do_configure() {
   if [ ! -f "$touch_name" ]; then
     echo "configuring $english_name as $ PATH=$PATH $configure_name $configure_options"
     make clean # just in case
-    make uninstall # just in case
+    #make uninstall # does weird things when used with ffmpeg
     if [ -f bootstrap.sh ]; then
       ./bootstrap.sh
     fi
@@ -328,6 +328,10 @@ build_fdk_aac() {
   generic_download_and_install http://sourceforge.net/projects/opencore-amr/files/fdk-aac/fdk-aac-0.1.0.tar.gz/download fdk-aac-0.1.0
 }
 
+build_freetype() {
+  generic_download_and_install http://download.savannah.gnu.org/releases/freetype/freetype-2.4.10.tar.gz freetype-2.4.10
+} 
+
 build_vo_aacenc() {
   generic_download_and_install http://sourceforge.net/projects/opencore-amr/files/vo-aacenc/vo-aacenc-0.1.2.tar.gz/download vo-aacenc-0.1.2
 }
@@ -364,7 +368,7 @@ build_ffmpeg() {
    local arch=x86_64
   fi
 
-  config_options="--enable-memalign-hack --arch=$arch --enable-gpl --enable-libx264 --enable-avisynth --enable-libxvid --target-os=mingw32  --cross-prefix=$cross_prefix --pkg-config=pkg-config --enable-libmp3lame --enable-version3 --enable-libvo-aacenc --enable-libvpx --extra-libs=-lws2_32 --extra-libs=-lpthread --enable-zlib --extra-libs=-lwinmm --extra-libs=-lgdi32 --enable-librtmp --enable-libvorbis --enable-libtheora --enable-libspeex --enable-libopenjpeg --enable-gnutls --enable-libgsm"
+  config_options="--enable-memalign-hack --arch=$arch --enable-gpl --enable-libx264 --enable-avisynth --enable-libxvid --target-os=mingw32  --cross-prefix=$cross_prefix --pkg-config=pkg-config --enable-libmp3lame --enable-version3 --enable-libvo-aacenc --enable-libvpx --extra-libs=-lws2_32 --extra-libs=-lpthread --enable-zlib --extra-libs=-lwinmm --extra-libs=-lgdi32 --enable-librtmp --enable-libvorbis --enable-libtheora --enable-libspeex --enable-libopenjpeg --enable-gnutls --enable-libgsm --enable-libfreetype"
   if [[ "$non_free" = "y" ]]; then
     config_options="$config_options --enable-nonfree --enable-openssl --enable-libfdk-aac" # --enable-libfaac -- faac too poor quality and becomes the default -- add it in and uncomment the build_faac line to include it
   else
@@ -380,6 +384,7 @@ build_ffmpeg() {
   
   do_configure "$config_options"
   rm -f *.exe # just in case some library dependency was updated, force it to re-link
+  echo "ffmpeg: doing PATH=$PATH make"
   make || exit 1
   local cur_dir2=$(pwd)
   echo "Done! You will find binaries in $cur_dir2/ff{mpeg,probe,play}*.exe"
@@ -406,6 +411,7 @@ build_all() {
   build_lame
   build_libvpx
   build_vo_aacenc
+  build_freetype
   build_libopenjpeg
   if [[ "$non_free" = "y" ]]; then
     build_fdk_aac
