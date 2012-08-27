@@ -13,6 +13,7 @@ cleanup zeranoe suggs (vpx?)
 more libraries
   All the current builds'
   compile orc/schroedinger/forum
+  fontconfig/libass
   
 assert they have git and gcc and autoconf libtool installed...
 
