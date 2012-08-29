@@ -114,7 +114,12 @@ do_git_checkout() {
   else
     cd $to_dir
     echo "Updating to latest $to_dir version..."
+    old_git_version=`git rev-parse HEAD`
     git pull
+    new_git_version=`git rev-parse HEAD`
+    if [[ "$old_git_version" != "$new_git_version" ]]; then
+     rm already* # force reconfigure always...
+    fi 
     cd ..
   fi
 }
@@ -162,7 +167,7 @@ do_make_install() {
 build_x264() {
   do_git_checkout "http://repo.or.cz/r/x264.git" "x264"
   cd x264
-  do_configure "--host=$host_target --enable-static --cross-prefix=$cross_prefix --prefix=$mingw_w64_x86_64_prefix --enable-win32thread"
+  do_configure "--host=$host_target --enable-static --cross-prefix=$cross_prefix --prefix=$mingw_w64_x86_64_prefix --enable-win32thread --enable-debug"
   # TODO more march=native here?
   # rm -f already_ran_make # just in case the git checkout did something, re-make
   do_make_install

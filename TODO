@@ -62,3 +62,5 @@ profile guided builds?
 other "-march" like options? fastmath
 
 use make -j 2 (more than one core)
+
+x264 fomit frame pointer for 32 bit?
