@@ -241,6 +241,15 @@ generic_download_and_install() {
   cd ..
 }
 
+build_libflite() {
+  download_and_unpack_file http://www.speech.cs.cmu.edu/flite/packed/flite-1.4/flite-1.4-release.tar.bz2 flite-1.4-release
+  cd flite-1.4-release
+   sed -i "s|i386-mingw32-|$cross_prefix|" *
+   generic_configure
+   do_make_install
+  cd ..
+}
+
 build_libgsm() {
   download_and_unpack_file http://www.quut.com/gsm/gsm-1.0.13.tar.gz gsm-1.0-pl13
   cd gsm-1.0-pl13
@@ -375,7 +384,7 @@ build_ffmpeg() {
    local arch=x86_64
   fi
 
-  config_options="--enable-memalign-hack --arch=$arch --enable-gpl --enable-libx264 --enable-avisynth --enable-libxvid --target-os=mingw32  --cross-prefix=$cross_prefix --pkg-config=pkg-config --enable-libmp3lame --enable-version3 --enable-libvo-aacenc --enable-libvpx --extra-libs=-lws2_32 --extra-libs=-lpthread --enable-zlib --extra-libs=-lwinmm --extra-libs=-lgdi32 --enable-librtmp --enable-libvorbis --enable-libtheora --enable-libspeex --enable-libopenjpeg --enable-gnutls --enable-libgsm --enable-libfreetype"
+  config_options="--enable-memalign-hack --arch=$arch --enable-gpl --enable-libx264 --enable-avisynth --enable-libxvid --target-os=mingw32  --cross-prefix=$cross_prefix --pkg-config=pkg-config --enable-libmp3lame --enable-version3 --enable-libvo-aacenc --enable-libvpx --extra-libs=-lws2_32 --extra-libs=-lpthread --enable-zlib --extra-libs=-lwinmm --extra-libs=-lgdi32 --enable-librtmp --enable-libvorbis --enable-libtheora --enable-libspeex --enable-libopenjpeg --enable-gnutls --enable-libgsm --enable-libfreetype --disable-optimizations --enable-mmx --disable-postproc --enable-libflite"
   if [[ "$non_free" = "y" ]]; then
     config_options="$config_options --enable-nonfree --enable-openssl --enable-libfdk-aac" # --enable-libfaac -- faac too poor quality and becomes the default -- add it in and uncomment the build_faac line to include it
   else
@@ -384,7 +393,7 @@ build_ffmpeg() {
 
   if [[ "$native_build" = "y" ]]; then
     config_options="$config_options --disable-runtime-cpudetect"
-    # TODO --cpu=host
+    # TODO --cpu=host ...
   else
     config_options="$config_options --enable-runtime-cpudetect"
   fi
@@ -407,6 +416,7 @@ build_all() {
   build_gmp
   build_libnettle # needs gmp
   build_gnutls #  needs libnettle
+  build_libflite
   build_libgsm
   build_sdl # needed for ffplay to be created
   build_libogg
