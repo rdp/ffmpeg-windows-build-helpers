@@ -244,9 +244,11 @@ generic_download_and_install() {
 build_libflite() {
   download_and_unpack_file http://www.speech.cs.cmu.edu/flite/packed/flite-1.4/flite-1.4-release.tar.bz2 flite-1.4-release
   cd flite-1.4-release
-   sed -i "s|i386-mingw32-|$cross_prefix|" *
+   sed -i "s|i386-mingw32-|$cross_prefix|" configure*
    generic_configure
-   do_make_install
+   make
+   make install # fails...
+   cp ./build/i386-mingw32/lib/libflite.a $mingw_w64_x86_64_prefix/lib || exit 1
   cd ..
 }
 
