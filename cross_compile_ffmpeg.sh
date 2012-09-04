@@ -248,7 +248,7 @@ build_libflite() {
    generic_configure
    make
    make install # fails...
-   cp ./build/i386-mingw32/lib/libflite.a $mingw_w64_x86_64_prefix/lib || exit 1
+   cp ./build/i386-mingw32/lib/*.a $mingw_w64_x86_64_prefix/lib || exit 1
   cd ..
 }
 
