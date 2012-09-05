@@ -289,7 +289,8 @@ build_libtheora() {
 build_libfribidi() {
   download_and_unpack_file http://fribidi.org/download/fribidi-0.19.4.tar.bz2 fribidi-0.19.4
   cd fribidi-0.19.4
-    patch -f -p0 <<EOL # can fail, which is ok...
+    # export symbols right...
+    patch -f -p0 <<EOL # patch command can fail, which is ok...
 --- lib/fribidi-common.h	2008-02-04 21:30:46.000000000 +0000
 +++ lib/fribidi-common.h	2008-02-04 21:32:25.000000000 +0000
 @@ -53,11 +53,7 @@
@@ -364,7 +365,7 @@ build_fontconfig() {
     generic_configure --disable-docs
     do_make_install
   cd .. 
-  sed -i 's/-L${libdir} -lfontconfig[^l]*$/-L${libdir} -lfontconfig -lfreetype -lexpat/' "$PKG_CONFIG_PATH/fontconfig.pc"
+  #sed -i 's/-L${libdir} -lfontconfig[^l]*$/-L${libdir} -lfontconfig -lfreetype -lexpat/' "$PKG_CONFIG_PATH/fontconfig.pc"
 }
 
 build_openssl() {
