@@ -188,7 +188,7 @@ build_librtmp() {
 
   do_git_checkout "http://repo.or.cz/r/rtmpdump.git" rtmpdump_git
   cd rtmpdump_git/librtmp
-  make install OPT='-O2 -g' "CROSS_COMPILE=$cross_prefix" SHARED=no "prefix=$mingw_w64_x86_64_prefix" || exit 1 # TODO use gnutls ?
+  make install CRYPTO=GNUTLS OPT='-O2 -g' "CROSS_COMPILE=$cross_prefix" SHARED=no "prefix=$mingw_w64_x86_64_prefix" || exit 1
   cd ../..
 }
 
@@ -418,7 +418,7 @@ build_ffmpeg() {
 
   config_options="--enable-memalign-hack --arch=$arch --enable-gpl --enable-libx264 --enable-avisynth --enable-libxvid --target-os=mingw32  --cross-prefix=$cross_prefix --pkg-config=pkg-config --enable-libmp3lame --enable-version3 --enable-libvo-aacenc --enable-libvpx --extra-libs=-lws2_32 --extra-libs=-lpthread --enable-zlib --extra-libs=-lwinmm --extra-libs=-lgdi32 --enable-librtmp --enable-libvorbis --enable-libtheora --enable-libspeex --enable-libopenjpeg --enable-gnutls --enable-libgsm --enable-libfreetype --disable-optimizations --enable-mmx --disable-postproc --enable-libflite --enable-fontconfig --enable-libass"
   if [[ "$non_free" = "y" ]]; then
-    config_options="$config_options --enable-nonfree --enable-openssl --enable-libfdk-aac" # --enable-libfaac -- faac too poor quality and becomes the default -- add it in and uncomment the build_faac line to include it
+    config_options="$config_options --enable-nonfree --enable-libfdk-aac" # --enable-libfaac -- faac too poor quality and becomes the default -- add it in and uncomment the build_faac line to include it --enable-openssl
   else
     config_options="$config_options"
   fi
@@ -462,15 +462,15 @@ build_all() {
   build_vo_aacenc
   build_freetype
   build_libexpat
-  build_fontconfig # might need freetype, needs expat
+  build_fontconfig # needs expat, might need freetype
   build_fribidi
-  build_libass # needs freetype, needs fribidi, might need fontconfig, at least to work right
+  build_libass # needs freetype, needs fribidi, might need fontconfig, at least to work ok
   build_libopenjpeg
   if [[ "$non_free" = "y" ]]; then
     build_fdk_aac
-    # build_faac # not included for now, see comment above, poor quality
+    # build_faac # not included for now, see comment above, too poor quality :)
   fi
-  build_openssl
+  #build_openssl
   build_librtmp # needs openssl today [TODO use gnutls]
   build_ffmpeg
 }
