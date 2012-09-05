@@ -286,8 +286,12 @@ build_libtheora() {
   generic_download_and_install http://downloads.xiph.org/releases/theora/libtheora-1.1.1.tar.bz2 libtheora-1.1.1
 }
 
+build_fribidi() {
+  generic_download_and_install http://fribidi.org/download/fribidi-0.19.4.tar.bz2 fribidi-0.19.4
+}
+
 build_libass() {
-  generic_download_and_install http://code.google.com/p/libass/downloads/detail?name=libass-0.10.0.tar.gz libass-0.10.0
+  generic_download_and_install http://libass.googlecode.com/files/libass-0.10.0.tar.gz libass-0.10.0
 }
 
 build_gmp() {
@@ -332,6 +336,15 @@ build_libxvid() {
   fi
 }
 
+build_fontconfig() {
+  download_and_unpack_file http://www.freedesktop.org/software/fontconfig/release/fontconfig-2.10.1.tar.gz fontconfig-2.10.1
+  cd fontconfig-2.10.1
+    generic_configure --disable-docs
+    do_make_install
+  cd .. 
+  sed -i 's/-L${libdir} -lfontconfig/-L${libdir} -lfontconfig -lfreetype -lexpat/' "$PKG_CONFIG_PATH/fontconfig.pc"
+}
+
 build_openssl() {
   download_and_unpack_file http://www.openssl.org/source/openssl-1.0.1c.tar.gz openssl-1.0.1c
   cd openssl-1.0.1c
@@ -356,9 +369,10 @@ build_fdk_aac() {
   generic_download_and_install http://sourceforge.net/projects/opencore-amr/files/fdk-aac/fdk-aac-0.1.0.tar.gz/download fdk-aac-0.1.0
 }
 
-build_fontconfig() {
-  generic_download_and_install http://www.freedesktop.org/software/fontconfig/release/fontconfig-2.10.1.tar.gz fontconfig-2.10.1
+build_libexpat() {
+  generic_download_and_install http://sourceforge.net/projects/expat/files/expat/2.1.0/expat-2.1.0.tar.gz/download expat-2.1.0
 }
+
 
 build_freetype() {
   generic_download_and_install http://download.savannah.gnu.org/releases/freetype/freetype-2.4.10.tar.gz freetype-2.4.10
@@ -370,7 +384,7 @@ build_vo_aacenc() {
 
 build_sdl() {
   # apparently ffmpeg expects prefix-sdl-config not sdl-config that they give us, so rename...
-  export CFLAGS=
+  export CFLAGS= # avoid segfault when running ffplay...
   generic_download_and_install http://www.libsdl.org/release/SDL-1.2.15.tar.gz SDL-1.2.15
   unset CFLAGS
   mkdir temp
@@ -447,8 +461,10 @@ build_all() {
   build_libvpx
   build_vo_aacenc
   build_freetype
-  build_fontconfig # might need freetype
-  build libass # might need fontconfig, at least to work right
+  build_libexpat
+  build_fontconfig # might need freetype, needs expat
+  build_fribidi
+  build_libass # needs freetype, needs fribidi, might need fontconfig, at least to work right
   build_libopenjpeg
   if [[ "$non_free" = "y" ]]; then
     build_fdk_aac
