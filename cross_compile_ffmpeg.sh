@@ -286,12 +286,34 @@ build_libtheora() {
   generic_download_and_install http://downloads.xiph.org/releases/theora/libtheora-1.1.1.tar.bz2 libtheora-1.1.1
 }
 
-build_fribidi() {
-  generic_download_and_install http://fribidi.org/download/fribidi-0.19.4.tar.bz2 fribidi-0.19.4
+build_libfribidi() {
+  download_and_unpack_file http://fribidi.org/download/fribidi-0.19.4.tar.bz2 fribidi-0.19.4
+  cd fribidi-0.19.4
+    patch -f -p0 <<EOL # can fail, which is ok...
+--- lib/fribidi-common.h	2008-02-04 21:30:46.000000000 +0000
++++ lib/fribidi-common.h	2008-02-04 21:32:25.000000000 +0000
+@@ -53,11 +53,7 @@
+ 
+ /* FRIBIDI_ENTRY is a macro used to declare library entry points. */
+ #ifndef FRIBIDI_ENTRY
+-# if (defined(WIN32)) || (defined(_WIN32_WCE))
+-#  define FRIBIDI_ENTRY __declspec(dllimport)
+-# else /* !WIN32 */
+ #  define FRIBIDI_ENTRY		/* empty */
+-# endif	/* !WIN32 */
+ #endif /* !FRIBIDI_ENTRY */
+ 
+ #if FRIBIDI_USE_GLIB+0
+
+EOL
+  generic_configure
+  do_make_install
+  cd ..
 }
 
 build_libass() {
   generic_download_and_install http://libass.googlecode.com/files/libass-0.10.0.tar.gz libass-0.10.0
+  sed -i 's/-lass -lm/-lass -lfribidi -lm/' "$PKG_CONFIG_PATH/libass.pc"
 }
 
 build_gmp() {
@@ -342,7 +364,7 @@ build_fontconfig() {
     generic_configure --disable-docs
     do_make_install
   cd .. 
-  sed -i 's/-L${libdir} -lfontconfig/-L${libdir} -lfontconfig -lfreetype -lexpat/' "$PKG_CONFIG_PATH/fontconfig.pc"
+  sed -i 's/-L${libdir} -lfontconfig[^l]*$/-L${libdir} -lfontconfig -lfreetype -lexpat/' "$PKG_CONFIG_PATH/fontconfig.pc"
 }
 
 build_openssl() {
@@ -463,8 +485,8 @@ build_all() {
   build_freetype
   build_libexpat
   build_fontconfig # needs expat, might need freetype
-  build_fribidi
-  build_libass # needs freetype, needs fribidi, might need fontconfig, at least to work ok
+  build_libfribidi
+  build_libass # needs freetype, needs fribidi, needs fontconfig
   build_libopenjpeg
   if [[ "$non_free" = "y" ]]; then
     build_fdk_aac
