@@ -151,16 +151,24 @@ do_configure() {
   fi
 }
 
-do_make_install() {
-  extra_make_options="$1"
+do_make() {
   local cur_dir2=$(pwd)
   if [ ! -f already_ran_make ]; then
     echo "making $cur_dir2 as $ PATH=$PATH make $extra_make_options"
     make $extra_make_options || exit 1
-    make install $extra_make_options || exit 1
     touch already_ran_make
   else
     echo "already did make $(basename "$cur_dir2")"
+  fi
+}
+
+do_make_install() {
+  extra_make_options="$1"
+  do_make $extra_make_options
+  if [ ! -f already_ran_make_install ]; then
+    echo "make installing $cur_dir2 as $ PATH=$PATH make install $extra_make_options"
+    make install $extra_make_options || exit 1
+    touch already_ran_make_install
   fi
 }
 
@@ -246,8 +254,8 @@ build_libflite() {
   cd flite-1.4-release
    sed -i "s|i386-mingw32-|$cross_prefix|" configure*
    generic_configure
-   make
-   make install # fails...
+   do_make
+   make install # it fails in error...
    cp ./build/i386-mingw32/lib/*.a $mingw_w64_x86_64_prefix/lib || exit 1
   cd ..
 }
@@ -276,6 +284,10 @@ build_libspeex() {
 
 build_libtheora() {
   generic_download_and_install http://downloads.xiph.org/releases/theora/libtheora-1.1.1.tar.bz2 libtheora-1.1.1
+}
+
+build_libass() {
+  generic_download_and_install http://code.google.com/p/libass/downloads/detail?name=libass-0.10.0.tar.gz libass-0.10.0
 }
 
 build_gmp() {
@@ -344,6 +356,10 @@ build_fdk_aac() {
   generic_download_and_install http://sourceforge.net/projects/opencore-amr/files/fdk-aac/fdk-aac-0.1.0.tar.gz/download fdk-aac-0.1.0
 }
 
+build_fontconfig() {
+  generic_download_and_install http://www.freedesktop.org/software/fontconfig/release/fontconfig-2.10.1.tar.gz fontconfig-2.10.1
+}
+
 build_freetype() {
   generic_download_and_install http://download.savannah.gnu.org/releases/freetype/freetype-2.4.10.tar.gz freetype-2.4.10
 } 
@@ -386,7 +402,7 @@ build_ffmpeg() {
    local arch=x86_64
   fi
 
-  config_options="--enable-memalign-hack --arch=$arch --enable-gpl --enable-libx264 --enable-avisynth --enable-libxvid --target-os=mingw32  --cross-prefix=$cross_prefix --pkg-config=pkg-config --enable-libmp3lame --enable-version3 --enable-libvo-aacenc --enable-libvpx --extra-libs=-lws2_32 --extra-libs=-lpthread --enable-zlib --extra-libs=-lwinmm --extra-libs=-lgdi32 --enable-librtmp --enable-libvorbis --enable-libtheora --enable-libspeex --enable-libopenjpeg --enable-gnutls --enable-libgsm --enable-libfreetype --disable-optimizations --enable-mmx --disable-postproc --enable-libflite"
+  config_options="--enable-memalign-hack --arch=$arch --enable-gpl --enable-libx264 --enable-avisynth --enable-libxvid --target-os=mingw32  --cross-prefix=$cross_prefix --pkg-config=pkg-config --enable-libmp3lame --enable-version3 --enable-libvo-aacenc --enable-libvpx --extra-libs=-lws2_32 --extra-libs=-lpthread --enable-zlib --extra-libs=-lwinmm --extra-libs=-lgdi32 --enable-librtmp --enable-libvorbis --enable-libtheora --enable-libspeex --enable-libopenjpeg --enable-gnutls --enable-libgsm --enable-libfreetype --disable-optimizations --enable-mmx --disable-postproc --enable-libflite --enable-fontconfig --enable-libass"
   if [[ "$non_free" = "y" ]]; then
     config_options="$config_options --enable-nonfree --enable-openssl --enable-libfdk-aac" # --enable-libfaac -- faac too poor quality and becomes the default -- add it in and uncomment the build_faac line to include it
   else
@@ -431,6 +447,8 @@ build_all() {
   build_libvpx
   build_vo_aacenc
   build_freetype
+  build_fontconfig # might need freetype
+  build libass # might need fontconfig, at least to work right
   build_libopenjpeg
   if [[ "$non_free" = "y" ]]; then
     build_fdk_aac
