@@ -224,7 +224,8 @@ build_libvpx() {
 build_utvideo() {
   download_and_unpack_file https://github.com/downloads/rdp/FFmpeg/utvideo-11.1.0-src.zip utvideo-11.1.0 # local copy :)
   cd utvideo-11.1.0
-    make install CROSS_PREFIX=$cross_prefix DESTDIR=$mingw_w64_x86_64_prefix
+    patch -f -p0 < ../../../utv.diff
+    make install CROSS_PREFIX=$cross_prefix DESTDIR=$mingw_w64_x86_64_prefix prefix=
   cd ..
 }
 
