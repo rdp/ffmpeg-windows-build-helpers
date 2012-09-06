@@ -1,5 +1,7 @@
 == todos ==
 
+threading: win32-pthread...maybe... :)
+
 libvpx
   fix, update blog/ML
     threading/configure?
