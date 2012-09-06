@@ -13,14 +13,11 @@ cleanup zeranoe suggs (vpx?)
 more libraries
   All the current builds'
   compile orc/schroedinger/forum
-  fontconfig/libass
   
-assert they have git and gcc and autoconf libtool installed...
+initially assert they have git and gcc and autoconf libtool installed...
 
 parameters to the script
-  an option to re setup-compilers --arch
-
-check for hash change when ffmpeg updates, then auto reconfigure...yeah...that seems sane...
+  an option to setup-compilers --arch
 
 warn that we're not using it if they already have a toolchain in the PATH
 
@@ -32,6 +29,8 @@ support external toolchains
 --extra-ffmpeg-options
 
 "shared" builds option, like libavcodec-54.dll
+
+libflite is too big?
 
 == maybe/never do ==
 
