@@ -182,6 +182,7 @@ build_x264() {
   cd ..
 }
 
+
 build_librtmp() {
   #  download_and_unpack_file http://rtmpdump.mplayerhq.hu/download/rtmpdump-2.3.tgz rtmpdump-2.3
   #  cd rtmpdump-2.3/librtmp
@@ -220,13 +221,20 @@ build_libvpx() {
   cd ..
 }
 
+build_utvideo() {
+  download_and_unpack_file https://github.com/downloads/rdp/FFmpeg/utvideo-11.1.0-src.zip utvideo-11.1.0 # local copy :)
+  cd utvideo-11.1.0
+    make install CROSS_PREFIX=$cross_prefix DESTDIR=$mingw_w64_x86_64_prefix
+  cd ..
+}
+
 download_and_unpack_file() {
   url="$1"
   output_name=$(basename $url)
   output_dir="$2"
   if [ ! -f "$output_dir/unpacked.successfully" ]; then
     wget "$url" -O "$output_name" || exit 1
-    tar -xf "$output_name" || exit 1
+    tar -xf "$output_name" || unzip $output_name || exit 1
     touch "$output_dir/unpacked.successfully"
     rm "$output_name"
   fi
@@ -467,6 +475,7 @@ install_cross_compiler # always run this, too, since it adjust the PATH
 setup_env
 
 build_all() {
+  build_utvideo
   build_zlib # rtmp depends on it [as well as ffmpeg's optional but handy --enable-zlib]
   build_gmp
   build_libnettle # needs gmp
