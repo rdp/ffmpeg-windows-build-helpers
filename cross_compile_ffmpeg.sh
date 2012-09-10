@@ -118,7 +118,8 @@ do_git_checkout() {
     git pull
     new_git_version=`git rev-parse HEAD`
     if [[ "$old_git_version" != "$new_git_version" ]]; then
-     rm already* # force reconfigure always...
+     echo "got upstream changes, forcing reconfigure."
+     rm already*
     fi 
     cd ..
   fi
