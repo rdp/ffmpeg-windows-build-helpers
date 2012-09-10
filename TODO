@@ -1,5 +1,16 @@
 == todos ==
 
+threading woes: win32-pthread...maybe... :)
+
+more libraries
+  All the current builds'
+  compile orc/schroedinger/forum
+
+initially assert they have git and gcc and autoconf libtool installed...
+
+libflite is too big?
+== lower ==
+
 libvpx
   fix, update blog/ML
     threading/configure?
@@ -7,20 +18,12 @@ libvpx
 check march=native (from laptop...)
   ffmpeg more? do I need to enable runtime detection when it's not? 
   libx264 still uses i686?
+  compare 64 vs 32 bit speedz...
 
 cleanup zeranoe suggs (vpx?)
 
-more libraries
-  All the current builds'
-  compile orc/schroedinger/forum
-  fontconfig/libass
-  
-assert they have git and gcc and autoconf libtool installed...
-
 parameters to the script
-  an option to re setup-compilers --arch
-
-check for hash change when ffmpeg updates, then auto reconfigure...yeah...that seems sane...
+  an option to setup-compilers --arch
 
 warn that we're not using it if they already have a toolchain in the PATH
 
@@ -32,6 +35,7 @@ support external toolchains
 --extra-ffmpeg-options
 
 "shared" builds option, like libavcodec-54.dll
+
 
 == maybe/never do ==
 

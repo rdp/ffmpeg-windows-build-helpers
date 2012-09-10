@@ -152,16 +152,24 @@ do_configure() {
   fi
 }
 
-do_make_install() {
-  extra_make_options="$1"
+do_make() {
   local cur_dir2=$(pwd)
   if [ ! -f already_ran_make ]; then
     echo "making $cur_dir2 as $ PATH=$PATH make $extra_make_options"
     make $extra_make_options || exit 1
-    make install $extra_make_options || exit 1
     touch already_ran_make
   else
     echo "already did make $(basename "$cur_dir2")"
+  fi
+}
+
+do_make_install() {
+  extra_make_options="$1"
+  do_make $extra_make_options
+  if [ ! -f already_ran_make_install ]; then
+    echo "make installing $cur_dir2 as $ PATH=$PATH make install $extra_make_options"
+    make install $extra_make_options || exit 1
+    touch already_ran_make_install
   fi
 }
 
@@ -175,13 +183,14 @@ build_x264() {
   cd ..
 }
 
+
 build_librtmp() {
   #  download_and_unpack_file http://rtmpdump.mplayerhq.hu/download/rtmpdump-2.3.tgz rtmpdump-2.3
   #  cd rtmpdump-2.3/librtmp
 
   do_git_checkout "http://repo.or.cz/r/rtmpdump.git" rtmpdump_git
   cd rtmpdump_git/librtmp
-  make install OPT='-O2 -g' "CROSS_COMPILE=$cross_prefix" SHARED=no "prefix=$mingw_w64_x86_64_prefix" || exit 1 # TODO use gnutls ?
+  make install CRYPTO=GNUTLS OPT='-O2 -g' "CROSS_COMPILE=$cross_prefix" SHARED=no "prefix=$mingw_w64_x86_64_prefix" || exit 1
   cd ../..
 }
 
@@ -213,13 +222,21 @@ build_libvpx() {
   cd ..
 }
 
+build_utvideo() {
+  download_and_unpack_file https://github.com/downloads/rdp/FFmpeg/utvideo-11.1.0-src.zip utvideo-11.1.0 # local copy :)
+  cd utvideo-11.1.0
+    patch -f -p0 < ../../../utv.diff
+    make install CROSS_PREFIX=$cross_prefix DESTDIR=$mingw_w64_x86_64_prefix prefix=
+  cd ..
+}
+
 download_and_unpack_file() {
   url="$1"
   output_name=$(basename $url)
   output_dir="$2"
   if [ ! -f "$output_dir/unpacked.successfully" ]; then
     wget "$url" -O "$output_name" || exit 1
-    tar -xf "$output_name" || exit 1
+    tar -xf "$output_name" || unzip $output_name || exit 1
     touch "$output_dir/unpacked.successfully"
     rm "$output_name"
   fi
@@ -239,6 +256,17 @@ generic_download_and_install() {
   cd $english_name || exit "needs 2 parameters"
   generic_configure $extra_configure_options
   do_make_install
+  cd ..
+}
+
+build_libflite() {
+  download_and_unpack_file http://www.speech.cs.cmu.edu/flite/packed/flite-1.4/flite-1.4-release.tar.bz2 flite-1.4-release
+  cd flite-1.4-release
+   sed -i "s|i386-mingw32-|$cross_prefix|" configure*
+   generic_configure
+   do_make
+   make install # it fails in error...
+   cp ./build/i386-mingw32/lib/*.a $mingw_w64_x86_64_prefix/lib || exit 1
   cd ..
 }
 
@@ -266,6 +294,37 @@ build_libspeex() {
 
 build_libtheora() {
   generic_download_and_install http://downloads.xiph.org/releases/theora/libtheora-1.1.1.tar.bz2 libtheora-1.1.1
+}
+
+build_libfribidi() {
+  download_and_unpack_file http://fribidi.org/download/fribidi-0.19.4.tar.bz2 fribidi-0.19.4
+  cd fribidi-0.19.4
+    # export symbols right...
+    patch -f -p0 <<EOL # patch command can fail, which is ok...
+--- lib/fribidi-common.h	2008-02-04 21:30:46.000000000 +0000
++++ lib/fribidi-common.h	2008-02-04 21:32:25.000000000 +0000
+@@ -53,11 +53,7 @@
+ 
+ /* FRIBIDI_ENTRY is a macro used to declare library entry points. */
+ #ifndef FRIBIDI_ENTRY
+-# if (defined(WIN32)) || (defined(_WIN32_WCE))
+-#  define FRIBIDI_ENTRY __declspec(dllimport)
+-# else /* !WIN32 */
+ #  define FRIBIDI_ENTRY		/* empty */
+-# endif	/* !WIN32 */
+ #endif /* !FRIBIDI_ENTRY */
+ 
+ #if FRIBIDI_USE_GLIB+0
+
+EOL
+  generic_configure
+  do_make_install
+  cd ..
+}
+
+build_libass() {
+  generic_download_and_install http://libass.googlecode.com/files/libass-0.10.0.tar.gz libass-0.10.0
+  sed -i 's/-lass -lm/-lass -lfribidi -lm/' "$PKG_CONFIG_PATH/libass.pc"
 }
 
 build_gmp() {
@@ -310,6 +369,15 @@ build_libxvid() {
   fi
 }
 
+build_fontconfig() {
+  download_and_unpack_file http://www.freedesktop.org/software/fontconfig/release/fontconfig-2.10.1.tar.gz fontconfig-2.10.1
+  cd fontconfig-2.10.1
+    generic_configure --disable-docs
+    do_make_install
+  cd .. 
+  sed -i 's/-L${libdir} -lfontconfig[^l]*$/-L${libdir} -lfontconfig -lfreetype -lexpat/' "$PKG_CONFIG_PATH/fontconfig.pc"
+}
+
 build_openssl() {
   download_and_unpack_file http://www.openssl.org/source/openssl-1.0.1c.tar.gz openssl-1.0.1c
   cd openssl-1.0.1c
@@ -334,6 +402,11 @@ build_fdk_aac() {
   generic_download_and_install http://sourceforge.net/projects/opencore-amr/files/fdk-aac/fdk-aac-0.1.0.tar.gz/download fdk-aac-0.1.0
 }
 
+build_libexpat() {
+  generic_download_and_install http://sourceforge.net/projects/expat/files/expat/2.1.0/expat-2.1.0.tar.gz/download expat-2.1.0
+}
+
+
 build_freetype() {
   generic_download_and_install http://download.savannah.gnu.org/releases/freetype/freetype-2.4.10.tar.gz freetype-2.4.10
 } 
@@ -344,7 +417,7 @@ build_vo_aacenc() {
 
 build_sdl() {
   # apparently ffmpeg expects prefix-sdl-config not sdl-config that they give us, so rename...
-  export CFLAGS=
+  export CFLAGS= # avoid segfault when running ffplay...
   generic_download_and_install http://www.libsdl.org/release/SDL-1.2.15.tar.gz SDL-1.2.15
   unset CFLAGS
   mkdir temp
@@ -376,16 +449,16 @@ build_ffmpeg() {
    local arch=x86_64
   fi
 
-  config_options="--enable-memalign-hack --arch=$arch --enable-gpl --enable-libx264 --enable-avisynth --enable-libxvid --target-os=mingw32  --cross-prefix=$cross_prefix --pkg-config=pkg-config --enable-libmp3lame --enable-version3 --enable-libvo-aacenc --enable-libvpx --extra-libs=-lws2_32 --extra-libs=-lpthread --enable-zlib --extra-libs=-lwinmm --extra-libs=-lgdi32 --enable-librtmp --enable-libvorbis --enable-libtheora --enable-libspeex --enable-libopenjpeg --enable-gnutls --enable-libgsm --enable-libfreetype"
+  config_options="--enable-memalign-hack --arch=$arch --enable-gpl --enable-libx264 --enable-avisynth --enable-libxvid --target-os=mingw32  --cross-prefix=$cross_prefix --pkg-config=pkg-config --enable-libmp3lame --enable-version3 --enable-libvo-aacenc --enable-libvpx --extra-libs=-lws2_32 --extra-libs=-lpthread --enable-zlib --extra-libs=-lwinmm --extra-libs=-lgdi32 --enable-librtmp --enable-libvorbis --enable-libtheora --enable-libspeex --enable-libopenjpeg --enable-gnutls --enable-libgsm --enable-libfreetype --disable-optimizations --enable-mmx --disable-postproc --enable-libflite --enable-fontconfig --enable-libass --enable-libutvideo"
   if [[ "$non_free" = "y" ]]; then
-    config_options="$config_options --enable-nonfree --enable-openssl --enable-libfdk-aac" # --enable-libfaac -- faac too poor quality and becomes the default -- add it in and uncomment the build_faac line to include it
+    config_options="$config_options --enable-nonfree --enable-libfdk-aac" # --enable-libfaac -- faac too poor quality and becomes the default -- add it in and uncomment the build_faac line to include it --enable-openssl
   else
     config_options="$config_options"
   fi
 
   if [[ "$native_build" = "y" ]]; then
     config_options="$config_options --disable-runtime-cpudetect"
-    # TODO --cpu=host
+    # TODO --cpu=host ...
   else
     config_options="$config_options --enable-runtime-cpudetect"
   fi
@@ -408,6 +481,7 @@ build_all() {
   build_gmp
   build_libnettle # needs gmp
   build_gnutls #  needs libnettle
+  build_libflite
   build_libgsm
   build_sdl # needed for ffplay to be created
   build_libogg
@@ -419,13 +493,18 @@ build_all() {
   build_lame
   build_libvpx
   build_vo_aacenc
+  build_utvideo
   build_freetype
+  build_libexpat
+  build_fontconfig # needs expat, might need freetype
+  build_libfribidi
+  build_libass # needs freetype, needs fribidi, needs fontconfig
   build_libopenjpeg
   if [[ "$non_free" = "y" ]]; then
     build_fdk_aac
-    # build_faac # not included for now, see comment above, poor quality
+    # build_faac # not included for now, see comment above, too poor quality :)
   fi
-  build_openssl
+  #build_openssl
   build_librtmp # needs openssl today [TODO use gnutls]
   build_ffmpeg
 }

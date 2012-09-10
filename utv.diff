@@ -1,0 +1,10 @@
+--- utv_core/Codec.h	2011-08-30 22:49:14.000000000 -0600
++++ utv_core/Codec.h	2012-09-06 16:19:20.637207065 -0600
+@@ -2,6 +2,7 @@
+ /* $Id: Codec.h 731 2011-08-30 13:49:13Z umezawa $ */
+ 
+ #pragma once
++#include <windows.h>
+ 
+ #define CBGROSSWIDTH_NATURAL ((size_t)0)
+ #define CBGROSSWIDTH_WINDOWS ((size_t)-1)
