@@ -9,7 +9,9 @@ more libraries
 initially assert they have git and gcc and autoconf libtool installed...
 
 libflite is too big?
+
 == lower ==
+prefer polarssl to gnutls for smaller exe? wait can ffmpeg use polar
 
 libvpx
   fix, update blog/ML
