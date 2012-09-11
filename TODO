@@ -9,7 +9,13 @@ more libraries
 initially assert they have git and gcc and autoconf libtool installed...
 
 libflite is too big?
+
+real zip it up
+
+
 == lower ==
+
+calculate size of each piece, put it on a wiki somewhere...
 
 libvpx
   fix, update blog/ML
@@ -35,7 +41,6 @@ support external toolchains
 --extra-ffmpeg-options
 
 "shared" builds option, like libavcodec-54.dll
-
 
 == maybe/never do ==
 
