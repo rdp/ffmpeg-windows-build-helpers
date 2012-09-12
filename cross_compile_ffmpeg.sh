@@ -64,7 +64,7 @@ it makes no sense)  Use march=native? THIS IS JUST EXPERIMENTAL AND DOES NOT WOR
 install_cross_compiler() {
   if [[ -f "mingw-w64-i686/compiler.done" || -f "mingw-w64-x86_64/compiler.done" ]]; then
    echo "MinGW-w64 compiler of some type already installed, not re-installing it..."
-   #return
+   return # not exit
   fi
   read -p 'First we will download and compile a gcc cross-compiler (MinGW-w64).
   You will be prompted with a few questions as it installs (it takes quite awhile).
