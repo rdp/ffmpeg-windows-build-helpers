@@ -51,7 +51,7 @@ EOL
   fi
   mkdir -p "$cur_dir"
   cd "$cur_dir"
-  yes_no_sel "Would you like to include non-free (non GPL compatible) libraries, like certain high quality aac encoders
+  yes_no_sel "Would you like to include non-free (non GPL compatible) libraries, like many aac encoders
 The resultant binary will not be distributable, but might be useful for in-house use. Include non-free [y/n]?"
   non_free="$user_input" # save it away
   yes_no_sel "Would you like to compile with -march=native, which can get a few percent speedup
@@ -64,15 +64,16 @@ it makes no sense)  Use march=native? THIS IS JUST EXPERIMENTAL AND DOES NOT WOR
 install_cross_compiler() {
   if [[ -f "mingw-w64-i686/compiler.done" || -f "mingw-w64-x86_64/compiler.done" ]]; then
    echo "MinGW-w64 compiler of some type already installed, not re-installing it..."
-   return
+   #return
   fi
   read -p 'First we will download and compile a gcc cross-compiler (MinGW-w64).
   You will be prompted with a few questions as it installs (it takes quite awhile).
   Enter to continue:'
 
-  wget http://zeranoe.com/scripts/mingw_w64_build/mingw-w64-build-3.0.6 -O mingw-w64-build-3.0.6
+  wget http://zeranoe.com/scripts/mingw_w64_build/mingw-w64-build-3.0.6 -O
+mingw-w64-build-3.0.6
   chmod u+x mingw-w64-build-3.0.6
-  ./mingw-w64-build-3.0.6 --disable-nls --disable-shared --default-configure --clean-build || exit 1 # --disable-shared allows c++ to be distributed at all...
+  ./mingw-w64-build-3.0.6 --mingw-w64-ver=2.0.4 --disable-nls --disable-shared --default-configure --clean-build || exit 1 # --disable-shared allows c++ to be distributed at all...
   if [ -d mingw-w64-x86_64 ]; then
     touch mingw-w64-x86_64/compiler.done
   fi
@@ -280,6 +281,10 @@ build_libgsm() {
   cd ..
 }
 
+build_libopus() {
+  generic_download_and_install http://downloads.xiph.org/releases/opus/opus-1.0.1.tar.gz opus-1.0.1 
+}
+
 build_libogg() {
   generic_download_and_install http://downloads.xiph.org/releases/ogg/libogg-1.3.0.tar.gz libogg-1.3.0
 }
@@ -330,13 +335,17 @@ build_libass() {
 build_gmp() {
   download_and_unpack_file ftp://ftp.gnu.org/gnu/gmp/gmp-5.0.5.tar.bz2 gmp-5.0.5
   cd gmp-5.0.5
-  generic_configure "ABI=$bits_target"
-  do_make_install
+    generic_configure "ABI=$bits_target"
+    do_make_install
   cd .. 
 }
 
 build_gnutls() {
-  generic_download_and_install ftp://ftp.gnu.org/gnu/gnutls/gnutls-3.0.22.tar.xz gnutls-3.0.22
+  download_and_unpack_file ftp://ftp.gnu.org/gnu/gnutls/gnutls-3.0.22.tar.xz gnutls-3.0.22
+  cd gnutls-3.0.22
+    generic_configure "--disable-cxx" # don't need the c++ version, in an effort to cut down on size... LODO test difference...
+    do_make_install
+  cd ..
   sed -i 's/-lgnutls *$/-lgnutls -lnettle -lhogweed -lgmp -lcrypt32/' "$PKG_CONFIG_PATH/gnutls.pc"
 }
 
@@ -449,7 +458,7 @@ build_ffmpeg() {
    local arch=x86_64
   fi
 
-  config_options="--enable-memalign-hack --arch=$arch --enable-gpl --enable-libx264 --enable-avisynth --enable-libxvid --target-os=mingw32  --cross-prefix=$cross_prefix --pkg-config=pkg-config --enable-libmp3lame --enable-version3 --enable-libvo-aacenc --enable-libvpx --extra-libs=-lws2_32 --extra-libs=-lpthread --enable-zlib --extra-libs=-lwinmm --extra-libs=-lgdi32 --enable-librtmp --enable-libvorbis --enable-libtheora --enable-libspeex --enable-libopenjpeg --enable-gnutls --enable-libgsm --enable-libfreetype --disable-optimizations --enable-mmx --disable-postproc --enable-libflite --enable-fontconfig --enable-libass --enable-libutvideo"
+  config_options="--enable-memalign-hack --arch=$arch --enable-gpl --enable-libx264 --enable-avisynth --enable-libxvid --target-os=mingw32  --cross-prefix=$cross_prefix --pkg-config=pkg-config --enable-libmp3lame --enable-version3 --enable-libvo-aacenc --enable-libvpx --extra-libs=-lws2_32 --extra-libs=-lpthread --enable-zlib --extra-libs=-lwinmm --extra-libs=-lgdi32 --enable-librtmp --enable-libvorbis --enable-libtheora --enable-libspeex --enable-libopenjpeg --enable-gnutls --enable-libgsm --enable-libfreetype --disable-optimizations --enable-mmx --disable-postproc --enable-libflite --enable-fontconfig --enable-libass --enable-libutvideo --enable-libopus"
   if [[ "$non_free" = "y" ]]; then
     config_options="$config_options --enable-nonfree --enable-libfdk-aac" # --enable-libfaac -- faac too poor quality and becomes the default -- add it in and uncomment the build_faac line to include it --enable-openssl
   else
@@ -480,10 +489,11 @@ build_all() {
   build_zlib # rtmp depends on it [as well as ffmpeg's optional but handy --enable-zlib]
   build_gmp
   build_libnettle # needs gmp
-  build_gnutls #  needs libnettle
+  build_gnutls # needs libnettle
   build_libflite
   build_libgsm
   build_sdl # needed for ffplay to be created
+  build_libopus
   build_libogg
   build_libspeex # needs libogg
   build_libvorbis # needs libogg
