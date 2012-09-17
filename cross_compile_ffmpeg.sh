@@ -476,7 +476,7 @@ build_ffmpeg() {
   echo "ffmpeg: doing PATH=$PATH make"
   make || exit 1
   local cur_dir2=$(pwd)
-  echo "Done! You will find binaries in $cur_dir2/ff{mpeg,probe,play}*.exe"
+  echo "Done! You will find $bits_target bit binaries in $cur_dir2/ff{mpeg,probe,play}*.exe"
   cd ..
 }
 
