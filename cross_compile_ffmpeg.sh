@@ -53,9 +53,14 @@ EOL
   fi
   mkdir -p "$cur_dir"
   cd "$cur_dir"
-  yes_no_sel "Would you like to include non-free (non GPL compatible) libraries, like many aac encoders
+  if [[ $disable_nonfree = "y" ]]; then
+    non_free="n"
+  else
+    yes_no_sel "Would you like to include non-free (non GPL compatible) libraries, like many aac encoders
 The resultant binary will not be distributable, but might be useful for in-house use. Include non-free [y/n]?"
-  non_free="$user_input" # save it away
+    non_free="$user_input" # save it away
+  fi
+
   #yes_no_sel "Would you like to compile with -march=native, which can get a few percent speedup
 #but also makes it so you cannot distribute the binary to machines of other architecture/cpu 
 #(also note that you should only enable this if compiling on a VM on the same box you intend to target, otherwise
@@ -520,8 +525,9 @@ build_all() {
 
 while true; do
   case $1 in
-    -h | --help ) echo "options: --rebuild-compilers=y --sandbox-ok=y"; exit 0 ;;
+    -h | --help ) echo "options: --disable-nonfree=y --rebuild-compilers=y --sandbox-ok=y"; exit 0 ;;
     --sandbox-ok=* ) sandbox_ok="${1#*=}"; shift ;;
+    --disable-nonfree=* ) disable_nonfree="${1#*=}"; shift ;;
     --rebuild-compilers=* ) rebuild_compilers="${1#*=}"; shift ;;
     -- ) shift; break ;;
     -* ) echo "Error, unknown option: '$1'."; exit 1 ;;
