@@ -54,11 +54,11 @@ EOL
   yes_no_sel "Would you like to include non-free (non GPL compatible) libraries, like many aac encoders
 The resultant binary will not be distributable, but might be useful for in-house use. Include non-free [y/n]?"
   non_free="$user_input" # save it away
-  yes_no_sel "Would you like to compile with -march=native, which can get a few percent speedup
+  #yes_no_sel "Would you like to compile with -march=native, which can get a few percent speedup
 but also makes it so you cannot distribute the binary to machines of other architecture/cpu 
 (also note that you should only enable this if compiling on a VM on the same box you intend to target, otherwise
 it makes no sense)  Use march=native? THIS IS JUST EXPERIMENTAL AND DOES NOT WORK FULLY YET--choose n typically. [y/n]?" 
-  user_input="$user_input"
+  #march_native="$user_input"
 }
 
 install_cross_compiler() {
