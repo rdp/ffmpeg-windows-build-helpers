@@ -65,7 +65,9 @@ The resultant binary will not be distributable, but might be useful for in-house
 install_cross_compiler() {
   if [[ -f "mingw-w64-i686/compiler.done" || -f "mingw-w64-x86_64/compiler.done" ]]; then
    echo "MinGW-w64 compiler of some type already installed, not re-installing it..."
-   #return # not exit
+   if [[ $rebuild_compilers != "y" ]]; then
+     return # early exit
+   fi
   fi
   read -p 'First we will download and compile a gcc cross-compiler (MinGW-w64).
   You will be prompted with a few questions as it installs (it takes quite awhile).
@@ -481,10 +483,6 @@ build_ffmpeg() {
   cd ..
 }
 
-intro # remember to always run the intro, since it adjust pwd
-install_cross_compiler # always run this, too, since it adjust the PATH
-setup_env
-
 build_all() {
   build_zlib # rtmp depends on it [as well as ffmpeg's optional but handy --enable-zlib]
   build_gmp
@@ -519,6 +517,21 @@ build_all() {
   build_ffmpeg
 }
 
+
+while true; do
+  case $1 in
+    -h | --help ) echo "options: --rebuild-compilers=y"; exit 0 ;;
+    --rebuild-compilers=* ) rebuild_compilers="${1#*=}"; shift ;;
+    -- ) shift; break ;;
+    -* ) echo "Error, unknown option: '$1'."; exit 1 ;;
+    * ) break ;;
+  esac
+done
+
+intro # remember to always run the intro, since it adjust pwd
+install_cross_compiler # always run this, too, since it adjust the PATH
+setup_env
+
 original_path="$PATH"
 if [ -d "mingw-w64-i686" ]; then # they installed a 32-bit compiler
   echo "Building 32-bit ffmpeg..."
@@ -548,5 +561,4 @@ if [ -d "mingw-w64-x86_64" ]; then # they installed a 64-bit compiler
   cd ..
 fi
 
-cd ..
 echo 'done with ffmpeg cross compiler script'
