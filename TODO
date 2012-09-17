@@ -45,6 +45,8 @@ support external toolchains
 
 == maybe/never do ==
 
+complain for "everyone" that fails cross compile that I haven't yet...
+
 march=native vpx (others?)
 
 dynamic aac somehow...prolly for something with > 2 audios...
