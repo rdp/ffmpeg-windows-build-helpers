@@ -55,9 +55,9 @@ EOL
 The resultant binary will not be distributable, but might be useful for in-house use. Include non-free [y/n]?"
   non_free="$user_input" # save it away
   #yes_no_sel "Would you like to compile with -march=native, which can get a few percent speedup
-but also makes it so you cannot distribute the binary to machines of other architecture/cpu 
-(also note that you should only enable this if compiling on a VM on the same box you intend to target, otherwise
-it makes no sense)  Use march=native? THIS IS JUST EXPERIMENTAL AND DOES NOT WORK FULLY YET--choose n typically. [y/n]?" 
+#but also makes it so you cannot distribute the binary to machines of other architecture/cpu 
+#(also note that you should only enable this if compiling on a VM on the same box you intend to target, otherwise
+#it makes no sense)  Use march=native? THIS IS JUST EXPERIMENTAL AND DOES NOT WORK FULLY YET--choose n typically. [y/n]?" 
   #march_native="$user_input"
 }
 
@@ -273,7 +273,7 @@ build_libflite() {
 build_libgsm() {
   download_and_unpack_file http://www.quut.com/gsm/gsm-1.0.13.tar.gz gsm-1.0-pl13
   cd gsm-1.0-pl13
-  make CC=${cross_prefix}gcc AR=${cross_prefix}ar RANLIB=${cross_prefix}ranlib INSTALL_ROOT=${mingw_w64_x86_64_prefix}i # fails, but we expect that LODO fix [?]
+  make CC=${cross_prefix}gcc AR=${cross_prefix}ar RANLIB=${cross_prefix}ranlib INSTALL_ROOT=${mingw_w64_x86_64_prefix} # fails, but we expect that LODO fix [?]
   cp lib/libgsm.a $mingw_w64_x86_64_prefix/lib || exit 1
   mkdir -p $mingw_w64_x86_64_prefix/include/gsm
   cp inc/gsm.h $mingw_w64_x86_64_prefix/include/gsm || exit 1
