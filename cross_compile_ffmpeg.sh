@@ -40,9 +40,10 @@ intro() {
   cat <<EOL
      ##################### Welcome ######################
   Welcome to the ffmpeg cross-compile builder-helper script.
-  Downloads and sandbox will be installed to directories within $cur_dir
+  Downloads and builds will be installed to directories within $cur_dir
   If this is not ok, then exit now, and cd to the directory where you'd
-  like them installed, then run this script again.
+  like them installed, then run this script again.  NB that once you build
+  your compilers, you can no longer rename the directory.
 EOL
 
   yes_no_sel "Is ./sandbox ok [y/n]?"
@@ -64,7 +65,7 @@ The resultant binary will not be distributable, but might be useful for in-house
 install_cross_compiler() {
   if [[ -f "mingw-w64-i686/compiler.done" || -f "mingw-w64-x86_64/compiler.done" ]]; then
    echo "MinGW-w64 compiler of some type already installed, not re-installing it..."
-   return # not exit
+   #return # not exit
   fi
   read -p 'First we will download and compile a gcc cross-compiler (MinGW-w64).
   You will be prompted with a few questions as it installs (it takes quite awhile).
@@ -494,7 +495,7 @@ build_all() {
   build_sdl # needed for ffplay to be created
   build_libopus
   build_libogg
-  build_libspeex # needs libogg
+  build_libspeex # needs libogg for exe's
   build_libvorbis # needs libogg
   build_libtheora # needs libvorbis, libogg
   build_libxvid
@@ -511,10 +512,10 @@ build_all() {
   build_libopenjpeg
   if [[ "$non_free" = "y" ]]; then
     build_fdk_aac
-    # build_faac # not included for now, see comment above, too poor quality :)
+    # build_faac # not included for now, too poor quality :)
   fi
-  #build_openssl
-  build_librtmp # needs openssl today [TODO use gnutls]
+  build_librtmp # needs gnutls
+  #build_openssl # hopefully don't need it anymore...
   build_ffmpeg
 }
 
