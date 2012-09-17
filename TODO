@@ -8,10 +8,7 @@ more libraries
 
 initially assert they have git and gcc and autoconf libtool installed...
 
-libflite is too big?
-
-real zip it up
-
+make march work with ffmpeg/x264
 
 == lower ==
 
