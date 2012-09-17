@@ -14,6 +14,9 @@ real zip it up
 
 
 == lower ==
+
+get libflite working with 64 bit [also check linux?]
+
 prefer polarssl to gnutls for smaller exe? wait can ffmpeg use polar
 
 calculate size of each piece, put it on a wiki somewhere...

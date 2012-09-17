@@ -457,7 +457,7 @@ build_ffmpeg() {
    local arch=x86_64
   fi
 
-  config_options="--enable-memalign-hack --arch=$arch --enable-gpl --enable-libx264 --enable-avisynth --enable-libxvid --target-os=mingw32  --cross-prefix=$cross_prefix --pkg-config=pkg-config --enable-libmp3lame --enable-version3 --enable-libvo-aacenc --enable-libvpx --extra-libs=-lws2_32 --extra-libs=-lpthread --enable-zlib --extra-libs=-lwinmm --extra-libs=-lgdi32 --enable-librtmp --enable-libvorbis --enable-libtheora --enable-libspeex --enable-libopenjpeg --enable-gnutls --enable-libgsm --enable-libfreetype --disable-optimizations --enable-mmx --disable-postproc --enable-libflite --enable-fontconfig --enable-libass --enable-libutvideo --enable-libopus"
+  config_options="--enable-memalign-hack --arch=$arch --enable-gpl --enable-libx264 --enable-avisynth --enable-libxvid --target-os=mingw32  --cross-prefix=$cross_prefix --pkg-config=pkg-config --enable-libmp3lame --enable-version3 --enable-libvo-aacenc --enable-libvpx --extra-libs=-lws2_32 --extra-libs=-lpthread --enable-zlib --extra-libs=-lwinmm --extra-libs=-lgdi32 --enable-librtmp --enable-libvorbis --enable-libtheora --enable-libspeex --enable-libopenjpeg --enable-gnutls --enable-libgsm --enable-libfreetype --disable-optimizations --enable-mmx --disable-postproc --enable-fontconfig --enable-libass --enable-libutvideo --enable-libopus"
   if [[ "$non_free" = "y" ]]; then
     config_options="$config_options --enable-nonfree --enable-libfdk-aac" # --enable-libfaac -- faac too poor quality and becomes the default -- add it in and uncomment the build_faac line to include it --enable-openssl
   else
@@ -489,7 +489,7 @@ build_all() {
   build_gmp
   build_libnettle # needs gmp
   build_gnutls # needs libnettle
-  build_libflite
+  #build_libflite # disabled till I can figure out how to get it to work in 64 bit
   build_libgsm
   build_sdl # needed for ffplay to be created
   build_libopus
