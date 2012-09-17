@@ -1,3 +1,6 @@
+--nls didn't matter, --static didn't matter...
+
+
 gcj: -fno-bounds-check -O3 -mfpmath=sse -msse2 -ffast-math -march=native; 
 
 enable all instruction subsets supported by the local machine (hence the result might not run on different machines)
