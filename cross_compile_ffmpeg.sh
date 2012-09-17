@@ -45,10 +45,11 @@ intro() {
   like them installed, then run this script again.  NB that once you build
   your compilers, you can no longer rename the directory.
 EOL
-
-  yes_no_sel "Is ./sandbox ok [y/n]?"
-  if [[ "$user_input" = "n" ]]; then
-    exit 1
+  if [[ $sandbox_ok != 'y' ]]; then
+    yes_no_sel "Is ./sandbox ok [y/n]?"
+    if [[ "$user_input" = "n" ]]; then
+      exit 1
+    fi
   fi
   mkdir -p "$cur_dir"
   cd "$cur_dir"
@@ -417,10 +418,9 @@ build_libexpat() {
   generic_download_and_install http://sourceforge.net/projects/expat/files/expat/2.1.0/expat-2.1.0.tar.gz/download expat-2.1.0
 }
 
-
 build_freetype() {
   generic_download_and_install http://download.savannah.gnu.org/releases/freetype/freetype-2.4.10.tar.gz freetype-2.4.10
-} 
+}
 
 build_vo_aacenc() {
   generic_download_and_install http://sourceforge.net/projects/opencore-amr/files/vo-aacenc/vo-aacenc-0.1.2.tar.gz/download vo-aacenc-0.1.2
@@ -520,7 +520,8 @@ build_all() {
 
 while true; do
   case $1 in
-    -h | --help ) echo "options: --rebuild-compilers=y"; exit 0 ;;
+    -h | --help ) echo "options: --rebuild-compilers=y --sandbox-ok=y"; exit 0 ;;
+    --sandbox-ok=* ) sandbox_ok="${1#*=}"; shift ;;
     --rebuild-compilers=* ) rebuild_compilers="${1#*=}"; shift ;;
     -- ) shift; break ;;
     -* ) echo "Error, unknown option: '$1'."; exit 1 ;;
