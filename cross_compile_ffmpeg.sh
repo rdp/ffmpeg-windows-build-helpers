@@ -149,7 +149,7 @@ do_configure() {
     touch -- "$touch_name"
     make clean # just in case
   else
-    echo "already configured $cur_dir2" 
+    echo "already configured $(basename $cur_dir2)" 
   fi
 }
 
