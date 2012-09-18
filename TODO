@@ -10,6 +10,8 @@ initially assert they have git and gcc and autoconf libtool installed...
 
 make march work with ffmpeg/x264
 
+Ubuntu binaries
+
 == lower ==
 
 get libflite working with 64 bit [also check linux?]
@@ -41,9 +43,9 @@ support external toolchains
 
 --extra-ffmpeg-options
 
-"shared" builds option, like libavcodec-54.dll
-
 == maybe/never do ==
+
+"shared" builds option, like libavcodec-54.dll
 
 complain for "everyone" that fails cross compile that I haven't yet...
 
