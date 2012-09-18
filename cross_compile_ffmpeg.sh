@@ -231,10 +231,11 @@ build_libvpx() {
   cd ..
 }
 
-build_utvideo() {
+build_libutvideo() {
   download_and_unpack_file https://github.com/downloads/rdp/FFmpeg/utvideo-11.1.0-src.zip utvideo-11.1.0 # local copy :)
   cd utvideo-11.1.0
-    patch -f -p0 < ../../../utv.diff
+    wget https://raw.github.com/rdp/ffmpeg-windows-build-helpers/master/utv.diff -O utv.diff
+    patch -f -p0 < utv.diff
     make install CROSS_PREFIX=$cross_prefix DESTDIR=$mingw_w64_x86_64_prefix prefix=
   cd ..
 }
@@ -503,10 +504,10 @@ build_all() {
   build_libtheora # needs libvorbis, libogg
   build_libxvid
   build_x264
+  build_libutvideo
   build_lame
   build_libvpx
   build_vo_aacenc
-  build_utvideo
   build_freetype
   build_libexpat
   build_fontconfig # needs expat, might need freetype
