@@ -1,3 +1,248 @@
+= speed failures =
+
+ 6.419555, 6.551958, 6.567558, 6.588355, 6.695155]
+959
+".\\ffmpeg_win32_pthreads.exe -threads 6 -y -i sintel.mpg -pass 1 -t 75 -c:v libx264 -an nul.mp4" this has win32 x264, ffmpeg with win32-pthreads
+
+== rtmp "drops" ==
+
+maybe related to the VLC audio-desync?
+http://planet.videolan.org/
+
+blacky3:
+    Last message repeated 16 times
+frame=120967 fps= 10 q=31.0 size=  545552kB time=03:16:56.88 bitrate= 378.2kbitsreal-time buffer 206% full! frame dropped!
+[dshow @ 01F1D5A0] real-time buffer 206% full! frame dropped!
+    Last message repeated 16 times
+frame=120980 fps= 10 q=31.0 size=  545595kB time=03:16:57.86 bitrate= 378.2kbitsreal-time buffer 206% full! frame dropped!
+[dshow @ 01F1D5A0] real-time buffer 206% full! frame dropped!
+    Last message repeated 1017 times
+WriteN, RTMP send error 10054 (129 bytes)real-time buffer 206% full! frame dropped!
+
+WriteN, RTMP send error 10054 (79 bytes)
+WriteN, RTMP send error 10038 (42 bytes)
+av_interleaved_write_frame(): Operation not permitted
+[dshow @ 01F1D5A0] real-time buffer 206% full! frame dropped!
+    Last message repeated 3 times
+
+
+== mac fps drops ==
+
+should always be at 29, 100% cpu
+
+is with -b 100k
+
+is not with "normal" 
+
+ffmpeg -i sintel.mpg -ss 90 -an -f flv rtmp://live.justin.tv/
+
+50%
+
+700 kbit upload, makes sense…
+
+
+mac:
+ffmpeg -i sintel.mpg -ss 90 -an -f flv ...:
+
+12 minutes, 37 fps, low cpu…
+
+should have been:
+frame=21654 fps=209 q=31.0 Lsize=   46193kB time=00:13:14.82 bitrate= 476.1kbits/s    
+
+says I have 0.73 Mbps
+
+frame= 5116 fps= 47 q=31.0 Lsize=    9564kB time=00:03:07.75 bitrate= 417.3kbits/s 
+
+so it's basically  47/30*40 ~ 62 KB/s
+
+did show 100K outbound, 2.2K incoming, which is good.
+
+Does show the odd pause right when it gets started…
+
+If it's a leak, it's a slow one… (this is sans --enable-librtmp though).
+
+No hint of a leak when streaming a file.
+
+135.8 MB when bandwidth limited, at least
+
+bandwidth not limited
+
+bandwidth AND cpu limited:
+
+cpu limited?
+
+"frame= 4889 fps= 21 "
+  is actually like a running average since the beginning of time [!]
+
+actually fps=5
+
+the thing that can limit it: cpu, bandwidth
+
+== RTMP fps drops notes ==
+
+*all night*
+"C:\Downloads\ffmpeg-distro-static-2012-08-15-045f8ddc07d0d7e4a29a53b0b69a02ebbb34494b.dshow_no_overflow\ffmpeg-distro-static-2012-08-15-045f8ddc07d0d7e4a29a53b0b69a02ebbb34494b\ffmpeg-32.exe" -analyzeduration 0 -i "rtmp://localhost:1936/live/b live=1" -vcodec libx264 -f flv "rtmp://localhost:1936/live/c"
+
+no discernable leak
+
+
+
+
+"C:\Downloads\ffmpeg-distro-static-2012-08-15-045f8ddc07d0d7e4a29a53b0b69a02ebbb34494b.dshow_no_overflow\ffmpeg-distro-static-2012-08-15-045f8ddc07d0d7e4a29a53b0b69a02ebbb34494b\ffmpeg-32.exe"  -f dshow -i video=screen-capture-recorder -f flv rtmp://localhost:1936/live/b	Command Line	
+
+is working now...at least :P
+
+"bitrate" in the console has no relation to what's being put out on the wire...
+  maybe the long latency to justin.tv kills it?
+    
+
+when you "don't have enough bandwidth" it slows down the cpu usage, and keeps encoding...
+
+Also is it sending like way more on the wire than it does when it writes it to file?
+
+
+Ok it outputs "fine" to flv, or to udp...or to a pipe. No RAM leaks.
+The truly weird part being "even if flv can't write to the disk fast enough" right...no leaks...
+so the buffering can't be part of libx264, and all the way through to there...
+ probably
+ before rtmp
+ or within rtmp
+ is my guess...
+ 
+ 
+the video can get very choppy (12 fps reported while encoding and 6-7 noticed while watching with fraps running) but the audio does not.
+ 
+-analyzeduration
+
+try it with VLC as the server?
+ -max_delay, -muxpreload, and -muxdelay help? 
+ 
+ "you should set a maxrate, a buffer, and use a CRF for quality control (you're doing CBR right now). ?
+     apparently didn't help
+
+ffmpeg -t 10 -f dshow -i video=screen-capture-recorder -vcodec libx264 -f flv rtmp://localhost/live/a  -loglevel debug > output 2>&1
+ffmpeg -t 10 -i \vids\sintel.mpg -ss 90 -an  -vcodec libx264 -f flv rtmp://localhost/live/a -loglevel debug > output 2>&1
+
+
+with my proxy:
+frame=  162 fps=  1 q=19.0 Lsize=    4067kB time=00:02:51.64 bitrate= 194.1kbits/s
+
+and that's with *semingly* extra cpu.
+
+LOL.
+
+Also NB, with09-11:
+
+.+,-.+.+.+.+.+.+.+.
+
+but latest is 
+.+,.+,.+,.+,.+,.+,.+,.+,
+
+latest:
+
+[dshow @ 01C9A600] real-time buffer 199% full! frame dropped!trate=   0.0kbits/s
+    Last message repeated 1277 times3513kB time=00:02:56.02 bitrate= 163.5kbits/s
+
+09-11:
+frame=  330 fps=  1 q=17.0 Lsize=    4369kB time=00:03:16.31 bitrate= 182.3kbits/s    
+    
+
+== Timing with pthreads ==
+
+0726: ffmpeg-20120726-git-236ecc3-win32-shared\\ffmpeg-20120726-git-236ecc3-win32-shared\\bin\\ffmpeg.exe -threads 1
+ 6.17, 6.2088, 6.2088, 6.2414, 6.3024, 6.509, 6.5676, 6.5686, 6.5922, 11.5128]
+
+and a hang, but it was close!
+
+ 6.1017, 6.1073, 6.1631, 8.1559, 8.2254, 10.8354, 11.7285, 12.0542]
+365
+
+does seem to take awhile, but it's there...
+
+dec 22 -threads 6
+
+[7.5816, 7.8156, 7.6284, 22.2768, 8.0652, 7.2072, 19.9212]
+
+dec 22  -threads 1
+
+ 7.783, 7.7862, 7.791, 7.794, 7.795, 7.8, 7.8, 7.8, 7.8, 7.805, 7.8074, 7.816, 7.8644, 7.93, 9.266, 9.7614, 9.9188]
+1966
+ 7.7688, 7.808, 7.831, 7.836177, 8.0192, 8.658, 9.2632]
+1199
+
+those look legit to me...
+
+dec26 threads 1:
+ 7.5934, 7.6128, 7.6128, 7.685, 7.722, 7.742, 7.7432, 7.8088, 7.926]
+133
+seemed pretty stable...
+
+ 7.8394, 7.8508, 7.852, 7.8624, 7.91, 7.9244, 7.9796, 8.1548, 8.1724, 8.4308, 9.068]
+950 (probably ok)
+
+dec26 threads 6:
+ 7.546, 7.5486, 7.5506, 7.5675, 7.5772]
+74
+[14.1648, 19.734, 21.6528, 23.5716, 23.7276, 24.336, 26.3016, 35.724, 38.7172, 59.202]
+10
+
+january 5 threads 1
+ 7.804, 7.8146, 7.8156, 7.8502, 7.9116, 7.9546, 7.9928, 8.0628, 8.2688]
+4775
+
+jan 5 th 6
+quick die
+
+OS X macports-devel -th 6
+
+36.975005, 36.995226, 37.12962, 37.306911, 38.625307, 38.633342]
+74
+
+OS X macports "-threads 0"
+38.725472, 40.496907, 47.510419, 50.127104]
+128
+hopefully a fluke :P
+
+36.534519, 36.542911, 36.587368, 36.783724, 36.888324, 37.006988, 37.71383]
+163
+
+ 36.487204, 36.534519, 36.542911, 36.587368, 36.783724, 36.888324, 36.921875, 36.939317, 37.006988, 37.470837, 37.71383, 37.830948]
+325
+
+39.880812, 39.8828, 40.026459, 40.042505, 40.22541, 40.286073, 40.460634]
+1108
+ffmpeg version 0.11.1.git-56ae592 Copyright (c) 2000-2012 the FFmpeg developers
+
+
+my 32, threads 6
+ 6.022, 6.083, 6.386, 6.4216, 6.438, 6.506, 6.563, 6.69, 7.283, 7.3686, 7.518]
+1696
+
+my 64 threads 6
+ 5.5138, 5.523285, 5.538, 5.695, 6.267, 6.5428]
+17511
+
+ffmpeg-20120409-git-6bfb304-win64-static\\bin\\ffmpeg.exe -threads 6 -y -i sintel.mpg -pass 1 -t 75 -c:v libx264 -an nul.mp4"
+[6.6186, 6.6536, 6.7067, 6.7275, 6.7331, 6.7605, 6.8356, 6.9484, 7.0748, 7.1302, 12.1823, 13.9774, 16.0897, 17.1871, 18.0254]
+
+20120409-git-6bfb304-win64-static\\bin\\ffmpeg.exe -threads 1 -y -i sintel.mpg -pass 1 -t 75 -c:v libx264 -an nul.mp4"
+ 7.0487, 7.0561, 7.058, 7.0624, 7.0791, 7.0904, 7.1142, 7.1854, 7.2529]
+122
+ 263 had 9.1
+
+7.2048, 7.213, 7.4231, 7.6833, 9.1604, 9.4338] (same 9.1 as above)
+1128
+ 
+that feels pretty stable...
+ 
+20120726-git-236ecc3-win32-shared\\bin\\ffmpeg.exe -threads 1 -y -i sintel.mpg -pass 1 -t 75 -c:v libx264 -an nul.mp4"
+ 6.0511, 6.0536, 6.0554, 6.0566, 6.0711, 6.0722, 6.083, 13.5071, 17.544]
+128
+
+
+
+
+
 --nls didn't matter, --static didn't matter...
 
 
