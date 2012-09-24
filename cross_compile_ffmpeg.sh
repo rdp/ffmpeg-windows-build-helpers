@@ -162,6 +162,7 @@ do_configure() {
 }
 
 do_make() {
+  local extra_make_options="$1"
   local cur_dir2=$(pwd)
   if [ ! -f already_ran_make ]; then
     echo "making $cur_dir2 as $ PATH=$PATH make $extra_make_options"
@@ -173,7 +174,7 @@ do_make() {
 }
 
 do_make_install() {
-  extra_make_options="$1"
+  local extra_make_options="$1"
   do_make $extra_make_options
   if [ ! -f already_ran_make_install ]; then
     echo "make installing $cur_dir2 as $ PATH=$PATH make install $extra_make_options"
@@ -217,6 +218,7 @@ build_libopenjpeg() {
   do_make_install
   cd .. 
 }
+
 
 build_libvpx() {
   download_and_unpack_file http://webm.googlecode.com/files/libvpx-v1.1.0.tar.bz2 libvpx-v1.1.0
@@ -292,6 +294,15 @@ build_libgsm() {
 
 build_libopus() {
   generic_download_and_install http://downloads.xiph.org/releases/opus/opus-1.0.1.tar.gz opus-1.0.1 
+}
+
+build_win32_pthreads() {
+  download_and_unpack_file ftp://sourceware.org/pub/pthreads-win32/pthreads-w32-2-9-1-release.tar.gz   pthreads-w32-2-9-1-release
+  cd pthreads-w32-2-9-1-release
+    do_make "clean GC-static CROSS=$cross_prefix"
+    cp libpthreadGC2.a $mingw_w64_x86_64_prefix/lib/libpthread.a || exit 1
+    cp pthread.h $mingw_w64_x86_64_prefix/include || exit 1
+  cd ..
 }
 
 build_libogg() {
@@ -466,7 +477,7 @@ build_ffmpeg() {
    local arch=x86_64
   fi
 
-  config_options="--enable-memalign-hack --arch=$arch --enable-gpl --enable-libx264 --enable-avisynth --enable-libxvid --target-os=mingw32  --cross-prefix=$cross_prefix --pkg-config=pkg-config --enable-libmp3lame --enable-version3 --enable-libvo-aacenc --enable-libvpx --extra-libs=-lws2_32 --extra-libs=-lpthread --enable-zlib --extra-libs=-lwinmm --extra-libs=-lgdi32 --enable-librtmp --enable-libvorbis --enable-libtheora --enable-libspeex --enable-libopenjpeg --enable-gnutls --enable-libgsm --enable-libfreetype --disable-optimizations --enable-mmx --disable-postproc --enable-fontconfig --enable-libass --enable-libutvideo --enable-libopus"
+  config_options="--enable-memalign-hack --arch=$arch --enable-gpl --enable-libx264 --enable-avisynth --enable-libxvid --target-os=mingw32  --cross-prefix=$cross_prefix --pkg-config=pkg-config --enable-libmp3lame --enable-version3 --enable-libvo-aacenc --enable-libvpx --extra-libs=-lws2_32 --extra-libs=-lpthread --enable-zlib --extra-libs=-lwinmm --extra-libs=-lgdi32 --enable-librtmp --enable-libvorbis --enable-libtheora --enable-libspeex --enable-libopenjpeg --enable-gnutls --enable-libgsm --enable-libfreetype --disable-optimizations --enable-mmx --disable-postproc --enable-fontconfig --enable-libass --enable-libutvideo --enable-libopus --disable-w32threads --extra-cflags=-DPTW32_STATIC_LIB"
   if [[ "$non_free" = "y" ]]; then
     config_options="$config_options --enable-nonfree --enable-libfdk-aac" # --enable-libfaac -- faac too poor quality and becomes the default -- add it in and uncomment the build_faac line to include it --enable-openssl
   else
@@ -490,6 +501,7 @@ build_ffmpeg() {
 }
 
 build_all() {
+  build_win32_pthreads
   build_zlib # rtmp depends on it [as well as ffmpeg's optional but handy --enable-zlib]
   build_gmp
   build_libnettle # needs gmp

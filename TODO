@@ -14,6 +14,8 @@ Ubuntu binaries
 
 == lower ==
 
+research: https://groups.google.com/a/webmproject.org/forum/?fromgroups=#!topic/apps-devel/ZZ2an44u3X0
+
 get libflite working with 64 bit [also check linux?]
 
 prefer polarssl to gnutls for smaller exe? wait can ffmpeg use polar
