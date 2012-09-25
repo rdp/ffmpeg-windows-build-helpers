@@ -1,4 +1,16 @@
+= speeds =
+
+ffmpeg_me_x86_64 5.2
+ffmpeg_win32_pthreads_x264_win32_pthreads 5.7
+ffmpeg_win32_pthreads.exe 5.8
+libopus (win32 threads) 6.0 [?]
+pixfmt_ramiro 5.6
+
 = speed failures =
+
+ 6.333559, 6.33356, 6.33356, 6.33356, 6.33356, 6.349159, 6.349159, 6.349159, 6.364759, 6.364759, 6.36476, 6.401155, 6.422355, 6.424389, 6.507555, 6.551958, 6.551958, 6.567557, 6.614357, 6.629764, 6.676757, 6.785957, 6.957555]
+7333
+".\\ffmpeg_win32_pthreads_x264_win32_pthreads.exe -threads 6 -y -i sintel.mpg -pass 1 -t 75 -c:v libx264 -an nul.mp4"
 
  6.419555, 6.551958, 6.567558, 6.588355, 6.695155]
 959
