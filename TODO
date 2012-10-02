@@ -23,7 +23,7 @@ prefer polarssl to gnutls for smaller exe? wait can ffmpeg use polar
 calculate size of each piece, put it on a wiki somewhere...
 
 libvpx
-  fix, update blog/ML
+  fix, update blog (somebody left a comment)/vpx ML
     threading/configure?
 
 check march=native (from laptop...)

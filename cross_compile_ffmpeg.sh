@@ -175,7 +175,7 @@ do_make() {
 
 do_make_install() {
   local extra_make_options="$1"
-  do_make $extra_make_options
+  do_make "$extra_make_options"
   if [ ! -f already_ran_make_install ]; then
     echo "make installing $cur_dir2 as $ PATH=$PATH make install $extra_make_options"
     make install $extra_make_options || exit 1
@@ -225,9 +225,9 @@ build_libvpx() {
   cd libvpx-v1.1.0
   export CROSS="$cross_prefix"
   if [[ "$bits_target" = "32" ]]; then
-    do_configure "--target=generic-gnu --prefix=$mingw_w64_x86_64_prefix --enable-static --disable-shared"
+    do_configure "--extra-cflags=-DPTW32_STATIC_LIB --target=generic-gnu --prefix=$mingw_w64_x86_64_prefix --enable-static --disable-shared"
   else
-    do_configure "--target=generic-gnu --prefix=$mingw_w64_x86_64_prefix --enable-static --disable-shared"
+    do_configure "--extra-cflags=-DPTW32_STATIC_LIB --target=generic-gnu --prefix=$mingw_w64_x86_64_prefix --enable-static --disable-shared "
   fi
   do_make_install "extralibs='-lpthread'" # weird
   cd ..
