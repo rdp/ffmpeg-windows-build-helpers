@@ -253,7 +253,10 @@ that feels pretty stable...
 
 
 
+== march/optimized builds ==
 
+
+disable stack checking too?
 
 --nls didn't matter, --static didn't matter...
 
