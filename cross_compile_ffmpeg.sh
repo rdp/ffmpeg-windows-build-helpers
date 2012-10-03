@@ -501,7 +501,7 @@ build_ffmpeg() {
 }
 
 build_all() {
-  build_win32_pthreads
+  build_win32_pthreads # vpx etc. depend on this
   build_zlib # rtmp depends on it [as well as ffmpeg's optional but handy --enable-zlib]
   build_gmp
   build_libnettle # needs gmp
