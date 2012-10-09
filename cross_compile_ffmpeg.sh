@@ -267,9 +267,13 @@ generic_download_and_install() {
   local extra_configure_options="$3"
   download_and_unpack_file $url $english_name
   cd $english_name || exit "needs 2 parameters"
-  generic_configure $extra_configure_options
-  do_make_install
+  generic_configure_make_install $extra_configure_options
   cd ..
+}
+
+generic_configure_make_install() {
+  generic_configure $1
+  do_make_install
 }
 
 build_libflite() {
@@ -408,6 +412,16 @@ build_fontconfig() {
   sed -i 's/-L${libdir} -lfontconfig[^l]*$/-L${libdir} -lfontconfig -lfreetype -lexpat/' "$PKG_CONFIG_PATH/fontconfig.pc"
 }
 
+build_libaacplus() {
+  download_and_unpack_file http://217.20.164.161/~tipok/aacplus/libaacplus-2.0.2.tar.gz libaacplus-2.0.2
+  cd libaacplus-2.0.2
+    if [[ ! -f configure ]]; then
+     ./autogen.sh
+    fi
+    generic_configure_make_install 
+  cd ..
+}
+
 build_openssl() {
   download_and_unpack_file http://www.openssl.org/source/openssl-1.0.1c.tar.gz openssl-1.0.1c
   cd openssl-1.0.1c
@@ -431,6 +445,7 @@ build_openssl() {
 build_fdk_aac() {
   generic_download_and_install http://sourceforge.net/projects/opencore-amr/files/fdk-aac/fdk-aac-0.1.0.tar.gz/download fdk-aac-0.1.0
 }
+
 
 build_libexpat() {
   generic_download_and_install http://sourceforge.net/projects/expat/files/expat/2.1.0/expat-2.1.0.tar.gz/download expat-2.1.0
@@ -487,7 +502,7 @@ build_ffmpeg() {
 
   config_options="--enable-memalign-hack --arch=$arch --enable-gpl --enable-libx264 --enable-avisynth --enable-libxvid --target-os=mingw32  --cross-prefix=$cross_prefix --pkg-config=pkg-config --enable-libmp3lame --enable-version3 --enable-libvo-aacenc --enable-libvpx --extra-libs=-lws2_32 --extra-libs=-lpthread --enable-zlib --extra-libs=-lwinmm --extra-libs=-lgdi32 --enable-librtmp --enable-libvorbis --enable-libtheora --enable-libspeex --enable-libopenjpeg --enable-gnutls --enable-libgsm --enable-libfreetype --disable-optimizations --enable-mmx --disable-postproc --enable-fontconfig --enable-libass --enable-libutvideo --enable-libopus --disable-w32threads --extra-cflags=-DPTW32_STATIC_LIB --enable-frei0r --enable-filter=frei0r"
   if [[ "$non_free" = "y" ]]; then
-    config_options="$config_options --enable-nonfree --enable-libfdk-aac" # --enable-libfaac -- faac too poor quality and becomes the default -- add it in and uncomment the build_faac line to include it --enable-openssl
+    config_options="$config_options --enable-nonfree --enable-libaacplus" # --enable-libfaac -- faac deemed too poor quality and becomes the default -- add it in and uncomment the build_faac line to include it --enable-openssl --enable-libfdk-aac
   else
     config_options="$config_options"
   fi
@@ -538,6 +553,7 @@ build_all() {
   if [[ "$non_free" = "y" ]]; then
     build_fdk_aac
     # build_faac # not included for now, too poor quality :)
+    build_libaacplus
   fi
   build_librtmp # needs gnutls
   #build_openssl # hopefully don't need it anymore...
