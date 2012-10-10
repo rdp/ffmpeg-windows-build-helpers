@@ -308,9 +308,10 @@ build_win32_pthreads() {
 }
 
 build_libdl() {
-  download_and_unpack_file http://dlfcn-win32.googlecode.com/files/dlfcn-win32-r19.tar.bz2 dlfcn-win32-r19
-  cd dlfcn-win32-r19
-    ./configure --disable-shared --enable-static --cross-prefix=$cross_prefix --prefix=$mingw_w64_x86_64_prefix --libdir=$mingw_w64_x86_64_prefix/lib --incdir=$mingw_w64_x86_64_prefix/include
+  #download_and_unpack_file http://dlfcn-win32.googlecode.com/files/dlfcn-win32-r19.tar.bz2 dlfcn-win32-r19
+  do_svn_checkout http://dlfcn-win32.googlecode.com/svn/trunk/ dlfcn-win32
+  cd dlfcn-win32
+    ./configure --disable-shared --enable-static --cross-prefix=$cross_prefix --prefix=$mingw_w64_x86_64_prefix
     do_make_install
   cd ..
 }
@@ -491,8 +492,10 @@ build_lame() {
 build_frei0r() {
   download_and_unpack_file http://www.piksel.no/frei0r/releases/frei0r-plugins-1.3.tar.gz frei0r-1.3
   cd frei0r-1.3
-    do_configure "--host=$host_target --prefix=$mingw_w64_x86_64_prefix --disable-static --enable-shared" # see http://ffmpeg.zeranoe.com/forum/viewtopic.php?f=5&t=312
-    do_make_install
+    #do_configure " --build=mingw32  --host=$host_target --prefix=$mingw_w64_x86_64_prefix --disable-static --enable-shared" # see http://ffmpeg.zeranoe.com/forum/viewtopic.php?f=5&t=312
+    #do_make_install
+    # we rely on external dll's for this one, so only need the header to enable it, for now
+    cp include/frei0r.h $mingw_w64_x86_64_prefix/include
   cd ..
 }
 
@@ -569,7 +572,7 @@ build_all() {
 
 while true; do
   case $1 in
-    -h | --help ) echo "options: --disable-nonfree=y --rebuild-compilers=y --sandbox-ok=y"; exit 0 ;;
+    -h | --help ) echo "options: --disable-nonfree=y --sandbox-ok=y --rebuild-compilers=y"; exit 0 ;;
     --sandbox-ok=* ) sandbox_ok="${1#*=}"; shift ;;
     --disable-nonfree=* ) disable_nonfree="${1#*=}"; shift ;;
     --rebuild-compilers=* ) rebuild_compilers="${1#*=}"; shift ;;
