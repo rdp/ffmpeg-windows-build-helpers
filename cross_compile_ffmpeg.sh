@@ -135,7 +135,6 @@ do_git_checkout() {
 }
 
 do_configure() {
-  echo "params are $1 $2"
   local configure_options="$1"
   local configure_name="$2"
   if [[ "$configure_name" = "" ]]; then
@@ -206,12 +205,10 @@ build_librtmp() {
 }
 
 build_libopenjpeg() {
-  # TRUNK didn't seem to build right...
+  # TRUNK didn't seem to build right...LODO tell them...
   #do_svn_checkout http://openjpeg.googlecode.com/svn/trunk/ openjpeg
   #cd openjpeg
-  #generic_configure
-  #do_make_install
-  #cd ..
+  #generic_configure_make_install
   download_and_unpack_file http://openjpeg.googlecode.com/files/openjpeg_v1_4_sources_r697.tgz openjpeg_v1_4_sources_r697
   cd openjpeg_v1_4_sources_r697
   generic_configure
@@ -307,6 +304,14 @@ build_win32_pthreads() {
     do_make "clean GC-static CROSS=$cross_prefix"
     cp libpthreadGC2.a $mingw_w64_x86_64_prefix/lib/libpthread.a || exit 1
     cp pthread.h $mingw_w64_x86_64_prefix/include || exit 1
+  cd ..
+}
+
+build_libdl() {
+  download_and_unpack_file http://dlfcn-win32.googlecode.com/files/dlfcn-win32-r19.tar.bz2 dlfcn-win32-r19
+  cd dlfcn-win32-r19
+    ./configure --disable-shared --enable-static --cross-prefix=$cross_prefix --prefix=$mingw_w64_x86_64_prefix --libdir=$mingw_w64_x86_64_prefix/lib --incdir=$mingw_w64_x86_64_prefix/include
+    do_make_install
   cd ..
 }
 
@@ -526,6 +531,7 @@ build_ffmpeg() {
 build_all() {
   build_frei0r
   build_win32_pthreads # vpx etc. depend on this
+  build_libdl # ffmpeg's frei0r needs this
   build_zlib # rtmp depends on it [as well as ffmpeg's optional but handy --enable-zlib]
   build_gmp
   build_libnettle # needs gmp
