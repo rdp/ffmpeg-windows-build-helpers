@@ -8,7 +8,12 @@ To run the script:
 
 In a Linux box (VM or native):
 
-first download it (git clone the repo, run it, or do the following in a bash window) $
+Make sure you have the following installed:
+git gcc autoconf libtool automake
+for ubuntu, that's
+$ sudo apt-get install git gcc autoconf libtool automake
+
+now download the script (git clone the repo, run it, or do the following in a bash window) $
 
 ```bash
 wget https://raw.github.com/rdp/ffmpeg-windows-build-helpers/master/cross_compile_ffmpeg.sh -O cross_compile_ffmpeg.sh

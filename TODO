@@ -7,6 +7,7 @@ more libraries
   compile orc/schroedinger/forum
 
 initially assert they have git and gcc and autoconf libtool installed...
+ automake and libtool
 
 make march work with ffmpeg/x264
 
