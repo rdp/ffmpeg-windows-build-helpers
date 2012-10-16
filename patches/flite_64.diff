@@ -1,0 +1,10 @@
+--- ../../win32/flite-1.4-release/tools/find_sts_main.c	2012-10-16 14:16:17.133749216 -0600
++++ tools/find_sts_main.c	2012-10-16 14:46:11.885648974 -0600
+@@ -42,6 +42,7 @@
+ #include <string.h>
+ 
+ /* To allow some normally const fields to manipulated during building */
++#include <windows.h>
+ #define const
+ 
+ #include "cst_wave.h"
