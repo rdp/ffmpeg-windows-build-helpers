@@ -231,11 +231,25 @@ build_libvpx() {
   cd ..
 }
 
+apply_patch() {
+ local url=$1
+ local patch_name=$(basename $url)
+ local patch_done_name="$patch_name.done"
+ if [[ ! -e $patch_done_name ]]; then
+   wget $url # might save redundantly to .1 or .2, but that's ok
+   echo patch -p0 < "$patch_name" || exit 1
+   patch -p0 < "$patch_name" || exit 1
+   touch $patch_done_name
+ else
+   echo 'patch already applied'
+ fi
+}
+
+
 build_libutvideo() {
   download_and_unpack_file https://github.com/downloads/rdp/FFmpeg/utvideo-11.1.0-src.zip utvideo-11.1.0 # local copy :)
   cd utvideo-11.1.0
-    wget https://raw.github.com/rdp/ffmpeg-windows-build-helpers/master/utv.diff -O utv.diff
-    patch -f -p0 < utv.diff
+    apply_patch https://raw.github.com/rdp/ffmpeg-windows-build-helpers/master/patches/utv.diff
     make install CROSS_PREFIX=$cross_prefix DESTDIR=$mingw_w64_x86_64_prefix prefix=
   cd ..
 }
@@ -551,6 +565,7 @@ build_all() {
   build_libxvid
   build_x264
   build_libutvideo
+  exit
   build_lame
   build_libvpx
   build_vo_aacenc
