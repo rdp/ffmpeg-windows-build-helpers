@@ -237,7 +237,6 @@ apply_patch() {
  local patch_done_name="$patch_name.done"
  if [[ ! -e $patch_done_name ]]; then
    wget $url # might save redundantly to .1 or .2, but that's ok
-   echo patch -p0 < "$patch_name" || exit 1
    patch -p0 < "$patch_name" || exit 1
    touch $patch_done_name
  else
@@ -290,11 +289,16 @@ generic_configure_make_install() {
 build_libflite() {
   download_and_unpack_file http://www.speech.cs.cmu.edu/flite/packed/flite-1.4/flite-1.4-release.tar.bz2 flite-1.4-release
   cd flite-1.4-release
+   apply_patch https://raw.github.com/rdp/ffmpeg-windows-build-helpers/master/patches/flite_64.diff
    sed -i "s|i386-mingw32-|$cross_prefix|" configure*
    generic_configure
    do_make
    make install # it fails in error...
-   cp ./build/i386-mingw32/lib/*.a $mingw_w64_x86_64_prefix/lib || exit 1
+   if [[ "$bits_target" = "32" ]]; then
+     cp ./build/i386-mingw32/lib/*.a $mingw_w64_x86_64_prefix/lib || exit 1
+   else
+     cp ./build/x86_64-mingw32/lib/*.a $mingw_w64_x86_64_prefix/lib || exit 1
+   fi
   cd ..
 }
 
