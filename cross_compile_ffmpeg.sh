@@ -523,10 +523,8 @@ build_ffmpeg() {
   
   do_configure "$config_options"
   rm -f *.exe # just in case some library dependency was updated, force it to re-link
-  echo "ffmpeg: doing PATH=$PATH make"
-  make || exit 1
-  local cur_dir2=$(pwd)
-  echo "Done! You will find $bits_target bit binaries in $cur_dir2/ff{mpeg,probe,play}*.exe"
+  do_make
+  echo "Done! You will find $bits_target bit binaries in $(pwd)/ff{mpeg,probe,play}*.exe"
   cd ..
 }
 
@@ -556,7 +554,6 @@ build_all() {
   build_libexpat
   build_fontconfig # needs expat, might need freetype
   build_libfribidi
-  exit 
   build_libass # needs freetype, needs fribidi, needs fontconfig
   build_libopenjpeg
   if [[ "$non_free" = "y" ]]; then
