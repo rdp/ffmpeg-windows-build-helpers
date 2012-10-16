@@ -25,5 +25,5 @@ And follow the prompts.
 It works with 32 or 64 bit Linux.
 
 See also 
-http://github.com/rdp/ffmpeg-windows-build-helpers/wiki for more tips!
-Feedback welcome rogerdpack@gmail.com
+http://github.com/rdp/ffmpeg-windows-build-helpers/wiki for more tips, including being able to build it more quickly  !
+Feedback welcome roger-projects@googlegroups.com
