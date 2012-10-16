@@ -523,6 +523,7 @@ build_ffmpeg() {
   
   do_configure "$config_options"
   rm -f *.exe # just in case some library dependency was updated, force it to re-link
+  rm already_ran_make
   do_make
   echo "Done! You will find $bits_target bit binaries in $(pwd)/ff{mpeg,probe,play}*.exe"
   cd ..
