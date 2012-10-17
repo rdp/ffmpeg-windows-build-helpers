@@ -387,6 +387,13 @@ build_libnettle() {
   generic_download_and_install http://www.lysator.liu.se/~nisse/archive/nettle-2.5.tar.gz nettle-2.5
 }
 
+build_bzlib2() {
+  download_and_unpack_file http://www.bzip.org/1.0.6/bzip2-1.0.6.tar.gz bzip2-1.0.6
+  cd bzip2-1.0.6
+    do_make "CC=$(echo $cross_prefix)gcc AR=$(echo $cross_prefix)ar PREFIX=$mingw_w64_x86_64_prefix RANLIB=$(echo $cross_prefix)ranlib libbz2.a bzip2 bzip2recover install"
+  cd ..
+}
+
 build_zlib() {
   download_and_unpack_file http://zlib.net/zlib-1.2.7.tar.gz zlib-1.2.7
   cd zlib-1.2.7
@@ -514,7 +521,7 @@ build_ffmpeg() {
    local arch=x86_64
   fi
 
-  config_options="--enable-memalign-hack --arch=$arch --enable-gpl --enable-libx264 --enable-avisynth --enable-libxvid --target-os=mingw32  --cross-prefix=$cross_prefix --pkg-config=pkg-config --enable-libmp3lame --enable-version3 --enable-libvpx --extra-libs=-lws2_32 --extra-libs=-lpthread --enable-zlib --extra-libs=-lwinmm --extra-libs=-lgdi32 --enable-librtmp --enable-libvorbis --enable-libtheora --enable-libspeex --enable-libopenjpeg --enable-gnutls --enable-libgsm --enable-libfreetype --disable-optimizations --enable-mmx --disable-postproc --enable-fontconfig --enable-libass --enable-libutvideo --enable-libopus --disable-w32threads --extra-cflags=-DPTW32_STATIC_LIB --enable-frei0r --enable-filter=frei0r --enable-libvo-aacenc"
+  config_options="--enable-memalign-hack --arch=$arch --enable-gpl --enable-libx264 --enable-avisynth --enable-libxvid --target-os=mingw32  --cross-prefix=$cross_prefix --pkg-config=pkg-config --enable-libmp3lame --enable-version3 --enable-libvpx --extra-libs=-lws2_32 --extra-libs=-lpthread --enable-zlib --extra-libs=-lwinmm --extra-libs=-lgdi32 --enable-librtmp --enable-libvorbis --enable-libtheora --enable-libspeex --enable-libopenjpeg --enable-gnutls --enable-libgsm --enable-libfreetype --disable-optimizations --enable-mmx --disable-postproc --enable-fontconfig --enable-libass --enable-libutvideo --enable-libopus --disable-w32threads --extra-cflags=-DPTW32_STATIC_LIB --enable-frei0r --enable-filter=frei0r --enable-libvo-aacenc --enable-bzlib"
   if [[ "$non_free" = "y" ]]; then
     config_options="$config_options --enable-nonfree --enable-libfdk-aac" # --enable-libfaac -- faac deemed too poor quality and becomes the default -- add it in and uncomment the build_faac line to include it --enable-openssl --enable-libaacplus
   else
@@ -541,6 +548,7 @@ build_all() {
   build_win32_pthreads # vpx etc. depend on this
   build_libdl # ffmpeg's frei0r needs this
   build_zlib # rtmp depends on it [as well as ffmpeg's optional but handy --enable-zlib]
+  build_bzlib2
   build_gmp
   build_libnettle # needs gmp
   build_gnutls # needs libnettle
