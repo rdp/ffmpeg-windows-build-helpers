@@ -105,8 +105,8 @@ do_svn_checkout() {
     mv $to_dir.tmp $to_dir
   else
     cd $to_dir
-    echo "Updating $to_dir"
-    svn up
+    echo "NOT svn Updating $to_dir"
+    # svn up
     cd ..
   fi
 }
