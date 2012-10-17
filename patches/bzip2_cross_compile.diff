@@ -1,11 +1,11 @@
 --- bzip2.c	2012-10-17 04:29:56.814902537 -0600
-+++ bzip2.c.orig	2012-10-17 04:29:48.342869084 -0600
++++ bzip2.c	2012-10-17 04:29:48.342869084 -0600
 @@ -128,7 +128,7 @@
  #if BZ_LCCWIN32
  #   include <io.h>
  #   include <fcntl.h>
--#   include <sys/stat.h>
-+#   include <sys\stat.h>
+-#   include <sys\stat.h>
++#   include <sys/stat.h>
  
  #   define NORETURN       /**/
  #   define PATH_SEP       '\\'
