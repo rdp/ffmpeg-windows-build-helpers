@@ -205,6 +205,16 @@ build_librtmp() {
   cd ../..
 }
 
+build_libxavs() {
+  do_svn_checkout https://xavs.svn.sourceforge.net/svnroot/xavs/trunk xavs
+  cd xavs
+    export LDFLAGS='-lm'
+    generic_configure # unfortunately this using --host isn't enough apparently...
+    unset LDFLAGS
+    do_make_install "CC=$(echo $cross_prefix)gcc AR=$(echo $cross_prefix)ar PREFIX=$mingw_w64_x86_64_prefix RANLIB=$(echo $cross_prefix)ranlib STRIP=$(echo $cross-prefix)strip"
+  cd ..
+}
+
 build_libopenjpeg() {
   # TRUNK didn't seem to build right...LODO tell them...
   #do_svn_checkout http://openjpeg.googlecode.com/svn/trunk/ openjpeg
@@ -229,6 +239,7 @@ build_libvpx() {
     do_configure "--extra-cflags=-DPTW32_STATIC_LIB --target=generic-gnu --prefix=$mingw_w64_x86_64_prefix --enable-static --disable-shared "
   fi
   do_make_install "extralibs='-lpthread'" # weird
+  unset CROSS
   cd ..
 }
 
@@ -562,6 +573,7 @@ build_all() {
   build_libvorbis # needs libogg
   build_libtheora # needs libvorbis, libogg
   build_libxvid
+  build_libxavs
   build_x264
   build_libutvideo
   build_lame
