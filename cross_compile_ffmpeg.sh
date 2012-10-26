@@ -541,7 +541,7 @@ build_all() {
   build_gmp
   build_libnettle # needs gmp
   build_gnutls # needs libnettle
-  build_libflite # disabled till I can figure out how to get it to work in 64 bit
+  #build_libflite # too big
   build_libgsm
   build_sdl # needed for ffplay to be created
   build_libopus
