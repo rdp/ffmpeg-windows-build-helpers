@@ -231,11 +231,24 @@ build_libvpx() {
   cd ..
 }
 
+apply_patch() {
+ local url=$1
+ local patch_name=$(basename $url)
+ local patch_done_name="$patch_name.done"
+ if [[ ! -e $patch_done_name ]]; then
+   wget $url # might save redundantly to .1 or .2, but that's ok
+   patch -p0 < "$patch_name" || exit 1
+   touch $patch_done_name
+ else
+   echo 'patch already applied'
+ fi
+}
+
+
 build_libutvideo() {
   download_and_unpack_file https://github.com/downloads/rdp/FFmpeg/utvideo-11.1.0-src.zip utvideo-11.1.0 # local copy :)
   cd utvideo-11.1.0
-    wget https://raw.github.com/rdp/ffmpeg-windows-build-helpers/master/utv.diff -O utv.diff
-    patch -f -p0 < utv.diff
+    apply_patch https://raw.github.com/rdp/ffmpeg-windows-build-helpers/master/patches/utv.diff
     make install CROSS_PREFIX=$cross_prefix DESTDIR=$mingw_w64_x86_64_prefix prefix=
   cd ..
 }
@@ -276,11 +289,16 @@ generic_configure_make_install() {
 build_libflite() {
   download_and_unpack_file http://www.speech.cs.cmu.edu/flite/packed/flite-1.4/flite-1.4-release.tar.bz2 flite-1.4-release
   cd flite-1.4-release
+   apply_patch https://raw.github.com/rdp/ffmpeg-windows-build-helpers/master/patches/flite_64.diff
    sed -i "s|i386-mingw32-|$cross_prefix|" configure*
    generic_configure
    do_make
    make install # it fails in error...
-   cp ./build/i386-mingw32/lib/*.a $mingw_w64_x86_64_prefix/lib || exit 1
+   if [[ "$bits_target" = "32" ]]; then
+     cp ./build/i386-mingw32/lib/*.a $mingw_w64_x86_64_prefix/lib || exit 1
+   else
+     cp ./build/x86_64-mingw32/lib/*.a $mingw_w64_x86_64_prefix/lib || exit 1
+   fi
   cd ..
 }
 
@@ -336,25 +354,9 @@ build_libfribidi() {
   download_and_unpack_file http://fribidi.org/download/fribidi-0.19.4.tar.bz2 fribidi-0.19.4
   cd fribidi-0.19.4
     # export symbols right...
-    patch -f -p0 <<EOL # patch command can fail, which is ok...
---- lib/fribidi-common.h	2008-02-04 21:30:46.000000000 +0000
-+++ lib/fribidi-common.h	2008-02-04 21:32:25.000000000 +0000
-@@ -53,11 +53,7 @@
- 
- /* FRIBIDI_ENTRY is a macro used to declare library entry points. */
- #ifndef FRIBIDI_ENTRY
--# if (defined(WIN32)) || (defined(_WIN32_WCE))
--#  define FRIBIDI_ENTRY __declspec(dllimport)
--# else /* !WIN32 */
- #  define FRIBIDI_ENTRY		/* empty */
--# endif	/* !WIN32 */
- #endif /* !FRIBIDI_ENTRY */
- 
- #if FRIBIDI_USE_GLIB+0
-
-EOL
-  generic_configure
-  do_make_install
+    apply_patch https://raw.github.com/rdp/ffmpeg-windows-build-helpers/master/patches/fribidi.diff
+    generic_configure
+    do_make_install
   cd ..
 }
 
@@ -525,10 +527,9 @@ build_ffmpeg() {
   
   do_configure "$config_options"
   rm -f *.exe # just in case some library dependency was updated, force it to re-link
-  echo "ffmpeg: doing PATH=$PATH make"
-  make || exit 1
-  local cur_dir2=$(pwd)
-  echo "Done! You will find $bits_target bit binaries in $cur_dir2/ff{mpeg,probe,play}*.exe"
+  rm already_ran_make
+  do_make
+  echo "Done! You will find $bits_target bit binaries in $(pwd)/ff{mpeg,probe,play}*.exe"
   cd ..
 }
 
@@ -540,7 +541,7 @@ build_all() {
   build_gmp
   build_libnettle # needs gmp
   build_gnutls # needs libnettle
-  #build_libflite # disabled till I can figure out how to get it to work in 64 bit
+  build_libflite # disabled till I can figure out how to get it to work in 64 bit
   build_libgsm
   build_sdl # needed for ffplay to be created
   build_libopus
