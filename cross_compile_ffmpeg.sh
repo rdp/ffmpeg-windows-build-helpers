@@ -195,12 +195,12 @@ build_x264() {
 
 
 build_librtmp() {
-  #  download_and_unpack_file http://rtmpdump.mplayerhq.hu/download/rtmpdump-2.3.tgz rtmpdump-2.3
+  #  download_and_unpack_file http://rtmpdump.mplayerhq.hu/download/rtmpdump-2.3.tgz rtmpdump-2.3 # has some odd configure failure
   #  cd rtmpdump-2.3/librtmp
 
   do_git_checkout "http://repo.or.cz/r/rtmpdump.git" rtmpdump_git
   cd rtmpdump_git/librtmp
-  git co 883c33489403ed360a01d1a47ec76d476525b49e
+  git co 883c33489403ed360a01d1a47ec76d476525b49e # trunk didn't build once...
   make install CRYPTO=GNUTLS OPT='-O2 -g' "CROSS_COMPILE=$cross_prefix" SHARED=no "prefix=$mingw_w64_x86_64_prefix" || exit 1
   cd ../..
 }
@@ -238,7 +238,7 @@ apply_patch() {
  local patch_done_name="$patch_name.done"
  if [[ ! -e $patch_done_name ]]; then
    wget $url # might save redundantly to .1 or .2, but that's ok
-   patch -p0 < "$patch_name" || exit 1
+   patch -p0 < "$patch_name" #|| exit 1
    touch $patch_done_name
  else
    echo 'patch already applied'
@@ -500,7 +500,9 @@ build_frei0r() {
     # we rely on external dll's for this one, so only need the header to enable it, for now
     #cp include/frei0r.h $mingw_w64_x86_64_prefix/include
   #cd ..
-  wget https://raw.github.com/rdp/frei0r/master/include/frei0r.h -O $mingw_w64_x86_64_prefix/include/frei0r.h
+  if [[ ! -f "$mingw_w64_x86_64_prefix/include/frei0r.h" ]]; then
+    wget https://raw.github.com/rdp/frei0r/master/include/frei0r.h -O $mingw_w64_x86_64_prefix/include/frei0r.h
+  fi
 }
 
 build_ffmpeg() {
