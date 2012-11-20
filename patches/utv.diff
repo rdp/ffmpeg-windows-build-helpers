@@ -5,6 +5,7 @@
  
  #pragma once
 +#include <windows.h>
++#define DLLEXPORT
  
  #define CBGROSSWIDTH_NATURAL ((size_t)0)
  #define CBGROSSWIDTH_WINDOWS ((size_t)-1)

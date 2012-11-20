@@ -145,14 +145,14 @@ do_configure() {
   local touch_name=$(echo -- $configure_options | /usr/bin/env md5sum) # sanitize, disallow too long of length
   touch_name=$(echo already_configured_$touch_name | sed "s/ //g") # add prefix so we can delete it easily, remove spaces
   if [ ! -f "$touch_name" ]; then
-    echo "configuring $english_name as $ PATH=$PATH $configure_name $configure_options"
     make clean # just in case
-    #make uninstall # does weird things when used with ffmpeg
+    #make uninstall # does weird things when run under ffmpeg src
     if [ -f bootstrap.sh ]; then
       ./bootstrap.sh
     fi
     rm -f already_configured* # any old configuration options, since they'll be out of date after the next configure
     rm -f already_ran_make
+    echo "configuring $english_name as $ PATH=$PATH $configure_name $configure_options"
     "$configure_name" $configure_options || exit 1
     touch -- "$touch_name"
     make clean # just in case
@@ -540,7 +540,7 @@ build_ffmpeg() {
    local arch=x86_64
   fi
 
-config_options="--enable-memalign-hack --arch=$arch --enable-gpl --enable-libx264 --enable-avisynth --enable-libxvid --target-os=mingw32  --cross-prefix=$cross_prefix --pkg-config=pkg-config --enable-libmp3lame --enable-version3 --enable-libvpx --extra-libs=-lws2_32 --extra-libs=-lpthread --enable-zlib --extra-libs=-lwinmm --extra-libs=-lgdi32 --enable-librtmp --enable-libvorbis --enable-libtheora --enable-libspeex --enable-libopenjpeg --enable-gnutls --enable-libgsm --enable-libfreetype --disable-optimizations --enable-mmx --disable-postproc --enable-fontconfig --enable-libass --enable-libutvideo --enable-libopus --disable-w32threads --extra-cflags=-DPTW32_STATIC_LIB --enable-frei0r --enable-filter=frei0r --enable-libvo-aacenc --enable-bzlib --enable-shared --enable-static"
+config_options="--enable-memalign-hack --arch=$arch --enable-gpl --enable-libx264 --enable-avisynth --enable-libxvid --target-os=mingw32  --cross-prefix=$cross_prefix --pkg-config=pkg-config --enable-libmp3lame --enable-version3 --enable-libvpx --extra-libs=-lws2_32 --extra-libs=-lpthread --enable-zlib --extra-libs=-lwinmm --extra-libs=-lgdi32 --enable-librtmp --enable-libvorbis --enable-libtheora --enable-libspeex --enable-libopenjpeg --enable-gnutls --enable-libgsm --enable-libfreetype --disable-optimizations --enable-mmx --disable-postproc --enable-fontconfig --enable-libass --enable-libutvideo --enable-libopus --disable-w32threads --extra-cflags=-DPTW32_STATIC_LIB --enable-frei0r --enable-filter=frei0r --enable-libvo-aacenc --enable-bzlib --enable-shared --disable-static" # --enable-static
   if [[ "$non_free" = "y" ]]; then
     config_options="$config_options --enable-nonfree --enable-libfdk-aac" # --enable-libfaac -- faac deemed too poor quality and becomes the default -- add it in and uncomment the build_faac line to include it --enable-openssl --enable-libaacplus
   else
@@ -563,6 +563,7 @@ config_options="--enable-memalign-hack --arch=$arch --enable-gpl --enable-libx26
 }
 
 build_all() {
+  build_libutvideo
 #  build_win32_pthreads # vpx etc. depend on this--provided by the compiler build script now, though
   build_frei0r
   build_libdl # ffmpeg's frei0r implentation needs this
@@ -582,7 +583,6 @@ build_all() {
   build_libxvid
   build_libxavs
   build_x264
-  build_libutvideo
   build_lame
   build_libvpx
   build_vo_aacenc
