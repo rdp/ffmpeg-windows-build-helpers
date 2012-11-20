@@ -79,9 +79,9 @@ install_cross_compiler() {
   You will be prompted with a few questions as it installs (it takes quite awhile).
   Enter to continue:'
 
-  wget http://zeranoe.com/scripts/mingw_w64_build/mingw-w64-build-3.0.6 -O mingw-w64-build-3.0.6
-  chmod u+x mingw-w64-build-3.0.6
-  ./mingw-w64-build-3.0.6 --mingw-w64-ver=2.0.4 --disable-nls --disable-shared --default-configure --clean-build || exit 1 # --disable-shared allows c++ to be distributed at all...
+  wget http://zeranoe.com/scripts/mingw_w64_build/mingw-w64-build-3.1.0 -O mingw-w64-build-3.1.0
+  chmod u+x mingw-w64-build-3.1.0
+  ./mingw-w64-build-3.1.0 --mingw-w64-ver=svn --disable-nls --disable-shared --default-configure --clean-build || exit 1 # --disable-shared allows c++ to be distributed at all...which seemed necessary for some random dependency...
   if [ -d mingw-w64-x86_64 ]; then
     touch mingw-w64-x86_64/compiler.done
   fi
@@ -186,7 +186,7 @@ do_make_install() {
 build_x264() {
   do_git_checkout "http://repo.or.cz/r/x264.git" "x264"
   cd x264
-  do_configure "--host=$host_target --enable-static --cross-prefix=$cross_prefix --prefix=$mingw_w64_x86_64_prefix  --extra-cflags=-DPTW32_STATIC_LIB"
+  do_configure "--host=$host_target --enable-static --cross-prefix=$cross_prefix --prefix=$mingw_w64_x86_64_prefix "
   # TODO more march=native here?
   # rm -f already_ran_make # just in case the git checkout did something, re-make
   do_make_install
@@ -496,7 +496,7 @@ build_vo_aacenc() {
 
 build_sdl() {
   # apparently ffmpeg expects prefix-sdl-config not sdl-config that they give us, so rename...
-  export CFLAGS= # avoid segfault when running ffplay...
+  export CFLAGS=-DDECLSPEC=  # avoid trac tickets 939 and 282
   generic_download_and_install http://www.libsdl.org/release/SDL-1.2.15.tar.gz SDL-1.2.15
   unset CFLAGS
   mkdir temp
@@ -540,7 +540,7 @@ build_ffmpeg() {
    local arch=x86_64
   fi
 
-  config_options="--enable-memalign-hack --arch=$arch --enable-gpl --enable-libx264 --enable-avisynth --enable-libxvid --target-os=mingw32  --cross-prefix=$cross_prefix --pkg-config=pkg-config --enable-libmp3lame --enable-version3 --enable-libvpx --extra-libs=-lws2_32 --extra-libs=-lpthread --enable-zlib --extra-libs=-lwinmm --extra-libs=-lgdi32 --enable-librtmp --enable-libvorbis --enable-libtheora --enable-libspeex --enable-libopenjpeg --enable-gnutls --enable-libgsm --enable-libfreetype --disable-optimizations --enable-mmx --disable-postproc --enable-fontconfig --enable-libass --enable-libutvideo --enable-libopus --disable-w32threads --extra-cflags=-DPTW32_STATIC_LIB --enable-frei0r --enable-filter=frei0r --enable-libvo-aacenc --enable-bzlib"
+config_options="--enable-memalign-hack --arch=$arch --enable-gpl --enable-libx264 --enable-avisynth --enable-libxvid --target-os=mingw32  --cross-prefix=$cross_prefix --pkg-config=pkg-config --enable-libmp3lame --enable-version3 --enable-libvpx --extra-libs=-lws2_32 --extra-libs=-lpthread --enable-zlib --extra-libs=-lwinmm --extra-libs=-lgdi32 --enable-librtmp --enable-libvorbis --enable-libtheora --enable-libspeex --enable-libopenjpeg --enable-gnutls --enable-libgsm --enable-libfreetype --disable-optimizations --enable-mmx --disable-postproc --enable-fontconfig --enable-libass --enable-libutvideo --enable-libopus --disable-w32threads --extra-cflags=-DPTW32_STATIC_LIB --enable-frei0r --enable-filter=frei0r --enable-libvo-aacenc --enable-bzlib --enable-shared --enable-static"
   if [[ "$non_free" = "y" ]]; then
     config_options="$config_options --enable-nonfree --enable-libfdk-aac" # --enable-libfaac -- faac deemed too poor quality and becomes the default -- add it in and uncomment the build_faac line to include it --enable-openssl --enable-libaacplus
   else
@@ -563,11 +563,11 @@ build_ffmpeg() {
 }
 
 build_all() {
+#  build_win32_pthreads # vpx etc. depend on this--provided by the compiler build script now, though
   build_frei0r
-  build_win32_pthreads # vpx etc. depend on this
-  build_libdl # ffmpeg's frei0r needs this
+  build_libdl # ffmpeg's frei0r implentation needs this
   build_zlib # rtmp depends on it [as well as ffmpeg's optional but handy --enable-zlib]
-  build_bzlib2
+  build_bzlib2 # in case someone wants it
   build_gmp
   build_libnettle # needs gmp
   build_gnutls # needs libnettle
