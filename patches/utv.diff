@@ -1,11 +1,11 @@
---- utv_core/Codec.h	2011-08-30 22:49:14.000000000 -0600
-+++ utv_core/Codec.h	2012-09-06 16:19:20.637207065 -0600
-@@ -2,6 +2,7 @@
- /* $Id: Codec.h 731 2011-08-30 13:49:13Z umezawa $ */
- 
- #pragma once
-+#include <windows.h>
-+#define DLLEXPORT
+--- Codec.h.orig	2012-11-20 15:30:29.575857054 -0700
++++ Codec.h	2012-11-20 15:30:41.687856385 -0700
+@@ -5,6 +5,8 @@
  
  #define CBGROSSWIDTH_NATURAL ((size_t)0)
  #define CBGROSSWIDTH_WINDOWS ((size_t)-1)
++#include <windows.h>
++#define DLLEXPORT
+ 
+ class CCodec
+ {
