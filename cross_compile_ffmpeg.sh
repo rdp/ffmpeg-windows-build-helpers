@@ -202,6 +202,7 @@ build_librtmp() {
   cd rtmpdump_git/librtmp
   git co 883c33489403ed360a01d1a47ec76d476525b49e # trunk didn't build once...
   make install CRYPTO=GNUTLS OPT='-O2 -g' "CROSS_COMPILE=$cross_prefix" SHARED=no "prefix=$mingw_w64_x86_64_prefix" || exit 1
+  sed -i 's/-lrtmp -lz/-lrtmp -lwinmm -lz/' "$PKG_CONFIG_PATH/librtmp.pc"
   cd ../..
 }
 
