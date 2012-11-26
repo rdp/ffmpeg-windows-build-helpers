@@ -142,16 +142,15 @@ do_configure() {
   fi
   local cur_dir2=$(pwd)
   local english_name=$(basename $cur_dir2)
-  local touch_name=$(echo -- $configure_options | /usr/bin/env md5sum) # sanitize, disallow too long of length
-  touch_name=$(echo already_configured_$touch_name | sed "s/ //g") # add prefix so we can delete it easily, remove spaces
+  local touch_name=$(echo -- $configure_options | /usr/bin/env md5sum) # sanitize, make it not too long of overall length
+  touch_name=$(echo already_configured_$touch_name | sed "s/ //g") # add a prefix so we can delete it easily, also remove spaces
   if [ ! -f "$touch_name" ]; then
     make clean # just in case
     #make uninstall # does weird things when run under ffmpeg src
     if [ -f bootstrap.sh ]; then
       ./bootstrap.sh
     fi
-    rm -f already_configured* # any old configuration options, since they'll be out of date after the next configure
-    rm -f already_ran_make
+    rm -f already_* # reset
     echo "configuring $english_name as $ PATH=$PATH $configure_name $configure_options"
     "$configure_name" $configure_options || exit 1
     touch -- "$touch_name"
@@ -186,7 +185,7 @@ do_make_install() {
 build_x264() {
   do_git_checkout "http://repo.or.cz/r/x264.git" "x264"
   cd x264
-  do_configure "--host=$host_target --enable-static --cross-prefix=$cross_prefix --prefix=$mingw_w64_x86_64_prefix "
+  do_configure "--host=$host_target --enable-static --cross-prefix=$cross_prefix --prefix=$mingw_w64_x86_64_prefix --enable-win32thread --enable-debug"
   # TODO more march=native here?
   # rm -f already_ran_make # just in case the git checkout did something, re-make
   do_make_install
@@ -253,7 +252,7 @@ apply_patch() {
    patch -p0 < "$patch_name" || exit 1
    touch $patch_done_name
  else
-   echo 'patch already applied'
+   echo 'patch $patch_name already applied'
  fi
 }
 
@@ -541,7 +540,7 @@ build_ffmpeg() {
    local arch=x86_64
   fi
 
-config_options="--enable-memalign-hack --arch=$arch --enable-gpl --enable-libx264 --enable-avisynth --enable-libxvid --target-os=mingw32  --cross-prefix=$cross_prefix --pkg-config=pkg-config --enable-libmp3lame --enable-version3 --enable-libvpx --enable-zlib --enable-librtmp --enable-libvorbis --enable-libtheora --enable-libspeex --enable-libopenjpeg --enable-gnutls --enable-libgsm --enable-libfreetype --enable-fontconfig --enable-libass --enable-libutvideo --enable-libopus --disable-w32threads --enable-frei0r --enable-filter=frei0r --enable-libvo-aacenc --enable-bzlib --enable-static --enable-libxavs" # --enable-shared
+config_options="--enable-memalign-hack --arch=$arch --enable-gpl --enable-libx264 --enable-avisynth --enable-libxvid --target-os=mingw32  --cross-prefix=$cross_prefix --pkg-config=pkg-config --enable-libmp3lame --enable-version3 --enable-libvpx --enable-zlib --enable-librtmp --enable-libvorbis --enable-libtheora --enable-libspeex --enable-libopenjpeg --enable-gnutls --enable-libgsm --enable-libfreetype --enable-fontconfig --enable-libass --enable-libutvideo --enable-libopus --enable-w32threads --enable-frei0r --enable-filter=frei0r --enable-libvo-aacenc --enable-bzlib --enable-static --enable-libxavs" # --enable-shared
   if [[ "$non_free" = "y" ]]; then
     config_options="$config_options --enable-nonfree --enable-libfdk-aac" # --enable-libfaac -- faac deemed too poor quality and becomes the default -- add it in and uncomment the build_faac line to include it --enable-openssl --enable-libaacplus
   else
