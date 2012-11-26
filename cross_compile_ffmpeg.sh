@@ -238,7 +238,8 @@ build_libvpx() {
   else
     do_configure "--extra-cflags=-DPTW32_STATIC_LIB --target=generic-gnu --prefix=$mingw_w64_x86_64_prefix --enable-static --disable-shared "
   fi
-  do_make_install "extralibs='-lpthread'" # weird
+  do_make_install "extralibs='-lpthread'" # weird. guess it can't live without them? huh? LODO tell them...gah!
+  sed -i 's/Libs: -L${libdir} -lvpx *$/Libs: -L${libdir} -lvpx -lpthread/' "$PKG_CONFIG_PATH/vpx.pc"
   unset CROSS
   cd ..
 }
