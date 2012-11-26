@@ -253,7 +253,7 @@ apply_patch() {
    patch -p0 < "$patch_name" || exit 1
    touch $patch_done_name
  else
-   echo 'patch $patch_name already applied'
+   echo "patch $patch_name already applied"
  fi
 }
 
