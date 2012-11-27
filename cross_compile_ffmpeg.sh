@@ -384,7 +384,6 @@ build_libtheora() {
   generic_download_and_install http://downloads.xiph.org/releases/theora/libtheora-1.1.1.tar.bz2 libtheora-1.1.1
 }
 
-<<<<<<< HEAD
 build_libfribidi() {
   download_and_unpack_file http://fribidi.org/download/fribidi-0.19.4.tar.bz2 fribidi-0.19.4
   cd fribidi-0.19.4
@@ -609,7 +608,6 @@ build_all() {
   build_sdl # needed for ffplay to be created
   build_libopus
   build_libopencore
-  exit
   build_libogg
   build_libspeex # needs libogg for exe's
   build_libvorbis # needs libogg
@@ -635,6 +633,7 @@ build_all() {
   fi
   build_librtmp # needs gnutls
   #build_openssl # hopefully don't need it anymore, since we have gnutls...
+  exit
   build_ffmpeg
 }
 
