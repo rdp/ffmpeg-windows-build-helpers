@@ -12,12 +12,12 @@ mkdir $dir/32-bit
 mkdir $dir/64-bit
 
 cp ./sandbox/win32/ffmpeg_git/ffmpeg.exe "$dir/32-bit"
-cp ./sandbox/win32/ffmpeg_git/ffmpeg_g.exe "$dir/32-bit"
+#cp ./sandbox/win32/ffmpeg_git/ffmpeg_g.exe "$dir/32-bit"
 cp ./sandbox/win32/ffmpeg_git/*/*.dll     "$dir/32-bit"
 ./sandbox/mingw-w64-i686/bin/i686-w64-mingw32-strip $dir/32-bit/*.dll
 
 cp ./sandbox/x86_64/ffmpeg_git/ffmpeg.exe "$dir/64-bit/ffmpeg.exe"
-cp ./sandbox/x86_64/ffmpeg_git/ffmpeg_g.exe "$dir/64-bit"
+#cp ./sandbox/x86_64/ffmpeg_git/ffmpeg_g.exe "$dir/64-bit"
 cp ./sandbox/x86_64/ffmpeg_git/*/*.dll     "$dir/64-bit"
 ./sandbox/mingw-w64-i686/bin/i686-w64-mingw32-strip $dir/64-bit/*.dll
 

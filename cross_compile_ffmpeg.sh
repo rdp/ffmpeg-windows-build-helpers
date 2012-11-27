@@ -334,7 +334,7 @@ build_win32_pthreads() {
   cd pthreads-w32-2-9-1-release
     do_make "clean GC-static CROSS=$cross_prefix"
     cp libpthreadGC2.a $mingw_w64_x86_64_prefix/lib/libpthread.a || exit 1
-    cp pthread.h $mingw_w64_x86_64_prefix/include || exit 1
+    cp pthread.h sched.h semaphore.h $mingw_w64_x86_64_prefix/include || exit 1
   cd ..
 }
 
