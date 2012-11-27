@@ -34,6 +34,22 @@ done
 user_input=$(echo $user_input | tr '[A-Z]' '[a-z]')
 }
 
+
+check_missing_packages () {
+local check_packages=('make' 'git' 'svn' 'gcc' 'autoconf' 'libtool' 'automake' 'yasm')
+for package in "${check_packages[@]}"; do
+  type -P "$package" >/dev/null || missing_packages=("$package" "${missing_packages[@]}")
+done
+
+if [[ -n "${missing_packages[@]}" ]]; then
+  clear
+  echo "Could not find the following packages: ${missing_packages[@]}"
+  echo 'Install the missing packages before running this script.'
+ exit 1
+fi
+}
+
+
 cur_dir="$(pwd)/sandbox"
 
 intro() {
@@ -331,6 +347,7 @@ build_libopus() {
 
 build_libopencore() {
   generic_download_and_install http://sourceforge.net/projects/opencore-amr/files/opencore-amr/opencore-amr-0.1.3.tar.gz/download opencore-amr-0.1.3
+  generic_download_and_install http://sourceforge.net/projects/opencore-amr/files/vo-amrwbenc/vo-amrwbenc-0.1.2.tar.gz/download vo-amrwbenc-0.1.2
 }
 
 build_win32_pthreads() {
@@ -624,6 +641,7 @@ while true; do
 done
 
 intro # remember to always run the intro, since it adjust pwd
+check_missing_packages
 install_cross_compiler # always run this, too, since it adjust the PATH
 setup_env
 
