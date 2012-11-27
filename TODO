@@ -1,26 +1,17 @@
 == todos ==
 
-threading woes: win32-pthread...maybe... :)
-
-more libraries
-  All the current builds'
-  compile orc/schroedinger/forum
-
-initially assert they have git and gcc and autoconf libtool installed...
- automake and libtool
+compile orc/schroedinger
 
 make march work with ffmpeg/x264
 
-Ubuntu binaries
-
 == lower ==
+
+vpx is still messed up (?)/respond to their response...
 
 distribute  "my own set of [I guess optimized?] binaries" that are processor optimized (if it even matters speed-wise LOL).
   though mine do have pthreads...but hopefully I can test and report and get the zeranoe ones built that way...share the workload :)
 
 research: https://groups.google.com/a/webmproject.org/forum/?fromgroups=#!topic/apps-devel/ZZ2an44u3X0
-
-get libflite working with 64 bit [also check linux?]
 
 prefer polarssl to gnutls for smaller exe? wait can ffmpeg use polar
 
