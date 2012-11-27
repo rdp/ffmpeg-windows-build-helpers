@@ -79,9 +79,9 @@ install_cross_compiler() {
   You will be prompted with a few questions as it installs (it takes quite awhile).
   Enter to continue:'
 
-  wget http://zeranoe.com/scripts/mingw_w64_build/mingw-w64-build-3.1.0 -O mingw-w64-build-3.1.0
+  wget http://zeranoe.com/scripts/mingw_w64_build/mingw-w64-build-3.1.0 -O mingw-w64-build-3.1.0 
   chmod u+x mingw-w64-build-3.1.0
-  ./mingw-w64-build-3.1.0 --mingw-w64-ver=svn --disable-nls --disable-shared --default-configure --clean-build || exit 1 # --disable-shared allows c++ to be distributed at all...which seemed necessary for some random dependency...
+  ./mingw-w64-build-3.1.0 --mingw-w64-ver=svn --disable-nls --disable-shared --default-configure --clean-build --threads=pthreads-w32 || exit 1 # --disable-shared allows c++ to be distributed at all...which seemed necessary for some random dependency...
   if [ -d mingw-w64-x86_64 ]; then
     touch mingw-w64-x86_64/compiler.done
   fi
