@@ -185,7 +185,7 @@ do_make_install() {
 build_x264() {
   do_git_checkout "http://repo.or.cz/r/x264.git" "x264"
   cd x264
-  do_configure "--host=$host_target --enable-static --cross-prefix=$cross_prefix --prefix=$mingw_w64_x86_64_prefix --enable-win32thread --enable-debug"
+  do_configure "--host=$host_target --enable-static --cross-prefix=$cross_prefix --prefix=$mingw_w64_x86_64_prefix --extra-cflags=-DPTW32_STATIC_LIB" #--enable-win32thread --enable-debug" 
   # TODO more march=native here?
   # rm -f already_ran_make # just in case the git checkout did something, re-make
   do_make_install
@@ -541,7 +541,7 @@ build_ffmpeg() {
    local arch=x86_64
   fi
 
-config_options="--enable-memalign-hack --arch=$arch --enable-gpl --enable-libx264 --enable-avisynth --enable-libxvid --target-os=mingw32  --cross-prefix=$cross_prefix --pkg-config=pkg-config --enable-libmp3lame --enable-version3 --enable-libvpx --enable-zlib --enable-librtmp --enable-libvorbis --enable-libtheora --enable-libspeex --enable-libopenjpeg --enable-gnutls --enable-libgsm --enable-libfreetype --enable-fontconfig --enable-libass --enable-libutvideo --enable-libopus --enable-w32threads --enable-frei0r --enable-filter=frei0r --enable-libvo-aacenc --enable-bzlib --enable-static --enable-libxavs" # --enable-shared
+config_options="--enable-memalign-hack --arch=$arch --enable-gpl --enable-libx264 --enable-avisynth --enable-libxvid --target-os=mingw32  --cross-prefix=$cross_prefix --pkg-config=pkg-config --enable-libmp3lame --enable-version3 --enable-libvpx --enable-zlib --enable-librtmp --enable-libvorbis --enable-libtheora --enable-libspeex --enable-libopenjpeg --enable-gnutls --enable-libgsm --enable-libfreetype --enable-fontconfig --enable-libass --enable-libutvideo --enable-libopus --disable-w32threads --enable-frei0r --enable-filter=frei0r --enable-libvo-aacenc --enable-bzlib --enable-static --enable-libxavs --extra-cflags=-DPTW32_STATIC_LIB" # --enable-shared --enable-w32threads
   if [[ "$non_free" = "y" ]]; then
     config_options="$config_options --enable-nonfree --enable-libfdk-aac" # --enable-libfaac -- faac deemed too poor quality and becomes the default -- add it in and uncomment the build_faac line to include it --enable-openssl --enable-libaacplus
   else
@@ -556,16 +556,17 @@ config_options="--enable-memalign-hack --arch=$arch --enable-gpl --enable-libx26
   fi
   
   do_configure "$config_options"
-  rm -f *.exe # just in case some library dependency was updated, force it to re-link
+  rm -f *.exe # just in case some library dependency was updated, force it to re-link...
   rm already_ran_make
-  do_make "V=1"
+  echo "doing ffmpeg make $(pwd)"
+  do_make
   echo "Done! You will find $bits_target bit binaries in $(pwd)/ff{mpeg,probe,play}*.exe"
   cd ..
 }
 
 build_all() {
   build_libutvideo
-#  build_win32_pthreads # vpx etc. depend on this--provided by the compiler build script now, though
+  build_win32_pthreads # vpx etc. depend on this--provided by the compiler build script now, though
   build_frei0r
   build_libdl # ffmpeg's frei0r implentation needs this
   build_zlib # rtmp depends on it [as well as ffmpeg's optional but handy --enable-zlib]
