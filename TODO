@@ -2,9 +2,11 @@
 
 compile orc/schroedinger
 
+== lower ==
+
 make march work with ffmpeg/x264
 
-== lower ==
+make static vs. shared builds "a command line option"
 
 vpx is still messed up (?)/respond to their response...
 
