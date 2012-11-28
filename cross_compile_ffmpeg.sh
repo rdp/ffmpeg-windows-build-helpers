@@ -181,7 +181,7 @@ do_make() {
   local cur_dir2=$(pwd)
   if [ ! -f already_ran_make ]; then
     echo "making $cur_dir2 as $ PATH=$PATH make $extra_make_options"
-    make $extra_make_options || exit 1
+    make $extra_make_options -j 2 || exit 1
     touch already_ran_make
   else
     echo "already did make $(basename "$cur_dir2")"
@@ -266,7 +266,7 @@ apply_patch() {
  local patch_done_name="$patch_name.done"
  if [[ ! -e $patch_done_name ]]; then
    wget $url # might save redundantly to .1 or .2, but that's ok
-   patch -p0 < "$patch_name" || exit 1
+   patch -p0 < "$patch_name" #|| exit 1
    touch $patch_done_name
  else
    echo "patch $patch_name already applied"
