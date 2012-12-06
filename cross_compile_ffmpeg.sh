@@ -34,7 +34,6 @@ done
 user_input=$(echo $user_input | tr '[A-Z]' '[a-z]')
 }
 
-
 check_missing_packages () {
 local check_packages=('make' 'git' 'svn' 'gcc' 'autoconf' 'libtool' 'automake' 'yasm')
 for package in "${check_packages[@]}"; do
@@ -51,7 +50,7 @@ fi
 
 
 cur_dir="$(pwd)/sandbox"
-cpu_count="$(grep -c processor /proc/cpuinfo)"
+cpu_count="$(grep -c processor /proc/cpuinfo)" # linux only <sigh>
 
 intro() {
   cat <<EOL
@@ -517,6 +516,10 @@ build_libexpat() {
   generic_download_and_install http://sourceforge.net/projects/expat/files/expat/2.1.0/expat-2.1.0.tar.gz/download expat-2.1.0
 }
 
+build_iconv() {
+  generic_download_and_install http://ftp.gnu.org/pub/gnu/libiconv/libiconv-1.14.tar.gz libiconv-1.14
+}
+
 build_freetype() {
   generic_download_and_install http://download.savannah.gnu.org/releases/freetype/freetype-2.4.10.tar.gz freetype-2.4.10
 }
@@ -621,9 +624,10 @@ build_all() {
   build_lame
   build_libvpx
   build_vo_aacenc
+  # build_iconv # mplayer I think needs it for freetype [just it though]
   build_freetype
   build_libexpat
-  build_fontconfig # needs expat, might need freetype
+  build_fontconfig # needs expat, might need freetype, can use iconv, but I believe doesn't currently
   build_libfribidi
   build_libass # needs freetype, needs fribidi, needs fontconfig
   build_libopenjpeg
