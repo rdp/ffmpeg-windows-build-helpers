@@ -51,6 +51,7 @@ fi
 
 
 cur_dir="$(pwd)/sandbox"
+cpu_count="$(grep -c processor /proc/cpuinfo)"
 
 intro() {
   cat <<EOL
@@ -181,7 +182,7 @@ do_make() {
   local cur_dir2=$(pwd)
   if [ ! -f already_ran_make ]; then
     echo "making $cur_dir2 as $ PATH=$PATH make $extra_make_options"
-    make $extra_make_options -j 2 || exit 1
+    make $extra_make_options -j $cpu_count || exit 1
     touch already_ran_make
   else
     echo "already did make $(basename "$cur_dir2")"
