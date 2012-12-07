@@ -598,15 +598,16 @@ config_options="--enable-static --arch=$arch --target-os=mingw32 --cross-prefix=
 }
 
 build_all() {
-  build_libutvideo
   build_win32_pthreads # vpx etc. depend on this--provided by the compiler build script now, though
-  build_frei0r
   build_libdl # ffmpeg's frei0r implentation needs this
   build_zlib # rtmp depends on it [as well as ffmpeg's optional but handy --enable-zlib]
-  build_bzlib2 # in case someone wants it
-  build_gmp
+  build_bzlib2 # in case someone wants it [ffmpeg uses it]
+  build_gmp # for libnettle
   build_libnettle # needs gmp
   build_gnutls # needs libnettle
+
+  build_frei0r
+  build_libutvideo
   #build_libflite # too big
   build_libgsm
   build_sdl # needed for ffplay to be created
@@ -636,8 +637,8 @@ build_all() {
     # build_faac # not included for now, too poor quality :)
     # build_libaacplus # if you use it, you can't use any other AAC encoder, so disabled for now :)
   fi
-  build_librtmp # needs gnutls [or openssl...]
   #build_openssl # hopefully don't need it anymore, since we have gnutls...
+  build_librtmp # needs gnutls [or openssl...]
   build_ffmpeg
 }
 
