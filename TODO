@@ -4,6 +4,8 @@ compile orc/schroedinger
 
 == lower ==
 
+x264 pkg-config should specify -libpthread?
+
 make march work with ffmpeg/x264
 
 make static vs. shared builds "a command line option"
