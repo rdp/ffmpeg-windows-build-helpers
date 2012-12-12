@@ -232,19 +232,22 @@ build_libxavs() {
 }
 
 build_libopenjpeg() {
-  #download_and_unpack_file http://openjpeg.googlecode.com/files/openjpeg_v1_4_sources_r697.tgz openjpeg_v1_4_sources_r697
-  #cd openjpeg_v1_4_sources_r697
-  #generic_configure
-  #sed -i "s/\/usr\/lib/\$\(libdir\)/" Makefile # install pkg_config to the right dir...
-  #do_make_install
-  #cd .. 
+  download_and_unpack_file http://openjpeg.googlecode.com/files/openjpeg_v1_4_sources_r697.tgz openjpeg_v1_4_sources_r697
+  cd openjpeg_v1_4_sources_r697
+  generic_configure
+  sed -i "s/\/usr\/lib/\$\(libdir\)/" Makefile # install pkg_config to the right dir...
+  local old_cpu_count=$cpu_count
+  cpu_count=1 # this one can't build multi-threaded <sigh> kludge
+  do_make_install
+  cpu_count=$old_cpu_count
+  cd .. 
 
-  download_and_unpack_file http://openjpeg.googlecode.com/files/openjpeg-2.0.0.tar.gz openjpeg-2.0.0
-  cd openjpeg-2.0.0
-   cmake .  -DCMAKE_SYSTEM_NAME=Windows -DCMAKE_RANLIB=${cross_prefix}ranlib -DCMAKE_C_COMPILER=${cross_prefix}gcc -DCMAKE_CXX_COMPILER=${cross_prefix}g++ -DCMAKE_RC_COMPILER=${cross_prefix}windres  -DCMAKE_INSTALL_PREFIX=$mingw_w64_x86_64_prefix -DBUILD_SHARED_LIBS:bool=off
-   do_make_install
-   cp $mingw_w64_x86_64_prefix/lib/libopenjp2.a $mingw_w64_x86_64_prefix/lib/libopenjpeg.a || exit 1
-  cd ..
+  #download_and_unpack_file http://openjpeg.googlecode.com/files/openjpeg-2.0.0.tar.gz openjpeg-2.0.0
+  #cd openjpeg-2.0.0
+  # cmake .  -DCMAKE_SYSTEM_NAME=Windows -DCMAKE_RANLIB=${cross_prefix}ranlib -DCMAKE_C_COMPILER=${cross_prefix}gcc -DCMAKE_CXX_COMPILER=${cross_prefix}g++ -DCMAKE_RC_COMPILER=${cross_prefix}windres  -DCMAKE_INSTALL_PREFIX=$mingw_w64_x86_64_prefix -DBUILD_SHARED_LIBS:bool=off
+  # do_make_install
+  # cp $mingw_w64_x86_64_prefix/lib/libopenjp2.a $mingw_w64_x86_64_prefix/lib/libopenjpeg.a || exit 1
+  #cd ..
 }
 
 
