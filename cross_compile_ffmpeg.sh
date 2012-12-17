@@ -419,7 +419,13 @@ build_orc() {
 }
 
 build_libschroedinger() {
-  generic_download_and_install http://diracvideo.org/download/schroedinger/schroedinger-1.0.11.tar.gz schroedinger-1.0.11
+  download_and_unpack_file http://diracvideo.org/download/schroedinger/schroedinger-1.0.11.tar.gz schroedinger-1.0.11
+  cd schroedinger-1.0.11
+    generic_configure
+    sed -i 's/testsuite//' Makefile
+    do_make_install
+    sed -i 's/-lschroedinger-1.0$/-lschroedinger-1.0 -lorc-0.4/' "$PKG_CONFIG_PATH/schroedinger-1.0.pc" # yikes!
+  cd ..
 }
 
 build_gnutls() {
@@ -581,7 +587,7 @@ build_ffmpeg() {
    local arch=x86_64
   fi
 
-config_options="--enable-static --arch=$arch --target-os=mingw32 --cross-prefix=$cross_prefix --pkg-config=pkg-config --enable-gpl --enable-libx264 --enable-avisynth --enable-libxvid --enable-libmp3lame --enable-version3 --enable-libvpx --enable-zlib --enable-librtmp --enable-libvorbis --enable-libtheora --enable-libspeex --enable-libopenjpeg --enable-gnutls --enable-libgsm --enable-libfreetype --enable-fontconfig --enable-libass --enable-libutvideo --enable-libopus --disable-w32threads --enable-frei0r --enable-filter=frei0r --enable-libvo-aacenc --enable-bzlib --enable-libxavs --extra-cflags=-DPTW32_STATIC_LIB --enable-libopencore-amrnb --enable-libopencore-amrwb  --enable-libvo-amrwbenc" # --enable-shared --enable-w32threads --enable-libflite --enable-libschroedinger --enable-static
+config_options="--enable-static --arch=$arch --target-os=mingw32 --cross-prefix=$cross_prefix --pkg-config=pkg-config --enable-gpl --enable-libx264 --enable-avisynth --enable-libxvid --enable-libmp3lame --enable-version3 --enable-libvpx --enable-zlib --enable-librtmp --enable-libvorbis --enable-libtheora --enable-libspeex --enable-libopenjpeg --enable-gnutls --enable-libgsm --enable-libfreetype --enable-fontconfig --enable-libass --enable-libutvideo --enable-libopus --disable-w32threads --enable-frei0r --enable-filter=frei0r --enable-libvo-aacenc --enable-bzlib --enable-libxavs --extra-cflags=-DPTW32_STATIC_LIB --enable-libopencore-amrnb --enable-libopencore-amrwb  --enable-libvo-amrwbenc --enable-libschroedinger" # --enable-shared --enable-w32threads --enable-libflite --enable-libschroedinger --enable-static
   if [[ "$non_free" = "y" ]]; then
     config_options="$config_options --enable-nonfree --enable-libfdk-aac" # --enable-libfaac -- faac deemed too poor quality and becomes the default -- add it in and uncomment the build_faac line to include it --enable-openssl --enable-libaacplus
   else
@@ -625,7 +631,7 @@ build_all() {
   build_libvorbis # needs libogg
   build_libtheora # needs libvorbis, libogg
   build_orc
-  #build_libschroedinger # needs orc [currently fails]
+  build_libschroedinger # needs orc
   build_libxvid
   build_libxavs
   build_x264
