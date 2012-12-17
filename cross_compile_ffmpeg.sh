@@ -251,16 +251,16 @@ build_libopenjpeg() {
   #cd ..
 }
 
-build_libvpx() { # crippled ? 
+build_libvpx() {
   download_and_unpack_file http://webm.googlecode.com/files/libvpx-v1.1.0.tar.bz2 libvpx-v1.1.0
   cd libvpx-v1.1.0
   export CROSS="$cross_prefix"
   if [[ "$bits_target" = "32" ]]; then
-    do_configure "--extra-cflags=-DPTW32_STATIC_LIB --target=generic-gnu --prefix=$mingw_w64_x86_64_prefix --enable-static --disable-shared"
+    do_configure "--extra-cflags=-DPTW32_STATIC_LIB --target=x86-win32-gcc --prefix=$mingw_w64_x86_64_prefix --enable-static --disable-shared"
   else
-    do_configure "--extra-cflags=-DPTW32_STATIC_LIB --target=generic-gnu --prefix=$mingw_w64_x86_64_prefix --enable-static --disable-shared "
+    do_configure "--extra-cflags=-DPTW32_STATIC_LIB --target=x86_64-win64-gcc --prefix=$mingw_w64_x86_64_prefix --enable-static --disable-shared "
   fi
-  do_make_install "extralibs='-lpthread'" # weird. guess it can't live without them? huh? LODO tell them...gah!
+  do_make_install "extralibs='-lpthread'" # weird. guess it can't live without them? huh? LODO tell them...gah! [check their response?]
   sed -i 's/Libs: -L${libdir} -lvpx *$/Libs: -L${libdir} -lvpx -lpthread/' "$PKG_CONFIG_PATH/vpx.pc"
   unset CROSS
   cd ..
@@ -590,7 +590,7 @@ build_ffmpeg() {
    local arch=x86_64
   fi
 
-config_options="--enable-static --arch=$arch --target-os=mingw32 --cross-prefix=$cross_prefix --pkg-config=pkg-config --enable-gpl --enable-libx264 --enable-avisynth --enable-libxvid --enable-libmp3lame --enable-version3 --enable-zlib --enable-librtmp --enable-libvorbis --enable-libtheora --enable-libspeex --enable-libopenjpeg --enable-gnutls --enable-libgsm --enable-libfreetype --enable-fontconfig --enable-libass --enable-libutvideo --enable-libopus --disable-w32threads --enable-frei0r --enable-filter=frei0r --enable-libvo-aacenc --enable-bzlib --enable-libxavs --extra-cflags=-DPTW32_STATIC_LIB --enable-libopencore-amrnb --enable-libopencore-amrwb  --enable-libvo-amrwbenc --enable-libschroedinger --enable-libbluray" # --enable-shared --enable-static --enable-w32threads --enable-libflite --enable-libvpx [crippled so disabled]
+config_options="--enable-static --arch=$arch --target-os=mingw32 --cross-prefix=$cross_prefix --pkg-config=pkg-config --enable-gpl --enable-libx264 --enable-avisynth --enable-libxvid --enable-libmp3lame --enable-version3 --enable-zlib --enable-librtmp --enable-libvorbis --enable-libtheora --enable-libspeex --enable-libopenjpeg --enable-gnutls --enable-libgsm --enable-libfreetype --enable-fontconfig --enable-libass --enable-libutvideo --enable-libopus --disable-w32threads --enable-frei0r --enable-filter=frei0r --enable-libvo-aacenc --enable-bzlib --enable-libxavs --extra-cflags=-DPTW32_STATIC_LIB --enable-libopencore-amrnb --enable-libopencore-amrwb  --enable-libvo-amrwbenc --enable-libschroedinger --enable-libbluray --enable-libvpx" # --enable-shared --enable-static --enable-w32threads --enable-libflite
   if [[ "$non_free" = "y" ]]; then
     config_options="$config_options --enable-nonfree --enable-libfdk-aac" # --enable-libfaac -- faac deemed too poor quality and becomes the default -- add it in and uncomment the build_faac line to include it --enable-openssl --enable-libaacplus
   else
