@@ -252,16 +252,15 @@ build_libopenjpeg() {
 }
 
 build_libvpx() {
-  download_and_unpack_file http://webm.googlecode.com/files/libvpx-v1.1.0.tar.bz2 libvpx-v1.1.0
-  cd libvpx-v1.1.0
+  do_git_checkout https://git.chromium.org/git/webm/libvpx.git "libvpx_git"
+  cd libvpx_git
   export CROSS="$cross_prefix"
   if [[ "$bits_target" = "32" ]]; then
     do_configure "--extra-cflags=-DPTW32_STATIC_LIB --target=x86-win32-gcc --prefix=$mingw_w64_x86_64_prefix --enable-static --disable-shared"
   else
     do_configure "--extra-cflags=-DPTW32_STATIC_LIB --target=x86_64-win64-gcc --prefix=$mingw_w64_x86_64_prefix --enable-static --disable-shared "
   fi
-  do_make_install "extralibs='-lpthread'" # weird. guess it can't live without them? huh? LODO tell them...gah! [check their response?]
-  sed -i 's/Libs: -L${libdir} -lvpx *$/Libs: -L${libdir} -lvpx -lpthread/' "$PKG_CONFIG_PATH/vpx.pc"
+  do_make_install
   unset CROSS
   cd ..
 }
