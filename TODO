@@ -1,14 +1,18 @@
 == todos ==
 
-== lower ==
-
-x264 pkg-config should specify -libpthread?
+== maybe/never do ==
 
 make march work with ffmpeg/x264
 
-make the static vs. shared builds "a command line option"
+make the static vs. shared builds "a command line option/prompt"
 
-vpx is still messed up (?)/respond to their response...
+check march=native (from laptop...)
+  ffmpeg more? do I need to enable runtime detection when it's not? 
+  libx264 still uses i686?
+  compare 64 vs 32 bit speedz...
+  more stuff in "notes" file
+
+x264 pkg-config should specify -libpthread?
 
 distribute "my own set of [I guess optimized?] binaries" that are processor optimized (if it even matters speed-wise LOL).
   though mine do have pthreads...but hopefully I can test and report and get the zeranoe ones built that way...share the workload :)
@@ -18,17 +22,8 @@ research: https://groups.google.com/a/webmproject.org/forum/?fromgroups=#!topic/
 calculate size of each piece, put it on a wiki somewhere...
   startup slowdown, too?
 
-libvpx
-  fix, update blog (somebody left a comment)/vpx ML
-    threading/configure?
 
-check march=native (from laptop...)
-  ffmpeg more? do I need to enable runtime detection when it's not? 
-  libx264 still uses i686?
-  compare 64 vs 32 bit speedz...
-  more stuff in "notes" file
-
-cleanup zeranoe suggs (chat)
+cleanup zeranoe suggs (from our chat)
 
 parameters to the script
   an option to setup-compilers --arch
@@ -36,19 +31,18 @@ parameters to the script
 warn that we're not using it if they already have a toolchain in the PATH
 
 support external toolchains
-  then support "checking if they already have zlib installed"
+  then support "checking if they already have zlib installed into it"
 
 --enable-none --enable-x264 --enable-all-gpl --enable-all-non-free
 
 --extra-ffmpeg-options
 
-== maybe/never do ==
 
 "shared" builds option, like libavcodec-54.dll
 
 complain for "everyone" that fails cross compile that I haven't yet...
 
-march=native vpx (others?)
+march=native (others? vpx?)
 
 dynamic aac somehow...prolly for something with > 2 audios...
 
