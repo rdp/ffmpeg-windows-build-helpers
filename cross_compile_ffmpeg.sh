@@ -395,11 +395,18 @@ build_libtheora() {
 build_libfribidi() {
   download_and_unpack_file http://fribidi.org/download/fribidi-0.19.4.tar.bz2 fribidi-0.19.4
   cd fribidi-0.19.4
-    # export symbols right...
+    # make it export symbols right...
     apply_patch https://raw.github.com/rdp/ffmpeg-windows-build-helpers/master/patches/fribidi.diff
     generic_configure
     do_make_install
   cd ..
+
+  #do_git_checkout http://anongit.freedesktop.org/git/fribidi/fribidi.git fribidi_git
+  #cd fribidi_git
+  #  ./bootstrap
+  #  generic_configure
+  #  do_make_install
+  #cd ..
 }
 
 build_libass() {
