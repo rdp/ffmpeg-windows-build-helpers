@@ -51,6 +51,7 @@ fi
 
 cur_dir="$(pwd)/sandbox"
 cpu_count="$(grep -c processor /proc/cpuinfo)" # linux only <sigh>
+original_cpu_count=$cpu_count
 
 intro() {
   cat <<EOL
@@ -192,11 +193,11 @@ do_configure() {
 }
 
 do_make() {
-  local extra_make_options="$1"
+  local extra_make_options="$1 -j $cpu_count"
   local cur_dir2=$(pwd)
   if [ ! -f already_ran_make ]; then
     echo "making $cur_dir2 as $ PATH=$PATH make $extra_make_options"
-    make $extra_make_options -j $cpu_count || exit 1
+    make $extra_make_options || exit 1
     touch already_ran_make
   else
     echo "already did make $(basename "$cur_dir2")"
@@ -230,7 +231,8 @@ build_librtmp() {
 
   do_git_checkout "http://repo.or.cz/r/rtmpdump.git" rtmpdump_git 883c33489403ed360a01d1a47ec76d476525b49e # trunk didn't build once...this one i sstable
   cd rtmpdump_git/librtmp
-  make install CRYPTO=GNUTLS OPT='-O2 -g' "CROSS_COMPILE=$cross_prefix" SHARED=no "prefix=$mingw_w64_x86_64_prefix" || exit 1
+  do_make_install "CRYPTO=GNUTLS OPT=-O2 CROSS_COMPILE=$cross_prefix SHARED=no prefix=$mingw_w64_x86_64_prefix"
+  #make install CRYPTO=GNUTLS OPT='-O2 -g' "CROSS_COMPILE=$cross_prefix" SHARED=no "prefix=$mingw_w64_x86_64_prefix" || exit 1
   sed -i 's/-lrtmp -lz/-lrtmp -lwinmm -lz/' "$PKG_CONFIG_PATH/librtmp.pc"
   cd ../..
 }
@@ -250,10 +252,9 @@ build_libopenjpeg() {
   cd openjpeg_v1_4_sources_r697
   generic_configure
   sed -i "s/\/usr\/lib/\$\(libdir\)/" Makefile # install pkg_config to the right dir...
-  local old_cpu_count=$cpu_count
   cpu_count=1 # this one can't build multi-threaded <sigh> kludge
   do_make_install
-  cpu_count=$old_cpu_count
+  cpu_count=$original_cpu_count
   cd .. 
 
   #download_and_unpack_file http://openjpeg.googlecode.com/files/openjpeg-2.0.0.tar.gz openjpeg-2.0.0
@@ -400,17 +401,26 @@ build_libspeex() {
 }  
 
 build_libtheora() {
+  cpu_count=1 # can't handle it
   generic_download_and_install http://downloads.xiph.org/releases/theora/libtheora-1.1.1.tar.bz2 libtheora-1.1.1
+  cpu_count=$original_cpu_count
 }
 
 build_libfribidi() {
   download_and_unpack_file http://fribidi.org/download/fribidi-0.19.4.tar.bz2 fribidi-0.19.4
   cd fribidi-0.19.4
-    # export symbols right...
+    # make it export symbols right...
     apply_patch https://raw.github.com/rdp/ffmpeg-windows-build-helpers/master/patches/fribidi.diff
     generic_configure
     do_make_install
   cd ..
+
+  #do_git_checkout http://anongit.freedesktop.org/git/fribidi/fribidi.git fribidi_git
+  #cd fribidi_git
+  #  ./bootstrap
+  #  generic_configure
+  #  do_make_install
+  #cd ..
 }
 
 build_libass() {
