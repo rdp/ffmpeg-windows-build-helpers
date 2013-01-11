@@ -132,12 +132,15 @@ update_to_desired_branch_or_revision() {
   local to_dir="$1"
   local desired_branch="$2"
   if [ -n "$desired_branch" ]; then
-    cd $to_dir
+   pushd
+   cd $to_dir
       echo "git co $desired_branch"
       git co "$desired_branch"
       git merge "$desired_branch" # depending on which type it is :)
-   cd ..
+   popd # in case it's a cd to ., don't want to cd to .. here...
   fi
+  echo "now in $(`pwd`)"
+  echo `pwd`
 }
 
 do_git_checkout() {
