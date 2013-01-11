@@ -158,7 +158,7 @@ do_git_checkout() {
     cd $to_dir
     echo "Updating to latest $to_dir version..."
     old_git_version=`git rev-parse HEAD`
-    git pull
+    #git pull
     update_to_desired_branch_or_revision "." $desired_branch
     new_git_version=`git rev-parse HEAD`
     if [[ "$old_git_version" != "$new_git_version" ]]; then
@@ -410,13 +410,14 @@ build_libtheora() {
 }
 
 build_libfribidi() {
-  download_and_unpack_file http://fribidi.org/download/fribidi-0.19.4.tar.bz2 fribidi-0.19.4
-  cd fribidi-0.19.4
+  generic_download_and_install http://fribidi.org/download/fribidi-0.19.5.tar.bz2 fribidi-0.19.5
+  #download_and_unpack_file http://fribidi.org/download/fribidi-0.19.4.tar.bz2 fribidi-0.19.4
+  #cd fribidi-0.19.4
     # make it export symbols right...
-    apply_patch https://raw.github.com/rdp/ffmpeg-windows-build-helpers/master/patches/fribidi.diff
-    generic_configure
-    do_make_install
-  cd ..
+  #  apply_patch https://raw.github.com/rdp/ffmpeg-windows-build-helpers/master/patches/fribidi.diff
+  #  generic_configure
+  #  do_make_install
+  #cd ..
 
   #do_git_checkout http://anongit.freedesktop.org/git/fribidi/fribidi.git fribidi_git
   #cd fribidi_git
