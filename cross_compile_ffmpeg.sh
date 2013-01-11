@@ -127,23 +127,38 @@ do_svn_checkout() {
   fi
 }
 
+update_to_desired_branch_or_revision() {
+  local to_dir="$1"
+  local desired_branch="$2"
+  if [ -n "$desired_branch" ]; then
+    cd $to_dir
+      echo "git co $desired_branch"
+      git co "$desired_branch"
+      git merge "$desired_branch" # depending on which type it is :)
+   cd ..
+  fi
+}
+
 do_git_checkout() {
-  repo_url="$1"
-  to_dir="$2"
+  local repo_url="$1"
+  local to_dir="$2"
+  local desired_branch="$3"
   if [ ! -d $to_dir ]; then
     echo "Downloading (via git clone) $to_dir"
     # prevent partial checkouts by renaming it only after success
     git clone $repo_url $to_dir.tmp || exit 1
     mv $to_dir.tmp $to_dir
     echo "done downloading $to_dir"
+    update_to_desired_branch_or_revision $to_dir $desired_branch
   else
     cd $to_dir
     echo "Updating to latest $to_dir version..."
     old_git_version=`git rev-parse HEAD`
     git pull
+    update_to_desired_branch_or_revision "." $desired_branch
     new_git_version=`git rev-parse HEAD`
     if [[ "$old_git_version" != "$new_git_version" ]]; then
-     echo "got upstream changes, forcing reconfigure."
+     echo "got upstream changes, forcing re-configure."
      rm already*
     fi 
     cd ..
@@ -199,7 +214,7 @@ do_make_install() {
 }
 
 build_x264() {
-  do_git_checkout "http://repo.or.cz/r/x264.git" "x264"
+  do_git_checkout "http://repo.or.cz/r/x264.git" "x264" "origin/stable"
   cd x264
   do_configure "--host=$host_target --enable-static --cross-prefix=$cross_prefix --prefix=$mingw_w64_x86_64_prefix --extra-cflags=-DPTW32_STATIC_LIB" #--enable-win32thread --enable-debug" 
   # TODO more march=native here?
@@ -213,9 +228,8 @@ build_librtmp() {
   #  download_and_unpack_file http://rtmpdump.mplayerhq.hu/download/rtmpdump-2.3.tgz rtmpdump-2.3 # has some odd configure failure
   #  cd rtmpdump-2.3/librtmp
 
-  do_git_checkout "http://repo.or.cz/r/rtmpdump.git" rtmpdump_git
+  do_git_checkout "http://repo.or.cz/r/rtmpdump.git" rtmpdump_git 883c33489403ed360a01d1a47ec76d476525b49e # trunk didn't build once...this one i sstable
   cd rtmpdump_git/librtmp
-  git co 883c33489403ed360a01d1a47ec76d476525b49e # trunk didn't build once...
   make install CRYPTO=GNUTLS OPT='-O2 -g' "CROSS_COMPILE=$cross_prefix" SHARED=no "prefix=$mingw_w64_x86_64_prefix" || exit 1
   sed -i 's/-lrtmp -lz/-lrtmp -lwinmm -lz/' "$PKG_CONFIG_PATH/librtmp.pc"
   cd ../..
