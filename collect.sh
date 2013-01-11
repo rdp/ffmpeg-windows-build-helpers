@@ -8,8 +8,12 @@ file="ffmpeg-distro-static-$date-$git_version"
 dir="distros/$file"
 rm -rf $dir
 mkdir $dir
-mkdir $dir/32-bit
-mkdir $dir/64-bit
+if [ -f ./sandbox/win32/ffmpeg_git/ffmpeg.exe ]; then
+  mkdir $dir/32-bit
+fi
+if [ -f ./sandbox/x86_64/ffmpeg_git/ffmpeg.exe ]; then
+  mkdir $dir/64-bit
+fi
 
 cp ./sandbox/win32/ffmpeg_git/ffmpeg.exe "$dir/32-bit"
 #cp ./sandbox/win32/ffmpeg_git/ffplay.exe "$dir/32-bit"
