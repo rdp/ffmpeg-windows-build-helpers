@@ -1,29 +1,28 @@
 == todos ==
 
-== maybe/never do ==
+== maybe do ==
+
+x264 pkg-config should specify -libpthread? (repro by compiling ffmpeg with windows threads, you'll see...)
 
 make march work with ffmpeg/x264
+ compare speeds, plus 64 vs 32 bit for everything
 
 make the static vs. shared builds "a command line option/prompt"
 
-check march=native (from laptop...)
-  ffmpeg more? do I need to enable runtime detection when it's not? 
-  libx264 still uses i686?
-  compare 64 vs 32 bit speedz...
-  more stuff in "notes" file
-
+tell those that fail with multi-threaded make
 
 distribute "my own set of [I guess optimized?] binaries" that are processor optimized (if it even matters speed-wise LOL).
   though mine do have pthreads...but hopefully I can test and report and get the zeranoe ones built that way...share the workload :)
 
-== really maybe ==
-tell those that fail with multi-threaded make
-x264 pkg-config should specify -libpthread?
-research: https://groups.google.com/a/webmproject.org/forum/?fromgroups=#!topic/apps-devel/ZZ2an44u3X0
+== really maybe, as in probably never ==
+
+check march=native (from laptop...)
+  ffmpeg more? do I need to enable runtime detection when it's not? 
+  libx264 still uses i686?
+  more march stuff in "notes" file
 
 calculate size of each piece, put it on a wiki somewhere...
   startup slowdown, too?
-
 
 cleanup zeranoe suggs (from our chat)
 
