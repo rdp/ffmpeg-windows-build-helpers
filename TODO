@@ -2,6 +2,8 @@
 
 == maybe do ==
 
+it should notice when configure was originally from some other git commit...anyway today, if you go to ffmpeg, checkout a different branch, it doesn't reconfigure...
+
 x264 pkg-config should specify -libpthread? (repro by compiling ffmpeg with windows threads, you'll see...)
 
 make march work with ffmpeg/x264
