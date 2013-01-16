@@ -139,8 +139,6 @@ update_to_desired_branch_or_revision() {
       git merge "$desired_branch" # depending on which type it is :)
    popd # in case it's a cd to ., don't want to cd to .. here...
   fi
-  echo "now in"
-  echo `pwd`
 }
 
 do_git_checkout() {
@@ -158,12 +156,14 @@ do_git_checkout() {
     cd $to_dir
     echo "Updating to latest $to_dir version..."
     old_git_version=`git rev-parse HEAD`
-    #git pull
+    git pull
     update_to_desired_branch_or_revision "." $desired_branch
     new_git_version=`git rev-parse HEAD`
     if [[ "$old_git_version" != "$new_git_version" ]]; then
      echo "got upstream changes, forcing re-configure."
      rm already*
+    else
+     echo "this pull got no new upstream changes, not forcing re-configure..."
     fi 
     cd ..
   fi
