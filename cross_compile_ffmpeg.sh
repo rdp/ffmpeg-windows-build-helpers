@@ -46,6 +46,17 @@ if [[ -n "${missing_packages[@]}" ]]; then
   echo 'Install the missing packages before running this script.'
  exit 1
 fi
+
+local out=`cmake --version` # like cmake version 2.8.7
+local version_have=`echo "$out" | cut -d " " -f 3`
+
+function version { echo "$@" | awk -F. '{ printf("%d%03d%03d%03d\n", $1,$2,$3,$4); }'; }
+
+if [[ $(version $version_have)  < $(version '2.8.10') ]]; then
+  echo "your cmake version is too old $version_have wanted 2.8.10"
+  exit 1
+fi
+
 }
 
 
@@ -156,7 +167,7 @@ do_git_checkout() {
     cd $to_dir
     echo "Updating to latest $to_dir version..."
     old_git_version=`git rev-parse HEAD`
-    git pull
+    #git pull
     update_to_desired_branch_or_revision "." $desired_branch
     new_git_version=`git rev-parse HEAD`
     if [[ "$old_git_version" != "$new_git_version" ]]; then
@@ -243,7 +254,8 @@ build_librtmp() {
 build_libsoxr() {
   download_and_unpack_file http://sourceforge.net/projects/soxr/files/soxr-0.1.0-Source.tar.xz/download soxr-0.1.0-Source
   cd soxr-0.1.0-Source
-    cmake .  -DCMAKE_SYSTEM_NAME=Windows -DCMAKE_RANLIB=${cross_prefix}ranlib -DCMAKE_C_COMPILER=${cross_prefix}gcc -DCMAKE_CXX_COMPILER=${cross_prefix}g++ -DCMAKE_RC_COMPILER=${cross_prefix}windres  -DCMAKE_INSTALL_PREFIX=$mingw_w64_x86_64_prefix -DHAVE_WORDS_BIGENDIAN_EXITCODE=0 || exit 1
+    cmake . -DENABLE_STATIC_RUNTIME=1 -DCMAKE_SYSTEM_NAME=Windows -DCMAKE_RANLIB=${cross_prefix}ranlib -DCMAKE_C_COMPILER=${cross_prefix}gcc -DCMAKE_CXX_COMPILER=${cross_prefix}g++ -DCMAKE_RC_COMPILER=${cross_prefix}windres  -DCMAKE_INSTALL_PREFIX=$mingw_w64_x86_64_prefix -DHAVE_WORDS_BIGENDIAN_EXITCODE=0  -DBUILD_SHARED_LIBS:bool=off || exit 1
+    # BUILD_TESTS:BOOL=ON instead of the below?
     rm -rf tests # disable tests. Is there another way?
     mkdir tests
     touch tests/CMakeLists.txt
