@@ -18,6 +18,8 @@ distribute "my own set of [I guess optimized?] binaries" that are processor opti
 
 == really maybe, as in probably never ==
 
+add openmp, for libsoxr?
+
 test fribidi git master (does 0.19.5 fail? it should?) with wine installed
 
 tell orc+schro "you didn't well cross compile!"

@@ -35,7 +35,7 @@ user_input=$(echo $user_input | tr '[A-Z]' '[a-z]')
 }
 
 check_missing_packages () {
-local check_packages=('make' 'git' 'svn' 'gcc' 'autoconf' 'libtool' 'automake' 'yasm')
+local check_packages=('make' 'git' 'svn' 'cmake' 'gcc' 'autoconf' 'libtool' 'automake' 'yasm')
 for package in "${check_packages[@]}"; do
   type -P "$package" >/dev/null || missing_packages=("$package" "${missing_packages[@]}")
 done
@@ -238,6 +238,17 @@ build_librtmp() {
   #make install CRYPTO=GNUTLS OPT='-O2 -g' "CROSS_COMPILE=$cross_prefix" SHARED=no "prefix=$mingw_w64_x86_64_prefix" || exit 1
   sed -i 's/-lrtmp -lz/-lrtmp -lwinmm -lz/' "$PKG_CONFIG_PATH/librtmp.pc"
   cd ../..
+}
+
+build_libsoxr() {
+  download_and_unpack_file http://sourceforge.net/projects/soxr/files/soxr-0.1.0-Source.tar.xz/download soxr-0.1.0-Source
+  cd soxr-0.1.0-Source
+    cmake .  -DCMAKE_SYSTEM_NAME=Windows -DCMAKE_RANLIB=${cross_prefix}ranlib -DCMAKE_C_COMPILER=${cross_prefix}gcc -DCMAKE_CXX_COMPILER=${cross_prefix}g++ -DCMAKE_RC_COMPILER=${cross_prefix}windres  -DCMAKE_INSTALL_PREFIX=$mingw_w64_x86_64_prefix -DHAVE_WORDS_BIGENDIAN_EXITCODE=0 || exit 1
+    rm -rf tests # disable tests. Is there another way?
+    mkdir tests
+    touch tests/CMakeLists.txt
+    do_make_install
+  cd ..
 }
 
 build_libxavs() {
@@ -617,7 +628,7 @@ build_ffmpeg() {
    local arch=x86_64
   fi
 
-config_options="--enable-static --arch=$arch --target-os=mingw32 --cross-prefix=$cross_prefix --pkg-config=pkg-config --enable-gpl --enable-libx264 --enable-avisynth --enable-libxvid --enable-libmp3lame --enable-version3 --enable-zlib --enable-librtmp --enable-libvorbis --enable-libtheora --enable-libspeex --enable-libopenjpeg --enable-gnutls --enable-libgsm --enable-libfreetype --enable-fontconfig --enable-libass --enable-libutvideo --enable-libopus --disable-w32threads --enable-frei0r --enable-filter=frei0r --enable-libvo-aacenc --enable-bzlib --enable-libxavs --extra-cflags=-DPTW32_STATIC_LIB --enable-libopencore-amrnb --enable-libopencore-amrwb  --enable-libvo-amrwbenc --enable-libschroedinger --enable-libbluray --enable-libvpx" # --enable-shared --enable-static --enable-w32threads --enable-libflite
+config_options="--enable-static --arch=$arch --target-os=mingw32 --cross-prefix=$cross_prefix --pkg-config=pkg-config --enable-gpl --enable-libsoxr --enable-libx264 --enable-avisynth --enable-libxvid --enable-libmp3lame --enable-version3 --enable-zlib --enable-librtmp --enable-libvorbis --enable-libtheora --enable-libspeex --enable-libopenjpeg --enable-gnutls --enable-libgsm --enable-libfreetype --enable-fontconfig --enable-libass --enable-libutvideo --enable-libopus --disable-w32threads --enable-frei0r --enable-filter=frei0r --enable-libvo-aacenc --enable-bzlib --enable-libxavs --extra-cflags=-DPTW32_STATIC_LIB --enable-libopencore-amrnb --enable-libopencore-amrwb  --enable-libvo-amrwbenc --enable-libschroedinger --enable-libbluray --enable-libvpx" # --enable-shared --enable-static --enable-w32threads --enable-libflite
   if [[ "$non_free" = "y" ]]; then
     config_options="$config_options --enable-nonfree --enable-libfdk-aac" # --enable-libfaac -- faac deemed too poor quality and becomes the default -- add it in and uncomment the build_faac line to include it --enable-openssl --enable-libaacplus
   else
@@ -665,6 +676,7 @@ build_all() {
   build_libbluray
   build_libxvid
   build_libxavs
+  build_libsoxr
   build_x264
   build_lame
   build_libvpx
