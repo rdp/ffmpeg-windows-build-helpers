@@ -16,6 +16,8 @@ distribute "my own set of [I guess optimized?] binaries" that are processor opti
 
 == really maybe, as in probably never ==
 
+tell orc+schro "you didn't well cross compile!"
+
 check march=native (from laptop...)
   ffmpeg more? do I need to enable runtime detection when it's not? 
   libx264 still uses i686?
