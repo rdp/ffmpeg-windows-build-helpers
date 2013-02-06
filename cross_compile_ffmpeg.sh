@@ -632,15 +632,23 @@ build_frei0r() {
 }
 
 build_ffmpeg() {
-  do_git_checkout https://github.com/FFmpeg/FFmpeg.git ffmpeg_git
-  cd ffmpeg_git
+  local shared=$1
+  if [[ $shared == "shared" ]]; then
+    do_git_checkout https://github.com/FFmpeg/FFmpeg.git ffmpeg_git_shared
+    local extra_configure_opts="--enable-shared --disable-static"
+    cd ffmpeg_git_shared
+  else
+    do_git_checkout https://github.com/FFmpeg/FFmpeg.git ffmpeg_git
+    local extra_configure_opts="--enable-static --disable-shared"
+    cd ffmpeg_git
+  fi
   if [ "$bits_target" = "32" ]; then
    local arch=x86
   else
    local arch=x86_64
   fi
 
-config_options="--enable-static --arch=$arch --target-os=mingw32 --cross-prefix=$cross_prefix --pkg-config=pkg-config --enable-gpl --enable-libsoxr --enable-libx264 --enable-avisynth --enable-libxvid --enable-libmp3lame --enable-version3 --enable-zlib --enable-librtmp --enable-libvorbis --enable-libtheora --enable-libspeex --enable-libopenjpeg --enable-gnutls --enable-libgsm --enable-libfreetype --enable-fontconfig --enable-libass --enable-libutvideo --enable-libopus --disable-w32threads --enable-frei0r --enable-filter=frei0r --enable-libvo-aacenc --enable-bzlib --enable-libxavs --extra-cflags=-DPTW32_STATIC_LIB --enable-libopencore-amrnb --enable-libopencore-amrwb  --enable-libvo-amrwbenc --enable-libschroedinger --enable-libbluray --enable-libvpx" # --enable-shared --enable-static --enable-w32threads --enable-libflite
+config_options="--arch=$arch --target-os=mingw32 --cross-prefix=$cross_prefix --pkg-config=pkg-config --enable-gpl --enable-libsoxr --enable-libx264 --enable-avisynth --enable-libxvid --enable-libmp3lame --enable-version3 --enable-zlib --enable-librtmp --enable-libvorbis --enable-libtheora --enable-libspeex --enable-libopenjpeg --enable-gnutls --enable-libgsm --enable-libfreetype --enable-fontconfig --enable-libass --enable-libutvideo --enable-libopus --disable-w32threads --enable-frei0r --enable-filter=frei0r --enable-libvo-aacenc --enable-bzlib --enable-libxavs --extra-cflags=-DPTW32_STATIC_LIB --enable-libopencore-amrnb --enable-libopencore-amrwb  --enable-libvo-amrwbenc --enable-libschroedinger --enable-libbluray --enable-libvpx $extra_configure_opts" # --enable-w32threads --enable-libflite
   if [[ "$non_free" = "y" ]]; then
     config_options="$config_options --enable-nonfree --enable-libfdk-aac" # --enable-libfaac -- faac deemed too poor quality and becomes the default -- add it in and uncomment the build_faac line to include it --enable-openssl --enable-libaacplus
   else
@@ -659,11 +667,11 @@ config_options="--enable-static --arch=$arch --target-os=mingw32 --cross-prefix=
   rm already_ran_make
   echo "doing ffmpeg make $(pwd)"
   do_make
-  echo "Done! You will find $bits_target bit binaries in $(pwd)/ff{mpeg,probe,play}*.exe"
+  echo "Done! You will find $bits_target bit $shared binaries in $(pwd)/ff{mpeg,probe,play}*.exe"
   cd ..
 }
 
-build_all() {
+build_dependencies() {
   build_win32_pthreads # vpx etc. depend on this--provided by the compiler build script now, though
   build_libdl # ffmpeg's frei0r implentation needs this
   build_zlib # rtmp depends on it [as well as ffmpeg's optional but handy --enable-zlib]
@@ -707,7 +715,6 @@ build_all() {
   fi
   #build_openssl # hopefully don't need it anymore, since we have gnutls...
   build_librtmp # needs gnutls [or openssl...]
-  build_ffmpeg
 }
 
 while true; do
@@ -738,7 +745,9 @@ if [ -d "mingw-w64-i686" ]; then # they installed a 32-bit compiler
   cross_prefix="$cur_dir/mingw-w64-i686/bin/i686-w64-mingw32-"
   mkdir -p win32
   cd win32
-  build_all
+  build_dependencies
+  build_ffmpeg
+  build_ffmpeg shared
   cd ..
 fi
 
@@ -752,8 +761,10 @@ if [ -d "mingw-w64-x86_64" ]; then # they installed a 64-bit compiler
   bits_target=64
   cross_prefix="$cur_dir/mingw-w64-x86_64/bin/x86_64-w64-mingw32-"
   cd x86_64
-  build_all
+  build_dependencies
+  build_ffmpeg
+  build_ffmpeg shared
   cd ..
 fi
 
-echo 'done with ffmpeg cross compiler script'
+echo "done with ffmpeg cross compiler script, it may have built the following binaries: $(find . -name ffmpeg.exe)"
