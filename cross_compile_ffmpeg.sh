@@ -167,7 +167,7 @@ do_git_checkout() {
     cd $to_dir
     echo "Updating to latest $to_dir version..."
     old_git_version=`git rev-parse HEAD`
-    #git pull
+    git pull # if you comment out, add an echo :)
     update_to_desired_branch_or_revision "." $desired_branch
     new_git_version=`git rev-parse HEAD`
     if [[ "$old_git_version" != "$new_git_version" ]]; then
