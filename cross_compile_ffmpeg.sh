@@ -311,8 +311,8 @@ apply_patch() {
  local patch_name=$(basename $url)
  local patch_done_name="$patch_name.done"
  if [[ ! -e $patch_done_name ]]; then
-   wget $url # might save redundantly to .1 or .2, but that's ok
-   patch -p0 < "$patch_name" #|| exit 1
+   wget $url -O "$patch_name" || exit 1
+   patch -p0 < "$patch_name" || exit 1
    touch $patch_done_name
  else
    echo "patch $patch_name already applied"
