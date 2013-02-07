@@ -252,7 +252,7 @@ build_librtmp() {
 }
 
 build_libsoxr() {
-  download_and_unpack_file http://sourceforge.net/projects/soxr/files/soxr-0.1.0-Source.tar.xz/download soxr-0.1.0-Source
+  download_and_unpack_file http://sourceforge.net/projects/soxr/files/soxr-0.1.0-Source.tar.xz soxr-0.1.0-Source # not /download since apparently some tar's can't untar it without an extension?
   cd soxr-0.1.0-Source
     cmake . -DENABLE_STATIC_RUNTIME=1 -DCMAKE_SYSTEM_NAME=Windows -DCMAKE_RANLIB=${cross_prefix}ranlib -DCMAKE_C_COMPILER=${cross_prefix}gcc -DCMAKE_CXX_COMPILER=${cross_prefix}g++ -DCMAKE_RC_COMPILER=${cross_prefix}windres  -DCMAKE_INSTALL_PREFIX=$mingw_w64_x86_64_prefix -DHAVE_WORDS_BIGENDIAN_EXITCODE=0  -DBUILD_SHARED_LIBS:bool=off || exit 1
     # BUILD_TESTS:BOOL=ON instead of the below?
@@ -335,7 +335,7 @@ download_and_unpack_file() {
   if [ ! -f "$output_dir/unpacked.successfully" ]; then
     wget "$url" -O "$output_name" || exit 1
     tar -xf "$output_name" || unzip $output_name || exit 1
-    touch "$output_dir/unpacked.successfully"
+    touch "$output_dir/unpacked.successfully" || exit 1
     rm "$output_name"
   fi
 }
