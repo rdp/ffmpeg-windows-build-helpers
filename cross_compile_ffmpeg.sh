@@ -35,7 +35,7 @@ user_input=$(echo $user_input | tr '[A-Z]' '[a-z]')
 }
 
 check_missing_packages () {
-local check_packages=('pkg-config' 'make' 'git' 'svn' 'cmake' 'gcc' 'autoconf' 'libtool' 'automake' 'yasm')
+local check_packages=('curl' 'pkg-config' 'make' 'git' 'svn' 'cmake' 'gcc' 'autoconf' 'libtool' 'automake' 'yasm')
 for package in "${check_packages[@]}"; do
   type -P "$package" >/dev/null || missing_packages=("$package" "${missing_packages[@]}")
 done
@@ -175,7 +175,7 @@ do_git_checkout() {
      echo "got upstream changes, forcing re-configure."
      rm already*
     else
-     echo "this pull got no new upstream changes, not forcing re-configure..."
+     echo "this pull got no new upstream changes, possibly not forcing re-configure..."
     fi 
     cd ..
   fi
@@ -369,6 +369,16 @@ generic_download_and_install() {
 generic_configure_make_install() {
   generic_configure $1
   do_make_install
+}
+
+build_libilbc() {
+  do_git_checkout https://github.com/dekkers/libilbc.git libilbc_git
+  cd libilbc_git
+  if [[ ! -f "configure" ]]; then
+    autoreconf -fiv
+  fi
+  generic_configure_make_install
+  cd ..
 }
 
 build_libflite() {
@@ -658,7 +668,7 @@ build_ffmpeg() {
    local arch=x86_64
   fi
 
-config_options="--arch=$arch --target-os=mingw32 --cross-prefix=$cross_prefix --pkg-config=pkg-config --enable-gpl --enable-libsoxr --enable-libx264 --enable-avisynth --enable-libxvid --enable-libmp3lame --enable-version3 --enable-zlib --enable-librtmp --enable-libvorbis --enable-libtheora --enable-libspeex --enable-libopenjpeg --enable-gnutls --enable-libgsm --enable-libfreetype --enable-fontconfig --enable-libass --enable-libutvideo --enable-libopus --disable-w32threads --enable-frei0r --enable-filter=frei0r --enable-libvo-aacenc --enable-bzlib --enable-libxavs --extra-cflags=-DPTW32_STATIC_LIB --enable-libopencore-amrnb --enable-libopencore-amrwb  --enable-libvo-amrwbenc --enable-libschroedinger --enable-libbluray --enable-libvpx $extra_configure_opts" # --enable-w32threads --enable-libflite
+config_options="--arch=$arch --target-os=mingw32 --cross-prefix=$cross_prefix --pkg-config=pkg-config --enable-gpl --enable-libsoxr --enable-libx264 --enable-avisynth --enable-libxvid --enable-libmp3lame --enable-version3 --enable-zlib --enable-librtmp --enable-libvorbis --enable-libtheora --enable-libspeex --enable-libopenjpeg --enable-gnutls --enable-libgsm --enable-libfreetype --enable-fontconfig --enable-libass --enable-libutvideo --enable-libopus --disable-w32threads --enable-frei0r --enable-filter=frei0r --enable-libvo-aacenc --enable-bzlib --enable-libxavs --extra-cflags=-DPTW32_STATIC_LIB --enable-libopencore-amrnb --enable-libopencore-amrwb  --enable-libvo-amrwbenc --enable-libschroedinger --enable-libbluray --enable-libvpx --enable-libilbc $extra_configure_opts " # --enable-w32threads --enable-libflite
   if [[ "$non_free" = "y" ]]; then
     config_options="$config_options --enable-nonfree --enable-libfdk-aac" # --enable-libfaac -- faac deemed too poor quality and becomes the default -- add it in and uncomment the build_faac line to include it --enable-openssl --enable-libaacplus
   else
@@ -714,6 +724,7 @@ build_dependencies() {
   # build_iconv # mplayer I think needs it for freetype [just it though]
   build_freetype
   build_libexpat
+  build_libilbc
   build_fontconfig # needs expat, might need freetype, can use iconv, but I believe doesn't currently
   build_libfribidi
   build_libass # needs freetype, needs fribidi, needs fontconfig
