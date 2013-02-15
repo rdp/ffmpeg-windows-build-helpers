@@ -198,7 +198,6 @@ do_configure() {
   local cur_dir2=$(pwd)
   local english_name=$(basename $cur_dir2)
   local touch_name=$(get_small_touchfile_name already_configured "$configure_options")
-  echo "touch name is $touch_name"
   if [ ! -f "$touch_name" ]; then
     make clean # just in case
     #make uninstall # does weird things when run under ffmpeg src
@@ -219,7 +218,6 @@ do_make() {
   local extra_make_options="$1 -j $cpu_count"
   local cur_dir2=$(pwd)
   local touch_name=$(get_small_touchfile_name already_ran_make "$extra_make_options")
-  echo "touch name make is $touch_name"
 
   if [ ! -f $touch_name ]; then
     echo "making $cur_dir2 as $ PATH=$PATH make $extra_make_options"
@@ -234,7 +232,6 @@ do_make_install() {
   local extra_make_options="$1"
   do_make "$extra_make_options"
   local touch_name=$(get_small_touchfile_name already_ran_make_install "$extra_make_options")
-  echo "touch name make install is $touch_name"
   if [ ! -f $touch_name ]; then
     echo "make installing $cur_dir2 as $ PATH=$PATH make install $extra_make_options"
     nice make install $extra_make_options || exit 1
