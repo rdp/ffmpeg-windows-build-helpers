@@ -44,7 +44,7 @@ if [[ -n "${missing_packages[@]}" ]]; then
   clear
   echo "Could not find the following packages: ${missing_packages[@]}"
   echo 'Install the missing packages before running this script.'
- exit 1
+  exit 1
 fi
 
 local out=`cmake --version` # like cmake version 2.8.7
@@ -107,9 +107,10 @@ install_cross_compiler() {
   You will be prompted with a few questions as it installs (it takes quite awhile).
   Enter to continue:'
 
-  wget http://zeranoe.com/scripts/mingw_w64_build/mingw-w64-build-3.1.0 -O mingw-w64-build-3.1.0 
+  curl http://zeranoe.com/scripts/mingw_w64_build/mingw-w64-build-3.1.0 -O  || exit 1
   chmod u+x mingw-w64-build-3.1.0
   ./mingw-w64-build-3.1.0 --mingw-w64-ver=svn --disable-nls --disable-shared --default-configure --clean-build --threads=pthreads-w32 || exit 1 # --disable-shared allows c++ to be distributed at all...which seemed necessary for some random dependency...
+
   if [ -d mingw-w64-x86_64 ]; then
     touch mingw-w64-x86_64/compiler.done
   fi
@@ -180,6 +181,14 @@ do_git_checkout() {
   fi
 }
 
+get_small_touchfile_name() { # have to call with assignment like a=$(get_small...)
+  local beginning="$1"
+  local extra_stuff="$2"
+  local touch_name="${beginning}_$(echo -- $extra_stuff | /usr/bin/env md5sum)" # make it smaller
+  touch_name=$(echo $touch_name | sed "s/ //g") # md5sum introduces spaces, remove them
+  echo $touch_name # bash cruddy return system LOL
+} 
+
 do_configure() {
   local configure_options="$1"
   local configure_name="$2"
@@ -188,8 +197,8 @@ do_configure() {
   fi
   local cur_dir2=$(pwd)
   local english_name=$(basename $cur_dir2)
-  local touch_name=$(echo -- $configure_options | /usr/bin/env md5sum) # sanitize, make it not too long of overall length
-  touch_name=$(echo already_configured_$touch_name | sed "s/ //g") # add a prefix so we can delete it easily, also remove spaces
+  local touch_name=$(get_small_touchfile_name already_configured "$configure_options")
+  echo "touch name is $touch_name"
   if [ ! -f "$touch_name" ]; then
     make clean # just in case
     #make uninstall # does weird things when run under ffmpeg src
@@ -198,7 +207,7 @@ do_configure() {
     fi
     rm -f already_* # reset
     echo "configuring $english_name as $ PATH=$PATH $configure_name $configure_options"
-    "$configure_name" $configure_options || exit 1
+    nice "$configure_name" $configure_options || exit 1
     touch -- "$touch_name"
     make clean # just in case
   else
@@ -209,10 +218,13 @@ do_configure() {
 do_make() {
   local extra_make_options="$1 -j $cpu_count"
   local cur_dir2=$(pwd)
-  if [ ! -f already_ran_make ]; then
+  local touch_name=$(get_small_touchfile_name already_ran_make "$extra_make_options")
+  echo "touch name make is $touch_name"
+
+  if [ ! -f $touch_name ]; then
     echo "making $cur_dir2 as $ PATH=$PATH make $extra_make_options"
     make $extra_make_options || exit 1
-    touch already_ran_make
+    touch $touch_name
   else
     echo "already did make $(basename "$cur_dir2")"
   fi
@@ -221,10 +233,12 @@ do_make() {
 do_make_install() {
   local extra_make_options="$1"
   do_make "$extra_make_options"
-  if [ ! -f already_ran_make_install ]; then
+  local touch_name=$(get_small_touchfile_name already_ran_make_install "$extra_make_options")
+  echo "touch name make install is $touch_name"
+  if [ ! -f $touch_name ]; then
     echo "make installing $cur_dir2 as $ PATH=$PATH make install $extra_make_options"
     make install $extra_make_options || exit 1
-    touch already_ran_make_install
+    touch $touch_name
   fi
 }
 
@@ -311,7 +325,7 @@ apply_patch() {
  local patch_name=$(basename $url)
  local patch_done_name="$patch_name.done"
  if [[ ! -e $patch_done_name ]]; then
-   wget $url -O "$patch_name" || exit 1
+   curl $url -O || exit 1
    patch -p0 < "$patch_name" || exit 1
    touch $patch_done_name
  else
@@ -319,12 +333,11 @@ apply_patch() {
  fi
 }
 
-
 build_libutvideo() {
   download_and_unpack_file https://github.com/downloads/rdp/FFmpeg/utvideo-11.1.1-src.zip utvideo-11.1.1
   cd utvideo-11.1.1
     apply_patch https://raw.github.com/rdp/ffmpeg-windows-build-helpers/master/patches/utv.diff
-    make install CROSS_PREFIX=$cross_prefix DESTDIR=$mingw_w64_x86_64_prefix prefix=
+    do_make_install "CROSS_PREFIX=$cross_prefix DESTDIR=$mingw_w64_x86_64_prefix prefix=" # prefix= to avoid it adding an extra /usr/local to it yikes
   cd ..
 }
 
@@ -333,7 +346,7 @@ download_and_unpack_file() {
   output_name=$(basename $url)
   output_dir="$2"
   if [ ! -f "$output_dir/unpacked.successfully" ]; then
-    wget "$url" -O "$output_name" || exit 1
+    curl "$url" -O -L || exit 1
     tar -xf "$output_name" || unzip $output_name || exit 1
     touch "$output_dir/unpacked.successfully" || exit 1
     rm "$output_name"
@@ -380,7 +393,7 @@ build_libflite() {
 build_libgsm() {
   download_and_unpack_file http://www.quut.com/gsm/gsm-1.0.13.tar.gz gsm-1.0-pl13
   cd gsm-1.0-pl13
-  make CC=${cross_prefix}gcc AR=${cross_prefix}ar RANLIB=${cross_prefix}ranlib INSTALL_ROOT=${mingw_w64_x86_64_prefix} # fails, but we expect that LODO fix [?]
+  make CC=${cross_prefix}gcc AR=${cross_prefix}ar RANLIB=${cross_prefix}ranlib INSTALL_ROOT=${mingw_w64_x86_64_prefix} # fails, but in a way we expect (toast.c) LODO fix somehow?
   cp lib/libgsm.a $mingw_w64_x86_64_prefix/lib || exit 1
   mkdir -p $mingw_w64_x86_64_prefix/include/gsm
   cp inc/gsm.h $mingw_w64_x86_64_prefix/include/gsm || exit 1
@@ -627,7 +640,7 @@ build_frei0r() {
     #cp include/frei0r.h $mingw_w64_x86_64_prefix/include
   #cd ..
   if [[ ! -f "$mingw_w64_x86_64_prefix/include/frei0r.h" ]]; then
-    wget https://raw.github.com/rdp/frei0r/master/include/frei0r.h -O $mingw_w64_x86_64_prefix/include/frei0r.h
+    curl https://raw.github.com/rdp/frei0r/master/include/frei0r.h > $mingw_w64_x86_64_prefix/include/frei0r.h || exit 1
   fi
 }
 
