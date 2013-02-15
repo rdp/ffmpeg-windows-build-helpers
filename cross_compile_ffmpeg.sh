@@ -281,9 +281,9 @@ build_libxavs() {
   do_svn_checkout https://xavs.svn.sourceforge.net/svnroot/xavs/trunk xavs
   cd xavs
     export LDFLAGS='-lm'
-    generic_configure # unfortunately this using --host isn't enough apparently...
+    generic_configure "--cross-prefix=$cross_prefix" # see https://github.com/rdp/ffmpeg-windows-build-helpers/issues/3
     unset LDFLAGS
-    do_make_install "CC=$(echo $cross_prefix)gcc AR=$(echo $cross_prefix)ar PREFIX=$mingw_w64_x86_64_prefix RANLIB=$(echo $cross_prefix)ranlib STRIP=$(echo $cross-prefix)strip"
+    do_make_install "CC=$(echo $cross_prefix)gcc AR=$(echo $cross_prefix)ar PREFIX=$mingw_w64_x86_64_prefix RANLIB=$(echo $cross_prefix)ranlib STRIP=$(echo $cross_prefix)strip"
   cd ..
 }
 
