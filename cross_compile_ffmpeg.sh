@@ -223,7 +223,7 @@ do_make() {
 
   if [ ! -f $touch_name ]; then
     echo "making $cur_dir2 as $ PATH=$PATH make $extra_make_options"
-    make $extra_make_options || exit 1
+    nice make $extra_make_options || exit 1
     touch $touch_name
   else
     echo "already did make $(basename "$cur_dir2")"
@@ -237,7 +237,7 @@ do_make_install() {
   echo "touch name make install is $touch_name"
   if [ ! -f $touch_name ]; then
     echo "make installing $cur_dir2 as $ PATH=$PATH make install $extra_make_options"
-    make install $extra_make_options || exit 1
+    nice make install $extra_make_options || exit 1
     touch $touch_name
   fi
 }
