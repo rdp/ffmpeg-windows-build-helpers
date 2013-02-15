@@ -62,6 +62,9 @@ fi
 
 cur_dir="$(pwd)/sandbox"
 cpu_count="$(grep -c processor /proc/cpuinfo)" # linux only <sigh>
+if [ -z "$cpu_count" ]; then
+  cpu_count=1 # boxes where we don't know how to determine cpu count, default to just 1
+fi
 original_cpu_count=$cpu_count
 
 intro() {
