@@ -641,6 +641,22 @@ build_frei0r() {
   fi
 }
 
+build_mp4box() {
+  # This script only builds the gpac_static lib plus MP4Box. Other tools inside this pack require socket i/o and therefore hard to implement, so only a partial make for now.
+  do_svn_checkout https://gpac.svn.sourceforge.net/svnroot/gpac/trunk/gpac gpac
+  cd gpac
+  sed -i "s/has_dvb4linux=\"yes\"/has_dvb4linux=\"no\"/g" configure
+  sed -i "s/`uname -s`/MINGW32/g" configure
+  generic_configure --static-mp4box --enable-static-bin --disable-all # dezi static
+  cd src
+  do_make "CC=$(echo $cross_prefix)gcc AR=$(echo $cross_prefix)ar PREFIX=$mingw_w64_x86_64_prefix RANLIB=$(echo $cross_prefix)ranlib STRIP=$(echo $cross-prefix)strip"
+  cd ..
+  cd applications/mp4box
+  do_make "CC=$(echo $cross_prefix)gcc AR=$(echo $cross_prefix)ar PREFIX=$mingw_w64_x86_64_prefix RANLIB=$(echo $cross_prefix)ranlib STRIP=$(echo $cross-prefix)strip"
+  cd ../..
+  cd ..
+}
+
 build_ffmpeg() {
   local shared=$1
   if [[ $shared == "shared" ]]; then
@@ -751,13 +767,16 @@ if [ -d "mingw-w64-i686" ]; then # they installed a 32-bit compiler
   mingw_w64_x86_64_prefix="$cur_dir/mingw-w64-i686/$host_target"
   export PATH="$cur_dir/mingw-w64-i686/bin:$original_path"
   export PKG_CONFIG_PATH="$cur_dir/mingw-w64-i686/i686-w64-mingw32/lib/pkgconfig"
+  echo "PKG_CONFIG_PATH=$PKG_CONFIG_PATH"
   bits_target=32
   cross_prefix="$cur_dir/mingw-w64-i686/bin/i686-w64-mingw32-"
+  echo "cross_prefix=$cross_prefix"
   mkdir -p win32
   cd win32
   build_dependencies
-  build_ffmpeg
-  build_ffmpeg shared
+  #build_ffmpeg
+  #build_ffmpeg shared
+  build_mp4box
   cd ..
 fi
 
@@ -774,6 +793,7 @@ if [ -d "mingw-w64-x86_64" ]; then # they installed a 64-bit compiler
   build_dependencies
   build_ffmpeg
   build_ffmpeg shared
+  build_mp4box
   cd ..
 fi
 
