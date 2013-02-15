@@ -35,7 +35,7 @@ user_input=$(echo $user_input | tr '[A-Z]' '[a-z]')
 }
 
 check_missing_packages () {
-local check_packages=('curl' 'pkg-config' 'make' 'git' 'svn' 'cmake' 'gcc' 'autoconf' 'libtool' 'automake' 'yasm')
+local check_packages=('curl' 'pkg-config' 'make' 'git' 'svn' 'cmake' 'gcc' 'autoconf' 'libtool' 'automake' 'yasm' 'cvs' 'flex' 'bison')
 for package in "${check_packages[@]}"; do
   type -P "$package" >/dev/null || missing_packages=("$package" "${missing_packages[@]}")
 done
@@ -63,7 +63,7 @@ fi
 cur_dir="$(pwd)/sandbox"
 cpu_count="$(grep -c processor /proc/cpuinfo)" # linux only <sigh>
 if [ -z "$cpu_count" ]; then
-  cpu_count=1 # boxes where we don't know how to determine cpu count, default to just 1
+  cpu_count=1 # boxes where we don't know how to determine cpu count [OS X for instance], default to just 1, instead of blank, which means infinite 
 fi
 original_cpu_count=$cpu_count
 
@@ -77,7 +77,7 @@ intro() {
   your compilers, you can no longer rename the directory.
 EOL
   if [[ $sandbox_ok != 'y' ]]; then
-    yes_no_sel "Is ./sandbox ok [y/n]?"
+    yes_no_sel "Is ./sandbox ok (requires ~ 5GB freespace) [y/n]?"
     if [[ "$user_input" = "n" ]]; then
       exit 1
     fi
