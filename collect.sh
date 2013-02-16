@@ -19,7 +19,7 @@ fi
 
 cp ./sandbox/win32/ffmpeg_git/ffmpeg.exe "$dir/32-bit"
 #cp ./sandbox/win32/ffmpeg_git/ffplay.exe "$dir/32-bit"
-cp ./sandbox/win32/ffmpeg_git/ffmpeg_g.exe "$dir/32-bit"
+#cp ./sandbox/win32/ffmpeg_git/ffmpeg_g.exe "$dir/32-bit"
 
 # old shared build stuff...
 #cp ./sandbox/win32/ffmpeg_git/*/*-*.dll     "$dir/32-bit" 
