@@ -73,8 +73,10 @@ intro() {
   Welcome to the ffmpeg cross-compile builder-helper script.
   Downloads and builds will be installed to directories within $cur_dir
   If this is not ok, then exit now, and cd to the directory where you'd
-  like them installed, then run this script again.  NB that once you build
-  your compilers, you can no longer rename the directory.
+  like them installed, then run this script again from there.  
+  NB that once you build your compilers, you can no longer rename/move
+  the sandbox directory, since it will have some hard coded paths in there.
+  You can, of course, rebuild ffmpeg from within it, etc.
 EOL
   if [[ $sandbox_ok != 'y' ]]; then
     yes_no_sel "Is ./sandbox ok (requires ~ 5GB freespace) [y/n]?"
