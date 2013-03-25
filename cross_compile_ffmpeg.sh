@@ -112,7 +112,7 @@ install_cross_compiler() {
   You will be prompted with a few questions as it installs (it takes quite awhile).
   Enter to continue:'
 
-  curl http://zeranoe.com/scripts/mingw_w64_build/mingw-w64-build-3.1.0 -O  || exit 1
+  curl https://raw.github.com/rdp/ffmpeg-windows-build-helpers/master/patches/mingw-w64-build-3.1.0 -O  || exit 1
   chmod u+x mingw-w64-build-3.1.0
   ./mingw-w64-build-3.1.0 --mingw-w64-ver=svn --disable-nls --disable-shared --default-configure --clean-build --threads=pthreads-w32 || exit 1 # --disable-shared allows c++ to be distributed at all...which seemed necessary for some random dependency...
 
