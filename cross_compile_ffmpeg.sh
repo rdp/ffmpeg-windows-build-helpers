@@ -63,9 +63,13 @@ fi
 cur_dir="$(pwd)/sandbox"
 cpu_count="$(grep -c processor /proc/cpuinfo)" # linux only <sigh>
 if [ -z "$cpu_count" ]; then
-  cpu_count=1 # boxes where we don't know how to determine cpu count [OS X for instance], default to just 1, instead of blank, which means infinite 
+  cpu_count=`sysctl -n hw.ncpu | tr -d '\n'` # OS X
+  if [ -z "$cpu_count" ]; then
+    echo "warning, unable to determine cpu count, defaulting to 1"
+    cpu_count=1 # boxes where we don't know how to determine cpu count [OS X for instance], default to just 1, instead of blank, which means infinite 
+  fi
 fi
-original_cpu_count=$cpu_count
+original_cpu_count=$cpu_count # save it away for some that revert it temporarily
 
 intro() {
   cat <<EOL
@@ -112,9 +116,9 @@ install_cross_compiler() {
   You will be prompted with a few questions as it installs (it takes quite awhile).
   Enter to continue:'
 
-  curl https://raw.github.com/rdp/ffmpeg-windows-build-helpers/master/patches/mingw-w64-build-3.1.0 -O  || exit 1
-  chmod u+x mingw-w64-build-3.1.0
-  ./mingw-w64-build-3.1.0 --mingw-w64-ver=svn --disable-nls --disable-shared --default-configure --clean-build --threads=pthreads-w32 || exit 1 # --disable-shared allows c++ to be distributed at all...which seemed necessary for some random dependency...
+  curl https://raw.github.com/rdp/ffmpeg-windows-build-helpers/master/patches/mingw-w64-build-3.2.0 -O  || exit 1
+  chmod u+x mingw-w64-build-3.2.0
+  ./mingw-w64-build-3.2.0 --mingw-w64-ver=2.0.7 --disable-shared --default-configure --clean-build --cpu-count=$cpu_count --threads=pthreads-w32 || exit 1 # --disable-shared allows c++ to be distributed at all...which seemed necessary for some random dependency...
 
   if [ -d mingw-w64-x86_64 ]; then
     touch mingw-w64-x86_64/compiler.done
