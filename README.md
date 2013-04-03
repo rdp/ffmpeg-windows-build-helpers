@@ -20,5 +20,8 @@ And follow the prompts.
 It works with 32 or 64 bit Linux, and produces both 32 and 64 bit windows ffmpeg.exe's
 
 See also 
-http://github.com/rdp/ffmpeg-windows-build-helpers/wiki for more tips, including being able to build it more quickly  !
+http://github.com/rdp/ffmpeg-windows-build-helpers/wiki for more tips, including being able to build it more quickly!
+
+OS X users, this may help: https://github.com/rdp/ffmpeg-windows-build-helpers/wiki/OS-X
+
 Feedback welcome roger-projects@googlegroups.com
