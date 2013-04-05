@@ -8,3 +8,5 @@ cpu count auto-detection fails linux with 2
 it should not allow 2.0.7
 
 it seemed to fail with the "weird dash" thing with just  --threads=pthreads-w32
+
+it would be nice to have a command line option "skip all prompts" or the like...
