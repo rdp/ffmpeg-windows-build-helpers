@@ -83,7 +83,7 @@ intro() {
   You can, of course, rebuild ffmpeg from within it, etc.
 EOL
   if [[ $sandbox_ok != 'y' ]]; then
-    yes_no_sel "Is ./sandbox ok (requires ~ 5GB freespace) [y/n]?"
+    yes_no_sel "Is ./sandbox ok (requires ~ 5GB space) [y/n]?"
     if [[ "$user_input" = "n" ]]; then
       exit 1
     fi
@@ -118,7 +118,8 @@ install_cross_compiler() {
 
   curl https://raw.github.com/rdp/ffmpeg-windows-build-helpers/master/patches/mingw-w64-build-3.2.0 -O  || exit 1
   chmod u+x mingw-w64-build-3.2.0
-  ./mingw-w64-build-3.2.0 --mingw-w64-ver=2.0.7 --disable-shared --default-configure --clean-build --cpu-count=$cpu_count --threads=pthreads-w32 || exit 1 # --disable-shared allows c++ to be distributed at all...which seemed necessary for some random dependency...
+  # requires mingw-w64 svn: http://gcc.gnu.org/bugzilla/show_bug.cgi?id=55706
+  ./mingw-w64-build-3.2.0 --mingw-w64-ver=svn --disable-shared --default-configure --clean-build --cpu-count=$cpu_count --threads=pthreads-w32 --pthreads-w32-ver=2-9-1 || exit 1 # --disable-shared allows c++ to be distributed at all...which seemed necessary for some random dependency...
 
   if [ -d mingw-w64-x86_64 ]; then
     touch mingw-w64-x86_64/compiler.done
