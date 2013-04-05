@@ -2,3 +2,5 @@
 
 it also didn't detect that I couldn't unpack xz
   or should it check for the "xz" executable?
+
+cpu count fails linux with 2
