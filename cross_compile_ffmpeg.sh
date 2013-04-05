@@ -105,21 +105,48 @@ The resultant binary will not be distributable, but might be useful for in-house
   #march_native="$user_input"
 }
 
+pick_compiler_flavors() {
+
+while [[ "$build_choice" != [1-3] ]]; do
+if [[ -n "${unknown_opts[@]}" ]]; then
+  echo -n 'Unknown option(s)'
+  for unknown_opt in "${unknown_opts[@]}"; do
+    echo -n " '$unknown_opt'"
+  done
+  echo ', ignored.'; echo
+fi
+cat <<'EOF'
+What version of MinGW-w64 would you like to build or update?
+  1. Both Win32 and Win64
+  2. Win32 (32-bit only)
+  3. Win64 (64-bit only)
+  4. Exit
+EOF
+echo -n 'Input your choice [1-5]: '
+read build_choice
+done
+case "$build_choice" in
+  1 ) build_choice=multi ;;
+  2 ) build_choice=win32 ;;
+  3 ) build_choice=win64 ;;
+  4 ) exit 0 ;;
+  * ) clear;  echo 'Your choice was not valid, please try again.'; echo ;;
+esac
+}
+
 install_cross_compiler() {
   if [[ -f "mingw-w64-i686/compiler.done" || -f "mingw-w64-x86_64/compiler.done" ]]; then
-   echo "MinGW-w64 compiler of some type already installed, not re-installing it..."
+   echo "MinGW-w64 compiler of some type or other already installed, not re-installing..."
    if [[ $rebuild_compilers != "y" ]]; then
      return # early exit
    fi
   fi
-  read -p 'First we will download and compile a gcc cross-compiler (MinGW-w64).
-  You will be prompted with a few questions as it installs (it takes quite awhile).
-  Enter to continue:'
 
+  pick_compiler_flavors 
   curl https://raw.github.com/rdp/ffmpeg-windows-build-helpers/master/patches/mingw-w64-build-3.2.0 -O  || exit 1
   chmod u+x mingw-w64-build-3.2.0
   # requires mingw-w64 svn: http://gcc.gnu.org/bugzilla/show_bug.cgi?id=55706
-  ./mingw-w64-build-3.2.0 --mingw-w64-ver=svn --disable-shared --default-configure --clean-build --cpu-count=$cpu_count --threads=pthreads-w32 --pthreads-w32-ver=2-9-1 || exit 1 # --disable-shared allows c++ to be distributed at all...which seemed necessary for some random dependency...
+  ./mingw-w64-build-3.2.0 --mingw-w64-ver=svn --disable-shared --default-configure --clean-build --cpu-count=$cpu_count --threads=pthreads-w32 --pthreads-w32-ver=2-9-1 --build-type=$build_choice || exit 1 # --disable-shared allows c++ to be distributed at all...which seemed necessary for some random dependency...
 
   if [ -d mingw-w64-x86_64 ]; then
     touch mingw-w64-x86_64/compiler.done
