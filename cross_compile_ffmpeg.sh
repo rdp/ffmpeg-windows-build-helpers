@@ -185,8 +185,8 @@ update_to_desired_branch_or_revision() {
    pushd $to_dir
    cd $to_dir
       echo "git co $desired_branch"
-      git co "$desired_branch"
-      git merge "$desired_branch" # depending on which type it is :)
+      git checkout  "$desired_branch" || exit 1
+      git merge "$desired_branch" || exit 1 # depending on which type it is :)
    popd # in case it's a cd to ., don't want to cd to .. here...
   fi
 }
