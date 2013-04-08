@@ -1,8 +1,8 @@
 ffmpeg-windows-build-helpers
 ============================
 
-This helper script lets you compile locally a windows 32 bit version of ffmpeg.exe,
-including various dependency libraries.
+This helper script lets you cross compile a windows 32 or 64 bit version of ffmpeg.exe,
+including many dependency libraries.
 
 To run the script:
 
@@ -17,7 +17,7 @@ chmod u+x cross_compile_ffmpeg.sh
 ```
 
 And follow the prompts.
-It works with 32 or 64 bit Linux, and produces both 32 and 64 bit windows ffmpeg.exe's
+It works with 32 or 64 bit Linux, and can produce  both 32 and 64 bit windows ffmpeg.exe's
 
 See also 
 http://github.com/rdp/ffmpeg-windows-build-helpers/wiki for more tips, including being able to build it more quickly!
