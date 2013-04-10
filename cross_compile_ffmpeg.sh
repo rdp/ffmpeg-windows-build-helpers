@@ -280,7 +280,8 @@ do_make_install() {
 build_x264() {
   do_git_checkout "http://repo.or.cz/r/x264.git" "x264" "origin/stable"
   cd x264
-  do_configure "--host=$host_target --enable-static --cross-prefix=$cross_prefix --prefix=$mingw_w64_x86_64_prefix --extra-cflags=-DPTW32_STATIC_LIB" #--enable-win32thread --enable-debug" 
+  do_configure "--extra-cflags=-fno-aggressive-loop-optimizations --host=$host_target --enable-static --cross-prefix=$cross_prefix --prefix=$mingw_w64_x86_64_prefix --extra-cflags=-DPTW32_STATIC_LIB --enable-debug" # --enable-win32thread --enable-debug shouldn't hurt us since ffmpeg strips it anyway
+# no-aggressive ref: https://ffmpeg.org/trac/ffmpeg/ticket/2310
   # TODO more march=native here?
   # rm -f already_ran_make # just in case the git checkout did something, re-make
   do_make_install
@@ -722,7 +723,7 @@ config_options="--arch=$arch --target-os=mingw32 --cross-prefix=$cross_prefix --
   fi
   
   do_configure "$config_options"
-  rm -f *.exe # just in case some library dependency was updated, force it to re-link...
+  rm -f */*.a */*.dll *.exe # just in case some dependency library has changed, force it to re-link even if the ffmpeg source hasn't changed...
   rm already_ran_make*
   echo "doing ffmpeg make $(pwd)"
   do_make
