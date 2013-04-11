@@ -2,13 +2,14 @@
 
 == maybe do ==
 
-add mplayer cross option (mp4box?)
+add mplayer cross option (mp4box too?)
 
 warn on old yasm from the get go...tell them to update to Raring :)
 
 it should notice when configure was originally from some other git commit...anyway today, if you go to ffmpeg, checkout a different branch, it doesn't reconfigure...
 
 x264 pkg-config should specify -libpthread? (repro by compiling ffmpeg with windows threads, you'll see...)
+  tell them? others that require tweaks also?
 
 make march work with ffmpeg/x264
  compare speeds, plus 64 vs 32 bit for everything
@@ -19,6 +20,8 @@ distribute "my own set of [I guess optimized?] binaries" that are processor opti
   though mine do have pthreads...but hopefully I can test and report and get the zeranoe ones built that way...share the workload :)
 
 == really maybe, as in probably never ==
+
+split sandbox in half?
 
 make the static vs. shared builds "a command line option/prompt"
 
