@@ -563,8 +563,8 @@ build_bzlib2() {
 }
 
 build_zlib() {
-  download_and_unpack_file http://zlib.net/zlib-1.2.7.tar.gz zlib-1.2.7
-  cd zlib-1.2.7
+  download_and_unpack_file http://zlib.net/zlib-1.2.8.tar.gz zlib-1.2.8
+  cd zlib-1.2.8
     do_configure "--static --prefix=$mingw_w64_x86_64_prefix"
     do_make_install "CC=$(echo $cross_prefix)gcc AR=$(echo $cross_prefix)ar RANLIB=$(echo $cross_prefix)ranlib"
   cd ..
