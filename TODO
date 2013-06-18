@@ -26,6 +26,7 @@ make the static vs. shared builds "a command line option/prompt"
 release "some 10 bit, some not" ?
 
 release some compiler optimized? does it make a difference? real installer?
+  ancient debug builds, etc...hmm...sourceforge for legacy? yeah
 
 add openmp, for libsoxr? (any other dependency?)
 
