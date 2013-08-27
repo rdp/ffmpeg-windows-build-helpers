@@ -90,12 +90,17 @@ EOL
   fi
   mkdir -p "$cur_dir"
   cd "$cur_dir"
+  echo "started as $disable_nonfree"
   if [[ $disable_nonfree = "y" ]]; then
     non_free="n"
   else
-    yes_no_sel "Would you like to include non-free (non GPL compatible) libraries, like many aac encoders
+    if  [[ $disable_nonfree = "n" ]]; then
+      non_free="y" 
+    else
+      yes_no_sel "Would you like to include non-free (non GPL compatible) libraries, like many aac encoders
 The resultant binary will not be distributable, but might be useful for in-house use. Include non-free [y/n]?"
-    non_free="$user_input" # save it away
+      non_free="$user_input" # save it away
+    fi
   fi
 
   #yes_no_sel "Would you like to compile with -march=native, which can get a few percent speedup
@@ -542,16 +547,16 @@ build_libschroedinger() {
 }
 
 build_gnutls() {
-  download_and_unpack_file ftp://ftp.gnu.org/gnu/gnutls/gnutls-3.0.22.tar.xz gnutls-3.0.22
-  cd gnutls-3.0.22
-    generic_configure "--disable-cxx" # don't need the c++ version, in an effort to cut down on size... LODO test difference...
+  download_and_unpack_file ftp://ftp.gnutls.org/gcrypt/gnutls/v3.2/gnutls-3.2.3.tar.xz gnutls-3.2.3
+  cd gnutls-3.2.3
+    generic_configure "--disable-cxx --disable-doc" # don't need the c++ version, in an effort to cut down on size... LODO test difference...
     do_make_install
   cd ..
   sed -i 's/-lgnutls *$/-lgnutls -lnettle -lhogweed -lgmp -lcrypt32 -lws2_32/' "$PKG_CONFIG_PATH/gnutls.pc"
 }
 
 build_libnettle() {
-  generic_download_and_install http://www.lysator.liu.se/~nisse/archive/nettle-2.5.tar.gz nettle-2.5
+  generic_download_and_install http://www.lysator.liu.se/~nisse/archive/nettle-2.7.1.tar.gz nettle-2.7.1
 }
 
 build_bzlib2() {
@@ -781,7 +786,7 @@ build_dependencies() {
 
 while true; do
   case $1 in
-    -h | --help ) echo "options: --disable-nonfree=y --sandbox-ok=y --rebuild-compilers=y"; exit 0 ;;
+    -h | --help ) echo "available options: --disable-nonfree=y (change to n to include nonfree) --sandbox-ok=y --rebuild-compilers=y"; exit 0 ;;
     --sandbox-ok=* ) sandbox_ok="${1#*=}"; shift ;;
     --disable-nonfree=* ) disable_nonfree="${1#*=}"; shift ;;
     --rebuild-compilers=* ) rebuild_compilers="${1#*=}"; shift ;;
