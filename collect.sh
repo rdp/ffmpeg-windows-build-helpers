@@ -34,7 +34,7 @@ cp ./sandbox/win32/ffmpeg_git/ffmpeg.exe "$dir/32-bit"
 #./sandbox/mingw-w64-x86_64/bin/x86_64-w64-mingw32-strip $dir/64-bit/*.dll
 
 cd distros
-7zr a "$file.7z" "$file/*"
+7zr a "$file.7z" "$file/*" || 7za a "$file.7z" "$file/*"  # some have a package with only 7za, see https://github.com/rdp/ffmpeg-windows-build-helpers/issues/16
 cd ..
 
 echo "created distros/$file"
