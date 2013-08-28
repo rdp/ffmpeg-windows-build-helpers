@@ -1,6 +1,9 @@
 == todos ==
-lock in the mingww64 svn version...
-  use mingw 2.0.8 instead?
+
+see if "no docu" is enough, if so update github, https://sourceware.org/bugzilla/show_bug.cgi?id=15183, email that guy, note to zeranoe
+
+lock in the mingw w64 svn version...
+  use mingw 2.0.8 instead? if works, note to zeranoe, also gcc 4.8.1 to zeranoe
 
 == maybe do ==
 
