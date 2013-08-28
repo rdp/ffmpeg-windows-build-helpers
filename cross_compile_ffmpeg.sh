@@ -320,7 +320,7 @@ build_libsoxr() {
 }
 
 build_libxavs() {
-  do_svn_checkout https://xavs.svn.sourceforge.net/svnroot/xavs/trunk xavs
+  do_svn_checkout https://svn.code.sf.net/p/xavs/code/trunk xavs
   cd xavs
     export LDFLAGS='-lm'
     generic_configure "--cross-prefix=$cross_prefix" # see https://github.com/rdp/ffmpeg-windows-build-helpers/issues/3
