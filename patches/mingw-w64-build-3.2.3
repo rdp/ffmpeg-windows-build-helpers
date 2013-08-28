@@ -1,9 +1,10 @@
 #!/bin/bash
 
+script_ver='3.2.3'
 ################################################################################
-# MingGW-w64 Build Script 3.1.0
+# MingGW-w64 Build Script
 ################################################################################
-# Copyright (C) 2011-2012  Kyle Schwarz
+# Copyright (C) 2011-2013  Kyle Schwarz
 # 
 # This program is free software: you can redistribute it and/or modify it under
 # the terms of the GNU General Public License as published by the Free Software
@@ -29,8 +30,8 @@
 #   gmp
 #   mpfr
 #   mpc
-#   ppl
-#   cloog-ppl
+#   isl
+#   cloog
 #   binutils
 #   gcc
 ################################################################################
@@ -38,9 +39,9 @@
 about () {
 clear
 read -p \
-'################################################################################
+"################################################################################
 #                                                                              #
-#                        MingGW-w64 Build Script 3.1.0                         #
+#                        MingGW-w64 Build Script $script_ver                         #
 #                                                                              #
 #                                                                              #
 #            This script will build MinGW-w64 for Win32 and Win64.             #
@@ -51,17 +52,17 @@ read -p \
 #                                                                              #
 #          mpfr                             mpc                                #
 #                                                                              #
-#          ppl                              cloog-ppl                          #
+#          isl                              cloog                              #
 #                                                                              #
 #          binutils                         gcc                                #
 #                                                                              #
 #                                                                              #
 #                            Press Enter to continue                           #
 #                                                                              #
-#                     Copyright (C) 2011-1012 Kyle Schwarz                     #
+#                     Copyright (C) 2011-1013 Kyle Schwarz                     #
 #                This program comes with ABSOLUTELY NO WARRANTY                #
 #                                                                              #
-################################################################################'
+################################################################################"
 }
 
 # Variables
@@ -73,17 +74,13 @@ target_x86_64='x86_64-w64-mingw32'
 
 ## Versions
 mingw_w64_release_ver='2.0.7'
-gcc_47_ver='4.7.2'
-gcc_46_ver='4.6.3'
-gcc_45_ver='4.5.3'
+gcc_release_ver='4.8.0'
 mpfr_release_ver='3.1.2'
 mpc_release_ver='1.0.1'
-cloog_ppl_release_ver='0.15.11'
-binutils_release_ver='2.23'
-gmp_release_ver='5.0.5'
-ppl_release_ver='1.0'
-isl_release_ver='0.10'
-cloog_release_ver='0.17.0'
+binutils_release_ver='2.23.52.0.2' # pseudo release version :)
+gmp_release_ver='5.1.1'
+isl_release_ver='0.11.1'
+cloog_release_ver='0.18.0'
 pthreads_w32_release_ver='2-9-1'
 
 ## Locations
@@ -97,7 +94,6 @@ mingw_w64_i686_prefix="$working_dir/mingw-w64-i686"
 mingw_w64_x86_64_prefix="$working_dir/mingw-w64-x86_64"
 mpfr_prefix="$gcc_packages_dir/mpfr/mpfr-$mpfr_release_ver-$uname_m"
 mpc_prefix="$gcc_packages_dir/mpc/mpc-$mpc_release_ver-$uname_m"
-cloog_ppl_prefix="$gcc_packages_dir/cloog-ppl/cloog-ppl-$cloog_ppl_release_ver-$uname_m"
 cloog_prefix="$gcc_packages_dir/cloog/cloog-$cloog_release_ver-$uname_m"
 isl_prefix="$gcc_packages_dir/isl/isl-$isl_release_ver-$uname_m"
 
@@ -115,43 +111,49 @@ General:
   -V, --version  display version information and exit
 
 Compile Options:
-  --build-type=TYPE         compile for TYPE (win32, win64, multi) [multi]
-  --default-configure       compile with default options for all unset options
-  --allow-overwrite         allow overwrite if no updates are found
-  --rebuild-all             rebuild all packages
-  --mingw-w64-ver=NUMBER    compile with MinGW-w64 VERSION ($mingw_w64_release_ver, svn)
-                            [svn]
-  --cpu-count=NUMBER        use NUMBER of cores/threads to compile with
-  --binutils-ver=VERSION    compile with binutils VERSION ($binutils_release_ver, cvs) [$binutils_release_ver]
-  --gcc-ver=VERSION         compile with GCC VERSION ($gcc_47_ver, $gcc_46_ver, $gcc_45_ver, svn) 
-                            [$gcc_47_ver]
-  --gcc-langs=LANG1,LANG2   compile GCC with support for LANG (ada, c, c++,
-                            fortran, go, java, objc, obj-c++, all) [c,c++]
-  --disable-nls             disable "Native Language Support"
-  --disable-shared          compile a static only toolchain
-  --threads=LIB             compile with support for thread LIB (winpthreads,
-                            pthreads-w32, disable) [winpthreads]
-  --clean-build             remove the unneeded directories after a successful 
-                            compile, leaving only the built toolchain. The 
-                            'build', 'source', and 'packages' directories will 
-                            be removed. 
+  --build-type=TYPE           compile for TYPE (win32, win64, multi) [multi]
+  --default-configure         compile with default options for all unset options
+  --allow-overwrite           allow overwrite if no updates are found
+  --rebuild-all               rebuild all packages
+  --mingw-w64-ver=NUMBER      compile with MinGW-w64 VERSION ($mingw_w64_release_ver, svn) [svn]
+  --cpu-count=NUMBER          use NUMBER of cores/threads to compile with (1-$cpu_count)
+  --binutils-ver=VERSION      compile with binutils VERSION ($binutils_release_ver, cvs)
+                              [$binutils_release_ver]
+  --gcc-ver=VERSION           compile with GCC VERSION ($gcc_release_ver, svn) [$gcc_release_ver]
+  --pthreads-w32-ver=VERSION  compile with Pthreads-w32 VERSION ($pthreads_w32_release_ver, cvs)
+                              [cvs]
+  --gcc-langs=LANG1,LANG2     compile GCC with support for LANG (ada, c, c++,
+                              fortran, go, java, objc, obj-c++, all) [c,c++]
+  --enable-nls                disable "Native Language Support"
+  --disable-shared            compile a static only toolchain
+  --threads=LIB               compile with support for thread LIB (winpthreads,
+                              pthreads-w32, disable) [winpthreads]
+  --clean-build               remove the unneeded directories after a successful
+                              compile, leaving only the built toolchain. The 
+                              'build', 'source', and 'packages' directories will
+                              be removed. 
 
 Report bugs to <kyle.r.schwarz@gmail.com>.
 EOF
 }
 
 yes_no_sel () {
-unset user_input
-local question="$1"
+unset usr_input
+question="$1"
 shift
-clear
-while [[ "$user_input" != [YyNn] ]]; do
-  echo -n "$question"
-  read user_input
-  if [[ "$user_input" != [YyNn] ]]; then
-    clear; echo 'Your selection was not vaild, please try again.'; echo
+while [[ "$usr_input" != [YyNn] ]]; do
+  echo -n "$question [y/n]: "
+  read usr_input
+  if [[ "$usr_input" != [YyNn] ]]; then
+    clear
+    echo 'Your selection was not vaild, please try again.'
+    echo ''
   fi
 done
+case "$usr_input" in
+  [Yy] ) return 0 ;;
+  [Nn] ) return 1 ;;
+esac
 }
 
 var_in_array() {
@@ -183,8 +185,7 @@ if [[ "$cpu_count" -ge '2' ]]; then
 fi
 
 if [[ "$cpu_count" -lt '1' ]]; then
-  yes_no_sel 'The number of cores/threads could not be found, would you like to manually enter the number of cores/threads your CPU has? (If "n" is selected, one core/thread will be used). [y/n]: '
-  if [[ "$user_input" = [Yy] ]]; then
+  if yes_no_sel 'The number of cores/threads could not be found, would you like to manually enter the number of cores/threads your CPU has? (If "n" is selected, one core/thread will be used).'; then
     clear; echo -n 'Please enter the number of cores/threads your CPU has. (Make sure the number you enter is correct, trying to use more cores/threads than your CPU has can cause your system to crash).: '
     read cpu_count
   else
@@ -255,52 +256,33 @@ done
 
 choose_gcc_ver () {
 clear
-while [[ "$gcc_ver_select" != [1-3] ]]; do
+while [[ "$gcc_ver_select" != [1-4] ]]; do
 cat <<EOF
 Which GCC version would you like to build? You can set this option with: '--gcc-ver=VERSION', see --help for more information.
-  1. GCC $gcc_47_ver (default)
-  2. GCC $gcc_46_ver
-  3. GCC $gcc_45_ver
-  3. GCC $svn
+  1. GCC $gcc_release_ver (default)
+  2. GCC $svn
 EOF
 echo -n 'Choose which GCC version would would like to build. [1-3]: '
 read gcc_ver_select
 case "$gcc_ver_select" in
-  1 ) gcc_ver="$gcc_47_ver" ;;
-  2 ) gcc_ver="$gcc_46_ver" ;;
-  3 ) gcc_ver="$gcc_45_ver" ;;
-  4 ) gcc_ver='svn' ;;
+  1 ) gcc_ver="$gcc_release_ver" ;;
+  2 ) gcc_ver='svn' ;;
   * ) clear; echo 'Your selection was not valid, please try again.'; echo ;;
 esac
 done
 }
 
 configure_gcc () {
-case "$@" in
-  "$gcc_47_ver" ) gcc_ldflags=("-L$gmp_prefix/lib")
-                  unset gcc_stdcxx_flags ;;
-  "$gcc_46_ver" ) gcc_ldflags=("-L$gmp_prefix/lib" "-L$ppl_prefix/lib") ;;
-  "$gcc_45_ver" ) unset gcc_ldflags
-                  unset gcc_stdcxx_flags ;;
-  'svn'         ) gcc_ldflags=("-L$gmp_prefix/lib") 
-                  unset gcc_stdcxx_flags ;;
-esac
-
 if [[ "$enabled_langs" != *,* ]]; then
   printf -v enabled_langs "%s," "${enabled_langs[@]}"
   enabled_langs="${enabled_langs%,}"
 fi
 
-if [[ "$gcc_ver" != 'svn' ]]; then
-  CC=gcc LDFLAGS="${gcc_ldflags[*]}" "../source/gcc-$gcc_ver/configure" --build="$system_type" --target="$mingw_w64_target"  "${static_build[@]}" "${disable_nls[@]}" --disable-multilib --prefix="$mingw_w64_prefix" --with-sysroot="$mingw_w64_prefix" --with-mpc="$mpc_prefix" --with-mpfr="$mpfr_prefix" --with-gmp="$gmp_prefix"  --with-host-libstdcxx="-lstdc++ ${gcc_stdcxx_flags[*]}" --with-ppl="$ppl_prefix" --with-cloog="$cloog_ppl_prefix" --enable-languages="$enabled_langs" --enable-fully-dynamic-string --enable-threads=win32 || exit 1
-else
-  CC=gcc LDFLAGS="${gcc_ldflags[*]}" "../source/gcc-svn/configure" --build="$system_type" --target="$mingw_w64_target"  "${static_build[@]}" "${disable_nls[@]}" --disable-multilib --prefix="$mingw_w64_prefix" --with-sysroot="$mingw_w64_prefix" --with-mpc="$mpc_prefix" --with-mpfr="$mpfr_prefix" --with-gmp="$gmp_prefix"  --with-host-libstdcxx="-lstdc++ ${gcc_stdcxx_flags[*]}" --with-ppl="$ppl_prefix" --with-cloog="$cloog_prefix" --with-isl="$isl_prefix" --enable-languages="$enabled_langs" --enable-threads=win32 --enable-fully-dynamic-string || exit 1
-fi
+CC=gcc "../source/gcc-$gcc_ver/configure" --build="$system_type" --target="$mingw_w64_target"  "${static_build[@]}" "${disable_nls[@]}" --disable-multilib --prefix="$mingw_w64_prefix" --with-sysroot="$mingw_w64_prefix" --with-mpc="$mpc_prefix" --with-mpfr="$mpfr_prefix" --with-gmp="$gmp_prefix"  --with-host-libstdcxx="-lstdc++ ${gcc_stdcxx_flags[*]}" --with-cloog="$cloog_prefix" --with-isl="$isl_prefix" --enable-languages="$enabled_langs" --enable-threads=win32 --enable-fully-dynamic-string || exit 1
 }
 
 choose_static_build () {
-yes_no_sel "Would you like to build a fully static build? You can set this option with: '--disable-shared', see --help for more information. (Select \"n\" if you are not sure, \"n\" is the default). [y/n]: "
-if [[ "$user_input" = [Yy] ]]; then
+if yes_no_sel "Would you like to build a fully static build? You can set this option with: '--disable-shared', see --help for more information. (Select \"n\" if you are not sure, \"n\" is the default)."; then
   static_build=('--disable-shared' '--enable-static')
 else
   unset static_build
@@ -308,17 +290,15 @@ fi
 }
 
 choose_disable_nls () {
-yes_no_sel "Would you like to disable NLS support? Native Language Support (NLS), which lets GCC/Binutils output diagnostics in languages other than American English. You can set this option with: '--disable-nls', see --help for more information. (Select \"n\" if you are not sure, \"n\" is the default). [y/n]: "
-if [[ "$user_input" = [Yy] ]]; then
+if yes_no_sel "Would you like to disable NLS support? Native Language Support (NLS), which lets GCC/Binutils output diagnostics in languages other than American English. You can set this option with: '--disable-nls', see --help for more information. (Select \"y\" if you are not sure, \"y\" is the default)."; then
   disable_nls=('--disable-nls')
 else
-  unset disable_nls
+  disable_nls=('--enable-nls')
 fi
 }
 
 choose_lang_sel () {
-yes_no_sel "Would you like to manualy configure which languages GCC will support? You can set this option with: '--gcc-langs=LANG1,LANG2', see --help for more information. (if \"n\" is input only C and C++ will be enabled). [y/n]: "
-if [[ "$user_input" = [Yy] ]]; then
+if yes_no_sel "Would you like to manualy configure which languages GCC will support? You can set this option with: '--gcc-langs=LANG1,LANG2', see --help for more information. (if \"n\" is input only C and C++ will be enabled)."; then
   clear
   set_langs
 else
@@ -327,13 +307,8 @@ fi
 }
 
 set_langs () {
-if [[ "$gcc_ver" != "4.5.3" ]]; then
-  all_langs=('ada' 'c' 'c++' 'fortran' 'go' 'java' 'objc' 'obj-c++')
-  formated_langs=('Ada' 'C' 'C++' 'Fortran' 'Go' 'Java' 'Objective-C' 'Objective-C++')
-else
-  all_langs=('ada' 'c' 'c++' 'fortran' 'java' 'objc' 'obj-c++')
-  formated_langs=('Ada' 'C' 'C++' 'Fortran' 'Java' 'Objective-C' 'Objective-C++')
-fi
+all_langs=('ada' 'c' 'c++' 'fortran' 'go' 'java' 'objc' 'obj-c++')
+formated_langs=('Ada' 'C' 'C++' 'Fortran' 'Go' 'Java' 'Objective-C' 'Objective-C++')
 
 cat <<'EOF'
 Choose which languages you would like GCC to support.
@@ -360,8 +335,7 @@ custom_langs () {
 unset enabled_langs
 local num='0'
 for lang in "${formated_langs[@]}"; do
-  yes_no_sel "Would you like to build GCC with $lang support? [y/n]: "
-  if [[ "$user_input" = [Yy] ]]; then
+  if yes_no_sel "Would you like to build GCC with $lang support?"; then
     enabled_langs=("${enabled_langs[@]}" "${all_langs[$num]}")
   fi
   ((num++))
@@ -399,8 +373,7 @@ esac
 }
 
 configure_build_fn () {
-yes_no_sel 'Would you like to manually choose which package versions to build into MinGW-w64 yourself, and configure the build? [y/n]: '
-if [[ "$user_input" = [Yy] ]]; then
+if yes_no_sel 'Would you like to manually choose which package versions to build into MinGW-w64 yourself, and configure the build?'; then
   if [[ -z "$mingw_w64_ver" ]]; then
     choose_mingw_w64_ver
   fi
@@ -436,19 +409,19 @@ if [[ -z "$binutils_ver" ]]; then
   binutils_ver="$binutils_release_ver"
 fi
 if [[ -z "$gcc_ver" ]]; then
-  gcc_ver="$gcc_47_ver"
+  gcc_ver="$gcc_release_ver"
 fi
 if [[ -z "$static_build" ]]; then
   unset static_build
 fi
 if [[ -z "$disable_nls" ]]; then
-  unset disable_nls
+  disable_nls=('--disable-nls')
 fi
 if [[ -z "$enabled_langs" ]]; then
   enabled_langs=('c' 'c++')
 fi
 if [[ -z "$thread_lib" ]]; then
-  thread_lib='winpthreads'
+  thread_lib='pthreads-w32'
 fi
 }
 
@@ -456,6 +429,7 @@ download_extract () {
 local package_name="$1"
 local download_url="$2"
 local archive_ext="$3"
+local backup_url="$4"
 shift 3
 
 case "$archive_ext" in
@@ -469,7 +443,7 @@ if [[ -d "$package_name" ]]; then
 fi
 
 if [[ ! -f "$package_name.$archive_ext" ]]; then
-  wget "$download_url.$archive_ext"  || exit 1
+  wget -t 5 "$download_url.$archive_ext"  || wget -t 5 "$backup_url.$archive_ext" || exit 1
 fi
 
 if [[ ! -d "$package_name" ]]; then
@@ -507,13 +481,13 @@ build_binutils () {
 cd "$packages_dir" || exit 1
 create_pkg_dirs 'binutils' || exit 1
 if [[ "$binutils_ver" != 'cvs' ]]; then
-  download_extract "binutils-$binutils_release_ver" "ftp://ftp.gnu.org/gnu/binutils/binutils-$binutils_release_ver" 'tar.gz'
+  download_extract "binutils-$binutils_release_ver" "https://www.kernel.org/pub/linux/devel/binutils/binutils-$binutils_release_ver" 'tar.gz'
 else
   if [[ -d 'binutils-cvs' ]]; then
     cd 'binutils-cvs' || exit 1
-    read -r oldmd5 _ < <(md5sum './ChangeLog')
+    read -r oldmd5 _ < <(md5sum './CVS/Entries')
     cvs update || exit 1
-    read -r newmd5 _ < <(md5sum './ChangeLog')
+    read -r newmd5 _ < <(md5sum './CVS/Entries')
     if [[ "$oldmd5" != "$newmd5" ]]; then
       rm -rf "$packages_dir/touch-files/binutils/binutils-cvs-$uname_m."*
     fi
@@ -572,7 +546,9 @@ else
   headers_source="$mingw_w64_source_dir/mingw-w64-$mingw_w64_ver/mingw-w64-headers"
   headers_prefix="$mingw_w64_prefix"
 fi
+
 "$headers_source/configure" --enable-sdk=all --build="$system_type" --host="$mingw_w64_target" --prefix="$headers_prefix" || exit 1
+
 make install || exit 1
 cd "$mingw_w64_prefix" || exit 1
 ln -s "./$mingw_w64_target" './mingw'
@@ -580,8 +556,6 @@ ln -s "./$mingw_w64_target" './mingw'
 build_gmp
 build_mpfr
 build_mpc
-build_ppl
-build_cloog_ppl
 build_isl
 build_cloog
 
@@ -598,13 +572,9 @@ else
     svn checkout svn://gcc.gnu.org/svn/gcc/trunk gcc-svn || exit 1
   fi
 fi
+
 clean_build
-case "$gcc_ver" in
-  "$gcc_47_ver" ) configure_gcc "$gcc_47_ver" || exit 1 ;;
-  "$gcc_46_ver" ) configure_gcc "$gcc_46_ver" || exit 1 ;;
-  "$gcc_45_ver" ) configure_gcc "$gcc_45_ver" || exit 1 ;;
-  'svn'         ) configure_gcc 'svn' || exit 1 ;;
-esac
+configure_gcc "$gcc_ver" || exit 1
 make -j "$cpu_count" all-gcc || exit 1
 make install-gcc || exit 1
 
@@ -617,6 +587,7 @@ else
   crt_source="$mingw_w64_source_dir/mingw-w64-$mingw_w64_ver/mingw-w64-crt"
   crt_prefix="$mingw_w64_prefix"
 fi
+
 "$crt_source/configure" --build="$system_type" --host="$mingw_w64_target" --prefix="$crt_prefix" --with-sysroot="$crt_prefix" || exit 1
 make -j "$cpu_count" || exit 1
 make install || exit 1
@@ -624,7 +595,7 @@ make install || exit 1
 # Build GCC
 cd "$packages_dir/gcc/build" || exit 1
 make -j "$cpu_count" || exit 1
-make install || exit 1
+make install-strip || exit 1
 
 if [[ "$thread_lib" != 'disable' ]]; then
   build_thread_lib "$mingw_w64_target" "$mingw_w64_prefix" || exit 1
@@ -680,8 +651,7 @@ if [[ "$mingw_w64_ver" = 'svn' ]]; then
       svn update || exit 1
     fi
     if [[ "$allow_overwrite" != 'yes' && "$svn_ver_before" = "$svn_ver_after" &&  "$prefix_present" = 'yes' ]]; then
-      yes_no_sel "MinGW-w64 is already the latest version, continue with the build anyway? You can set this option with: '--allow-overwrite', see '--help' for more information. [y/n]: "
-      if [[ "$user_input" = [Nn] ]]; then
+      if ! yes_no_sel "MinGW-w64 is already the latest version, continue with the build anyway? You can set this option with: '--allow-overwrite', see '--help' for more information."; then
         exit 0
       fi
     fi
@@ -697,8 +667,7 @@ if [[ "$mingw_w64_ver" = 'svn' ]]; then
   fi
 else
   if [[ -d "mingw-w64-$mingw_w64_release_ver" && "$allow_overwrite" != 'yes' &&  "$prefix_present" = 'yes' ]]; then
-    yes_no_sel "MinGW-w64 is already the latest version, continue with the build anyway? You can set this option with: '--allow-overwrite', see '--help' for more information. [y/n]: "
-    if [[ "$user_input" = [Nn] ]]; then
+    if ! yes_no_sel "MinGW-w64 is already the latest version, continue with the build anyway? You can set this option with: '--allow-overwrite', see '--help' for more information."; then
       exit 0
     fi
   fi
@@ -726,11 +695,7 @@ fi
 }
 
 build_gmp () {
-if [[ "$gcc_ver" = "$gcc_45_ver" ]]; then
-  gmp_ver='4.3.2'
-else
-  gmp_ver="$gmp_release_ver"
-fi
+gmp_ver="$gmp_release_ver"
 
 gmp_prefix="$gcc_packages_dir/gmp/gmp-$gmp_ver-$uname_m"
 
@@ -741,10 +706,10 @@ fi
 cd "$gcc_packages_dir" || exit 1
 create_pkg_dirs 'gmp' || exit 1
 
-download_extract "gmp-$gmp_ver" "ftp://ftp.gnu.org/gnu/gmp/gmp-$gmp_ver" 'tar.bz2'
+download_extract "gmp-$gmp_ver" "ftp://ftp.gmplib.org/pub/gmp-$gmp_ver/gmp-$gmp_ver" 'tar.xz'
 if ! check_pkg_touch_success 'gmp' "$gmp_release_ver" 'configure' "$uname_m"; then
   clean_build
-  CC=gcc "../source/gmp-$gmp_ver/configure" --build="$system_type" --prefix="$gmp_prefix" --disable-shared --enable-static --enable-cxx CPPFLAGS='-fexceptions' || exit 1
+  CC=gcc "../source/gmp-$gmp_ver/configure" --build="$system_type" --prefix="$gmp_prefix" --enable-fat --disable-shared --enable-static --enable-cxx CPPFLAGS='-fexceptions' || exit 1
 fi
 pkg_touch_success 'gmp' "$gmp_release_ver" 'configure' "$uname_m"
 
@@ -768,7 +733,24 @@ fi
 cd "$gcc_packages_dir" || exit 1
 create_pkg_dirs 'mpfr' || exit 1
 
-download_extract "mpfr-$mpfr_release_ver" "http://www.mpfr.org/mpfr-current/mpfr-$mpfr_release_ver" 'tar.xz'
+download_extract "mpfr-$mpfr_release_ver" "http://www.mpfr.org/mpfr-current/mpfr-$mpfr_release_ver" 'tar.xz' "http://ftp.gnu.org/gnu/mpfr/mpfr-$mpfr_release_ver"
+
+if [[ -a './allpatches' ]]; then
+  mv './allpatches' './allpatches.orig' || exit 1
+  wget http://www.mpfr.org/mpfr-"$mpfr_release_ver"/allpatches
+  if [[ "$(md5sum ./allpatches)" != "$(md5sum ./allpatches.orig)" ]]; then
+    rm -r "$packages_dir/touch-files/mpfr" "$mpfr_prefix"
+    cd "./mpfr-$mpfr_release_ver" || exit 1
+    patch -N -Z -p1 < "../allpatches"
+    cd '..'
+  fi
+else
+  wget http://www.mpfr.org/mpfr-"$mpfr_release_ver"/allpatches
+  cd "./mpfr-$mpfr_release_ver" || exit 1
+  patch -N -Z -p1 < "../allpatches"
+  cd '..'
+fi
+
 if ! check_pkg_touch_success 'mpfr' "$mpfr_release_ver" 'configure' "$uname_m"; then
   clean_build
   CC=gcc "../source/mpfr-$mpfr_release_ver/configure" --build="$system_type" --prefix="$mpfr_prefix" --disable-shared --enable-static --with-gmp="$gmp_prefix"  || exit 1
@@ -812,82 +794,7 @@ fi
 pkg_touch_success 'mpc' "$mpc_release_ver" 'install' "$uname_m"
 }
 
-build_ppl () {
-case "$gcc_ver" in
-  "$gcc_45_ver" ) ppl_ver='0.10.2' ;;
-  'svn' ) ppl_ver="$ppl_release_ver" ;;
-  *  ) ppl_ver='0.12.1' ;;
-esac
-
-ppl_prefix="$gcc_packages_dir/ppl/ppl-$ppl_ver-$uname_m"
-
-if check_pkg_touch_success 'ppl' "$ppl_release_ver" 'install' "$uname_m"; then
-  return
-fi
-
-
-cd "$gcc_packages_dir" || exit 1
-create_pkg_dirs 'ppl' || exit 1
-
-download_extract "ppl-$ppl_ver" "ftp://ftp.cs.unipr.it/pub/ppl/releases/$ppl_ver/ppl-$ppl_ver" 'tar.xz'
-if ! check_pkg_touch_success 'ppl' "$ppl_release_ver" 'configure' "$uname_m"; then
-  clean_build
-  case "$ppl_ver" in
-    '0.10.2' ) CC=gcc "../source/ppl-$ppl_ver/configure" --build="$system_type" --prefix="$ppl_prefix" --enable-static --disable-shared --enable-watchdog --with-libgmp-prefix="$gmp_prefix" CPPFLAGS='-fexceptions' || exit 1 ;;
-    * ) CC=gcc "../source/ppl-$ppl_ver/configure" --build="$system_type" --prefix="$ppl_prefix" --enable-static --disable-shared --with-gmp="$gmp_prefix" CPPFLAGS='-fexceptions' || exit 1 ;;
-  esac
-fi
-pkg_touch_success 'ppl' "$ppl_release_ver" 'configure' "$uname_m"
-
-if ! check_pkg_touch_success 'ppl' "$ppl_release_ver" 'compile' "$uname_m"; then
-  if [[ "$ppl_ver" != "$ppl_release_ver" && "$cpu_count" -ge '2' ]]; then
-    make -j 2 || exit 1
-  else
-    make -j "$cpu_count" || exit 1
-  fi
-fi
-pkg_touch_success 'ppl' "$ppl_release_ver" 'compile' "$uname_m"
-
-if ! check_pkg_touch_success 'ppl' "$ppl_release_ver" 'install' "$uname_m"; then
-  make install || exit 1
-fi
-pkg_touch_success 'ppl' "$ppl_release_ver" 'install' "$uname_m"
-}
-
-build_cloog_ppl () {
-if check_pkg_touch_success 'cloog_ppl' "$cloog_ppl_release_ver" 'install' "$uname_m"; then
-  return
-fi
-
-if [[ "$gcc_ver" = 'svn' ]]; then
-  return
-fi
-
-cd "$gcc_packages_dir" || exit 1
-create_pkg_dirs 'cloog-ppl' || exit 1
-
-download_extract "cloog-ppl-$cloog_ppl_release_ver" "ftp://gcc.gnu.org/pub/gcc/infrastructure/cloog-ppl-$cloog_ppl_release_ver" 'tar.gz'
-if ! check_pkg_touch_success 'cloog_ppl' "$cloog_ppl_release_ver" 'configure' "$uname_m"; then
-  clean_build
-  CC=gcc "../source/cloog-ppl-$cloog_ppl_release_ver/configure" --build="$system_type" --prefix="$cloog_ppl_prefix" --enable-static --disable-shared --with-gmp="$gmp_prefix" --with-ppl="$ppl_prefix" --with-host-libstdcxx='-lstdc++' || exit 1
-fi
-pkg_touch_success 'cloog_ppl' "$cloog_ppl_release_ver" 'configure' "$uname_m"
-
-if ! check_pkg_touch_success 'cloog_ppl' "$cloog_ppl_release_ver" 'compile' "$uname_m"; then
-  make -j "$cpu_count" || exit 1
-fi
-pkg_touch_success 'cloog_ppl' "$cloog_ppl_release_ver" 'compile' "$uname_m"
-
-if ! check_pkg_touch_success 'cloog_ppl' "$cloog_ppl_release_ver" 'install' "$uname_m"; then
-  make install || exit 1
-fi
-pkg_touch_success 'cloog_ppl' "$cloog_ppl_release_ver" 'install' "$uname_m"
-}
-
 build_cloog () {
-if [[ "$gcc_ver" != 'svn' ]]; then
-  return
-fi
 if check_pkg_touch_success 'cloog' "$cloog_release_ver" 'install' "$uname_m"; then
   return
 fi
@@ -895,10 +802,10 @@ fi
 cd "$gcc_packages_dir" || exit 1
 create_pkg_dirs 'cloog' || exit 1
 
-download_extract "cloog-$cloog_release_ver" "http://www.bastoul.net/cloog/pages/download/cloog-$cloog_release_ver" 'tar.gz'
+download_extract "cloog-$cloog_release_ver" "ftp://gcc.gnu.org/pub/gcc/infrastructure/cloog-$cloog_release_ver" 'tar.gz'
 if ! check_pkg_touch_success 'cloog' "$cloog_release_ver" 'configure' "$uname_m"; then
   clean_build
-  CC=gcc "../source/cloog-$cloog_release_ver/configure" --prefix="$cloog_prefix" --build="$system_type" --enable-static --disable-shared --with-isl-prefix="$isl_prefix" --with-gmp-prefix="$gmp_prefix" --with-osl=no || exit 1
+  CC=gcc "../source/cloog-$cloog_release_ver/configure" --prefix="$cloog_prefix" --build="$system_type" --enable-static --disable-shared --with-bits=gmp --with-isl=bundled --with-gmp-prefix="$gmp_prefix" || exit 1
 fi
 pkg_touch_success 'cloog' "$cloog_release_ver" 'configure' "$uname_m"
 if ! check_pkg_touch_success 'cloog' "$cloog_release_ver" 'compile' "$uname_m"; then
@@ -912,9 +819,6 @@ pkg_touch_success 'cloog' "$cloog_release_ver" 'install' "$uname_m"
 }
 
 build_isl () {
-if [[ "$gcc_ver" != 'svn' ]]; then
-  return
-fi
 if check_pkg_touch_success 'isl' "$isl_release_ver" 'install' "$uname_m"; then
   return
 fi
@@ -952,6 +856,10 @@ fi
 }
 
 build_pthreads_w32 () {
+if [[ -z "$pthreads_w32_ver" ]]; then
+  pthreads_w32_ver='cvs'
+fi
+
 local target prefix
 target="$1"
 prefix="$2"
@@ -959,12 +867,28 @@ shift 2
 cd "$packages_dir" || exit 1
 create_pkg_dirs 'pthread-w32' || exit 1
 
-download_extract "pthreads-w32-$pthreads_w32_release_ver-release" "ftp://sourceware.org/pub/pthreads-win32/pthreads-w32-$pthreads_w32_release_ver-release" 'tar.gz'
-cd "pthreads-w32-$pthreads_w32_release_ver-release" || exit 1
+if [[ "$pthreads_w32_ver" = "$pthreads_w32_release_ver" ]]; then
+  download_extract "pthreads-w32-$pthreads_w32_release_ver-release" "ftp://sourceware.org/pub/pthreads-win32/pthreads-w32-$pthreads_w32_release_ver-release" 'tar.gz'
+  if [[ ! -d "pthreads-w32-$pthreads_w32_release_ver" ]]; then
+    mv "pthreads-w32-$pthreads_w32_release_ver-release" "pthreads-w32-$pthreads_w32_release_ver" || exit 1
+  fi
+else
+  unset oldmd5 newmd5
+  if [[ -d 'pthreads-w32-cvs' ]]; then
+    cd 'pthreads-w32-cvs' || exit 1
+    cvs update || exit 1
+    cd '..'
+  else
+    cvs -d :pserver:anonymous@sourceware.org:/cvs/pthreads-win32 checkout pthreads || exit 1
+    mv 'pthreads' 'pthreads-w32-cvs'
+  fi
+fi
+
+cd "pthreads-w32-$pthreads_w32_ver" || exit 1
 make realclean
 make CROSS="$target-" clean GC-static
-cp 'libpthreadGC2.a' "$prefix/lib/" || exit 1
-ln -s "$prefix/lib/libpthreadGC2.a" "$prefix/$target/lib/libpthread.a"
+cp 'libpthreadGC2.a' "$prefix/$target/lib/" || exit 1
+ln -s "$prefix/$target/lib/libpthreadGC2.a" "$prefix/$target/lib/libpthread.a"
 cp 'pthread.h' 'sched.h' 'semaphore.h' "$prefix/$target/include/" || exit 1
 }
 
@@ -1022,33 +946,29 @@ test_opt () {
 test_valid_opt 'build_type' 'win32' 'win64' 'multi'
 test_valid_opt 'mingw_w64_ver' "$mingw_w64_release_ver" 'svn'
 test_valid_opt 'thread_lib' 'winpthreads' 'pthreads-w32' 'disable'
-check_cpu_count_optarg
-test_valid_opt 'binutils_ver' "$binutils_release_ver" 'cvs'
-if [[ "$binutils_ver" = 'cvs' ]]; then
-  if ! type -P makeinfo >/dev/null; then
-    clear
-    echo "makeinfo is needed to compile the CVS version of binutils and will need be be installed. On Debian it is part of the 'texinfo' software package."
-    exit 1
-  fi
+test_valid_opt 'pthreads_w32_ver' "$pthreads_w32_release_ver" 'cvs'
+if [[ -n "$pthreads_w32_ver" ]]; then
+ thread_lib='pthreads-w32'
 fi
-test_valid_opt 'gcc_ver' "$gcc_47_ver" "$gcc_46_ver" "$gcc_45_ver" 'svn'
-check_gcc_langs_optarg
+test_valid_opt 'ppl_ver' "$ppl_release_ver" 'git'
+if [[ -n "$cpu_count_opt" ]]; then
+  check_cpu_count_optarg
+fi
+test_valid_opt 'binutils_ver' "$binutils_release_ver" 'cvs'
+if ! type -P makeinfo >/dev/null; then
+  echo "makeinfo is needed to compile binutils and will need be be installed. On Debian/Ubuntu it is part of the 'texinfo' software package."
+  exit 1
+fi
+test_valid_opt 'gcc_ver' "$gcc_release_ver" 'svn'
 }
 
 check_cpu_count_optarg () {
 if [[ "$cpu_count_opt" -gt "$(grep -c processor /proc/cpuinfo)"  ]]; then
-  yes_no_sel "The input number of cores/threads was higher than the number detected ($(grep -c processor /proc/cpuinfo) were detected). Trying to use more cores/threads than your CPU has can cause your system to crash. Are you sure you want to continue? [y/n]: "
-  if [[ "$user_input" = [Nn] ]]; then
+  if ! yes_no_sel "The input number of cores/threads was higher than the number detected ($(grep -c processor /proc/cpuinfo) were detected). Trying to use more cores/threads than your CPU has can cause your system to crash. Are you sure you want to continue?"; then
     exit 1
   fi
 fi
-}
-
-check_gcc_langs_optarg () {
-if [[ "$gcc_ver" = "$gcc_45_ver" && "$enabled_langs" = *go* ]]; then
-  echo "The language \"Go\" is not supported by GCC version $gcc_ver"
-  exit 1
-fi
+cpu_count="$cpu_count_opt"
 }
 
 test_valid_opt () {
@@ -1087,13 +1007,16 @@ if [[ -n "${unknown_opts[@]}" ]]; then
   done
   echo ', ignored.'; echo
 fi
-cat <<'EOF'
+cat <<EOF
 What version of MinGW-w64 would you like to build or update?
   1. Both Win32 and Win64
   2. Win32 (32-bit only)
   3. Win64 (64-bit only)
   4. About
   5. Exit
+
+For a list of all available options, exit and run: 'bash ./mingw-w64-build-$script_ver --help'
+
 EOF
 echo -n 'Input your choice [1-5]: '
 read build_choice
@@ -1112,7 +1035,7 @@ while true; do
   case $1 in
     -h | --help ) display_help; exit 0 ;;
     -a | --about ) about; exit 0 ;;
-    -V | --version ) echo '3.1.0'; exit 0 ;;
+    -V | --version ) echo "$script_ver"; exit 0 ;;
     --build-type=* ) build_type="${1#*=}"; shift ;;
     --default-configure ) default_configure; shift ;;
     --rebuild-all ) rebuild='yes'; shift ;;
@@ -1121,8 +1044,9 @@ while true; do
     --cpu-count=* ) cpu_count_opt="${1#*=}"; shift ;;
     --binutils-ver=* ) binutils_ver="${1#*=}"; shift ;;
     --gcc-ver=* ) gcc_ver="${1#*=}"; shift ;;
+    --pthreads-w32-ver=* ) pthreads_w32_ver="${1#*=}" ; shift ;;
     --gcc-langs=* ) enabled_langs="${1#*=}"; shift ;;
-    --disable-nls ) disable_nls=('--disable-nls'); shift ;;
+    --enable-nls ) disable_nls=('--enable-nls'); shift ;;
     --disable-shared ) static_build=('--disable-shared' '--enable-static'); shift ;;
     --threads=* ) thread_lib="${1#*=}"; shift ;;
     --clean-build ) clean_build='yes'; shift ;;
