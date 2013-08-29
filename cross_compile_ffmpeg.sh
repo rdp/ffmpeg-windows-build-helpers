@@ -151,8 +151,8 @@ install_cross_compiler() {
   curl https://raw.github.com/rdp/ffmpeg-windows-build-helpers/master/patches/mingw-w64-build-3.2.3 -O  || exit 1
   chmod u+x mingw-w64-build-3.2.3
   # gcc 4.8.0 requires mingw-w64 > 2.0.7: http://gcc.gnu.org/bugzilla/show_bug.cgi?id=55706
-  # cpu count 1 because otherwise with 945 MB RAM it can segfault ?
-  nice ./mingw-w64-build-3.2.3 --disable-shared --default-configure --clean-build --cpu-count=1 --threads=pthreads-w32 --pthreads-w32-ver=2-9-1 --build-type=$build_choice || exit 1 # --disable-shared allows c++ to be distributed at all...which seemed necessary for some random dependency...
+  # cpu count 1 because otherwise with < 945 MB RAM it can segfault, so cater to the lesser RAM folk for now: http://betterlogic.com/roger/2013/04/gcc-cross-compiler-building-woes/ 
+  nice ./mingw-w64-build-3.2.3 --mingw-w64-ver=2.0.8 --disable-shared --default-configure --clean-build --cpu-count=1 --threads=pthreads-w32 --pthreads-w32-ver=2-9-1 --build-type=$build_choice || exit 1 # --disable-shared allows c++ to be distributed at all...which seemed necessary for some random dependency...
 
   if [ -d mingw-w64-x86_64 ]; then
     touch mingw-w64-x86_64/compiler.done
