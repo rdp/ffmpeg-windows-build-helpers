@@ -1,4 +1,5 @@
 == todos ==
+lock in the mingww64 svn version...
 
 == maybe do ==
 
@@ -20,6 +21,11 @@ distribute "my own set of [I guess optimized?] binaries" that are processor opti
   though mine do have pthreads...but hopefully I can test and report and get the zeranoe ones built that way...share the workload :)
 
 == really maybe, as in probably never ==
+
+move all downloads to some place I control...maybe even "all" downloads LOL
+
+make it work on windows
+  release a downloadable "click here to run it" to build full libfdk-aac on windows LOL
 
 make the static vs. shared builds "a command line option/prompt"
 
