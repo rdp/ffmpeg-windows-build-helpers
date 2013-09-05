@@ -6,6 +6,7 @@ lock in the mingw w64 svn version...
   use mingw 2.0.8 instead? if works, note to zeranoe, also gcc 4.8.1 to zeranoe
   --gcc-ver=4.8.1
 specifying a mingw-w64 revision might be nice
+also after that guy gets back to me
 
 == maybe do ==
 
