@@ -61,7 +61,8 @@ fi
 
 
 cur_dir="$(pwd)/sandbox"
-cpu_count="$(grep -c processor /proc/cpuinfo)" # linux only <sigh>
+cpu_count="$(grep -c processor /proc/cpuinfo)" # linux
+gcc_cpu_count=1
 if [ -z "$cpu_count" ]; then
   cpu_count=`sysctl -n hw.ncpu | tr -d '\n'` # OS X
   if [ -z "$cpu_count" ]; then
@@ -151,8 +152,8 @@ install_cross_compiler() {
   curl https://raw.github.com/rdp/ffmpeg-windows-build-helpers/master/patches/mingw-w64-build-3.2.3 -O  || exit 1
   chmod u+x mingw-w64-build-3.2.3
   # gcc 4.8.0 requires mingw-w64 > 2.0.7: http://gcc.gnu.org/bugzilla/show_bug.cgi?id=55706
-  # cpu count 1 because otherwise with < 945 MB RAM it can segfault, so cater to the lesser RAM folk for now: http://betterlogic.com/roger/2013/04/gcc-cross-compiler-building-woes/ 
-  nice ./mingw-w64-build-3.2.3 --mingw-w64-ver=2.0.8 --disable-shared --default-configure --clean-build --cpu-count=1 --threads=pthreads-w32 --pthreads-w32-ver=2-9-1 --build-type=$build_choice || exit 1 # --disable-shared allows c++ to be distributed at all...which seemed necessary for some random dependency...
+ # --clean-build
+  nice ./mingw-w64-build-3.2.3 --mingw-w64-ver=svn --disable-shared --default-configure --cpu-count=$gcc_cpu_count --threads=pthreads-w32 --pthreads-w32-ver=2-9-1 --build-type=$build_choice || exit 1 # --disable-shared allows c++ to be distributed at all...which seemed necessary for some random dependency...
 
   if [ -d mingw-w64-x86_64 ]; then
     touch mingw-w64-x86_64/compiler.done
@@ -786,8 +787,9 @@ build_dependencies() {
 
 while true; do
   case $1 in
-    -h | --help ) echo "available options: --disable-nonfree=y (change to n to include nonfree) --sandbox-ok=y --rebuild-compilers=y"; exit 0 ;;
+    -h | --help ) echo "available options: --gcc-cpu-count=1 [set it higher if you have > 1GB RAM] --disable-nonfree=y (set to n to include nonfree) --sandbox-ok=y --rebuild-compilers=y"; exit 0 ;;
     --sandbox-ok=* ) sandbox_ok="${1#*=}"; shift ;;
+    --gcc-cpu-count=* ) gcc_cpu_count="${1#*=}"; shift ;;
     --disable-nonfree=* ) disable_nonfree="${1#*=}"; shift ;;
     --rebuild-compilers=* ) rebuild_compilers="${1#*=}"; shift ;;
     -- ) shift; break ;;
