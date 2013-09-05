@@ -67,7 +67,7 @@ fi
 cur_dir="$(pwd)/sandbox"
 cpu_count="$(grep -c processor /proc/cpuinfo)" # linux
 gcc_cpu_count=1 # allow them to specify more
-build_ffmpeg_shared=y
+build_ffmpeg_shared=n
 if [ -z "$cpu_count" ]; then
   cpu_count=`sysctl -n hw.ncpu | tr -d '\n'` # OS X
   if [ -z "$cpu_count" ]; then
@@ -792,7 +792,7 @@ build_dependencies() {
 
 while true; do
   case $1 in
-    -h | --help ) echo "available options (with defaults): --build-ffmpeg-shared=y --gcc-cpu-count=1 [set it higher if you have > 1GB RAM] --disable-nonfree=y (set to n to include nonfree) --sandbox-ok=y --rebuild-compilers=y"; exit 0 ;;
+    -h | --help ) echo "available options (with defaults): --build-ffmpeg-shared=n [default is static only, set this to y to also build shared] --gcc-cpu-count=1 [set it higher if you have > 1GB RAM] --disable-nonfree=y (set to n to include nonfree) --sandbox-ok=y --rebuild-compilers=y"; exit 0 ;;
     --sandbox-ok=* ) sandbox_ok="${1#*=}"; shift ;;
     --gcc-cpu-count=* ) gcc_cpu_count="${1#*=}"; shift ;;
     --disable-nonfree=* ) disable_nonfree="${1#*=}"; shift ;;
