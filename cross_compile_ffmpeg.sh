@@ -62,7 +62,8 @@ fi
 
 cur_dir="$(pwd)/sandbox"
 cpu_count="$(grep -c processor /proc/cpuinfo)" # linux
-gcc_cpu_count=1
+gcc_cpu_count=1 # allow them to specify more
+build_ffmpeg_shared=y
 if [ -z "$cpu_count" ]; then
   cpu_count=`sysctl -n hw.ncpu | tr -d '\n'` # OS X
   if [ -z "$cpu_count" ]; then
@@ -91,7 +92,6 @@ EOL
   fi
   mkdir -p "$cur_dir"
   cd "$cur_dir"
-  echo "started as $disable_nonfree"
   if [[ $disable_nonfree = "y" ]]; then
     non_free="n"
   else
@@ -785,12 +785,14 @@ build_dependencies() {
   build_librtmp # needs gnutls [or openssl...]
 }
 
+
 while true; do
   case $1 in
-    -h | --help ) echo "available options: --gcc-cpu-count=1 [set it higher if you have > 1GB RAM] --disable-nonfree=y (set to n to include nonfree) --sandbox-ok=y --rebuild-compilers=y"; exit 0 ;;
+    -h | --help ) echo "available options (with defaults): --build-ffmpeg-shared=y --gcc-cpu-count=1 [set it higher if you have > 1GB RAM] --disable-nonfree=y (set to n to include nonfree) --sandbox-ok=y --rebuild-compilers=y"; exit 0 ;;
     --sandbox-ok=* ) sandbox_ok="${1#*=}"; shift ;;
     --gcc-cpu-count=* ) gcc_cpu_count="${1#*=}"; shift ;;
     --disable-nonfree=* ) disable_nonfree="${1#*=}"; shift ;;
+    --build-ffmpeg-shared=* ) build_ffmpeg_shared="${1#*=}"; shift ;;
     --rebuild-compilers=* ) rebuild_compilers="${1#*=}"; shift ;;
     -- ) shift; break ;;
     -* ) echo "Error, unknown option: '$1'."; exit 1 ;;
@@ -816,7 +818,10 @@ if [ -d "mingw-w64-i686" ]; then # they installed a 32-bit compiler
   cd win32
   build_dependencies
   build_ffmpeg
-  build_ffmpeg shared
+  echo 'sstarted as' $build_ffmpeg_shared
+  if [[ $build_ffmpeg_shared = "y" ]]; then
+    build_ffmpeg shared
+  fi
   cd ..
 fi
 
@@ -832,7 +837,9 @@ if [ -d "mingw-w64-x86_64" ]; then # they installed a 64-bit compiler
   cd x86_64
   build_dependencies
   build_ffmpeg
-  build_ffmpeg shared
+  if [[ $build_ffmpeg_shared = "y" ]]; then
+    build_ffmpeg shared
+  fi
   cd ..
 fi
 
