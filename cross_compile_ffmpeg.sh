@@ -19,6 +19,10 @@
 #
 # The GNU General Public License can be found in the LICENSE file.
 
+# just in case their CFLAGS is motivated toward linux, clear it initially...
+# as a note for followers, you can set this to like -march=athlon64-sse2 or what not if you desire a somewhat optimized build for now [ping me if you want a better optimized build...]
+CFLAGS=
+
 yes_no_sel () {
 unset user_input
 local question="$1"
