@@ -848,4 +848,4 @@ if [ -d "mingw-w64-x86_64" ]; then # they installed a 64-bit compiler
 fi
 
 echo "done with ffmpeg cross compiler script, it may have built the following binaries: 
-$(find . -name ffmpeg.exe)"
+$(find .. -name ffmpeg.exe)"
