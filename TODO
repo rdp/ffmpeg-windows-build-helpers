@@ -9,6 +9,8 @@ also after that guy gets back to me
 
 == maybe do ==
 
+I may not be using my "suggested super CFLAGS" everywhere quite right, should add to everywhere?
+
 try out gcc 4.8.1, then tell zeranoe :P
   --gcc-ver=4.8.1
 
