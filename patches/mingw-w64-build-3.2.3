@@ -77,7 +77,7 @@ mingw_w64_release_ver='2.0.8'
 gcc_release_ver='4.8.0'
 mpfr_release_ver='3.1.2'
 mpc_release_ver='1.0.1'
-binutils_release_ver='2.23.2'
+binutils_release_ver='2.23.52.0.2' # somewhat pseudo "release" version :)
 gmp_release_ver='5.1.1'
 isl_release_ver='0.11.1'
 cloog_release_ver='0.18.0'
@@ -481,7 +481,7 @@ build_binutils () {
 cd "$packages_dir" || exit 1
 create_pkg_dirs 'binutils' || exit 1
 if [[ "$binutils_ver" != 'cvs' ]]; then
-  download_extract "binutils-$binutils_release_ver" "ftp://ftp.gnu.org/gnu/binutils/binutils-$binutils_release_ver" 'tar.gz'
+  download_extract "binutils-$binutils_release_ver" "http://www.kernel.org/pub/linux/devel/binutils/binutils-$binutils_release_ver" 'tar.gz'
 else
   if [[ -d 'binutils-cvs' ]]; then
     cd 'binutils-cvs' || exit 1
