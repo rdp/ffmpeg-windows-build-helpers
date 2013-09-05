@@ -17,11 +17,16 @@ chmod u+x cross_compile_ffmpeg.sh
 ```
 
 And follow the prompts.
-It works with 32 or 64 bit Linux, and can produce  both 32 and 64 bit windows ffmpeg.exe's
+It works with 32 or 64 bit (hoost) Linux, and can produce either/or 32 and 64 bit windows ffmpeg.exe's
 
 See also 
 http://github.com/rdp/ffmpeg-windows-build-helpers/wiki for more tips, including being able to build it more quickly!
 
 OS X users, this may help: https://github.com/rdp/ffmpeg-windows-build-helpers/wiki/OS-X
+
+Also NB that it has some command line parameters you can pass it, for instance to speed
+up the building speed of gcc, build shared, etc. run it with 
+./cross_compile_ffmpeg.sh -h 
+to see them all
 
 Feedback welcome roger-projects@googlegroups.com
