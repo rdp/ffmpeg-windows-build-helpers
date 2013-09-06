@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 ################################################################################
-# ffmpeg windows cross compile helper/downloader script
+# ffmpeg windows cross compile helper/download script
 ################################################################################
 # Copyright (C) 2012 Roger Pack
 #
