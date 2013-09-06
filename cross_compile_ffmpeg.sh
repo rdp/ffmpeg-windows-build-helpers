@@ -176,13 +176,19 @@ setup_env() {
 do_svn_checkout() {
   repo_url="$1"
   to_dir="$2"
+  desired_revision="$3"
   if [ ! -d $to_dir ]; then
     echo "svn checking out to $to_dir"
-    svn checkout $repo_url $to_dir.tmp || exit 1
+    if [[ -z "$desired_revision" ]]; then
+      svn checkout $repo_url $to_dir.tmp || exit 1
+    else
+      svn checkout -r $desired_revision $repo_url $to_dir.tmp || exit 1
+    fi
     mv $to_dir.tmp $to_dir
   else
     cd $to_dir
-    echo "not svn Updating $to_dir since usually svn repo's aren't frequently updated..."
+    echo "not svn Updating $to_dir since usually svn repo's aren't updated frequently enough..."
+    # XXX accomodate for desired revision here if I ever uncomment the next line...
     # svn up
     cd ..
   fi
@@ -268,7 +274,9 @@ do_make() {
   local touch_name=$(get_small_touchfile_name already_ran_make "$extra_make_options")
 
   if [ ! -f $touch_name ]; then
+    echo
     echo "making $cur_dir2 as $ PATH=$PATH make $extra_make_options"
+    echo
     nice make $extra_make_options || exit 1
     touch $touch_name
   else
@@ -701,6 +709,27 @@ build_frei0r() {
   fi
 }
 
+build_mp4box() {
+  # This script only builds the gpac_static lib plus MP4Box. Other tools inside
+  # specify revision until this works: https://sourceforge.net/p/gpac/discussion/287546/thread/72cf332a/
+  do_svn_checkout https://svn.code.sf.net/p/gpac/code/trunk/gpac gpac 4641
+  cd gpac
+  sed -i "s/has_dvb4linux=\"yes\"/has_dvb4linux=\"no\"/g" configure
+  sed -i "s/`uname -s`/MINGW32/g" configure
+  generic_configure --static-mp4box --enable-static-bin --disable-all # dezi st
+  cpu_count=1 # this one can't build multi-threaded <sigh> kludge
+  cd src
+  do_make "CC=$(echo $cross_prefix)gcc AR=$(echo $cross_prefix)ar PREFIX=$mingw"
+  cd ..
+  cd applications/mp4box
+  # do_make_installs?
+  do_make "CC=$(echo $cross_prefix)gcc AR=$(echo $cross_prefix)ar PREFIX=$mingw"
+  cpu_count=$original_cpu_count
+
+  cd ../..
+  cd ..
+}
+
 build_ffmpeg() {
   local shared=$1
   # can't mix and match --enable-static --enable-shared unfortunately, or the final executable seems to just use shared if the're both present
@@ -821,8 +850,8 @@ if [ -d "mingw-w64-i686" ]; then # they installed a 32-bit compiler
   mkdir -p win32
   cd win32
   build_dependencies
+  #build_mp4box
   build_ffmpeg
-  echo 'sstarted as' $build_ffmpeg_shared
   if [[ $build_ffmpeg_shared = "y" ]]; then
     build_ffmpeg shared
   fi
