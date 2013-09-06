@@ -10,6 +10,8 @@ also after that guy gets back to me
 
 == maybe do ==
 
+make a prompt for "shared or not?"
+
 I may not be using my "suggested super CFLAGS" everywhere quite right, should add to everywhere?
 
 try out gcc 4.8.1, then tell zeranoe :P
@@ -17,7 +19,7 @@ try out gcc 4.8.1, then tell zeranoe :P
 
 add mplayer cross option (mp4box too?)
 
-warn on old yasm from the get go...tell them to update to Raring :)
+warn on old yasm from the get go...tell them to update to Raring :) meh
 
 it should notice when configure was originally from some other git commit...anyway today, if you go to ffmpeg, checkout a different branch, it doesn't reconfigure...
 
@@ -32,11 +34,10 @@ tell those that fail with multi-threaded make
 distribute "my own set of [I guess optimized?] binaries" that are processor optimized (if it even matters speed-wise LOL).
   though mine do have pthreads...but hopefully I can test and report and get the zeranoe ones built that way...share the workload :)
 
-== really maybe, as in probably never ==
-
 move all downloads to some place I control...maybe even "all" downloads LOL
+  old downloads to sourceforge [?]
 
-make it work on windows
+make it work on windows native...
   release a downloadable "click here to run it" to build full libfdk-aac on windows LOL
 
 make the static vs. shared builds "a command line option/prompt"
