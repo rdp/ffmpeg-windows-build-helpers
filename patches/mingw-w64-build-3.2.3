@@ -659,11 +659,11 @@ if [[ "$mingw_w64_ver" = 'svn' ]]; then
   else
     mkdir -p 'mingw-w64-svn'
     cd 'mingw-w64-svn' || exit 1
-    svn checkout -r6172 http://mingw-w64.svn.sourceforge.net/svnroot/mingw-w64/trunk || exit 1
+    svn checkout -r6172 http://svn.code.sf.net/p/mingw-w64/code/trunk || exit 1
     if [[ "$thread_lib" = 'winpthreads' ]]; then
       mkdir -p 'experimental'
       cd 'experimental' || exit 1
-      svn checkout http://mingw-w64.svn.sourceforge.net/svnroot/mingw-w64/experimental/winpthreads || exit 1
+      svn checkout http://svn.code.sf.net/p/mingw-w64/code/experimental/winpthreads || exit 1
     fi
   fi
 else
@@ -689,7 +689,7 @@ else
       cd 'mingw-w64-svn' || exit 1
       mkdir 'experimental'
       cd 'experimental' || exit 1
-      svn checkout http://mingw-w64.svn.sourceforge.net/svnroot/mingw-w64/experimental/winpthreads || exit 1
+      svn checkout http://svn.code.sf.net/p/mingw-w64/code/experimental/winpthreads || exit 1
     fi
   fi
 fi
