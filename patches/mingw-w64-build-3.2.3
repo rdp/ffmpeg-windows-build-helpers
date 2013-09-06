@@ -73,7 +73,7 @@ target_i686='i686-w64-mingw32'
 target_x86_64='x86_64-w64-mingw32'
 
 ## Versions
-mingw_w64_release_ver='2.0.8'
+mingw_w64_release_ver='2.0.7'
 gcc_release_ver='4.8.0'
 mpfr_release_ver='3.1.2'
 mpc_release_ver='1.0.1'
@@ -508,7 +508,7 @@ if ! check_pkg_touch_success 'binutils' "$binutils_ver" 'configure' "$mingw_w64_
   rm -rfv "$mingw_w64_target" || exit 1
   mkdir "$mingw_w64_target"
   cd "$mingw_w64_target" || exit 1
-  CC=gcc "../../source/binutils-$binutils_ver/configure" --disable-doc --build="$system_type" --target="$mingw_w64_target" "${static_build[@]}" "${disable_nls[@]}" --disable-multilib --with-sysroot="$mingw_w64_prefix" --prefix="$mingw_w64_prefix"  || exit 1
+  CC=gcc "../../source/binutils-$binutils_ver/configure" --build="$system_type" --target="$mingw_w64_target" "${static_build[@]}" "${disable_nls[@]}" --disable-multilib --with-sysroot="$mingw_w64_prefix" --prefix="$mingw_w64_prefix"  || exit 1
 fi
 pkg_touch_success 'binutils' "$binutils_ver" 'configure' "$mingw_w64_target"
 if ! check_pkg_touch_success 'binutils' "$binutils_ver" 'compile' "$mingw_w64_target"; then
