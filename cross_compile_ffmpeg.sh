@@ -563,7 +563,6 @@ build_gnutls() {
   download_and_unpack_file ftp://ftp.gnutls.org/gcrypt/gnutls/v3.2/gnutls-3.2.3.tar.xz gnutls-3.2.3
   cd gnutls-3.2.3
     generic_configure "--disable-cxx --disable-doc" # don't need the c++ version, in an effort to cut down on size... LODO test difference...
-    do_make_install
   cd ..
   sed -i 's/-lgnutls *$/-lgnutls -lnettle -lhogweed -lgmp -lcrypt32 -lws2_32/' "$PKG_CONFIG_PATH/gnutls.pc"
 }
@@ -728,8 +727,8 @@ build_mp4box() { # like build_gpac
   cd applications/mp4box
   do_make "CC=${cross_prefix}gcc AR=${cross_prefix}ar RANLIB=${cross_prefix}ranlib PREFIX="
   cd ../..
-  cd ..
   mv ./bin/gcc/MP4Box ./bin/gcc/MP4Box.exe # it doesn't name it .exe? This feels broken somehow...
+  cd ..
   exit
 }
 
@@ -854,9 +853,8 @@ if [ -d "mingw-w64-i686" ]; then # they installed a 32-bit compiler
   cross_prefix="$cur_dir/mingw-w64-i686/bin/i686-w64-mingw32-"
   mkdir -p win32
   cd win32
-  #build_mp4box
-  #exit
   build_dependencies
+  #build_mp4box
   build_ffmpeg
   if [[ $build_ffmpeg_shared = "y" ]]; then
     build_ffmpeg shared
@@ -875,12 +873,10 @@ if [ -d "mingw-w64-x86_64" ]; then # they installed a 64-bit compiler
   cross_prefix="$cur_dir/mingw-w64-x86_64/bin/x86_64-w64-mingw32-"
   cd x86_64
   build_dependencies
+  #build_mp4box
   build_ffmpeg
   if [[ $build_ffmpeg_shared = "y" ]]; then
     build_ffmpeg shared
   fi
   cd ..
 fi
-
-echo "done with ffmpeg cross compiler script, it may have built the following binaries: 
-$(find .. -name ffmpeg.exe)"
