@@ -251,7 +251,7 @@ do_configure() {
   fi
   local cur_dir2=$(pwd)
   local english_name=$(basename $cur_dir2)
-  local touch_name=$(get_small_touchfile_name already_configured "$configure_options")
+  local touch_name=$(get_small_touchfile_name already_configured "$configure_options $configure_name")
   if [ ! -f "$touch_name" ]; then
     make clean # just in case
     #make uninstall # does weird things when run under ffmpeg src
@@ -709,22 +709,21 @@ build_frei0r() {
   fi
 }
 
-build_mp4box() {
+build_mp4box() { # like build_gpac
   # This script only builds the gpac_static lib plus MP4Box. Other tools inside
   # specify revision until this works: https://sourceforge.net/p/gpac/discussion/287546/thread/72cf332a/
-  do_svn_checkout https://svn.code.sf.net/p/gpac/code/trunk/gpac gpac 4641
-  cd gpac
+  do_svn_checkout https://svn.code.sf.net/p/gpac/code/trunk/gpac mp4box_gpac 4641
+  cd mp4box_gpac
+  # are these needed?  If so then complain to the mp4box people about it?
   sed -i "s/has_dvb4linux=\"yes\"/has_dvb4linux=\"no\"/g" configure
   sed -i "s/`uname -s`/MINGW32/g" configure
-  generic_configure --static-mp4box --enable-static-bin --disable-all # dezi st
-  cpu_count=1 # this one can't build multi-threaded <sigh> kludge
+  generic_configure "--static-mp4box --enable-static-bin --disable-all --extra-libs=-lwinmm"
   cd src
   do_make "CC=$(echo $cross_prefix)gcc AR=$(echo $cross_prefix)ar PREFIX=$mingw"
   cd ..
   cd applications/mp4box
-  # do_make_installs?
+  # do_make_install(s)?
   do_make "CC=$(echo $cross_prefix)gcc AR=$(echo $cross_prefix)ar PREFIX=$mingw"
-  cpu_count=$original_cpu_count
 
   cd ../..
   cd ..
@@ -849,8 +848,8 @@ if [ -d "mingw-w64-i686" ]; then # they installed a 32-bit compiler
   cross_prefix="$cur_dir/mingw-w64-i686/bin/i686-w64-mingw32-"
   mkdir -p win32
   cd win32
-  build_dependencies
   #build_mp4box
+  build_dependencies
   build_ffmpeg
   if [[ $build_ffmpeg_shared = "y" ]]; then
     build_ffmpeg shared
