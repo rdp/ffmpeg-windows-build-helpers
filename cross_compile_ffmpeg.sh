@@ -712,7 +712,7 @@ build_frei0r() {
 build_mp4box() { # like build_gpac
   # This script only builds the gpac_static lib plus MP4Box. Other tools inside
   # specify revision until this works: https://sourceforge.net/p/gpac/discussion/287546/thread/72cf332a/
-  do_svn_checkout https://svn.code.sf.net/p/gpac/code/trunk/gpac mp4box_gpac 4641
+  do_svn_checkout https://svn.code.sf.net/p/gpac/code/trunk/gpac mp4box_gpac
   cd mp4box_gpac
   # are these tweaks needed?  If so then complain to the mp4box people about it?
   sed -i "s/has_dvb4linux=\"yes\"/has_dvb4linux=\"no\"/g" configure
@@ -731,6 +731,7 @@ build_mp4box() { # like build_gpac
     mv ./bin/gcc/MP4Box ./bin/gcc/MP4Box.exe # it doesn't name it .exe? This feels broken somehow...
   fi
   echo "built $(readlink -f ./bin/gcc/MP4Box.exe)"
+  cd ..
 }
 
 build_ffmpeg() {
@@ -741,7 +742,7 @@ build_ffmpeg() {
     local extra_configure_opts="--enable-shared --disable-static"
     cd ffmpeg_git_shared
   else
-    do_git_checkout https://github.com/FFmpeg/FFmpeg.git ffmpeg_git
+    #do_git_checkout https://github.com/FFmpeg/FFmpeg.git ffmpeg_git
     local extra_configure_opts="--enable-static --disable-shared"
     cd ffmpeg_git
   fi
@@ -887,6 +888,6 @@ if [ -d "mingw-w64-x86_64" ]; then # they installed a 64-bit compiler
   cd ..
 fi
 
-for file in `find . -name {ffmpeg.exe,MP4Box.exe}`; do
-  echo "built $file"
-end
+for file in `find . -name ffmpeg.exe` `find . -name MP4Box.exe`; do
+  echo "built $(readlink -f $file)"
+done
