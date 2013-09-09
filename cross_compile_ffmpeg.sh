@@ -718,6 +718,8 @@ build_mplayer() {
 --extra-cflags="-I$PWD/osdep/mingw32"
 --extra-ldflags="-L$PWD/osdep/mingw32"
 --with-freetype-config="$PWD/osdep/mingw32/ftconf"
+  # except I'm not supposed to use --target apparently?w
+
 
   cd ..
 }
