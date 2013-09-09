@@ -8,7 +8,12 @@ specifying a mingw-w64 revision might be nice
 also after that guy gets back to me
  his mingw-w64 svn is a redirect...
 
+check if mp4box.exe can actually run.
+
 == maybe do ==
+
+add vid.stab support?
+  check for any other configs he uses?
 
 make a prompt for "shared or not?"
 
