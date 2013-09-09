@@ -757,7 +757,7 @@ build_ffmpeg() {
     local extra_configure_opts="--enable-shared --disable-static"
     cd ffmpeg_git_shared
   else
-    #do_git_checkout https://github.com/FFmpeg/FFmpeg.git ffmpeg_git
+    do_git_checkout https://github.com/FFmpeg/FFmpeg.git ffmpeg_git
     local extra_configure_opts="--enable-static --disable-shared"
     cd ffmpeg_git
   fi
