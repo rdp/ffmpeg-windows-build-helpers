@@ -29,6 +29,6 @@ up the building speed of gcc, build shared, etc. run it with
 ./cross_compile_ffmpeg.sh -h 
 to see them all
 
-Also NB that you can "cross compile" mp4box if you "uncomment" the build_mp4box lines neear the end of the script.
+Also NB that you can also "cross compile" mp4box if you pass in the appropriate command line parameter.
 
 Feedback welcome roger-projects@googlegroups.com
