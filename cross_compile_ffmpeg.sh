@@ -564,6 +564,7 @@ build_gnutls() {
   download_and_unpack_file ftp://ftp.gnutls.org/gcrypt/gnutls/v3.2/gnutls-3.2.3.tar.xz gnutls-3.2.3
   cd gnutls-3.2.3
     generic_configure "--disable-cxx --disable-doc" # don't need the c++ version, in an effort to cut down on size... LODO test difference...
+    do_make_install
   cd ..
   sed -i 's/-lgnutls *$/-lgnutls -lnettle -lhogweed -lgmp -lcrypt32 -lws2_32/' "$PKG_CONFIG_PATH/gnutls.pc"
 }
