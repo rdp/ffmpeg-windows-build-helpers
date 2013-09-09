@@ -1,4 +1,4 @@
-== todos ==
+== actual todos ==
 
 == maybe do ==
 
@@ -28,16 +28,14 @@ tell those that fail with multi-threaded make
 
 distribute "my own set of [I guess optimized?] binaries" that are processor optimized (if it even matters speed-wise LOL).
   though mine do have pthreads...but hopefully I can test and report and get the zeranoe ones built that way...share the workload :)
+  move all downloads to some place I control...maybe even "all" downloads LOL
+    old downloads to sourceforge [?]
 
-move all downloads to some place I control...maybe even "all" downloads LOL
-  old downloads to sourceforge [?]
-
-make it work on windows native...
+make it compilable on windows native...
   release a downloadable "click here to run it" to build full libfdk-aac on windows LOL
 
-make the static vs. shared builds "a command line option/prompt"
-
 release "some 10 bit, some not" ?
+  command line?
 
 release some compiler optimized? does it make a difference? real installer?
   ancient debug builds, etc...hmm...sourceforge for legacy? yeah
@@ -48,38 +46,15 @@ test fribidi git master (does 0.19.5 fail? it should?) with wine installed
 
 tell orc+schro "you didn't well cross compile!"
 
-check march=native (from laptop...)
-  ffmpeg more? do I need to enable runtime detection when it's not? 
-  libx264 still uses i686?
-  more march stuff in "notes" file
-
 calculate size of each piece, put it on a wiki somewhere...
   startup slowdown, too?
-
-cleanup zeranoe suggs (from our chat)
-
-parameters to the script
-  an option to setup-compilers --arch
-
-warn that we're not using it if they already have a toolchain in the PATH
 
 support external toolchains
   then support "checking if they already have zlib installed into it"
 
 --enable-none --enable-x264 --enable-all-gpl --enable-all-non-free
 
---extra-ffmpeg-options
-
-
-"shared" builds option, like libavcodec-54.dll
-
-complain for "everyone" that fails cross compile that I haven't yet...
-
 march=native (others? vpx?)
-
-dynamic aac somehow...prolly for something with > 2 audios...
-
-see if it "builds ok" 64 bit with out the path or ABI thing
 
 cleanup ramiro suggested for libgsm
 
@@ -90,8 +65,6 @@ does it affect "both" libx264 and/or just ffmpeg?
     Also, I wonder if x264 needs to be recompiled after every update to
     test? Does this issue root in FFmpeg or x264 possibly?
 
---disable-decoder=libvpx ?
-
 not require prompts at all for the compiler
 try and figure out if its pthreads that's giving me the speedup over his
 
@@ -100,7 +73,5 @@ profile guided builds?
   everything
 
 other "-march" like options? fastmath
-
-use make -j 2 (more than one core)
 
 x264 fomit frame pointer for 32 bit?

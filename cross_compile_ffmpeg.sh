@@ -709,6 +709,19 @@ build_frei0r() {
   fi
 }
 
+build_mplayer() {
+  do_git_checkout https://github.com/pigoz/mplayer-svn.git mplayer-svn
+  cd mplayer-svn
+
+./configure --host-cc=cc --target=i686-mingw32msvc --cc=i586-mingw32msvc-cc
+--windres=i586-mingw32msvc-windres --ranlib=i586-mingw32msvc-ranlib
+--extra-cflags="-I$PWD/osdep/mingw32"
+--extra-ldflags="-L$PWD/osdep/mingw32"
+--with-freetype-config="$PWD/osdep/mingw32/ftconf"
+
+  cd ..
+}
+
 build_mp4box() { # like build_gpac
   # This script only builds the gpac_static lib plus MP4Box. Other tools inside
   # specify revision until this works: https://sourceforge.net/p/gpac/discussion/287546/thread/72cf332a/
