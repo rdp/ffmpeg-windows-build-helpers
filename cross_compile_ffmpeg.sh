@@ -68,6 +68,7 @@ cur_dir="$(pwd)/sandbox"
 cpu_count="$(grep -c processor /proc/cpuinfo)" # linux
 gcc_cpu_count=1 # allow them to specify more
 build_ffmpeg_shared=n
+build_mp4box=n
 if [ -z "$cpu_count" ]; then
   cpu_count=`sysctl -n hw.ncpu | tr -d '\n'` # OS X
   if [ -z "$cpu_count" ]; then
@@ -709,12 +710,11 @@ build_frei0r() {
 }
 
 build_mp4box() { # like build_gpac
-  cpu_count=1
   # This script only builds the gpac_static lib plus MP4Box. Other tools inside
   # specify revision until this works: https://sourceforge.net/p/gpac/discussion/287546/thread/72cf332a/
   do_svn_checkout https://svn.code.sf.net/p/gpac/code/trunk/gpac mp4box_gpac 4641
   cd mp4box_gpac
-  # are these needed?  If so then complain to the mp4box people about it?
+  # are these tweaks needed?  If so then complain to the mp4box people about it?
   sed -i "s/has_dvb4linux=\"yes\"/has_dvb4linux=\"no\"/g" configure
   sed -i "s/`uname -s`/MINGW32/g" configure
   # XXX do I want to disable more things here?
@@ -722,14 +722,15 @@ build_mp4box() { # like build_gpac
   # I seem unable to pass 2 into the same config line so do it again...
   sed -i "s/EXTRALIBS=.*/EXTRALIBS=-lws2_32 -lwinmm/g" config.mak
   cd src
-  do_make "CC=${cross_prefix}gcc AR=${cross_prefix}ar RANLIB=${cross_prefix}ranlib PREFIX="
+  do_make "CC=${cross_prefix}gcc AR=${cross_prefix}ar RANLIB=${cross_prefix}ranlib PREFIX= STRIP=${cross_prefix}strip"
   cd ..
   cd applications/mp4box
-  do_make "CC=${cross_prefix}gcc AR=${cross_prefix}ar RANLIB=${cross_prefix}ranlib PREFIX="
+  do_make "CC=${cross_prefix}gcc AR=${cross_prefix}ar RANLIB=${cross_prefix}ranlib PREFIX= STRIP=${cross_prefix}strip"
   cd ../..
-  mv ./bin/gcc/MP4Box ./bin/gcc/MP4Box.exe # it doesn't name it .exe? This feels broken somehow...
-  cd ..
-  exit
+  if [[ ! -f "./bin/gcc/MP4Box.exe" ]]; then
+    mv ./bin/gcc/MP4Box ./bin/gcc/MP4Box.exe # it doesn't name it .exe? This feels broken somehow...
+  fi
+  echo "built $(readlink -f ./bin/gcc/MP4Box.exe)"
 }
 
 build_ffmpeg() {
@@ -823,9 +824,10 @@ build_dependencies() {
 
 while true; do
   case $1 in
-    -h | --help ) echo "available options (with defaults): --build-ffmpeg-shared=n [default is static only, set this to y to also build shared] --gcc-cpu-count=1 [set it higher if you have > 1GB RAM] --disable-nonfree=y (set to n to include nonfree) --sandbox-ok=y --rebuild-compilers=y --defaults [don't prompt]"; exit 0 ;;
+    -h | --help ) echo "available options (with defaults): --build-ffmpeg-shared=n [default is static only, set this to y to also build shared] --gcc-cpu-count=1 [set it higher if you have > 1GB RAM] --disable-nonfree=y (set to n to include nonfree) --sandbox-ok=y --rebuild-compilers=y --defaults [don't prompt, also -d] --build-mp4box=n"; exit 0 ;;
     --sandbox-ok=* ) sandbox_ok="${1#*=}"; shift ;;
     --gcc-cpu-count=* ) gcc_cpu_count="${1#*=}"; shift ;;
+    --build-mp4box=* ) build_mp4box="${1#*=}"; shift ;;
     --disable-nonfree=* ) disable_nonfree="${1#*=}"; shift ;;
     --defaults ) disable_nonfree="y"; sandbox_ok="y"; shift ;;
     -d ) disable_nonfree="y"; sandbox_ok="y"; shift ;;
@@ -854,7 +856,9 @@ if [ -d "mingw-w64-i686" ]; then # they installed a 32-bit compiler
   mkdir -p win32
   cd win32
   build_dependencies
-  #build_mp4box
+  if [[ $build_mp4box = "y" ]]; then
+    build_mp4box
+  fi
   build_ffmpeg
   if [[ $build_ffmpeg_shared = "y" ]]; then
     build_ffmpeg shared
@@ -873,10 +877,16 @@ if [ -d "mingw-w64-x86_64" ]; then # they installed a 64-bit compiler
   cross_prefix="$cur_dir/mingw-w64-x86_64/bin/x86_64-w64-mingw32-"
   cd x86_64
   build_dependencies
-  #build_mp4box
+  if [[ $build_mp4box = "y" ]]; then
+    build_mp4box
+  fi
   build_ffmpeg
   if [[ $build_ffmpeg_shared = "y" ]]; then
     build_ffmpeg shared
   fi
   cd ..
 fi
+
+for file in `find . -name {ffmpeg.exe,MP4Box.exe}`; do
+  echo "built $file"
+end
