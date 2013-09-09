@@ -743,9 +743,8 @@ build_mp4box() { # like build_gpac
   cd applications/mp4box
   do_make "CC=${cross_prefix}gcc AR=${cross_prefix}ar RANLIB=${cross_prefix}ranlib PREFIX= STRIP=${cross_prefix}strip"
   cd ../..
-  if [[ ! -f "./bin/gcc/MP4Box.exe" ]]; then
-    mv ./bin/gcc/MP4Box ./bin/gcc/MP4Box.exe # it doesn't name it .exe? This feels broken somehow...
-  fi
+  # copy it every time just in case it was rebuilt...
+  cp ./bin/gcc/MP4Box ./bin/gcc/MP4Box.exe # it doesn't name it .exe? That feels broken somehow...
   echo "built $(readlink -f ./bin/gcc/MP4Box.exe)"
   cd ..
 }
