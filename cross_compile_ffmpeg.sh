@@ -66,9 +66,11 @@ fi
 cur_dir="$(pwd)/sandbox"
 cpu_count="$(grep -c processor /proc/cpuinfo)" # linux
 gcc_cpu_count=1 # allow them to specify more
+build_ffmpeg_static=y
 build_ffmpeg_shared=n
 build_mp4box=n
 build_mplayer=n
+build_vlc=n
 if [ -z "$cpu_count" ]; then
   cpu_count=`sysctl -n hw.ncpu | tr -d '\n'` # OS X
   if [ -z "$cpu_count" ]; then
@@ -717,7 +719,7 @@ build_vlc() {
     ./bootstrap
   fi 
   # it wants a vendored libav*?
-  do_configure "--host=i686-w64-mingw32 --disable-avcodec --disable-lua --disable-mad" # don't have lua mingw yet
+  do_configure "--disable-libgcrypt --disable-a52 --host=i686-w64-mingw32 --disable-avcodec --disable-lua --disable-mad" # don't have lua mingw yet
   do_make
   # package-win-common ?
   cd ..
@@ -837,7 +839,7 @@ build_dependencies() {
   build_lame
   build_libvpx
   build_vo_aacenc
-  # build_iconv # mplayer I think needs it for freetype [just it though]
+  build_iconv # mplayer I think needs it for freetype [just it though], vlc also wants it
   build_freetype
   build_libexpat
   build_libilbc
@@ -865,20 +867,26 @@ build_apps() {
   if [[ $build_ffmpeg_shared = "y" ]]; then
     build_ffmpeg shared
   fi
-  build_ffmpeg
-  build_vlc # requires ffmpeg static first...
+  if [[ $build_ffmpeg_static = "y" ]]; then
+    build_ffmpeg
+  fi
+  if [[ $build_vlc = "y" ]]; then
+    build_vlc # NB requires ffmpeg static as well, at least once...
+  fi
 }
 
 while true; do
   case $1 in
-    -h | --help ) echo "available options (with defaults): --build-ffmpeg-shared=n [default is static only, set this to y to also build shared] --gcc-cpu-count=1 [set it higher if you have > 1GB RAM] --disable-nonfree=y (set to n to include nonfree) --sandbox-ok=y --rebuild-compilers=y --defaults [don't prompt, also -d] --build-mp4box=n --build-mplayer=n [builds mplayer.exe and mencoder.exe]"; exit 0 ;;
+    -h | --help ) echo "available options (with defaults): --build-ffmpeg-shared=n --build-ffmpeg-static=y --gcc-cpu-count=1 [set it higher than 1 if you have > 1GB RAM] --disable-nonfree=y (set to n to include nonfree) --sandbox-ok=y [skip sandbox prompt if y] --rebuild-compilers=y --defaults|-d [don't prompt, just use defaults] --build-mp4box=n [builds MP4Box.exe] --build-mplayer=n [builds mplayer.exe and mencoder.exe] --build-vlc=n [builds vlc.exe]"; exit 0 ;;
     --sandbox-ok=* ) sandbox_ok="${1#*=}"; shift ;;
     --gcc-cpu-count=* ) gcc_cpu_count="${1#*=}"; shift ;;
     --build-mp4box=* ) build_mp4box="${1#*=}"; shift ;;
     --build-mplayer=* ) build_mplayer="${1#*=}"; shift ;;
+    --build-vlc=* ) build_vlc="${1#*=}"; shift ;;
     --disable-nonfree=* ) disable_nonfree="${1#*=}"; shift ;;
     --defaults ) disable_nonfree="y"; sandbox_ok="y"; shift ;;
     -d ) disable_nonfree="y"; sandbox_ok="y"; shift ;;
+    --build-ffmpeg-static=* ) build_ffmpeg_static="${1#*=}"; shift ;;
     --build-ffmpeg-shared=* ) build_ffmpeg_shared="${1#*=}"; shift ;;
     --rebuild-compilers=* ) rebuild_compilers="${1#*=}"; shift ;;
     -- ) shift; break ;;
@@ -903,7 +911,7 @@ if [ -d "mingw-w64-i686" ]; then # they installed a 32-bit compiler
   cross_prefix="$cur_dir/mingw-w64-i686/bin/i686-w64-mingw32-"
   mkdir -p win32
   cd win32
-  #build_dependencies
+  build_dependencies
   build_apps
   cd ..
 fi
