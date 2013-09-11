@@ -710,13 +710,26 @@ build_frei0r() {
   fi
 }
 
+build_vlc() {
+  do_git_checkout http://repo.or.cz/r/vlc.git vlc
+  cd vlc
+  if [[ ! -f "configure" ]]; then
+    ./bootstrap
+  fi 
+  # it wants a vendored libav*?
+  do_configure "--host=i686-w64-mingw32 --disable-avcodec --disable-lua --disable-mad" # don't have lua mingw yet
+  do_make
+  # package-win-common ?
+  cd ..
+}
+
 build_mplayer() {
   download_and_unpack_file http://sourceforge.net/projects/mplayer-edl/files/mplayer-checkout-snapshot.tar.bz2/download mplayer-checkout-2013-09-11
   cd mplayer-checkout-2013-09-11
   do_git_checkout https://github.com/FFmpeg/FFmpeg "ffmpeg" bbcaf25d4 # random, known to work revision
 
-  do_configure "--enable-cross-compile --host-cc=cc --cc=${cross_prefix}gcc --windres=${cross_prefix}windres --ranlib=${cross_prefix}ranlib --ar=${cross_prefix}ar --as=${cross_prefix}as --nm=${cross_prefix}nm"
-  rm already_ran_make* # force re-link just in case...
+  do_configure "--enable-cross-compile --host-cc=cc --cc=${cross_prefix}gcc --windres=${cross_prefix}windres --ranlib=${cross_prefix}ranlib --ar=${cross_prefix}ar --as=${cross_prefix}as --nm=${cross_prefix}nm --enable-runtime-cpudetect"
+  rm already_ran_make* # try to force re-link just in case...this might not be enough tho
   rm *.exe
   do_make
   echo "built ${PWD}/mplayer.exe"
@@ -768,7 +781,7 @@ build_ffmpeg() {
    local arch=x86_64
   fi
 
-config_options="--arch=$arch --target-os=mingw32 --cross-prefix=$cross_prefix --pkg-config=pkg-config --enable-gpl --enable-libsoxr --enable-libx264 --enable-avisynth --enable-libxvid --enable-libmp3lame --enable-version3 --enable-zlib --enable-librtmp --enable-libvorbis --enable-libtheora --enable-libspeex --enable-libopenjpeg --enable-gnutls --enable-libgsm --enable-libfreetype --enable-fontconfig --enable-libass --enable-libutvideo --enable-libopus --disable-w32threads --enable-frei0r --enable-filter=frei0r --enable-libvo-aacenc --enable-bzlib --enable-libxavs --extra-cflags=-DPTW32_STATIC_LIB --enable-libopencore-amrnb --enable-libopencore-amrwb --enable-libvo-amrwbenc --enable-libschroedinger --enable-libbluray --enable-libvpx --enable-libilbc $extra_configure_opts " # others: --enable-w32threads --enable-libflite
+config_options="--arch=$arch --target-os=mingw32 --cross-prefix=$cross_prefix --pkg-config=pkg-config --enable-gpl --enable-libsoxr --enable-libx264 --enable-avisynth --enable-libxvid --enable-libmp3lame --enable-version3 --enable-zlib --enable-librtmp --enable-libvorbis --enable-libtheora --enable-libspeex --enable-libopenjpeg --enable-gnutls --enable-libgsm --enable-libfreetype --enable-fontconfig --enable-libass --enable-libutvideo --enable-libopus --disable-w32threads --enable-frei0r --enable-filter=frei0r --enable-libvo-aacenc --enable-bzlib --enable-libxavs --extra-cflags=-DPTW32_STATIC_LIB --enable-libopencore-amrnb --enable-libopencore-amrwb --enable-libvo-amrwbenc --enable-libschroedinger --enable-libbluray --enable-libvpx --enable-libilbc --prefix=$mingw_w64_x86_64_prefix $extra_configure_opts " # other possibilities: --enable-w32threads --enable-libflite
   if [[ "$non_free" = "y" ]]; then
     config_options="$config_options --enable-nonfree --enable-libfdk-aac" # --enable-libfaac -- faac deemed too poor quality and becomes the default -- add it in and uncomment the build_faac line to include it --enable-openssl --enable-libaacplus
   else
@@ -787,6 +800,9 @@ config_options="--arch=$arch --target-os=mingw32 --cross-prefix=$cross_prefix --
   rm already_ran_make*
   echo "doing ffmpeg make $(pwd)"
   do_make
+  if [[ $shared != "shared" ]]; then
+    do_make_install # install libavcodec as a dependency itself...
+  fi
   echo "Done! You will find $bits_target bit $shared binaries in $(pwd)/ff{mpeg,probe,play}*.exe"
   cd ..
 }
@@ -850,6 +866,7 @@ build_apps() {
     build_ffmpeg shared
   fi
   build_ffmpeg
+  build_vlc # requires ffmpeg static first...
 }
 
 while true; do
@@ -886,7 +903,7 @@ if [ -d "mingw-w64-i686" ]; then # they installed a 32-bit compiler
   cross_prefix="$cur_dir/mingw-w64-i686/bin/i686-w64-mingw32-"
   mkdir -p win32
   cd win32
-  build_dependencies
+  #build_dependencies
   build_apps
   cd ..
 fi
