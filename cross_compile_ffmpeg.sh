@@ -711,20 +711,18 @@ build_frei0r() {
 }
 
 build_mplayer() {
-  do_git_checkout https://github.com/rdp/mplayer-svn.git mplayer-svn
-  cd mplayer-svn
-  git submodule update --init --recursive
+  download_and_unpack_file http://sourceforge.net/projects/mplayer-edl/files/mplayer-checkout-snapshot.tar.bz2/download mplayer-checkout-2013-09-11
+  cd mplayer-checkout-2013-09-11
+  do_git_checkout https://github.com/FFmpeg/FFmpeg "ffmpeg" bbcaf25d4 # random, known to work revision
 
-#-target=i686-mingw32msvc --cc=i586-mingw32msvc-cc
-  do_configure "--disable-fbdev --enable-cross-compile --host-cc=cc --cc=${cross_prefix}gcc --windres=${cross_prefix}windres --ranlib=${cross_prefix}ranlib --ar=${cross_prefix}ar --as=${cross_prefix}as --nm=${cross_prefix}nm"
+  do_configure "--enable-cross-compile --host-cc=cc --cc=${cross_prefix}gcc --windres=${cross_prefix}windres --ranlib=${cross_prefix}ranlib --ar=${cross_prefix}ar --as=${cross_prefix}as --nm=${cross_prefix}nm"
   do_make
 #--extra-cflags="-I$PWD/osdep/mingw32"
 #--extra-ldflags="-L$PWD/osdep/mingw32"
 #--with-freetype-config="$PWD/osdep/mingw32/ftconf"
 # except I'm not supposed to use --target apparently?
-
+  echo "built ${PWD}/mplayer.exe"
   cd ..
-  exit
 }
 
 build_mp4box() { # like build_gpac
@@ -839,6 +837,18 @@ build_dependencies() {
   build_librtmp # needs gnutls [or openssl...]
 }
 
+build_apps() {
+  # now the things that use the dependencies...
+  if [[ $build_mp4box = "y" ]]; then
+    build_mp4box
+  fi
+  build_mplayer
+  build_ffmpeg
+  if [[ $build_ffmpeg_shared = "y" ]]; then
+    build_ffmpeg shared
+  fi
+}
+
 
 while true; do
   case $1 in
@@ -874,14 +884,7 @@ if [ -d "mingw-w64-i686" ]; then # they installed a 32-bit compiler
   mkdir -p win32
   cd win32
   build_dependencies
-  if [[ $build_mp4box = "y" ]]; then
-    build_mp4box
-  fi
-  build_mplayer
-  build_ffmpeg
-  if [[ $build_ffmpeg_shared = "y" ]]; then
-    build_ffmpeg shared
-  fi
+  build_apps
   cd ..
 fi
 
@@ -896,16 +899,10 @@ if [ -d "mingw-w64-x86_64" ]; then # they installed a 64-bit compiler
   cross_prefix="$cur_dir/mingw-w64-x86_64/bin/x86_64-w64-mingw32-"
   cd x86_64
   build_dependencies
-  if [[ $build_mp4box = "y" ]]; then
-    build_mp4box
-  fi
-  build_ffmpeg
-  if [[ $build_ffmpeg_shared = "y" ]]; then
-    build_ffmpeg shared
-  fi
+  build_apps
   cd ..
 fi
 
-for file in `find . -name ffmpeg.exe` `find . -name MP4Box.exe`; do
+for file in `find . -name ffmpeg.exe` `find . -name MP4Box.exe` `find . -name mplayer.exe` `find . -name mencoder.exe`; do
   echo "built $(readlink -f $file)"
 done
