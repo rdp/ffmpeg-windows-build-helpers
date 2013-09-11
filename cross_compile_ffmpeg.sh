@@ -69,6 +69,7 @@ cpu_count="$(grep -c processor /proc/cpuinfo)" # linux
 gcc_cpu_count=1 # allow them to specify more
 build_ffmpeg_shared=n
 build_mp4box=n
+build_mplayer=n
 if [ -z "$cpu_count" ]; then
   cpu_count=`sysctl -n hw.ncpu | tr -d '\n'` # OS X
   if [ -z "$cpu_count" ]; then
@@ -842,20 +843,22 @@ build_apps() {
   if [[ $build_mp4box = "y" ]]; then
     build_mp4box
   fi
-  build_mplayer
-  build_ffmpeg
+  if [[ $build_mplayer = "y" ]]; then
+    build_mplayer
+  fi
   if [[ $build_ffmpeg_shared = "y" ]]; then
     build_ffmpeg shared
   fi
+  build_ffmpeg
 }
-
 
 while true; do
   case $1 in
-    -h | --help ) echo "available options (with defaults): --build-ffmpeg-shared=n [default is static only, set this to y to also build shared] --gcc-cpu-count=1 [set it higher if you have > 1GB RAM] --disable-nonfree=y (set to n to include nonfree) --sandbox-ok=y --rebuild-compilers=y --defaults [don't prompt, also -d] --build-mp4box=n"; exit 0 ;;
+    -h | --help ) echo "available options (with defaults): --build-ffmpeg-shared=n [default is static only, set this to y to also build shared] --gcc-cpu-count=1 [set it higher if you have > 1GB RAM] --disable-nonfree=y (set to n to include nonfree) --sandbox-ok=y --rebuild-compilers=y --defaults [don't prompt, also -d] --build-mp4box=n --build-mplayer=n [builds mplayer.exe and mencoder.exe]"; exit 0 ;;
     --sandbox-ok=* ) sandbox_ok="${1#*=}"; shift ;;
     --gcc-cpu-count=* ) gcc_cpu_count="${1#*=}"; shift ;;
     --build-mp4box=* ) build_mp4box="${1#*=}"; shift ;;
+    --build-mplayer=* ) build_mplayer="${1#*=}"; shift ;;
     --disable-nonfree=* ) disable_nonfree="${1#*=}"; shift ;;
     --defaults ) disable_nonfree="y"; sandbox_ok="y"; shift ;;
     -d ) disable_nonfree="y"; sandbox_ok="y"; shift ;;
