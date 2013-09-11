@@ -63,7 +63,6 @@ fi
 
 }
 
-
 cur_dir="$(pwd)/sandbox"
 cpu_count="$(grep -c processor /proc/cpuinfo)" # linux
 gcc_cpu_count=1 # allow them to specify more
@@ -717,11 +716,9 @@ build_mplayer() {
   do_git_checkout https://github.com/FFmpeg/FFmpeg "ffmpeg" bbcaf25d4 # random, known to work revision
 
   do_configure "--enable-cross-compile --host-cc=cc --cc=${cross_prefix}gcc --windres=${cross_prefix}windres --ranlib=${cross_prefix}ranlib --ar=${cross_prefix}ar --as=${cross_prefix}as --nm=${cross_prefix}nm"
+  rm already_ran_make* # force re-link just in case...
+  rm *.exe
   do_make
-#--extra-cflags="-I$PWD/osdep/mingw32"
-#--extra-ldflags="-L$PWD/osdep/mingw32"
-#--with-freetype-config="$PWD/osdep/mingw32/ftconf"
-# except I'm not supposed to use --target apparently?
   echo "built ${PWD}/mplayer.exe"
   cd ..
 }
@@ -731,7 +728,7 @@ build_mp4box() { # like build_gpac
   # specify revision until this works: https://sourceforge.net/p/gpac/discussion/287546/thread/72cf332a/
   do_svn_checkout https://svn.code.sf.net/p/gpac/code/trunk/gpac mp4box_gpac
   cd mp4box_gpac
-  # are these tweaks needed?  If so then complain to the mp4box people about it?
+  # are these tweaks needed? If so then complain to the mp4box people about it?
   sed -i "s/has_dvb4linux=\"yes\"/has_dvb4linux=\"no\"/g" configure
   sed -i "s/`uname -s`/MINGW32/g" configure
   # XXX do I want to disable more things here?
@@ -739,9 +736,12 @@ build_mp4box() { # like build_gpac
   # I seem unable to pass 2 into the same config line so do it again...
   sed -i "s/EXTRALIBS=.*/EXTRALIBS=-lws2_32 -lwinmm/g" config.mak
   cd src
+  rm already_
   do_make "CC=${cross_prefix}gcc AR=${cross_prefix}ar RANLIB=${cross_prefix}ranlib PREFIX= STRIP=${cross_prefix}strip"
   cd ..
+  rm ./bin/gcc/MP4Box # try and force a relink
   cd applications/mp4box
+  rm already_ran_make*
   do_make "CC=${cross_prefix}gcc AR=${cross_prefix}ar RANLIB=${cross_prefix}ranlib PREFIX= STRIP=${cross_prefix}strip"
   cd ../..
   # copy it every time just in case it was rebuilt...
