@@ -221,7 +221,7 @@ do_git_checkout() {
     update_to_desired_branch_or_revision $to_dir $desired_branch
   else
     cd $to_dir
-    echo "Updating to latest $to_dir version..."
+    echo "Updating to latest $to_dir version... $desired_branch"
     old_git_version=`git rev-parse HEAD`
     git pull # if you comment out, add an echo :)
     update_to_desired_branch_or_revision "." $desired_branch
@@ -713,8 +713,12 @@ build_frei0r() {
 build_mplayer() {
   do_git_checkout https://github.com/pigoz/mplayer-svn.git mplayer-svn
   cd mplayer-svn
+  git submodule update --init --recursive
   do_git_checkout https://github.com/FFmpeg/FFmpeg.git ffmpeg # it requires a local ffmpeg--scary!
-  do_git_checkout https://github.com/microe/libdvdread.git libdvdread4 # an svn-externals that didn't make the git copy XXX make a dependency for it instead?
+  do_git_checkout https://github.com/microe/libdvdread.git libdvdread4.full 75e736048b # an svn-externals that didn't make the git copy XXX make a dependency for it instead?
+  cp -r libdvdread4.full/src libdvdread4 # <sigh>
+  do_git_checkout https://github.com/microe/libdvdnav.git libdvdnav.full b11b7629d7
+  cp -r libdvdnav.full/src libdvdnav # <sigh again>
 
 #-target=i686-mingw32msvc --cc=i586-mingw32msvc-cc
   do_configure "--host-cc=cc --cc=${cross_prefix}gcc --windres=${cross_prefix}windres --ranlib=${cross_prefix}ranlib"
@@ -877,7 +881,7 @@ if [ -d "mingw-w64-i686" ]; then # they installed a 32-bit compiler
   if [[ $build_mp4box = "y" ]]; then
     build_mp4box
   fi
-  #build_mplayer
+  build_mplayer
   build_ffmpeg
   if [[ $build_ffmpeg_shared = "y" ]]; then
     build_ffmpeg shared
