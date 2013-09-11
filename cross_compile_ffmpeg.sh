@@ -711,17 +711,12 @@ build_frei0r() {
 }
 
 build_mplayer() {
-  do_git_checkout https://github.com/pigoz/mplayer-svn.git mplayer-svn
+  do_git_checkout https://github.com/rdp/mplayer-svn.git mplayer-svn
   cd mplayer-svn
   git submodule update --init --recursive
-  do_git_checkout https://github.com/FFmpeg/FFmpeg.git ffmpeg # it requires a local ffmpeg--scary!
-  do_git_checkout https://github.com/microe/libdvdread.git libdvdread4.full 75e736048b # an svn-externals that didn't make the git copy XXX make a dependency for it instead?
-  cp -r libdvdread4.full/src libdvdread4 # <sigh>
-  do_git_checkout https://github.com/microe/libdvdnav.git libdvdnav.full b11b7629d7
-  cp -r libdvdnav.full/src libdvdnav # <sigh again>
 
 #-target=i686-mingw32msvc --cc=i586-mingw32msvc-cc
-  do_configure "--host-cc=cc --cc=${cross_prefix}gcc --windres=${cross_prefix}windres --ranlib=${cross_prefix}ranlib"
+  do_configure "--disable-fbdev --enable-cross-compile --host-cc=cc --cc=${cross_prefix}gcc --windres=${cross_prefix}windres --ranlib=${cross_prefix}ranlib --ar=${cross_prefix}ar --as=${cross_prefix}as --nm=${cross_prefix}nm"
   do_make
 #--extra-cflags="-I$PWD/osdep/mingw32"
 #--extra-ldflags="-L$PWD/osdep/mingw32"
@@ -729,6 +724,7 @@ build_mplayer() {
 # except I'm not supposed to use --target apparently?
 
   cd ..
+  exit
 }
 
 build_mp4box() { # like build_gpac
