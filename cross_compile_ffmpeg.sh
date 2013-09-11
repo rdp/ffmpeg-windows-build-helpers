@@ -260,7 +260,7 @@ do_configure() {
       ./bootstrap.sh
     fi
     rm -f already_* # reset
-    echo "configuring $english_name as $ PATH=$PATH $configure_name $configure_options"
+    echo "configuring $english_name ($PWD) as $ PATH=$PATH $configure_name $configure_options"
     nice "$configure_name" $configure_options || exit 1
     touch -- "$touch_name"
     make clean # just in case
@@ -713,14 +713,16 @@ build_frei0r() {
 build_mplayer() {
   do_git_checkout https://github.com/pigoz/mplayer-svn.git mplayer-svn
   cd mplayer-svn
+  do_git_checkout https://github.com/FFmpeg/FFmpeg.git ffmpeg # it requires a local ffmpeg--scary!
+  do_git_checkout https://github.com/microe/libdvdread.git libdvdread4 # an svn-externals that didn't make the git copy XXX make a dependency for it instead?
 
-./configure --host-cc=cc --target=i686-mingw32msvc --cc=i586-mingw32msvc-cc
---windres=i586-mingw32msvc-windres --ranlib=i586-mingw32msvc-ranlib
---extra-cflags="-I$PWD/osdep/mingw32"
---extra-ldflags="-L$PWD/osdep/mingw32"
---with-freetype-config="$PWD/osdep/mingw32/ftconf"
-  # except I'm not supposed to use --target apparently?w
-
+#-target=i686-mingw32msvc --cc=i586-mingw32msvc-cc
+  do_configure "--host-cc=cc --cc=${cross_prefix}gcc --windres=${cross_prefix}windres --ranlib=${cross_prefix}ranlib"
+  do_make
+#--extra-cflags="-I$PWD/osdep/mingw32"
+#--extra-ldflags="-L$PWD/osdep/mingw32"
+#--with-freetype-config="$PWD/osdep/mingw32/ftconf"
+# except I'm not supposed to use --target apparently?
 
   cd ..
 }
@@ -875,6 +877,7 @@ if [ -d "mingw-w64-i686" ]; then # they installed a 32-bit compiler
   if [[ $build_mp4box = "y" ]]; then
     build_mp4box
   fi
+  #build_mplayer
   build_ffmpeg
   if [[ $build_ffmpeg_shared = "y" ]]; then
     build_ffmpeg shared
