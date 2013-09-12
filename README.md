@@ -33,3 +33,9 @@ Also NB that you can also "cross compile" mp4box.exe (32 and 64 bit versions) if
 Also NB that you can also "cross compile" {mplayer,mencoder}.exe (32 and 64 bit versions) if you pass in the appropriate command line parameter too.
 
 Feedback welcome roger-projects@googlegroups.com
+
+Related projects:
+
+vlc has its "contribs" building (cross compiling) system: https://wiki.videolan.org/Win32Compile/
+mxe "m cross environment" https://github.com/mxe/mxe
+

@@ -323,6 +323,18 @@ build_librtmp() {
   cd ../..
 }
 
+
+build_qt() {
+ # download_and_unpack_file http://download.qt-project.org/official_releases/qt/5.1/5.1.1/submodules/qtbase-opensource-src-5.1.1.tar.xz qtbase-opensource-src-5.1.1
+ download_and_unpack_file http://download.qt-project.org/official_releases/qt/4.8/4.8.5/qt-everywhere-opensource-src-4.8.5.tar.gz qt-everywhere-opensource-src-4.8.5
+  cd qt-everywhere-opensource-src-4.8.5
+    do_configure "-opensource -xplatform win32-g++ -static -device-option CROSS_COMPILE=$mingw_w64_x86_64_prefix "
+  exit
+    do_make_install
+  cd ..
+  exit
+}
+
 build_libsoxr() {
   download_and_unpack_file http://sourceforge.net/projects/soxr/files/soxr-0.1.0-Source.tar.xz soxr-0.1.0-Source # not /download since apparently some tar's can't untar it without an extension?
   cd soxr-0.1.0-Source
@@ -713,6 +725,7 @@ build_frei0r() {
 }
 
 build_vlc() {
+  build_qt
   do_git_checkout http://repo.or.cz/r/vlc.git vlc
   cd vlc
   if [[ ! -f "configure" ]]; then
