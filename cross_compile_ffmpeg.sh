@@ -718,10 +718,14 @@ build_vlc() {
   if [[ ! -f "configure" ]]; then
     ./bootstrap
   fi 
-  # it wants a vendored libav*?
-  do_configure "--disable-libgcrypt --disable-a52 --host=i686-w64-mingw32 --disable-avcodec --disable-lua --disable-mad" # don't have lua mingw yet
+  do_configure "--disable-libgcrypt --disable-a52 --host=i686-w64-mingw32 --disable-lua --disable-mad --enable-qt --disable-sdl" # don't have lua mingw yet, etc.
   do_make
-  # package-win-common ?
+  # do some gymnastics to avoid building the mozilla plugin for now [couldn't quite get it to work]
+  #sed -i 's_git://git.videolan.org/npapi-vlc.git_https://github.com/rdp/npapi-vlc.git_' Makefile # this wasn't enough...
+  sed -i "s/package-win-common: package-win-install build-npapi/package-win-common: package-win-install/" Makefile
+  sed -i "s/.*cp .*builddir.*npapi-vlc.*//g" Makefile
+  make package-win-common # not do_make
+  puts "created a file like ${PWD}/vlc-2.2.0-git/vlc.exe"
   cd ..
 }
 
@@ -839,7 +843,7 @@ build_dependencies() {
   build_lame
   build_libvpx
   build_vo_aacenc
-  build_iconv # mplayer I think needs it for freetype [just it though], vlc also wants it
+  build_iconv # mplayer I think needs it for freetype [just it though], vlc also wants it.  looks like ffmpeg can use it too...
   build_freetype
   build_libexpat
   build_libilbc
@@ -850,9 +854,9 @@ build_dependencies() {
   if [[ "$non_free" = "y" ]]; then
     build_fdk_aac
     # build_faac # not included for now, too poor quality :)
-    # build_libaacplus # if you use it, you can't use any other AAC encoder, so disabled for now :)
+    # build_libaacplus # if you use it, conflicts with other AAC encoders <sigh>, so disabled :)
   fi
-  #build_openssl # hopefully don't need it anymore, since we have gnutls...
+  #build_openssl # hopefully don't need it anymore, since we have gnutls everywhere...
   build_librtmp # needs gnutls [or openssl...]
 }
 
@@ -871,7 +875,7 @@ build_apps() {
     build_ffmpeg
   fi
   if [[ $build_vlc = "y" ]]; then
-    build_vlc # NB requires ffmpeg static as well, at least once...
+    build_vlc # NB requires ffmpeg static as well, at least once...so put it last
   fi
 }
 
@@ -934,3 +938,7 @@ fi
 for file in `find . -name ffmpeg.exe` `find . -name MP4Box.exe` `find . -name mplayer.exe` `find . -name mencoder.exe`; do
   echo "built $(readlink -f $file)"
 done
+
+# vlc. bash glob? huh?
+for file in ./**/vlc-*/vlc.exe; do echo "build $file"; done
+
