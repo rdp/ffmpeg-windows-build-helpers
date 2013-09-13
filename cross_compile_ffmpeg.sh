@@ -418,6 +418,7 @@ download_and_unpack_file() {
   output_name=$(basename $url)
   output_dir="$2"
   if [ ! -f "$output_dir/unpacked.successfully" ]; then
+    echo "downloading $url"
     curl "$url" -O -L || exit 1
     tar -xf "$output_name" || unzip $output_name || exit 1
     touch "$output_dir/unpacked.successfully" || exit 1
