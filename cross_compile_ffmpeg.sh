@@ -328,7 +328,7 @@ build_qt() {
  # download_and_unpack_file http://download.qt-project.org/official_releases/qt/5.1/5.1.1/submodules/qtbase-opensource-src-5.1.1.tar.xz qtbase-opensource-src-5.1.1
  download_and_unpack_file http://download.qt-project.org/official_releases/qt/4.8/4.8.5/qt-everywhere-opensource-src-4.8.5.tar.gz qt-everywhere-opensource-src-4.8.5
   cd qt-everywhere-opensource-src-4.8.5
-    # vlc's options...
+    # vlc's configure options...kind of
     do_configure "-static -release -fast -no-exceptions -no-stl -no-sql-sqlite -no-qt3support -no-gif -no-libmng -qt-libjpeg -no-libtiff -no-qdbus -no-openssl -no-webkit -sse -no-script -no-multimedia -no-phonon -opensource -no-scripttools -no-opengl -no-script -no-scripttools -no-declarative -no-declarative-debug -opensource -no-s60 -host-little-endian -confirm-license -xplatform win32-g++ -device-option CROSS_COMPILE=$cross_prefix -prefix $mingw_w64_x86_64_prefix -prefix-install"
     # do_make_install
     # make sub-src
@@ -357,6 +357,7 @@ build_libxavs() {
     do_make_install "CC=$(echo $cross_prefix)gcc AR=$(echo $cross_prefix)ar PREFIX=$mingw_w64_x86_64_prefix RANLIB=$(echo $cross_prefix)ranlib STRIP=$(echo $cross_prefix)strip"
   cd ..
 }
+
 
 build_libopenjpeg() {
   download_and_unpack_file http://openjpeg.googlecode.com/files/openjpeg_v1_4_sources_r697.tgz openjpeg_v1_4_sources_r697
@@ -506,6 +507,10 @@ build_libdl() {
     ./configure --disable-shared --enable-static --cross-prefix=$cross_prefix --prefix=$mingw_w64_x86_64_prefix
     do_make_install
   cd ..
+}
+
+build_libjpeg_turbo() {
+  generic_download_and_install http://sourceforge.net/projects/libjpeg-turbo/files/1.3.0/libjpeg-turbo-1.3.0.tar.gz/download libjpeg-turbo-1.3.0
 }
 
 build_libogg() {
@@ -726,19 +731,23 @@ build_frei0r() {
 }
 
 build_vlc() {
-#  build_qt
+  build_libjpeg_turbo
+  build_qt # needs libjpeg
   do_git_checkout http://repo.or.cz/r/vlc.git vlc
   cd vlc
   if [[ ! -f "configure" ]]; then
     ./bootstrap
   fi 
-  do_configure "--disable-libgcrypt --disable-a52 --host=i686-w64-mingw32 --disable-lua --disable-mad --enable-qt --disable-sdl" # don't have lua mingw yet, etc.
+  do_configure "--disable-libgcrypt --disable-a52 --host=i686-w64-mingw32 --disable-lua --disable-mad --enable-qt " # don't have lua mingw yet, etc. --disable-sdl [?]
   do_make
   # do some gymnastics to avoid building the mozilla plugin for now [couldn't quite get it to work]
   #sed -i 's_git://git.videolan.org/npapi-vlc.git_https://github.com/rdp/npapi-vlc.git_' Makefile # this wasn't enough...
   sed -i "s/package-win-common: package-win-install build-npapi/package-win-common: package-win-install/" Makefile
   sed -i "s/.*cp .*builddir.*npapi-vlc.*//g" Makefile
-  make package-win-common # not do_make
+  for file in ./*/vlc.exe; do
+    rm $file # try to force a rebuild...
+  done
+  make package-win-common # not do_make, fails still at end, plus this way we get new vlc.exe's
   puts "created a file like ${PWD}/vlc-2.2.0-git/vlc.exe"
   cd ..
 }
@@ -844,6 +853,7 @@ build_dependencies() {
   build_libopus
   build_libopencore
   build_libogg
+  
   build_libspeex # needs libogg for exe's
   build_libvorbis # needs libogg
   build_libtheora # needs libvorbis, libogg
