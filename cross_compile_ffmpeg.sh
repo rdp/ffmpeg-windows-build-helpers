@@ -204,9 +204,9 @@ update_to_desired_branch_or_revision() {
    pushd $to_dir
    cd $to_dir
       echo "git co $desired_branch"
-      git checkout  "$desired_branch" || exit 1
+      git checkout "$desired_branch" || exit 1
       git merge "$desired_branch" || exit 1 # depending on which type it is :)
-   popd # in case it's a cd to ., don't want to cd to .. here...
+   popd # in case it's a cd to ., don't want to cd to .. here...since sometimes we call it with a '.'
   fi
 }
 
@@ -225,7 +225,10 @@ do_git_checkout() {
     cd $to_dir
     echo "Updating to latest $to_dir version... $desired_branch"
     old_git_version=`git rev-parse HEAD`
-    git pull # if you comment out, add an echo :)
+    # if we're on a special branch, don't even bother doing a git pull, assume it was already there...
+    if [[ ! -z $desired_branch ]]; then
+      git pull # if you comment out, add a warning echo :)
+    fi
     update_to_desired_branch_or_revision "." $desired_branch
     new_git_version=`git rev-parse HEAD`
     if [[ "$old_git_version" != "$new_git_version" ]]; then
@@ -329,10 +332,8 @@ build_qt() {
  download_and_unpack_file http://download.qt-project.org/official_releases/qt/4.8/4.8.5/qt-everywhere-opensource-src-4.8.5.tar.gz qt-everywhere-opensource-src-4.8.5
   cd qt-everywhere-opensource-src-4.8.5
     # vlc's configure options...kind of
-    do_configure "-static -release -fast -no-exceptions -no-stl -no-sql-sqlite -no-qt3support -no-gif -no-libmng -qt-libjpeg -no-libtiff -no-qdbus -no-openssl -no-webkit -sse -no-script -no-multimedia -no-phonon -opensource -no-scripttools -no-opengl -no-script -no-scripttools -no-declarative -no-declarative-debug -opensource -no-s60 -host-little-endian -confirm-license -xplatform win32-g++ -device-option CROSS_COMPILE=$cross_prefix -prefix $mingw_w64_x86_64_prefix -prefix-install"
-    # do_make_install
-    # make sub-src
-    do_make_install "sub-src" # guess this is some subset? enough?
+    do_configure "-static -release -fast -no-exceptions -no-stl -no-sql-sqlite -no-qt3support -no-gif -no-libmng -qt-libjpeg -no-libtiff -no-qdbus -no-openssl -no-webkit -sse -no-script -no-multimedia -no-phonon -opensource -no-scripttools -no-opengl -no-script -no-scripttools -no-declarative -no-declarative-debug -opensource -no-s60 -host-little-endian -confirm-license -xplatform win32-g++ -device-option CROSS_COMPILE=$cross_prefix -prefix $mingw_w64_x86_64_prefix -prefix-install -nomake examples"
+    do_make_install "sub-src" # sub-src might make it faster?
   cd ..
 }
 
