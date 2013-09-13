@@ -328,11 +328,12 @@ build_qt() {
  # download_and_unpack_file http://download.qt-project.org/official_releases/qt/5.1/5.1.1/submodules/qtbase-opensource-src-5.1.1.tar.xz qtbase-opensource-src-5.1.1
  download_and_unpack_file http://download.qt-project.org/official_releases/qt/4.8/4.8.5/qt-everywhere-opensource-src-4.8.5.tar.gz qt-everywhere-opensource-src-4.8.5
   cd qt-everywhere-opensource-src-4.8.5
-    do_configure "-opensource -xplatform win32-g++ -static -device-option CROSS_COMPILE=$mingw_w64_x86_64_prefix "
-  exit
-    do_make_install
+    # vlc's options...
+    do_configure "-static -release -fast -no-exceptions -no-stl -no-sql-sqlite -no-qt3support -no-gif -no-libmng -qt-libjpeg -no-libtiff -no-qdbus -no-openssl -no-webkit -sse -no-script -no-multimedia -no-phonon -opensource -no-scripttools -no-opengl -no-script -no-scripttools -no-declarative -no-declarative-debug -opensource -no-s60 -host-little-endian -confirm-license -xplatform win32-g++ -device-option CROSS_COMPILE=$cross_prefix -prefix $mingw_w64_x86_64_prefix -prefix-install"
+    # do_make_install
+    # make sub-src
+    do_make_install "sub-src" # guess this is some subset? enough?
   cd ..
-  exit
 }
 
 build_libsoxr() {
@@ -725,7 +726,7 @@ build_frei0r() {
 }
 
 build_vlc() {
-  build_qt
+#  build_qt
   do_git_checkout http://repo.or.cz/r/vlc.git vlc
   cd vlc
   if [[ ! -f "configure" ]]; then

@@ -1,6 +1,11 @@
 == actual todos ==
 
+libdvdnav [read?] for vlc
+not do march stuff...
+
 == maybe do ==
+
+VLC is missing a few things...like libdvdnav :P
 
 add vid.stab support?
   check for any other configs he uses?
@@ -10,11 +15,6 @@ fix all that are hard coded revision checkouts...meh
 make a prompt for "shared or not?"
 
 I may not be using my "suggested super CFLAGS" everywhere quite right, should add to everywhere?
-
-try out gcc 4.8.1, then tell zeranoe :P
-  --gcc-ver=4.8.1
-
-add mplayer cross option
 
 warn on old yasm from the get go...tell them to update to Raring :) meh
 
