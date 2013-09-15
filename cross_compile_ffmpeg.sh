@@ -328,13 +328,25 @@ build_librtmp() {
 
 
 build_qt() {
- # download_and_unpack_file http://download.qt-project.org/official_releases/qt/5.1/5.1.1/submodules/qtbase-opensource-src-5.1.1.tar.xz qtbase-opensource-src-5.1.1
+ # download_and_unpack_file http://download.qt-project.org/official_releases/qt/5.1/5.1.1/submodules/qtbase-opensource-src-5.1.1.tar.xz qtbase-opensource-src-5.1.1 # not officially supported seems...
+
  download_and_unpack_file http://download.qt-project.org/official_releases/qt/4.8/4.8.5/qt-everywhere-opensource-src-4.8.5.tar.gz qt-everywhere-opensource-src-4.8.5
   cd qt-everywhere-opensource-src-4.8.5
-    # vlc's configure options...kind of
+#  download_and_unpack_file http://download.qt-project.org/archive/qt/4.8/4.8.1/qt-everywhere-opensource-src-4.8.1.tar.gz qt-everywhere-opensource-src-4.8.1
+#  cd qt-everywhere-opensource-src-4.8.1
+
+    apply_patch https://raw.github.com/Tilka/vlc/master/contrib/src/qt4/imageformats.patch
+    # vlc's configure options...mostly
     do_configure "-static -release -fast -no-exceptions -no-stl -no-sql-sqlite -no-qt3support -no-gif -no-libmng -qt-libjpeg -no-libtiff -no-qdbus -no-openssl -no-webkit -sse -no-script -no-multimedia -no-phonon -opensource -no-scripttools -no-opengl -no-script -no-scripttools -no-declarative -no-declarative-debug -opensource -no-s60 -host-little-endian -confirm-license -xplatform win32-g++ -device-option CROSS_COMPILE=$cross_prefix -prefix $mingw_w64_x86_64_prefix -prefix-install -nomake examples"
-    do_make_install "sub-src" # sub-src might make it faster?
+    make sub-src
+    make install sub-src # let it fail, baby, it still installs a lot of good stuff before dying on mng...? huh wuh?
+    cp ./plugins/imageformats/libqjpeg.a $mingw_w64_x86_64_prefix/lib
+    cp ./plugins/accessible/libqtaccessiblewidgets.a  $mingw_w64_x86_64_prefix/lib # this feels wrong...
+    # do_make_install "sub-src" # sub-src might make the build faster? # complains on mng? huh?
+    # vlc needs an adjust .pc file? huh wuh?
+    sed -i 's/Libs: -L${libdir} -lQtGui/Libs: -L${libdir} -lcomctl32 -lqjpeg -lqtaccessiblewidgets -lQtGui/' "$PKG_CONFIG_PATH/QtGui.pc"
   cd ..
+  exit
 }
 
 build_libsoxr() {
@@ -733,7 +745,7 @@ build_frei0r() {
 }
 
 build_vlc() {
-  build_libjpeg_turbo
+  build_libjpeg_turbo # mplayer can use this as well...NB
   build_qt # needs libjpeg
   do_git_checkout http://repo.or.cz/r/vlc.git vlc
   cd vlc
