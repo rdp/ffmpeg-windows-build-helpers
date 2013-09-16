@@ -65,12 +65,6 @@ fi
 
 cur_dir="$(pwd)/sandbox"
 cpu_count="$(grep -c processor /proc/cpuinfo)" # linux
-gcc_cpu_count=1 # allow them to specify more
-build_ffmpeg_static=y
-build_ffmpeg_shared=n
-build_mp4box=n
-build_mplayer=n
-build_vlc=n
 if [ -z "$cpu_count" ]; then
   cpu_count=`sysctl -n hw.ncpu | tr -d '\n'` # OS X
   if [ -z "$cpu_count" ]; then
@@ -216,6 +210,7 @@ do_git_checkout() {
   local desired_branch="$3"
   if [ ! -d $to_dir ]; then
     echo "Downloading (via git clone) $to_dir"
+    rm -rf $to_dir # just in case it was interrupted previously...
     # prevent partial checkouts by renaming it only after success
     git clone $repo_url $to_dir.tmp || exit 1
     mv $to_dir.tmp $to_dir
@@ -744,7 +739,7 @@ build_frei0r() {
 
 build_vlc() {
   build_qt # needs libjpeg [?]
-  do_git_checkout http://repo.or.cz/r/vlc.git vlc
+  do_git_checkout http://repo.or.cz/r/vlc.git vlc c14d76a3d7 # vlc git master seems to be unstable and break the build and not test for windows often, so specify a known working revision...
   cd vlc
   if [[ ! -f "configure" ]]; then
     ./bootstrap
@@ -808,16 +803,27 @@ build_mp4box() { # like build_gpac
 }
 
 build_ffmpeg() {
-  local shared=$1
+  local type=$1
+  local shared=$2
+  local git_url="https://github.com/FFmpeg/FFmpeg.git"
+  local output_dir="ffmpeg_git"
+  local extra_configure_opts="--enable-libsoxr --enable-fontconfig --enable-libass --enable-libutvideo --enable-libbluray "
+
+  if [[ $type = "libav" ]]; then
+    git_url="https://github.com/libav/libav.git"
+    output_dir="libav_git"
+    extra_configure_opts="" # has a few missing things?
+  fi
+
   # can't mix and match --enable-static --enable-shared unfortunately, or the final executable seems to just use shared if the're both present
   if [[ $shared == "shared" ]]; then
-    do_git_checkout https://github.com/FFmpeg/FFmpeg.git ffmpeg_git_shared
-    local extra_configure_opts="--enable-shared --disable-static"
-    cd ffmpeg_git_shared
+    do_git_checkout $git_url ${output_dir}_shared
+    extra_configure_opts="--enable-shared --disable-static $extra_configure_opts"
+    cd ${output_dir}_shared
   else
-    do_git_checkout https://github.com/FFmpeg/FFmpeg.git ffmpeg_git
-    local extra_configure_opts="--enable-static --disable-shared"
-    cd ffmpeg_git
+    do_git_checkout $git_url $output_dir
+    extra_configure_opts="--enable-static --disable-shared $extra_configure_opts"
+    cd $output_dir
   fi
   if [ "$bits_target" = "32" ]; then
    local arch=x86
@@ -825,7 +831,7 @@ build_ffmpeg() {
    local arch=x86_64
   fi
 
-config_options="--arch=$arch --target-os=mingw32 --cross-prefix=$cross_prefix --pkg-config=pkg-config --enable-gpl --enable-libsoxr --enable-libx264 --enable-avisynth --enable-libxvid --enable-libmp3lame --enable-version3 --enable-zlib --enable-librtmp --enable-libvorbis --enable-libtheora --enable-libspeex --enable-libopenjpeg --enable-gnutls --enable-libgsm --enable-libfreetype --enable-fontconfig --enable-libass --enable-libutvideo --enable-libopus --disable-w32threads --enable-frei0r --enable-filter=frei0r --enable-libvo-aacenc --enable-bzlib --enable-libxavs --extra-cflags=-DPTW32_STATIC_LIB --enable-libopencore-amrnb --enable-libopencore-amrwb --enable-libvo-amrwbenc --enable-libschroedinger --enable-libbluray --enable-libvpx --enable-libilbc --prefix=$mingw_w64_x86_64_prefix $extra_configure_opts " # other possibilities: --enable-w32threads --enable-libflite
+config_options="--arch=$arch --target-os=mingw32 --cross-prefix=$cross_prefix --pkg-config=pkg-config --enable-gpl --enable-libx264 --enable-avisynth --enable-libxvid --enable-libmp3lame --enable-version3 --enable-zlib --enable-librtmp --enable-libvorbis --enable-libtheora --enable-libspeex --enable-libopenjpeg --enable-gnutls --enable-libgsm --enable-libfreetype --enable-libopus --disable-w32threads --enable-frei0r --enable-filter=frei0r --enable-libvo-aacenc --enable-bzlib --enable-libxavs --extra-cflags=-DPTW32_STATIC_LIB --enable-libopencore-amrnb --enable-libopencore-amrwb --enable-libvo-amrwbenc --enable-libschroedinger --enable-libvpx --enable-libilbc --prefix=$mingw_w64_x86_64_prefix $extra_configure_opts " # other possibilities: --enable-w32threads --enable-libflite
   if [[ "$non_free" = "y" ]]; then
     config_options="$config_options --enable-nonfree --enable-libfdk-aac" # --enable-libfaac -- faac deemed too poor quality and becomes the default -- add it in and uncomment the build_faac line to include it --enable-openssl --enable-libaacplus
   else
@@ -834,7 +840,7 @@ config_options="--arch=$arch --target-os=mingw32 --cross-prefix=$cross_prefix --
 
   if [[ "$native_build" = "y" ]]; then
     config_options="$config_options --disable-runtime-cpudetect"
-    # TODO --cpu=host ...
+    # TODO --cpu=host ... ?
   else
     config_options="$config_options --enable-runtime-cpudetect"
   fi
@@ -845,9 +851,9 @@ config_options="--arch=$arch --target-os=mingw32 --cross-prefix=$cross_prefix --
   echo "doing ffmpeg make $(pwd)"
   do_make
   if [[ $shared != "shared" ]]; then
-    do_make_install # install libavcodec as a dependency itself...
+    do_make_install # install ffmpeg to get libavcodec libraries to be used as dependencies for other things, like vlc [XXX make this a config option?]
   fi
-  echo "Done! You will find $bits_target bit $shared binaries in $(pwd)/ff{mpeg,probe,play}*.exe"
+  echo "Done! You will find $bits_target bit $shared binaries in $(pwd)/{ffmpeg,ffprobe,ffplay,avconv,avprobe}*.exe"
   cd ..
 }
 
@@ -909,23 +915,36 @@ build_apps() {
     build_mplayer
   fi
   if [[ $build_ffmpeg_shared = "y" ]]; then
-    build_ffmpeg shared
+    build_ffmpeg ffmpeg shared
   fi
   if [[ $build_ffmpeg_static = "y" ]]; then
-    build_ffmpeg
+    build_ffmpeg ffmpeg
+  fi
+  if [[ $build_libav = "y" ]]; then
+    build_ffmpeg libav
   fi
   if [[ $build_vlc = "y" ]]; then
     build_vlc # NB requires ffmpeg static as well, at least once...so put it last
   fi
 }
 
+# defaults :)
+gcc_cpu_count=1 # allow them to specify more than 1, but default to the one that's most compatible...
+build_ffmpeg_static=y
+build_ffmpeg_shared=n
+build_libav=n
+build_mp4box=n
+build_mplayer=n
+build_vlc=n
+
 while true; do
   case $1 in
-    -h | --help ) echo "available options (with defaults): --build-ffmpeg-shared=n --build-ffmpeg-static=y --gcc-cpu-count=1 [set it higher than 1 if you have > 1GB RAM] --disable-nonfree=y (set to n to include nonfree) --sandbox-ok=y [skip sandbox prompt if y] --rebuild-compilers=y --defaults|-d [don't prompt, just use defaults] --build-mp4box=n [builds MP4Box.exe] --build-mplayer=n [builds mplayer.exe and mencoder.exe] --build-vlc=n [builds vlc.exe]"; exit 0 ;;
+    -h | --help ) echo "available options (with defaults): --build-ffmpeg-shared=n --build-ffmpeg-static=y --gcc-cpu-count=1 [set it higher than 1 if you have > 1GB RAM] --disable-nonfree=y (set to n to include nonfree) --sandbox-ok=y [skip sandbox prompt if y] --rebuild-compilers=y --defaults|-d [don't prompt, just use defaults] --build-mp4box=n [builds MP4Box.exe] --build-mplayer=n [builds mplayer.exe and mencoder.exe] --build-vlc=n [builds vlc.exe] --build-libav=n [builds libav.exe, an FFmpeg fork]"; exit 0 ;;
     --sandbox-ok=* ) sandbox_ok="${1#*=}"; shift ;;
     --gcc-cpu-count=* ) gcc_cpu_count="${1#*=}"; shift ;;
     --build-mp4box=* ) build_mp4box="${1#*=}"; shift ;;
     --build-mplayer=* ) build_mplayer="${1#*=}"; shift ;;
+    --build-libav=* ) build_libav="${1#*=}"; shift ;;
     --build-vlc=* ) build_vlc="${1#*=}"; shift ;;
     --disable-nonfree=* ) disable_nonfree="${1#*=}"; shift ;;
     --defaults ) disable_nonfree="y"; sandbox_ok="y"; shift ;;
@@ -975,7 +994,7 @@ if [ -d "mingw-w64-x86_64" ]; then # they installed a 64-bit compiler
   cd ..
 fi
 
-for file in `find . -name ffmpeg.exe` `find . -name MP4Box.exe` `find . -name mplayer.exe` `find . -name mencoder.exe`; do
+for file in `find . -name ffmpeg.exe` `find . -name MP4Box.exe` `find . -name mplayer.exe` `find . -name mencoder.exe` `find . -name avconv.exe` `find . -name avprobe.exe`; do
   echo "built $(readlink -f $file)"
 done
 
