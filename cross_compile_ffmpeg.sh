@@ -326,16 +326,15 @@ build_librtmp() {
   cd ../..
 }
 
-
 build_qt() {
- # download_and_unpack_file http://download.qt-project.org/official_releases/qt/5.1/5.1.1/submodules/qtbase-opensource-src-5.1.1.tar.xz qtbase-opensource-src-5.1.1 # not officially supported seems...
+ # download_and_unpack_file http://download.qt-project.org/official_releases/qt/5.1/5.1.1/submodules/qtbase-opensource-src-5.1.1.tar.xz qtbase-opensource-src-5.1.1 # not officially supported seems...so didn't try it
 
  download_and_unpack_file http://download.qt-project.org/official_releases/qt/4.8/4.8.5/qt-everywhere-opensource-src-4.8.5.tar.gz qt-everywhere-opensource-src-4.8.5
   cd qt-everywhere-opensource-src-4.8.5
 #  download_and_unpack_file http://download.qt-project.org/archive/qt/4.8/4.8.1/qt-everywhere-opensource-src-4.8.1.tar.gz qt-everywhere-opensource-src-4.8.1
 #  cd qt-everywhere-opensource-src-4.8.1
 
-    apply_patch https://raw.github.com/Tilka/vlc/master/contrib/src/qt4/imageformats.patch
+    apply_patch https://raw.github.com/rdp/ffmpeg-windows-build-helpers/master/patches/imageformats.patch
     # vlc's configure options...mostly
     do_configure "-static -release -fast -no-exceptions -no-stl -no-sql-sqlite -no-qt3support -no-gif -no-libmng -qt-libjpeg -no-libtiff -no-qdbus -no-openssl -no-webkit -sse -no-script -no-multimedia -no-phonon -opensource -no-scripttools -no-opengl -no-script -no-scripttools -no-declarative -no-declarative-debug -opensource -no-s60 -host-little-endian -confirm-license -xplatform win32-g++ -device-option CROSS_COMPILE=$cross_prefix -prefix $mingw_w64_x86_64_prefix -prefix-install -nomake examples"
     make sub-src
@@ -744,7 +743,7 @@ build_frei0r() {
 }
 
 build_vlc() {
-  build_qt # needs libjpeg
+  build_qt # needs libjpeg [?]
   do_git_checkout http://repo.or.cz/r/vlc.git vlc
   cd vlc
   if [[ ! -f "configure" ]]; then
@@ -760,7 +759,11 @@ build_vlc() {
     rm $file # try to force a rebuild...
   done
   make package-win-common # not do_make, fails still at end, plus this way we get new vlc.exe's
-  echo "created a file like ${PWD}/vlc-2.2.0-git/vlc.exe"
+  echo "created a file like ${PWD}/vlc-2.2.0-git/vlc.exe
+
+
+
+"
   cd ..
 }
 
@@ -872,7 +875,7 @@ build_dependencies() {
   build_orc
   build_libschroedinger # needs orc
   build_libbluray
-  build_libjpeg_turbo # mplayer can use this, VLC might need it?
+  build_libjpeg_turbo # mplayer can use this, VLC qt might need it?
   build_libxvid
   build_libxavs
   build_libsoxr
