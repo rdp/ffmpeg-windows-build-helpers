@@ -10,6 +10,8 @@ VLC is missing a few things...like libdvdnav :P
 VLC, you should use ../plugins/accessibility [?]
   you should also not use plugins [?]
 
+complain on anybody that I have to sed their .pc files [yikes!]
+
 add vid.stab support?
   check for any other configs he uses?
 
