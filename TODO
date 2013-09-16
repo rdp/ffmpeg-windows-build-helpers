@@ -5,6 +5,8 @@ not do march stuff...
 
 == maybe do ==
 
+don't "always install libavcodec" [only when building VLC, maybe only ffmpeg]
+
 VLC is missing a few things...like libdvdnav :P
 
 VLC, you should use ../plugins/accessibility [?]
