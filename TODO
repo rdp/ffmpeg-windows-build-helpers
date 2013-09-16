@@ -7,6 +7,9 @@ not do march stuff...
 
 VLC is missing a few things...like libdvdnav :P
 
+VLC, you should use ../plugins/accessibility [?]
+  you should also not use plugins [?]
+
 add vid.stab support?
   check for any other configs he uses?
 
