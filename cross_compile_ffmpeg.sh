@@ -744,7 +744,6 @@ build_frei0r() {
 }
 
 build_vlc() {
-  build_libjpeg_turbo # mplayer can use this as well...NB
   build_qt # needs libjpeg
   do_git_checkout http://repo.or.cz/r/vlc.git vlc
   cd vlc
@@ -761,7 +760,7 @@ build_vlc() {
     rm $file # try to force a rebuild...
   done
   make package-win-common # not do_make, fails still at end, plus this way we get new vlc.exe's
-  puts "created a file like ${PWD}/vlc-2.2.0-git/vlc.exe"
+  echo "created a file like ${PWD}/vlc-2.2.0-git/vlc.exe"
   cd ..
 }
 
@@ -873,6 +872,7 @@ build_dependencies() {
   build_orc
   build_libschroedinger # needs orc
   build_libbluray
+  build_libjpeg_turbo # mplayer can use this, VLC might need it?
   build_libxvid
   build_libxavs
   build_libsoxr
@@ -967,8 +967,8 @@ if [ -d "mingw-w64-x86_64" ]; then # they installed a 64-bit compiler
   bits_target=64
   cross_prefix="$cur_dir/mingw-w64-x86_64/bin/x86_64-w64-mingw32-"
   cd x86_64
-  build_dependencies
-  build_apps
+  #build_dependencies
+  #build_apps
   cd ..
 fi
 
@@ -976,6 +976,8 @@ for file in `find . -name ffmpeg.exe` `find . -name MP4Box.exe` `find . -name mp
   echo "built $(readlink -f $file)"
 done
 
-# vlc. bash glob? huh?
-for file in ./**/vlc-*/vlc.exe; do echo "build $file"; done
+# bash glob fails agaiiiiiiiiiiiiiiiiiiiiiiin?
+for file in `find . -name vlc.exe | grep -- -`; do
+  echo "built $file"
+done
 
