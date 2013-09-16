@@ -694,6 +694,7 @@ build_iconv() {
 
 build_freetype() {
   generic_download_and_install http://download.savannah.gnu.org/releases/freetype/freetype-2.4.10.tar.gz freetype-2.4.10
+  sed -i 's/Libs: -L${libdir} -lfreetype.*/Libs: -L${libdir} -lfreetype -lexpat/' "$PKG_CONFIG_PATH/freetype2.pc"
 }
 
 build_vo_aacenc() {
@@ -739,6 +740,7 @@ build_frei0r() {
 
 build_vlc() {
   build_qt # needs libjpeg [?]
+  cpu_count=1 # not wig out on .rc.lo files etc.
   do_git_checkout http://repo.or.cz/r/vlc.git vlc # vlc git master seems to be unstable and break the build and not test for windows often, so specify a known working revision...
   cd vlc
   if [[ ! -f "configure" ]]; then
@@ -759,6 +761,7 @@ build_vlc() {
 
 
 "
+  cpu_count=$original_cpu_count
   cd ..
 }
 
@@ -858,6 +861,7 @@ config_options="--arch=$arch --target-os=mingw32 --cross-prefix=$cross_prefix --
 }
 
 build_dependencies() {
+  echo "PKG_CONFIG_PATH=$PKG_CONFIG_PATH" # debug
   build_win32_pthreads # vpx etc. depend on this--provided by the compiler build script now, though
   build_libdl # ffmpeg's frei0r implentation needs this
   build_zlib # rtmp depends on it [as well as ffmpeg's optional but handy --enable-zlib]
@@ -989,8 +993,8 @@ if [ -d "mingw-w64-x86_64" ]; then # they installed a 64-bit compiler
   bits_target=64
   cross_prefix="$cur_dir/mingw-w64-x86_64/bin/x86_64-w64-mingw32-"
   cd x86_64
-  #build_dependencies
-  #build_apps
+  build_dependencies
+  build_apps
   cd ..
 fi
 
