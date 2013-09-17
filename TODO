@@ -1,17 +1,19 @@
 == actual todos ==
 
 libdvdnav [read?] for vlc
-not do march stuff...
+not do march stuff...yet :P at all, just let it sit...enable cpu runtime detect for now
 
 == maybe do ==
-libav with nonfree?
+
+mplayer git'ify'
+
+libav with nonfree? meh
 
 don't "always install libavcodec" [only when building VLC, maybe only ffmpeg]
 
-VLC is missing a few things...like libdvdnav :P
-
 VLC, you should use ../plugins/accessibility [?]
   you should also not use plugins [?]
+  after investigate more, does it use them now? meh
 
 complain on anybody that I have to sed their .pc files [yikes!]
 
@@ -33,6 +35,7 @@ x264 pkg-config should specify -libpthread? (repro by compiling ffmpeg with wind
 
 make march work with ffmpeg/x264
  compare speeds, plus 64 vs 32 bit for everything
+  then with profiled LOL
 
 tell those that fail with multi-threaded make
 
@@ -64,19 +67,7 @@ support external toolchains
 
 --enable-none --enable-x264 --enable-all-gpl --enable-all-non-free
 
-march=native (others? vpx?)
-
-cleanup ramiro suggested for libgsm
-
-test timings for first failure commits bisect-like[?]
-  test really old with -threads 6...
-
-does it affect "both" libx264 and/or just ffmpeg?
-    Also, I wonder if x264 needs to be recompiled after every update to
-    test? Does this issue root in FFmpeg or x264 possibly?
-
-not require prompts at all for the compiler
-try and figure out if its pthreads that's giving me the speedup over his
+cleanup ramiro suggested for libgsm [?]
 
 profile guided builds?
   major libs

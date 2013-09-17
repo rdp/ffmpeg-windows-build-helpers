@@ -19,9 +19,6 @@
 #
 # The GNU General Public License can be found in the LICENSE file.
 
-# just in case their CFLAGS is motivated toward linux, clear it initially...
-# as a note for followers, you can set this to like -march=athlon64-sse2 or what not if you desire a somewhat optimized build for now [ping me if you want a better optimized build...]
-CFLAGS=
 
 yes_no_sel () {
 unset user_input
@@ -498,7 +495,7 @@ build_glew() { # opengl stuff
   exit
   download_and_unpack_file https://sourceforge.net/projects/glew/files/glew/1.10.0/glew-1.10.0.tgz/download glew-1.10.0 
   cd glew-1.10.0
-    do_make_install "SYSTEM=linux-mingw32 GLEW_DEST=$mingw_w64_x86_64_prefix CC=${cross_prefix}gcc LD=${cross_prefix}ld CFLAGS=-DGLEW_STATIC"
+    do_make_install "SYSTEM=linux-mingw32 GLEW_DEST=$mingw_w64_x86_64_prefix CC=${cross_prefix}gcc LD=${cross_prefix}ld CFLAGS=-DGLEW_STATIC" # could use $CFLAGS here [?] meh
     # now you should delete some "non static" files that it installed anyway? maybe? vlc does more here...
   cd ..
 }
@@ -713,9 +710,9 @@ build_vo_aacenc() {
 
 build_sdl() {
   # apparently ffmpeg expects prefix-sdl-config not sdl-config that they give us, so rename...
-  export CFLAGS=-DDECLSPEC=  # avoid trac tickets 939 and 282
+  CFLAGS=-DDECLSPEC=  # avoid SDL trac tickets 939 and 282
   generic_download_and_install http://www.libsdl.org/release/SDL-1.2.15.tar.gz SDL-1.2.15
-  unset CFLAGS
+  CFLAGS=$original_cflags # reset it
   mkdir temp
   cd temp # so paths will work out right
   local prefix=$(basename $cross_prefix)
@@ -950,15 +947,19 @@ build_libav=n
 build_mp4box=n
 build_mplayer=n
 build_vlc=n
+# just in case their CFLAGS is motivated toward linux, clear it initially...
+CFLAGS=
+original_cflags
 
 while true; do
   case $1 in
-    -h | --help ) echo "available options (with defaults): --build-ffmpeg-shared=n --build-ffmpeg-static=y --gcc-cpu-count=1 [set it higher than 1 if you have > 1GB RAM] --disable-nonfree=y (set to n to include nonfree) --sandbox-ok=y [skip sandbox prompt if y] --rebuild-compilers=y --defaults|-d [don't prompt, just use defaults] --build-mp4box=n [builds MP4Box.exe] --build-mplayer=n [builds mplayer.exe and mencoder.exe] --build-vlc=n [builds vlc.exe] --build-libav=n [builds libav.exe, an FFmpeg fork]"; exit 0 ;;
+    -h | --help ) echo "available options (with defaults): --build-ffmpeg-shared=n --build-ffmpeg-static=y --gcc-cpu-count=1 [set it higher than 1 if you have > 1GB RAM] --disable-nonfree=y (set to n to include nonfree) --sandbox-ok=y [skip sandbox prompt if y] --rebuild-compilers=y --defaults|-d [don't prompt, just use defaults] --build-mp4box=n [builds MP4Box.exe] --build-mplayer=n [builds mplayer.exe and mencoder.exe] --build-vlc=n [builds vlc.exe] --build-libav=n [builds libav.exe, an FFmpeg fork] --cflags= [default empty for none]"; exit 0 ;;
     --sandbox-ok=* ) sandbox_ok="${1#*=}"; shift ;;
     --gcc-cpu-count=* ) gcc_cpu_count="${1#*=}"; shift ;;
     --build-mp4box=* ) build_mp4box="${1#*=}"; shift ;;
     --build-mplayer=* ) build_mplayer="${1#*=}"; shift ;;
     --build-libav=* ) build_libav="${1#*=}"; shift ;;
+    --cflags=* ) CFLAGS="${1#*=}"; original_cflags="${1#*=}"; shift ;;
     --build-vlc=* ) build_vlc="${1#*=}"; shift ;;
     --disable-nonfree=* ) disable_nonfree="${1#*=}"; shift ;;
     --defaults ) disable_nonfree="y"; sandbox_ok="y"; shift ;;
