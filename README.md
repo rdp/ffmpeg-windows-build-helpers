@@ -35,7 +35,7 @@ Also NB that you can also "cross compile" {mplayer,mencoder}.exe (32 and 64 bit 
 
 Also NB that you can also "cross compile" vlc.exe if you pass in the appropriate command line parameter too.
 
-Also NB that you can create "optimized builds" by modifying the --cflags parameter, like --cflags=-march=athlon64-sse2 or what not.
+Also NB that you can create a "somewhat optimized builds" by modifying the --cflags parameter, like --cflags=-march=athlon64-sse2 or what not.
 
 Feedback welcome roger-projects@googlegroups.com
 

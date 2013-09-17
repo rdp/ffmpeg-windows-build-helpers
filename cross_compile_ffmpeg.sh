@@ -600,7 +600,7 @@ build_gnutls() {
     generic_configure "--disable-cxx --disable-doc" # don't need the c++ version, in an effort to cut down on size... LODO test difference...
     do_make_install
   cd ..
-  sed -i 's/-lgnutls *$/-lgnutls -lnettle -lhogweed -lgmp -lcrypt32 -lws2_32/' "$PKG_CONFIG_PATH/gnutls.pc"
+  sed -i 's/-lgnutls *$/-lgnutls -lnettle -lhogweed -lgmp -lcrypt32 -lws2_32 -liconv/' "$PKG_CONFIG_PATH/gnutls.pc"
 }
 
 build_libnettle() {
@@ -875,7 +875,8 @@ build_dependencies() {
   build_bzlib2 # in case someone wants it [ffmpeg uses it]
   build_gmp # for libnettle
   build_libnettle # needs gmp
-  build_gnutls # needs libnettle
+  build_iconv # mplayer I think needs it for freetype [just it though], vlc also wants it.  looks like ffmpeg can use it too...?
+  build_gnutls # needs libnettle, can use iconv it appears
 
   build_frei0r
   build_libutvideo
@@ -900,7 +901,6 @@ build_dependencies() {
   build_lame
   build_libvpx
   build_vo_aacenc
-  build_iconv # mplayer I think needs it for freetype [just it though], vlc also wants it.  looks like ffmpeg can use it too...
   build_freetype
   build_libexpat
   build_libilbc
