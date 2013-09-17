@@ -947,9 +947,9 @@ build_libav=n
 build_mp4box=n
 build_mplayer=n
 build_vlc=n
-# just in case their CFLAGS is motivated toward linux, clear it initially...
+# just in case their CFLAGS is set externally for linux builds, clear it here...
 CFLAGS=
-original_cflags
+original_cflags=
 
 while true; do
   case $1 in
