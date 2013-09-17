@@ -710,9 +710,9 @@ build_vo_aacenc() {
 
 build_sdl() {
   # apparently ffmpeg expects prefix-sdl-config not sdl-config that they give us, so rename...
-  CFLAGS=-DDECLSPEC=  # avoid SDL trac tickets 939 and 282
+  export CFLAGS=-DDECLSPEC=  # avoid SDL trac tickets 939 and 282
   generic_download_and_install http://www.libsdl.org/release/SDL-1.2.15.tar.gz SDL-1.2.15
-  CFLAGS=$original_cflags # reset it
+  export CFLAGS=$original_cflags # reset it
   mkdir temp
   cd temp # so paths will work out right
   local prefix=$(basename $cross_prefix)
@@ -948,7 +948,7 @@ build_mp4box=n
 build_mplayer=n
 build_vlc=n
 # just in case their CFLAGS is set externally for linux builds, clear it here...
-CFLAGS=
+export CFLAGS=
 original_cflags=
 
 while true; do
@@ -959,7 +959,7 @@ while true; do
     --build-mp4box=* ) build_mp4box="${1#*=}"; shift ;;
     --build-mplayer=* ) build_mplayer="${1#*=}"; shift ;;
     --build-libav=* ) build_libav="${1#*=}"; shift ;;
-    --cflags=* ) CFLAGS="${1#*=}"; original_cflags="${1#*=}"; shift ;;
+    --cflags=* ) export CFLAGS="${1#*=}"; original_cflags="${1#*=}"; shift ;;
     --build-vlc=* ) build_vlc="${1#*=}"; shift ;;
     --disable-nonfree=* ) disable_nonfree="${1#*=}"; shift ;;
     --defaults ) disable_nonfree="y"; sandbox_ok="y"; shift ;;
