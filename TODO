@@ -1,11 +1,9 @@
 == actual todos ==
 
 libdvdnav [read?] for vlc
-not do march stuff...yet :P at all, just let it sit...enable cpu runtime detect for now
-
-== maybe do ==
-
 mplayer git'ify'
+
+== maybe/never do ==
 
 libav with nonfree? meh
 
@@ -22,9 +20,7 @@ add vid.stab support?
 
 fix all that are hard coded revision checkouts...meh
 
-make a prompt for "shared or not?"
-
-I may not be using my "suggested super CFLAGS" everywhere quite right, should add to everywhere?
+SDL check if has same bug with 2.0, if so then file it...
 
 warn on old yasm from the get go...tell them to update to Raring :) meh
 
@@ -58,6 +54,8 @@ add openmp, for libsoxr? (any other dependency?)
 test fribidi git master (does 0.19.5 fail? it should?) with wine installed
 
 tell orc+schro "you didn't well cross compile!"
+
+more march stuff...today we have the namsy pamsy enable cpu detection stuffs :P
 
 calculate size of each piece, put it on a wiki somewhere...
   startup slowdown, too?
