@@ -780,11 +780,11 @@ build_mplayer() {
   cd mplayer-checkout-2013-09-11
   do_git_checkout https://github.com/FFmpeg/FFmpeg "ffmpeg" bbcaf25d4 # random, known to work revision
 
-  do_configure "--enable-cross-compile --host-cc=cc --cc=${cross_prefix}gcc --windres=${cross_prefix}windres --ranlib=${cross_prefix}ranlib --ar=${cross_prefix}ar --as=${cross_prefix}as --nm=${cross_prefix}nm --enable-runtime-cpudetect"
+  do_configure "--enable-cross-compile --host-cc=cc --cc=${cross_prefix}gcc --windres=${cross_prefix}windres --ranlib=${cross_prefix}ranlib --ar=${cross_prefix}ar --as=${cross_prefix}as --nm=${cross_prefix}nm --enable-runtime-cpudetection"
   rm already_ran_make* # try to force re-link just in case...this might not be enough tho
   rm *.exe
   do_make
-  echo "built ${PWD}/mplayer.exe"
+  echo "built ${PWD}/{mplayer,mencoder}.exe"
   cd ..
 }
 
