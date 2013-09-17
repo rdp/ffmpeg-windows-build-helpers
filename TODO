@@ -4,6 +4,7 @@ libdvdnav [read?] for vlc
 not do march stuff...
 
 == maybe do ==
+libav with nonfree?
 
 don't "always install libavcodec" [only when building VLC, maybe only ffmpeg]
 
