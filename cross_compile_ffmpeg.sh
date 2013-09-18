@@ -218,8 +218,9 @@ do_git_checkout() {
     cd $to_dir
     echo "Updating to latest $to_dir version... $desired_branch"
     old_git_version=`git rev-parse HEAD`
-    # if we're on a special branch, don't even bother doing a git pull, assume it was already there...
-    if [[ ! -z $desired_branch ]]; then
+
+    # if we're on a special branch, don't even bother doing a git pull, assume we're already there...
+    if [[ -z $desired_branch ]]; then
       git pull # if you comment out, add a warning echo :)
     fi
     update_to_desired_branch_or_revision "." $desired_branch
