@@ -1019,7 +1019,7 @@ for file in `find . -name ffmpeg.exe` `find . -name MP4Box.exe` `find . -name mp
   echo "built $(readlink -f $file)"
 done
 
-# bash glob fails agaiiiiiiiiiiiiiiiiiiiiiiin?
+# bash glob fails here again?
 for file in `find . -name vlc.exe | grep -- -`; do
   echo "built $file"
 done
