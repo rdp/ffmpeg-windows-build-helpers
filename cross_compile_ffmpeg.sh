@@ -229,7 +229,7 @@ do_git_checkout() {
      echo "got upstream changes, forcing re-configure."
      rm already*
     else
-     echo "this pull got no new upstream changes, possibly not forcing re-configure..."
+     echo "this pull got no new upstream changes, not forcing re-configure..."
     fi 
     cd ..
   fi
