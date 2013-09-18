@@ -776,9 +776,12 @@ build_vlc() {
 }
 
 build_mplayer() {
-  download_and_unpack_file http://sourceforge.net/projects/mplayer-edl/files/mplayer-checkout-snapshot.tar.bz2/download mplayer-checkout-2013-09-11
+  download_and_unpack_file http://sourceforge.net/projects/mplayer-edl/files/mplayer-checkout-snapshot.tar.bz2/download mplayer-checkout-2013-09-11 # my own snapshot since mplayer seems to delete old file :\
   cd mplayer-checkout-2013-09-11
-  do_git_checkout https://github.com/FFmpeg/FFmpeg "ffmpeg" bbcaf25d4 # random, known to work revision
+  do_git_checkout https://github.com/FFmpeg/FFmpeg ffmpeg bbcaf25d4 # random, known to work revision with 2013-09-11
+  #do_git_checkout https://github.com/pigoz/mplayer-svn.git mplayer-svn-git # lacks submodules for dvdnav
+  #cd mplayer-svn-git
+  # do_git_checkout https://github.com/FFmpeg/FFmpeg ffmpeg # TODO some revision here?
 
   do_configure "--enable-cross-compile --host-cc=cc --cc=${cross_prefix}gcc --windres=${cross_prefix}windres --ranlib=${cross_prefix}ranlib --ar=${cross_prefix}ar --as=${cross_prefix}as --nm=${cross_prefix}nm --enable-runtime-cpudetection"
   rm already_ran_make* # try to force re-link just in case...this might not be enough tho
