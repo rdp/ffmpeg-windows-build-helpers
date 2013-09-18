@@ -333,7 +333,7 @@ build_qt() {
     do_configure "-static -release -fast -no-exceptions -no-stl -no-sql-sqlite -no-qt3support -no-gif -no-libmng -qt-libjpeg -no-libtiff -no-qdbus -no-openssl -no-webkit -sse -no-script -no-multimedia -no-phonon -opensource -no-scripttools -no-opengl -no-script -no-scripttools -no-declarative -no-declarative-debug -opensource -no-s60 -host-little-endian -confirm-license -xplatform win32-g++ -device-option CROSS_COMPILE=$cross_prefix -prefix $mingw_w64_x86_64_prefix -prefix-install -nomake examples"
     make sub-src
     make install sub-src # let it fail, baby, it still installs a lot of good stuff before dying on mng...? huh wuh?
-    cp ./plugins/imageformats/libqjpeg.a $mingw_w64_x86_64_prefix/lib
+    cp ./plugins/imageformats/libqjpeg.a $mingw_w64_x86_64_prefix/lib || exit 1
     cp ./plugins/accessible/libqtaccessiblewidgets.a  $mingw_w64_x86_64_prefix/lib # this feels wrong...
     # do_make_install "sub-src" # sub-src might make the build faster? # complains on mng? huh?
     # vlc needs an adjust .pc file? huh wuh?
@@ -498,7 +498,8 @@ build_libdvdnav() {
   if [[ ! -f ./configure ]]; then
     ./autogen.sh
   fi
-  generic_configure_make_install 
+  generic_configure "--with-dvdread-config=$mingw_w64_x86_64_prefix/bin/dvdread-config"
+  do_make_install 
   cd ..
 }
 
@@ -796,16 +797,16 @@ build_vlc() {
 }
 
 build_mplayer() {
-  #build_libdvdread # dependencies
-  #build_libdvdnav # dependencies
-  download_and_unpack_file http://sourceforge.net/projects/mplayer-edl/files/mplayer-checkout-snapshot.tar.bz2/download mplayer-checkout-2013-09-11 # my own snapshot since mplayer seems to delete old file :\
-  cd mplayer-checkout-2013-09-11
-  do_git_checkout https://github.com/FFmpeg/FFmpeg ffmpeg bbcaf25d4 # random, known to work revision with 2013-09-11
-  #do_git_checkout https://github.com/pigoz/mplayer-svn.git mplayer-svn-git # lacks submodules for dvdnav
-  #cd mplayer-svn-git
-  # do_git_checkout https://github.com/FFmpeg/FFmpeg ffmpeg # TODO some revision here?
+  #download_and_unpack_file http://sourceforge.net/projects/mplayer-edl/files/mplayer-checkout-snapshot.tar.bz2/download mplayer-checkout-2013-09-11 # my own snapshot since mplayer seems to delete old file :\
+  #cd mplayer-checkout-2013-09-11
+  #do_git_checkout https://github.com/FFmpeg/FFmpeg ffmpeg bbcaf25d4 # random, known to work revision with 2013-09-11
+  do_git_checkout https://github.com/pigoz/mplayer-svn.git mplayer-svn-git # lacks submodules for dvdnav
+  cd mplayer-svn-git
+  do_git_checkout https://github.com/FFmpeg/FFmpeg ffmpeg # TODO some revision here?
+  extra_config_options="--with-dvdnav-config=$mingw_w64_x86_64_prefix/bin/dvdnav-config --with-dvdread-config=$mingw_w64_x86_64_prefix/bin/dvdread-config"
 
-  do_configure "--enable-cross-compile --host-cc=cc --cc=${cross_prefix}gcc --windres=${cross_prefix}windres --ranlib=${cross_prefix}ranlib --ar=${cross_prefix}ar --as=${cross_prefix}as --nm=${cross_prefix}nm --enable-runtime-cpudetection"
+  do_configure "--enable-cross-compile --host-cc=cc --cc=${cross_prefix}gcc --windres=${cross_prefix}windres --ranlib=${cross_prefix}ranlib --ar=${cross_prefix}ar --as=${cross_prefix}as --nm=${cross_prefix}nm --enable-runtime-cpudetection --with-dvdnav-config=PATH $extra_config_options"
+  exit
   rm already_ran_make* # try to force re-link just in case...this might not be enough tho
   rm *.exe
   do_make
@@ -922,6 +923,8 @@ build_dependencies() {
   build_libschroedinger # needs orc
   build_libbluray
   build_libjpeg_turbo # mplayer can use this, VLC qt might need it?
+  build_libdvdread # vlc, possibly mplayer
+  build_libdvdnav # vlc, possibly mplayer
   build_libxvid
   build_libxavs
   build_libsoxr
