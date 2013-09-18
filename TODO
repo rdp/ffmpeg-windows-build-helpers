@@ -5,6 +5,8 @@ mplayer git'ify'
 
 == maybe/never do ==
 
+command line option "don't update git repos"
+
 libav with nonfree? meh
 
 don't "always install libavcodec" [only when building VLC, maybe only ffmpeg]
