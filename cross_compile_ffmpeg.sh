@@ -149,10 +149,11 @@ install_cross_compiler() {
   pick_compiler_flavors 
   curl https://raw.github.com/rdp/ffmpeg-windows-build-helpers/master/patches/mingw-w64-build-3.2.3 -O  || exit 1
   chmod u+x mingw-w64-build-3.2.3
+  export CFLAGS= # just in case they specified some foreign march...
   # gcc 4.8.0 requires mingw-w64 > 2.0.8: http://gcc.gnu.org/bugzilla/show_bug.cgi?id=55706
   # so mingw-w64-ver=svn actually means 6172 for now [hard coded in it]
   nice ./mingw-w64-build-3.2.3 --mingw-w64-ver=svn --clean-build --disable-shared --default-configure --cpu-count=$gcc_cpu_count --threads=pthreads-w32 --pthreads-w32-ver=2-9-1 --build-type=$build_choice || exit 1 # --disable-shared allows c++ to be distributed at all...which seemed necessary for some random dependency...
-
+  export CFLAGS=$original_cflags # reset it
   if [ -d mingw-w64-x86_64 ]; then
     touch mingw-w64-x86_64/compiler.done
   fi
@@ -194,7 +195,7 @@ update_to_desired_branch_or_revision() {
   if [ -n "$desired_branch" ]; then
    pushd $to_dir
    cd $to_dir
-      echo "git co $desired_branch"
+      echo "git checkout $desired_branch"
       git checkout "$desired_branch" || exit 1
       git merge "$desired_branch" || exit 1 # depending on which type it is :)
    popd # in case it's a cd to ., don't want to cd to .. here...since sometimes we call it with a '.'
@@ -748,7 +749,8 @@ build_frei0r() {
 build_vlc() {
   build_qt # needs libjpeg [?]
   cpu_count=1 # not wig out on .rc.lo files etc.
-  do_git_checkout http://repo.or.cz/r/vlc.git vlc # vlc git master seems to be unstable and break the build and not test for windows often, so specify a known working revision...
+  #do_git_checkout https://github.com/videolan/vlc.git vlc # vlc git master seems to be unstable and break the build and not test for windows often, so specify a known working revision...
+  do_git_checkout https://github.com/rdp/vlc.git vlc # till this thing stabilizes...
   cd vlc
   if [[ ! -f "configure" ]]; then
     ./bootstrap
