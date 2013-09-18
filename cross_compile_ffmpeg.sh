@@ -492,6 +492,26 @@ build_libopus() {
   generic_download_and_install http://downloads.xiph.org/releases/opus/opus-1.0.1.tar.gz opus-1.0.1 
 }
 
+build_libdvdnav() {
+  download_and_unpack_file http://dvdnav.mplayerhq.hu/releases/libdvdnav-4.2.0.tar.bz2 libdvdnav-4.2.0
+  cd libdvdnav-4.2.0
+  if [[ ! -f ./configure ]]; then
+    ./autogen.sh
+  fi
+  generic_configure_make_install 
+  cd ..
+}
+
+build_libdvdread() {
+  download_and_unpack_file http://dvdnav.mplayerhq.hu/releases/libdvdread-4.2.0.tar.bz2 libdvdread-4.2.0
+  cd libdvdread-4.2.0
+  if [[ ! -f ./configure ]]; then
+    ./autogen.sh
+  fi
+  generic_configure_make_install 
+  cd ..
+}
+
 build_glew() { # opengl stuff
   echo "still broken, wow this thing looks like junk LOL"
   exit
@@ -751,8 +771,8 @@ build_vlc() {
   build_qt # needs libjpeg [?]
   cpu_count=1 # not wig out on .rc.lo files etc.
   #do_git_checkout https://github.com/videolan/vlc.git vlc # vlc git master seems to be unstable and break the build and not test for windows often, so specify a known working revision...
-  do_git_checkout https://github.com/rdp/vlc.git vlc # till this thing stabilizes...
-  cd vlc
+  do_git_checkout https://github.com/rdp/vlc.git vlc-rdp # till this thing stabilizes...
+  cd vlc-rdp
   if [[ ! -f "configure" ]]; then
     ./bootstrap
   fi 
@@ -776,6 +796,8 @@ build_vlc() {
 }
 
 build_mplayer() {
+  #build_libdvdread # dependencies
+  #build_libdvdnav # dependencies
   download_and_unpack_file http://sourceforge.net/projects/mplayer-edl/files/mplayer-checkout-snapshot.tar.bz2/download mplayer-checkout-2013-09-11 # my own snapshot since mplayer seems to delete old file :\
   cd mplayer-checkout-2013-09-11
   do_git_checkout https://github.com/FFmpeg/FFmpeg ffmpeg bbcaf25d4 # random, known to work revision with 2013-09-11
@@ -1015,12 +1037,15 @@ if [ -d "mingw-w64-x86_64" ]; then # they installed a 64-bit compiler
   cd ..
 fi
 
+cd sandbox
+
 for file in `find . -name ffmpeg.exe` `find . -name MP4Box.exe` `find . -name mplayer.exe` `find . -name mencoder.exe` `find . -name avconv.exe` `find . -name avprobe.exe`; do
   echo "built $(readlink -f $file)"
 done
 
 # bash glob fails here again?
 for file in `find . -name vlc.exe | grep -- -`; do
-  echo "built $file"
+  echo "built $(readlink -f $file)"
 done
 
+cd ..
