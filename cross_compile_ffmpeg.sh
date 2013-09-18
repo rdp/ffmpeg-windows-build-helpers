@@ -516,6 +516,7 @@ build_libdvdread() {
   fi
   generic_configure "CFLAGS=-DHAVE_DVDCSS_DVDCSS_H LDFLAGS=-ldvdcss" # vlc patch: "--enable-libdvdcss" # XXX ask how I'm *supposed* to do this
   do_make_install 
+  sed -i "s/-ldvdread/-ldvdread -ldvdcss/" $mingw_w64_x86_64_prefix/bin/dvdread-config
   cd ..
 }
 
@@ -806,13 +807,13 @@ build_mplayer() {
   #download_and_unpack_file http://sourceforge.net/projects/mplayer-edl/files/mplayer-checkout-snapshot.tar.bz2/download mplayer-checkout-2013-09-11 # my own snapshot since mplayer seems to delete old file :\
   #cd mplayer-checkout-2013-09-11
   #do_git_checkout https://github.com/FFmpeg/FFmpeg ffmpeg bbcaf25d4 # random, known to work revision with 2013-09-11
-  do_git_checkout https://github.com/pigoz/mplayer-svn.git mplayer-svn-git # lacks submodules for dvdnav
+
+  do_git_checkout https://github.com/pigoz/mplayer-svn.git mplayer-svn-git # lacks submodules for dvdnav unfortunately...
   cd mplayer-svn-git
   do_git_checkout https://github.com/FFmpeg/FFmpeg ffmpeg # TODO some revision here?
   extra_config_options="--with-dvdnav-config=$mingw_w64_x86_64_prefix/bin/dvdnav-config --with-dvdread-config=$mingw_w64_x86_64_prefix/bin/dvdread-config"
 
   do_configure "--enable-cross-compile --host-cc=cc --cc=${cross_prefix}gcc --windres=${cross_prefix}windres --ranlib=${cross_prefix}ranlib --ar=${cross_prefix}ar --as=${cross_prefix}as --nm=${cross_prefix}nm --enable-runtime-cpudetection --with-dvdnav-config=PATH $extra_config_options"
-  exit
   rm already_ran_make* # try to force re-link just in case...this might not be enough tho
   rm *.exe
   do_make
