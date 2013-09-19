@@ -1,10 +1,15 @@
 == actual todos ==
 
 libdvdnav [read?] for vlc
+  all work...
+  
+march work...
 
 == maybe/never do ==
+submit dvdread gcc_pack upstreams [?]
 
 mplayer git'ify'
+  blocked :P
 
 command line option "don't update git repos"
 
@@ -25,7 +30,7 @@ fix all that are hard coded revision checkouts...meh
 
 SDL check if has same bug with 2.0, if so then file it...
 
-warn on old yasm from the get go...tell them to update to Raring :) meh
+Qt check if same weirdness with 5.1, if so then file it...
 
 it should notice when configure was originally from some other git commit...anyway today, if you go to ffmpeg, checkout a different branch, it doesn't reconfigure...
 

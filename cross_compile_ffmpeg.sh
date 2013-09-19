@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-set -x
 ################################################################################
 # ffmpeg windows cross compile helper/download script
 ################################################################################
@@ -56,6 +55,13 @@ function version { echo "$@" | awk -F. '{ printf("%d%03d%03d%03d\n", $1,$2,$3,$4
 
 if [[ $(version $version_have)  < $(version '2.8.10') ]]; then
   echo "your cmake version is too old $version_have wanted 2.8.10"
+  exit 1
+fi
+
+out=`yasm --version`
+yasm_version=`echo "$out" | cut -d " " -f 2` # like 1.1.0.112
+if [[ $(version $yasm_version)  < $(version '1.2.0') ]]; then
+  echo "your yasm version is too old $yasm_version wanted 1.2.0"
   exit 1
 fi
 
