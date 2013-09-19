@@ -1051,7 +1051,7 @@ if [ -d "mingw-w64-x86_64" ]; then # they installed a 64-bit compiler
   cd ..
 fi
 
-cd sandbox
+# NB that we're currently in the sandbox dir
 
 for file in `find . -name ffmpeg.exe` `find . -name MP4Box.exe` `find . -name mplayer.exe` `find . -name mencoder.exe` `find . -name avconv.exe` `find . -name avprobe.exe`; do
   echo "built $(readlink -f $file)"
@@ -1061,5 +1061,3 @@ done
 for file in `find . -name vlc.exe | grep -- -`; do
   echo "built $(readlink -f $file)"
 done
-
-cd ..
