@@ -786,7 +786,7 @@ build_vlc() {
   if [[ ! -f "configure" ]]; then
     ./bootstrap
   fi 
-  do_configure "--disable-libgcrypt --disable-a52 --host=i686-w64-mingw32 --disable-lua --disable-mad --enable-qt --disable-fontconfig" # don't have lua mingw yet, etc. [vlc has --disable-sdl [?]] disable fontconfig for now till they fix their
+  do_configure "--disable-libgcrypt --disable-a52 --host=$host_target --disable-lua --disable-mad --enable-qt --disable-sdl" # don't have lua mingw yet, etc. [vlc has --disable-sdl [?]]
   do_make
   # do some gymnastics to avoid building the mozilla plugin for now [couldn't quite get it to work]
   #sed -i 's_git://git.videolan.org/npapi-vlc.git_https://github.com/rdp/npapi-vlc.git_' Makefile # this wasn't enough...
