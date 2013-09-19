@@ -1,15 +1,16 @@
 == actual todos ==
 
 libdvdnav [read?] for vlc
-mplayer git'ify'
 
 == maybe/never do ==
+
+mplayer git'ify'
 
 command line option "don't update git repos"
 
 libav with nonfree? meh
 
-don't "always install libavcodec" [only when building VLC, maybe only ffmpeg]
+don't "always install libavcodec" [only when building VLC, maybe only ffmpeg too]
 
 VLC, you should use ../plugins/accessibility [?]
   you should also not use plugins [?]
