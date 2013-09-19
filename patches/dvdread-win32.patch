@@ -1,4 +1,4 @@
-Index: dvdread/src/dvdread/ifo_types.h
+Index: src/dvdread/ifo_types.h
 ===================================================================
 --- src/dvdread/ifo_types.h	(révision 1188)
 +++ src/dvdread/ifo_types.h	(copie de travail)
