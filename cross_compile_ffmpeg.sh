@@ -149,11 +149,13 @@ install_cross_compiler() {
   if [[ -f "mingw-w64-i686/compiler.done" || -f "mingw-w64-x86_64/compiler.done" ]]; then
    echo "MinGW-w64 compiler of some type or other already installed, not re-installing..."
    if [[ $rebuild_compilers != "y" ]]; then
-     return # early exit
+     return # early exit, they already have some type of cross compiler built.
    fi
   fi
 
-  pick_compiler_flavors 
+  if [[ -z $build_choice ]]; then
+    pick_compiler_flavors
+  fi
   curl https://raw.github.com/rdp/ffmpeg-windows-build-helpers/master/patches/mingw-w64-build-3.2.3.local -O  || exit 1
   chmod u+x mingw-w64-build-3.2.3.local
   export CFLAGS= # just in case they specified some foreign march...
@@ -1014,6 +1016,7 @@ while true; do
       --build-mp4box=n [builds MP4Box.exe from the gpac project] 
       --build-mplayer=n [builds mplayer.exe and mencoder.exe] 
       --build-vlc=n [builds vlc.exe] 
+      --build-choice=[multi,win32,win64] [default prompt, or skip if you already have one built, multi is both win32 and win64]
       --build-libav=n [builds libav.exe, an FFmpeg fork] 
       --cflags= [default empty works for generic cpu, see README]"; exit 0 ;;
     --sandbox-ok=* ) sandbox_ok="${1#*=}"; shift ;;
@@ -1025,7 +1028,8 @@ while true; do
     --build-vlc=* ) build_vlc="${1#*=}"; shift ;;
     --disable-nonfree=* ) disable_nonfree="${1#*=}"; shift ;;
     --defaults ) disable_nonfree="y"; sandbox_ok="y"; shift ;;
-    -d ) disable_nonfree="y"; sandbox_ok="y"; shift ;;
+    -d ) disable_nonfree="y"; sandbox_ok="y"; build_choice="multi"; shift ;;
+    --build-choice=* ) build_choice="${1#*=}"; shift ;;
     --build-ffmpeg-static=* ) build_ffmpeg_static="${1#*=}"; shift ;;
     --build-ffmpeg-shared=* ) build_ffmpeg_shared="${1#*=}"; shift ;;
     --rebuild-compilers=* ) rebuild_compilers="${1#*=}"; shift ;;
