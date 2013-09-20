@@ -1003,7 +1003,19 @@ original_cflags=
 
 while true; do
   case $1 in
-    -h | --help ) echo "available options (with defaults): --build-ffmpeg-shared=n --build-ffmpeg-static=y --gcc-cpu-count=1 [set it higher than 1 if you have > 1GB RAM] --disable-nonfree=y (set to n to include nonfree) --sandbox-ok=y [skip sandbox prompt if y] --rebuild-compilers=y --defaults|-d [don't prompt, just use defaults] --build-mp4box=n [builds MP4Box.exe] --build-mplayer=n [builds mplayer.exe and mencoder.exe] --build-vlc=n [builds vlc.exe] --build-libav=n [builds libav.exe, an FFmpeg fork] --cflags= [default empty for none]"; exit 0 ;;
+    -h | --help ) echo "available options [with defaults]: 
+      --build-ffmpeg-shared=n 
+      --build-ffmpeg-static=y 
+      --gcc-cpu-count=1 [number of cpu cores set it higher than 1 if you have multiple cores and > 1GB RAM, this speeds up cross compiler build. FFmpeg build uses number of cores regardless.] 
+      --disable-nonfree=y (set to n to include nonfree like libfdk-aac) 
+      --sandbox-ok=n [skip sandbox prompt if y] 
+      --rebuild-compilers=y (prompts you which compilers to build, even if you already have some)
+      --defaults|-d [skip all prompts, just use defaults] 
+      --build-mp4box=n [builds MP4Box.exe from the gpac project] 
+      --build-mplayer=n [builds mplayer.exe and mencoder.exe] 
+      --build-vlc=n [builds vlc.exe] 
+      --build-libav=n [builds libav.exe, an FFmpeg fork] 
+      --cflags= [default empty works for generic cpu, see README]"; exit 0 ;;
     --sandbox-ok=* ) sandbox_ok="${1#*=}"; shift ;;
     --gcc-cpu-count=* ) gcc_cpu_count="${1#*=}"; shift ;;
     --build-mp4box=* ) build_mp4box="${1#*=}"; shift ;;
