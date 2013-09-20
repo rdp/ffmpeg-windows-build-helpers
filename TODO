@@ -1,7 +1,7 @@
 == actual todos ==
 
 libdvdnav [read?] for vlc
-  all work...
+  all work now...
   
 march work...
 
@@ -11,11 +11,14 @@ submit dvdread gcc_pack upstreams [?]
 mplayer git'ify'
   blocked :P
 
-command line option "don't update git repos"
+-d should auto select "both 32 and 64 bit" [XXX make it into command line param too?]
 
-libav with nonfree? meh
+command line option "don't update any git repos"
+
+libav work with nonfree? meh
 
 don't "always install libavcodec" [only when building VLC, maybe only ffmpeg too]
+  or smaller?
 
 VLC, you should use ../plugins/accessibility [?]
   you should also not use plugins [?]
