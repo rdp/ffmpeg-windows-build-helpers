@@ -338,7 +338,7 @@ build_qt() {
 #  cd qt-everywhere-opensource-src-4.8.1
 
     apply_patch https://raw.github.com/rdp/ffmpeg-windows-build-helpers/master/patches/imageformats.patch
-    apply_patch https://raw.github.com/rdp/ffmpeg-windows-build-helpers/master/patches/win64.patch
+    apply_patch https://raw.github.com/rdp/ffmpeg-windows-build-helpers/master/patches/qt-win64.patch
     # vlc's configure options...mostly
     do_configure "-static -release -fast -no-exceptions -no-stl -no-sql-sqlite -no-qt3support -no-gif -no-libmng -qt-libjpeg -no-libtiff -no-qdbus -no-openssl -no-webkit -sse -no-script -no-multimedia -no-phonon -opensource -no-scripttools -no-opengl -no-script -no-scripttools -no-declarative -no-declarative-debug -opensource -no-s60 -host-little-endian -confirm-license -xplatform win32-g++ -device-option CROSS_COMPILE=$cross_prefix -prefix $mingw_w64_x86_64_prefix -prefix-install -nomake examples"
     make sub-src
