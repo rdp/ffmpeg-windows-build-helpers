@@ -999,9 +999,8 @@ build_libav=n
 build_mp4box=n
 build_mplayer=n
 build_vlc=n
-# just in case their CFLAGS is set externally for linux builds, clear it here...
-unset CFLAGS
-original_cflags=
+unset CFLAGS # I think this does an export...we don't want any linux CFLAGS seeping through...they can set it via --cflags= 
+original_cflags= # no export needed, this is just a local copy
 
 while true; do
   case $1 in
