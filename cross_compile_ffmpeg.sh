@@ -1014,7 +1014,7 @@ while true; do
       --defaults|-d [skip all prompts, just use defaults] 
       --build-mp4box=n [builds MP4Box.exe from the gpac project] 
       --build-mplayer=n [builds mplayer.exe and mencoder.exe] 
-      --build-vlc=n [builds vlc.exe] 
+      --build-vlc=n [builds a [rather bloated] vlc.exe from git master] 
       --build-choice=[multi,win32,win64] [default prompt, or skip if you already have one built, multi is both win32 and win64]
       --build-libav=n [builds libav.exe, an FFmpeg fork] 
       --cflags= [default empty works for generic cpu, see README]"; exit 0 ;;
