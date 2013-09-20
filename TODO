@@ -83,6 +83,5 @@ profile guided builds?
   major libs
   everything
 
-other "-march" like options? fastmath
-
-x264 fomit frame pointer for 32 bit?
+other "-march" like options? fastmath? f full program?
+  x264 fomit frame pointer for 32 bit?
