@@ -1027,8 +1027,8 @@ while true; do
     --cflags=* ) export CFLAGS="${1#*=}"; original_cflags="${1#*=}"; shift ;;
     --build-vlc=* ) build_vlc="${1#*=}"; shift ;;
     --disable-nonfree=* ) disable_nonfree="${1#*=}"; shift ;;
-    --defaults ) disable_nonfree="y"; sandbox_ok="y"; shift ;;
-    -d ) disable_nonfree="y"; sandbox_ok="y"; build_choice="multi"; shift ;;
+    -d ) gcc_cpu_count=2; disable_nonfree="y"; sandbox_ok="y"; build_choice="multi"; shift ;;
+    --defaults ) gcc_cpu_count=2; disable_nonfree="y"; sandbox_ok="y"; build_choice="multi"; shift ;;
     --build-choice=* ) build_choice="${1#*=}"; shift ;;
     --build-ffmpeg-static=* ) build_ffmpeg_static="${1#*=}"; shift ;;
     --build-ffmpeg-shared=* ) build_ffmpeg_shared="${1#*=}"; shift ;;
