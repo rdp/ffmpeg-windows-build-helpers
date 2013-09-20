@@ -158,7 +158,7 @@ install_cross_compiler() {
   fi
   curl https://raw.github.com/rdp/ffmpeg-windows-build-helpers/master/patches/mingw-w64-build-3.2.3.local -O  || exit 1
   chmod u+x mingw-w64-build-3.2.3.local
-  export CFLAGS= # just in case they specified some foreign march...
+  unset CFLAGS
   # gcc 4.8.0 requires mingw-w64 > 2.0.8: http://gcc.gnu.org/bugzilla/show_bug.cgi?id=55706
   # so mingw-w64-ver=svn actually means 6172 for now [hard coded in it]
   nice ./mingw-w64-build-3.2.3.local --mingw-w64-ver=svn --clean-build --disable-shared --default-configure --cpu-count=$gcc_cpu_count --threads=pthreads-w32 --pthreads-w32-ver=2-9-1 --build-type=$build_choice || exit 1 # --disable-shared allows c++ to be distributed at all...which seemed necessary for some random dependency...
@@ -1000,7 +1000,7 @@ build_mp4box=n
 build_mplayer=n
 build_vlc=n
 # just in case their CFLAGS is set externally for linux builds, clear it here...
-export CFLAGS=
+unset CFLAGS
 original_cflags=
 
 while true; do
