@@ -791,8 +791,8 @@ build_vlc() {
   build_qt # needs libjpeg [?]
   cpu_count=1 # not wig out on .rc.lo files etc.
   #do_git_checkout https://github.com/videolan/vlc.git vlc # vlc git master seems to be unstable and break the build and not test for windows often, so specify a known working revision...
-  do_git_checkout https://github.com/rdp/vlc.git vlc-rdp # till this thing stabilizes...
-  cd vlc-rdp
+  do_git_checkout https://github.com/rdp/vlc.git vlc_rdp # till this thing stabilizes...
+  cd vlc_rdp
   if [[ ! -f "configure" ]]; then
     ./bootstrap
   fi 
