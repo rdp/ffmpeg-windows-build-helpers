@@ -1019,7 +1019,7 @@ while true; do
       --defaults|-d [skip all prompts, just use defaults] 
       --build-mp4box=n [builds MP4Box.exe from the gpac project] 
       --build-mplayer=n [builds mplayer.exe and mencoder.exe] 
-      --build-vlc=n [builds a [rather bloated] vlc.exe from git master] 
+      --build-vlc=n [builds a [rather bloated] vlc.exe] 
       --build-choice=[multi,win32,win64] [default prompt, or skip if you already have one built, multi is both win32 and win64]
       --build-libav=n [builds libav.exe, an FFmpeg fork] 
       --cflags= [default empty works for generic cpu, see README]"; exit 0 ;;
@@ -1028,7 +1028,7 @@ while true; do
     --build-mp4box=* ) build_mp4box="${1#*=}"; shift ;;
     --build-mplayer=* ) build_mplayer="${1#*=}"; shift ;;
     --build-libav=* ) build_libav="${1#*=}"; shift ;;
-    --cflags=* ) export CFLAGS="${1#*=}"; original_cflags="${1#*=}"; shift ;;
+    --cflags=* ) export CFLAGS="${1#*=}"; original_cflags="${1#*=}"; echo "setting cflags as $original_cflags"; shift ;;
     --build-vlc=* ) build_vlc="${1#*=}"; shift ;;
     --disable-nonfree=* ) disable_nonfree="${1#*=}"; shift ;;
     -d ) gcc_cpu_count=2; disable_nonfree="y"; sandbox_ok="y"; build_choice="multi"; shift ;;
