@@ -690,12 +690,14 @@ build_libxvid() {
 }
 
 build_fontconfig() {
+  unset CFLAGS= # wine...!
   download_and_unpack_file http://www.freedesktop.org/software/fontconfig/release/fontconfig-2.10.1.tar.gz fontconfig-2.10.1
   cd fontconfig-2.10.1
     generic_configure --disable-docs
     do_make_install
   cd .. 
   sed -i 's/-L${libdir} -lfontconfig[^l]*$/-L${libdir} -lfontconfig -lfreetype -lexpat/' "$PKG_CONFIG_PATH/fontconfig.pc"
+  export CFLAGS=$original_cflags
 }
 
 build_libaacplus() {
