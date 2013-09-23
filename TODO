@@ -1,11 +1,12 @@
 == actual todos ==
 
 march work with my wine installed...
+TODO try ffmpeg with that march and see if it fails [cross compile]
 
 == maybe/never do ==
 
 mplayer with march=CFLAGS=-march=core-avx2 and with postproc plz?
-  maybe after get git working?
+  maybe after get mplayer git working?
 
 a distro that's a VM they can just open up and hit "go" in :)
 
