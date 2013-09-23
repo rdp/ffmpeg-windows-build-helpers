@@ -835,8 +835,9 @@ build_mplayer() {
   # XXX retry this with a slightly even more updated mplayer than one from 7/18
   #do_git_checkout https://github.com/pigoz/mplayer-svn.git mplayer-svn-git # lacks submodules for dvdnav unfortunately...
   #cd mplayer-svn-git
-  #do_git_checkout https://github.com/FFmpeg/FFmpeg # TODO some revision here?
-  #local extra_config_options="--with-dvdnav-config=$mingw_w64_x86_64_prefix/bin/dvdnav-config --with-dvdread-config=$mingw_w64_x86_64_prefix/bin/dvdread-config"
+  #do_git_checkout https://github.com/FFmpeg/FFmpeg # TODO some specific revision here?
+
+  # disable postproc since it failed with march=core-avx2 one time...
 
   do_configure "--disable-postproc --enable-cross-compile --host-cc=cc --cc=${cross_prefix}gcc --windres=${cross_prefix}windres --ranlib=${cross_prefix}ranlib --ar=${cross_prefix}ar --as=${cross_prefix}as --nm=${cross_prefix}nm --enable-runtime-cpudetection --with-dvdnav-config=PATH $extra_config_options"
   rm already_ran_make* # try to force re-link just in case...this might not be enough tho
