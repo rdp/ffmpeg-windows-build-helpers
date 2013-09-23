@@ -58,6 +58,11 @@ if [[ $(version $version_have)  < $(version '2.8.10') ]]; then
   exit 1
 fi
 
+if [[ ! -f /usr/include/zlib.h ]]; then
+  echo "warning: you may need to install zlib development headers first [on ubuntu $ apt-get install zlib1g-dev]" # XXX do like configure does and attempt to compile and include zlib.h instead
+  sleep 1
+fi
+
 out=`yasm --version`
 yasm_version=`echo "$out" | cut -d " " -f 2` # like 1.1.0.112
 if [[ $(version $yasm_version)  < $(version '1.2.0') ]]; then
