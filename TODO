@@ -1,8 +1,5 @@
 == actual todos ==
 
-libdvdnav [read?] for vlc
-  all work now...
-  
 march work...
 
 script feedback:
@@ -14,9 +11,14 @@ I think the default is c,c++,lto isn't it? Not that I even know what the lto par
 
 == maybe/never do ==
 
+test all things dvd to make sure they play anything...
+
 submit dvdread gcc_pack upstreams [?] and static linking, after checking SVN
 
 mplayer git'ify'
+  blocked :P
+
+vlc git'ify
   blocked :P
 
 -d should auto select "both 32 and 64 bit" [XXX make it into command line param too?]
