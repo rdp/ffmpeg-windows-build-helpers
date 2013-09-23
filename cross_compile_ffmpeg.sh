@@ -642,12 +642,14 @@ build_libschroedinger() {
 }
 
 build_gnutls() {
+  unset CFLAGS # auto-uses some wine stuff which can fail on foreign march...
   download_and_unpack_file ftp://ftp.gnutls.org/gcrypt/gnutls/v3.2/gnutls-3.2.3.tar.xz gnutls-3.2.3
   cd gnutls-3.2.3
     generic_configure "--disable-cxx --disable-doc" # don't need the c++ version, in an effort to cut down on size... LODO test difference...
     do_make_install
   cd ..
   sed -i 's/-lgnutls *$/-lgnutls -lnettle -lhogweed -lgmp -lcrypt32 -lws2_32 -liconv/' "$PKG_CONFIG_PATH/gnutls.pc"
+  export CFLAGS=$original_cflags
 }
 
 build_libnettle() {
@@ -743,7 +745,10 @@ build_libexpat() {
 }
 
 build_iconv() {
+  unset CFLAGS # tries to run some stuff like conftest.exe under wine which, if you've specified a foreign -march, causes a failure popup
+  # and also is pretty terrifying that it's calling through to wine, so just punt here...I know it worked without CFLAGS so just stick with that for now...
   generic_download_and_install http://ftp.gnu.org/pub/gnu/libiconv/libiconv-1.14.tar.gz libiconv-1.14
+  export CFLAGS=$original_cflags
 }
 
 build_freetype() {

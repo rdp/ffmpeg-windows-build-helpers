@@ -1,20 +1,16 @@
 == actual todos ==
 
-march work...
-
-script feedback:
-  --enable-nls                disable "Native Language Support" (I guess you meant enable?)
-  --gcc-langs=LANG1,LANG2     compile GCC with support for LANG (ada, c, c++,
-                              fortran, go, java, objc, obj-c++, all) [c,c++]
-
-I think the default is c,c++,lto isn't it? Not that I even know what the lto part of that means...
+march work with my wine installed...
 
 == maybe/never do ==
+
+can it install on a system without wine?
 
 test all things dvd to make sure they play anything...
 
 submit dvdread gcc_pack upstreams [?] and static linking, after checking SVN
 
+can I take out the wine unset MARCH's? I don't know if it will matter much though they do clutter...hmm...
 mplayer git'ify'
   blocked :P
 
