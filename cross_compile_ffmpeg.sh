@@ -1031,7 +1031,7 @@ while true; do
       --build-vlc=n [builds a [rather bloated] vlc.exe] 
       --build-choice=[multi,win32,win64] [default prompt, or skip if you already have one built, multi is both win32 and win64]
       --build-libav=n [builds libav.exe, an FFmpeg fork] 
-      --cflags= [default empty works for generic cpu, see README]"; exit 0 ;;
+      --cflags= [default is empty, compiles for generic cpu, see README]"; exit 0 ;;
     --sandbox-ok=* ) sandbox_ok="${1#*=}"; shift ;;
     --gcc-cpu-count=* ) gcc_cpu_count="${1#*=}"; shift ;;
     --build-mp4box=* ) build_mp4box="${1#*=}"; shift ;;
