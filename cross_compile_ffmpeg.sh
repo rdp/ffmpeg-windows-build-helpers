@@ -873,6 +873,7 @@ build_mp4box() { # like build_gpac
 }
 
 build_ffmpeg() {
+  echo "is $CFLAGS"
   local type=$1
   local shared=$2
   local git_url="https://github.com/FFmpeg/FFmpeg.git"
@@ -884,6 +885,8 @@ build_ffmpeg() {
     output_dir="libav_git"
     extra_configure_opts="" # has a few missing things?
   fi
+
+  extra_configure_opts="$extra_configure_opts --extra-cflags=$CFLAGS" # not sure if this is needed or not?
 
   # can't mix and match --enable-static --enable-shared unfortunately, or the final executable seems to just use shared if the're both present
   if [[ $shared == "shared" ]]; then
