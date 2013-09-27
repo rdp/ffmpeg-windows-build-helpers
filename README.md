@@ -29,13 +29,16 @@ up the building speed of gcc, build shared, etc. run it with
 ./cross_compile_ffmpeg.sh -h 
 to see them all
 
-Also NB that you can also "cross compile" mp4box.exe (32 and 64 bit versions) if you pass in the appropriate command line parameter.
+Also NB that you can also "cross compile" mp4box.exe if you pass in the appropriate command line parameter.
 
-Also NB that you can also "cross compile" {mplayer,mencoder}.exe (32 and 64 bit versions) if you pass in the appropriate command line parameter too.
+Also NB that you can also "cross compile" {mplayer,mencoder}.exe if you pass in the appropriate command line parameter too.
 
 Also NB that you can also "cross compile" vlc.exe if you pass in the appropriate command line parameter too.
 
-Also NB that you can create a "somewhat more optimized builds" by modifying the --cflags parameter, like --cflags=-march=athlon64-sse2 or what not.  Only testedd with a single parameter like that, thus far, though YMMV. :)
+Also NB that you can optionally create a "somewhat more machine optimized builds" by modifying an appropriate --cflags parameter, like --cflags=-march=athlon64-sse2 or what not.  
+NB that if you have wine installed you may need to run this command first to disable it (if you are building for a different architecture than the building machine, especially), so that it doesn't auto run files like conftest.exe, etc. during the build (they will crash with an annoying popup prompt otherwise)
+$ sudo update-binfmts --disable wine
+ref: http://askubuntu.com/questions/344088/how-to-ensure-wine-does-not-auto-run-exe-files
 
 Feedback welcome roger-projects@googlegroups.com
 
