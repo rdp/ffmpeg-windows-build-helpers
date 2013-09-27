@@ -235,7 +235,9 @@ do_git_checkout() {
 
     # if we're on a special branch, don't even bother doing a git pull, assume we're already there...
     if [[ -z $desired_branch ]]; then
-      git pull # if you comment out, add a warning echo :)
+      if [[ $git_pulls = "y" ]]; then
+        git pull
+      fi
     fi
     update_to_desired_branch_or_revision "." $desired_branch
     new_git_version=`git rev-parse HEAD`
@@ -644,14 +646,12 @@ build_libschroedinger() {
 }
 
 build_gnutls() {
-  unset CFLAGS # auto-uses some wine stuff which can fail on foreign march...
   download_and_unpack_file ftp://ftp.gnutls.org/gcrypt/gnutls/v3.2/gnutls-3.2.3.tar.xz gnutls-3.2.3
   cd gnutls-3.2.3
     generic_configure "--disable-cxx --disable-doc" # don't need the c++ version, in an effort to cut down on size... LODO test difference...
     do_make_install
   cd ..
   sed -i 's/-lgnutls *$/-lgnutls -lnettle -lhogweed -lgmp -lcrypt32 -lws2_32 -liconv/' "$PKG_CONFIG_PATH/gnutls.pc"
-  export CFLAGS=$original_cflags
 }
 
 build_libnettle() {
@@ -692,14 +692,12 @@ build_libxvid() {
 }
 
 build_fontconfig() {
-  unset CFLAGS= # wine...!
   download_and_unpack_file http://www.freedesktop.org/software/fontconfig/release/fontconfig-2.10.1.tar.gz fontconfig-2.10.1
   cd fontconfig-2.10.1
     generic_configure --disable-docs
     do_make_install
   cd .. 
   sed -i 's/-L${libdir} -lfontconfig[^l]*$/-L${libdir} -lfontconfig -lfreetype -lexpat/' "$PKG_CONFIG_PATH/fontconfig.pc"
-  export CFLAGS=$original_cflags
 }
 
 build_libaacplus() {
@@ -749,10 +747,7 @@ build_libexpat() {
 }
 
 build_iconv() {
-  unset CFLAGS # tries to run some stuff like conftest.exe under wine which, if you've specified a foreign -march, causes a failure popup
-  # and also is pretty terrifying that it's calling through to wine, so just punt here...I know it worked without CFLAGS so just stick with that for now...
   generic_download_and_install http://ftp.gnu.org/pub/gnu/libiconv/libiconv-1.14.tar.gz libiconv-1.14
-  export CFLAGS=$original_cflags
 }
 
 build_freetype() {
@@ -766,9 +761,9 @@ build_vo_aacenc() {
 
 build_sdl() {
   # apparently ffmpeg expects prefix-sdl-config not sdl-config that they give us, so rename...
-  export CFLAGS=-DDECLSPEC=  # avoid SDL trac tickets 939 and 282
+  export CFLAGS=-DDECLSPEC=  # avoid SDL trac tickets 939 and 282, not worried about optimizing yet
   generic_download_and_install http://www.libsdl.org/release/SDL-1.2.15.tar.gz SDL-1.2.15
-  export CFLAGS=$original_cflags # reset it
+  export CFLAGS=$original_cflags # and reset it
   mkdir temp
   cd temp # so paths will work out right
   local prefix=$(basename $cross_prefix)
@@ -875,7 +870,6 @@ build_mp4box() { # like build_gpac
 }
 
 build_ffmpeg() {
-  echo "is $CFLAGS"
   local type=$1
   local shared=$2
   local git_url="https://github.com/FFmpeg/FFmpeg.git"
@@ -888,7 +882,7 @@ build_ffmpeg() {
     extra_configure_opts="" # has a few missing things?
   fi
 
-  extra_configure_opts="$extra_configure_opts --extra-cflags=$CFLAGS" # not sure if this is needed or not?
+  extra_configure_opts="$extra_configure_opts --extra-cflags=$CFLAGS" # not sure if extra-cflags needed or not?
 
   # can't mix and match --enable-static --enable-shared unfortunately, or the final executable seems to just use shared if the're both present
   if [[ $shared == "shared" ]]; then
@@ -1015,7 +1009,8 @@ build_libav=n
 build_mp4box=n
 build_mplayer=n
 build_vlc=n
-unset CFLAGS # I think this does an export...we don't want any linux CFLAGS seeping through...they can set it via --cflags= 
+git_pulls=y
+unset CFLAGS # I think this resets it...we don't want any linux CFLAGS seeping through...they can set this via --cflags=  if they want it set to anything
 original_cflags= # no export needed, this is just a local copy
 
 while true; do
@@ -1033,10 +1028,13 @@ while true; do
       --build-vlc=n [builds a [rather bloated] vlc.exe] 
       --build-choice=[multi,win32,win64] [default prompt, or skip if you already have one built, multi is both win32 and win64]
       --build-libav=n [builds libav.exe, an FFmpeg fork] 
-      --cflags= [default is empty, compiles for generic cpu, see README]"; exit 0 ;;
+      --cflags= [default is empty, compiles for generic cpu, see README]
+      --git-pulls=y [do a git pull for latest code from repositories like FFmpeg--can force a rebuild if changes are detected]
+       "; exit 0 ;;
     --sandbox-ok=* ) sandbox_ok="${1#*=}"; shift ;;
     --gcc-cpu-count=* ) gcc_cpu_count="${1#*=}"; shift ;;
     --build-mp4box=* ) build_mp4box="${1#*=}"; shift ;;
+    --git-pulls=* ) git_pulls="${1#*=}"; shift ;;
     --build-mplayer=* ) build_mplayer="${1#*=}"; shift ;;
     --build-libav=* ) build_libav="${1#*=}"; shift ;;
     --cflags=* ) export CFLAGS="${1#*=}"; original_cflags="${1#*=}"; echo "setting cflags as $original_cflags"; shift ;;

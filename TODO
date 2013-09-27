@@ -1,9 +1,7 @@
 == actual todos ==
+ normal build ok, cflags -march=core-avx2 at least build
 
 == maybe/never do ==
-
-remove some of the now unnecessary CFLAG stuff, watch it compile
-  should compile "at all" still with defaults, as well...
 
 mplayer 32 bit cross compile with CFLAGS=-march=core-avx2 and with postproc possible?
   maybe after get mplayer git working?
