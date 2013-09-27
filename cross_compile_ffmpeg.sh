@@ -237,6 +237,8 @@ do_git_checkout() {
     if [[ -z $desired_branch ]]; then
       if [[ $git_pulls = "y" ]]; then
         git pull
+      else
+        echo "not doing git pull for latest code $to_dir"
       fi
     fi
     update_to_desired_branch_or_revision "." $desired_branch
