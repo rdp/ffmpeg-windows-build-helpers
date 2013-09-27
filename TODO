@@ -1,5 +1,6 @@
 == actual todos ==
- normal build ok, cflags -march=core-avx2 at least build
+ --cflags=-march=k8-sse3 at least build, run with mine...amd?
+   clean sandbox build all with libfdk
 
 == maybe/never do ==
 

@@ -1,3 +1,6 @@
+
+-march=core-avx2
+
 = speeds =
 
 ffmpeg_me_x86_64 5.2
