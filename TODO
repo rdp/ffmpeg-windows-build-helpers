@@ -1,12 +1,13 @@
 == actual todos ==
 
-march work with my wine installed...
-TODO try ffmpeg with that march and see if it fails [cross compile]
-
 == maybe/never do ==
+
+remove some of the now unnecessary CFLAG stuff, watch it compile
+  should compile "at all" still with defaults, as well...
 
 mplayer with march=CFLAGS=-march=core-avx2 and with postproc plz?
   maybe after get mplayer git working?
+  tell mplayer about it? is it just cross compiling [64 bit linux seems ok I believe...]?
 
 a distro that's a VM they can just open up and hit "go" in :)
 
