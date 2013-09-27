@@ -5,13 +5,11 @@
 remove some of the now unnecessary CFLAG stuff, watch it compile
   should compile "at all" still with defaults, as well...
 
-mplayer with march=CFLAGS=-march=core-avx2 and with postproc plz?
+mplayer 32 bit cross compile with CFLAGS=-march=core-avx2 and with postproc possible?
   maybe after get mplayer git working?
-  tell mplayer about it? is it just cross compiling [64 bit linux seems ok I believe...]?
+  tell mplayer about it? is it just cross compiling [compiled for 64 bit linux seems to not fail]? compiled for 32 bit linux with march=iav7 or what not worked...current guess is an mplayer bug :|
 
 a distro that's a VM they can just open up and hit "go" in :)
-
-can it install on a system without wine?
 
 test all things dvd to make sure they play anything...
 
@@ -19,7 +17,7 @@ submit dvdread gcc_pack upstreams [?] and static linking, after checking SVN
 
 can I take out the wine unset MARCH's? I don't know if it will matter much though they do clutter...hmm...
 mplayer git'ify'
-  blocked :P
+  blocked'ish
 
 vlc git'ify
   blocked :P
