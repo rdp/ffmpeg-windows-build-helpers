@@ -235,10 +235,10 @@ do_git_checkout() {
 
     # if we're on a special branch, don't even bother doing a git pull, assume we're already there...
     if [[ -z $desired_branch ]]; then
-      if [[ $git_pulls = "y" ]]; then
+      if [[ $git_get_latest = "y" ]]; then
         git pull
       else
-        echo "not doing git pull for latest code $to_dir"
+        echo "not doing git get latest pull for latest code $to_dir"
       fi
     fi
     update_to_desired_branch_or_revision "." $desired_branch
@@ -1011,7 +1011,7 @@ build_libav=n
 build_mp4box=n
 build_mplayer=n
 build_vlc=n
-git_pulls=y
+git_get_latest=y
 unset CFLAGS # I think this resets it...we don't want any linux CFLAGS seeping through...they can set this via --cflags=  if they want it set to anything
 original_cflags= # no export needed, this is just a local copy
 
@@ -1031,12 +1031,12 @@ while true; do
       --build-choice=[multi,win32,win64] [default prompt, or skip if you already have one built, multi is both win32 and win64]
       --build-libav=n [builds libav.exe, an FFmpeg fork] 
       --cflags= [default is empty, compiles for generic cpu, see README]
-      --git-pulls=y [do a git pull for latest code from repositories like FFmpeg--can force a rebuild if changes are detected]
+      --git-get-latest=y [do a git pull for latest code from repositories like FFmpeg--can force a rebuild if changes are detected]
        "; exit 0 ;;
     --sandbox-ok=* ) sandbox_ok="${1#*=}"; shift ;;
     --gcc-cpu-count=* ) gcc_cpu_count="${1#*=}"; shift ;;
     --build-mp4box=* ) build_mp4box="${1#*=}"; shift ;;
-    --git-pulls=* ) git_pulls="${1#*=}"; shift ;;
+    --git-get-latest=* ) git_get_latest="${1#*=}"; shift ;;
     --build-mplayer=* ) build_mplayer="${1#*=}"; shift ;;
     --build-libav=* ) build_libav="${1#*=}"; shift ;;
     --cflags=* ) export CFLAGS="${1#*=}"; original_cflags="${1#*=}"; echo "setting cflags as $original_cflags"; shift ;;
