@@ -7,9 +7,11 @@
 
 complain to vlc you can't build multi thread :P
 
+tell mingw-w64 that they should support VARIANT
+
 test all things dvd to make sure they play anything...
 
-submit dvdread gcc_pack upstreams [?] and static linking, after checking SVN
+submit dvdread gcc_pack upstreams [?] and static linking, after checking SVN to see if they're already there?
 
 mplayer git'ify'
   blocked'ish by lack of easy access to their source
