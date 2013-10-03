@@ -464,12 +464,12 @@ generic_download_and_install() {
   local extra_configure_options="$3"
   download_and_unpack_file $url $english_name
   cd $english_name || exit "needs 2 parameters"
-  generic_configure_make_install $extra_configure_options
+  generic_configure_make_install "$extra_configure_options"
   cd ..
 }
 
 generic_configure_make_install() {
-  generic_configure $1
+  generic_configure "$1"
   do_make_install
 }
 
