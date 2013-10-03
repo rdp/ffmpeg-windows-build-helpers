@@ -1,6 +1,7 @@
 == actual todos ==
- --cflags=-march=k8-sse3 at least build, run with my desktop
-   clean sandbox build all with libfdk
+ --cflags=-march=k8-sse3 at least build, run with my desktop [I guess to make sure it can...build something that is actually useful?]
+
+   clean sandbox build all with libfdk [i.e. can it still build everything everything?] maybe combine with zeranoe
 
 == maybe/never do ==
 

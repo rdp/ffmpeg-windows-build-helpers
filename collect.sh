@@ -2,7 +2,7 @@ cd sandbox/win32/ffmpeg_git
 git_version=`git rev-parse HEAD`
 cd ../../..
 mkdir -p distros # -p so it doesn't warn
-date=`date +%Y-%m-%d-%H%M`
+date=`date +%Y-%m-%d-%Hh%Mm`
 echo "creating distro for $date ffmpeg $git_version"
 
 file="distro-$date"
