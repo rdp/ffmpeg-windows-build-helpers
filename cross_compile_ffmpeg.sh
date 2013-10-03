@@ -817,6 +817,7 @@ build_libcaca() {
   cd ..
 }
 
+
 build_twolame() {
   generic_download_and_install http://sourceforge.net/projects/twolame/files/twolame/0.3.13/twolame-0.3.13.tar.gz/download twolame-0.3.13 "CPPFLAGS=-DLIBTWOLAME_STATIC"
 }
@@ -832,6 +833,14 @@ build_frei0r() {
   if [[ ! -f "$mingw_w64_x86_64_prefix/include/frei0r.h" ]]; then
     curl https://raw.github.com/rdp/frei0r/master/include/frei0r.h > $mingw_w64_x86_64_prefix/include/frei0r.h || exit 1
   fi
+}
+
+build_vidstab() {
+  do_git_checkout https://github.com/georgmartius/vid.stab.git vid.stab
+  cd vid.stab
+    cmake . -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$mingw_w64_x86_64_prefix || exit 1
+    do_make_install 
+  cd ..
 }
 
 build_vlc() {
@@ -1001,6 +1010,7 @@ build_dependencies() {
   build_x264
   build_lame
   build_twolame
+  #build_vidstab # not working yet
   build_libcaca
   build_libmodplug
   build_zvbi
