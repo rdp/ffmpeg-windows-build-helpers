@@ -788,6 +788,7 @@ build_zvbi() {
   download_and_unpack_file http://sourceforge.net/projects/zapping/files/zvbi/0.2.35/zvbi-0.2.35.tar.bz2/download zvbi-0.2.35
   cd zvbi-0.2.35
     apply_patch https://raw.github.com/rdp/ffmpeg-windows-build-helpers/master/patches/zvbi-win32.patch
+    apply_patch https://raw.github.com/rdp/ffmpeg-windows-build-helpers/master/patches/zvbi-ioctl.patch
     generic_configure_make_install 
   cd ..
 }
