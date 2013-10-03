@@ -785,7 +785,11 @@ build_lame() {
 }
 
 build_zvbi() {
-generic_download_and_install http://sourceforge.net/projects/zapping/files/zvbi/0.2.35/zvbi-0.2.35.tar.bz2/download zvbi-0.2.35
+  download_and_unpack_file http://sourceforge.net/projects/zapping/files/zvbi/0.2.35/zvbi-0.2.35.tar.bz2/download zvbi-0.2.35
+  cd zvbi-0.2.35
+    apply_patch https://raw.github.com/rdp/ffmpeg-windows-build-helpers/master/patches/zvbi-win32.patch
+    generic_configure_make_install 
+  cd ..
 }
 
 build_twolame() {
