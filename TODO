@@ -1,11 +1,13 @@
 == actual todos ==
-
+vid.stab
 
 == maybe/never do ==
 
+don't ffmpeg enable runtime cpu detect for march cases?
+
 clean sandbox build all with libfdk [i.e. can it still build everything everything?] 
 
-complain to vlc you can't build multi thread :P
+complain to vlc you can't build multi thread make :P
 
 tell mingw-w64 that they should support VARIANT
 
@@ -34,8 +36,7 @@ VLC, you should use ../plugins/accessibility [?]
 
 complain on anybody that I have to sed their .pc files [yikes!]
 
-add vid.stab support?
-  check for any other configs he uses?
+  check for any other configs zeranoe uses?
 
 fix all that are hard coded revision checkouts...meh
 
