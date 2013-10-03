@@ -55,11 +55,6 @@ distribute "my own set of [I guess optimized?] binaries" that are processor opti
   move all downloads to some place I control...maybe even "all" downloads LOL
     old downloads to sourceforge [?]
 
-mplayer 32 bit cross compile with CFLAGS=-march=core-avx2 and with postproc possible?
-  maybe after get mplayer git working?
-  tell mplayer about it? is it just cross compiling [compiled for 64 bit linux seems to not fail]? compiled for 32 bit linux with march=iav7 or what not worked...current guess is an mplayer bug :|
-    need/want to try it on linux native 32bit with CFLAGS=core-avx2...and updated gcc
-
 a distro that's a VM they can just open up and hit "go" in :)
 
 VLC: more qt patches
