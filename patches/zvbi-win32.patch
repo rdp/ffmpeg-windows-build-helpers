@@ -190,3 +190,13 @@ diff -ruN zvbi/src/vbi.c zvbi.new/src/vbi.c
  /**
   * @internal
   * Drop-in for munmap(). Logs the request on fp if not NULL.
+--- zvbi-0.2.pc.in 2009-10-15 14:47:54.000000000 +0200
++++ zvbi-0.2.pc.in 2009-10-15 14:47:46.000000000 +0200
+@@ -7,5 +7,5 @@
+ Description: VBI Capturing and Decoding Library
+ Requires: 
+ Version: @VERSION@
+-Libs: -L${libdir} -lzvbi -lm @LIBS@
++Libs: -L${libdir} -lzvbi -lm -lpthread -lwsock32 @LIBS@
+ Cflags: -I${includedir}
+
