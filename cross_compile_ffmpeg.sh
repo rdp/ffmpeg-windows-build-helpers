@@ -783,6 +783,10 @@ build_lame() {
   generic_download_and_install http://sourceforge.net/projects/lame/files/lame/3.99/lame-3.99.5.tar.gz/download lame-3.99.5
 }
 
+build_twolame() {
+  generic_download_and_install http://sourceforge.net/projects/twolame/files/twolame/0.3.13/twolame-0.3.13.tar.gz/download twolame-0.3.13 "CPPFLAGS=-DLIBTWOLAME_STATIC"
+}
+
 build_frei0r() {
   #download_and_unpack_file http://www.piksel.no/frei0r/releases/frei0r-plugins-1.3.tar.gz frei0r-1.3
   #cd frei0r-1.3
@@ -879,7 +883,7 @@ build_ffmpeg() {
   if [[ $type = "libav" ]]; then
     git_url="https://github.com/libav/libav.git"
     output_dir="libav_git"
-    extra_configure_opts="" # has a few missing things?
+    extra_configure_opts="" # libav has a few missing options?
   fi
 
   extra_configure_opts="$extra_configure_opts --extra-cflags=$CFLAGS" # not sure if extra-cflags needed or not?
@@ -894,13 +898,14 @@ build_ffmpeg() {
     extra_configure_opts="--enable-static --disable-shared $extra_configure_opts"
     cd $output_dir
   fi
+
   if [ "$bits_target" = "32" ]; then
    local arch=x86
   else
    local arch=x86_64
   fi
 
-config_options="--arch=$arch --target-os=mingw32 --cross-prefix=$cross_prefix --pkg-config=pkg-config --enable-gpl --enable-libx264 --enable-avisynth --enable-libxvid --enable-libmp3lame --enable-version3 --enable-zlib --enable-librtmp --enable-libvorbis --enable-libtheora --enable-libspeex --enable-libopenjpeg --enable-gnutls --enable-libgsm --enable-libfreetype --enable-libopus --disable-w32threads --enable-frei0r --enable-filter=frei0r --enable-libvo-aacenc --enable-bzlib --enable-libxavs --extra-cflags=-DPTW32_STATIC_LIB --enable-libopencore-amrnb --enable-libopencore-amrwb --enable-libvo-amrwbenc --enable-libschroedinger --enable-libvpx --enable-libilbc --prefix=$mingw_w64_x86_64_prefix $extra_configure_opts " # other possibilities: --enable-w32threads --enable-libflite
+config_options="--arch=$arch --target-os=mingw32 --cross-prefix=$cross_prefix --pkg-config=pkg-config --enable-gpl --enable-libx264 --enable-avisynth --enable-libxvid --enable-libmp3lame --enable-version3 --enable-zlib --enable-librtmp --enable-libvorbis --enable-libtheora --enable-libspeex --enable-libopenjpeg --enable-gnutls --enable-libgsm --enable-libfreetype --enable-libopus --disable-w32threads --enable-frei0r --enable-filter=frei0r --enable-libvo-aacenc --enable-bzlib --enable-libxavs --extra-cflags=-DPTW32_STATIC_LIB --enable-libopencore-amrnb --enable-libopencore-amrwb --enable-libvo-amrwbenc --enable-libschroedinger --enable-libvpx --enable-libilbc --enable-libtwolame --extra-cflags=-DLIBTWOLAME_STATIC --prefix=$mingw_w64_x86_64_prefix $extra_configure_opts " # other possibilities: --enable-w32threads --enable-libflite
   if [[ "$non_free" = "y" ]]; then
     config_options="$config_options --enable-nonfree --enable-libfdk-aac" # --enable-libfaac -- faac deemed too poor quality and becomes the default -- add it in and uncomment the build_faac line to include it --enable-openssl --enable-libaacplus
   else
@@ -961,6 +966,7 @@ build_dependencies() {
   build_libsoxr
   build_x264
   build_lame
+  build_twolame
   build_libvpx
   build_vo_aacenc
   build_freetype
