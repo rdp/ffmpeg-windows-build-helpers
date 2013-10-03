@@ -423,6 +423,7 @@ apply_patch() {
  local patch_done_name="$patch_name.done"
  if [[ ! -e $patch_done_name ]]; then
    curl $url -O || exit 1
+   echo "applying patch $patch_name"
    patch -p0 < "$patch_name" || exit 1
    touch $patch_done_name
  else

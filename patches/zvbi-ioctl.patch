@@ -6,6 +6,7 @@ diff -ru zvbi.orig/contrib/ntsc-cc.c zvbi/contrib/ntsc-cc.c
  #include <errno.h>
  #include <locale.h>
 -#include <sys/ioctl.h>
++#include <Winsock2.h>
  #include <sys/types.h>
  #include <sys/time.h>
  #ifdef HAVE_GETOPT_LONG
