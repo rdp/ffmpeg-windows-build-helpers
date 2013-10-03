@@ -878,7 +878,7 @@ build_ffmpeg() {
   local shared=$2
   local git_url="https://github.com/FFmpeg/FFmpeg.git"
   local output_dir="ffmpeg_git"
-  local extra_configure_opts="--enable-libsoxr --enable-fontconfig --enable-libass --enable-libutvideo --enable-libbluray "
+  local extra_configure_opts="--enable-libsoxr --enable-fontconfig --enable-libass --enable-libutvideo --enable-libbluray --enable-iconv"
 
   if [[ $type = "libav" ]]; then
     git_url="https://github.com/libav/libav.git"
@@ -939,7 +939,7 @@ build_dependencies() {
   build_bzlib2 # in case someone wants it [ffmpeg uses it]
   build_gmp # for libnettle
   build_libnettle # needs gmp
-  build_iconv # mplayer I think needs it for freetype [just it though], vlc also wants it.  looks like ffmpeg can use it too...?
+  build_iconv # mplayer I think needs it for freetype [just it though], vlc also wants it.  looks like ffmpeg can use it too...not sure what for :)
   build_gnutls # needs libnettle, can use iconv it appears
 
   build_frei0r
