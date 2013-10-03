@@ -928,7 +928,7 @@ config_options="--arch=$arch --target-os=mingw32 --cross-prefix=$cross_prefix --
 
 build_dependencies() {
   echo "PKG_CONFIG_PATH=$PKG_CONFIG_PATH" # debug
-  build_win32_pthreads # vpx etc. depend on this--provided by the compiler build script now, though
+#  build_win32_pthreads # vpx etc. depend on this--provided by the compiler build script now, so shouldn't have to build our own
   build_libdl # ffmpeg's frei0r implentation needs this
   build_zlib # rtmp depends on it [as well as ffmpeg's optional but handy --enable-zlib]
   build_bzlib2 # in case someone wants it [ffmpeg uses it]
@@ -939,7 +939,7 @@ build_dependencies() {
 
   build_frei0r
   build_libutvideo
-  #build_libflite # too big
+  #build_libflite # too big for the distro...
   build_libgsm
   build_sdl # needed for ffplay to be created
   build_libopus
