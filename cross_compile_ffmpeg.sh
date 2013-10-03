@@ -784,6 +784,10 @@ build_lame() {
   generic_download_and_install http://sourceforge.net/projects/lame/files/lame/3.99/lame-3.99.5.tar.gz/download lame-3.99.5
 }
 
+build_zvbi() {
+generic_download_and_install http://sourceforge.net/projects/zapping/files/zvbi/0.2.35/zvbi-0.2.35.tar.bz2/download zvbi-0.2.35
+}
+
 build_twolame() {
   generic_download_and_install http://sourceforge.net/projects/twolame/files/twolame/0.3.13/twolame-0.3.13.tar.gz/download twolame-0.3.13 "CPPFLAGS=-DLIBTWOLAME_STATIC"
 }
@@ -968,6 +972,7 @@ build_dependencies() {
   build_x264
   build_lame
   build_twolame
+build_zvbi
   build_libvpx
   build_vo_aacenc
   build_freetype
