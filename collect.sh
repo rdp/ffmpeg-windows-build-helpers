@@ -65,7 +65,7 @@ copy_from win32 32-bit
 copy_from x86_64 64-bit
 
 cd distros
-# -mx=1 fastest compression speed [but biggest file]
+# -mx=1 for fastest compression speed [but biggest file ...]
 7zr -mx=1 a "$file.7z" "$file/*" || 7za a "$file.7z" "$file/*"  # some have a package with only 7za, see https://github.com/rdp/ffmpeg-windows-build-helpers/issues/16
 cd ..
 
