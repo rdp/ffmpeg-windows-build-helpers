@@ -29,6 +29,8 @@ up the building speed of gcc, build shared, etc. run it with
 ./cross_compile_ffmpeg.sh -h 
 to see them all
 
+If you want to customize your FFmpeg final executable even more (remove features you don't need, etc.) then edit the script and tweak the "--enable" settings in the build_ffmpeg method near the buttom.  Ping me if this doesn't make sense.
+
 Also NB that you can also "cross compile" mp4box.exe if you pass in the appropriate command line parameter.
 
 Also NB that you can also "cross compile" {mplayer,mencoder}.exe if you pass in the appropriate command line parameter too.
