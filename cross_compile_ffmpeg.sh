@@ -43,7 +43,7 @@ done
 
 if [[ -n "${missing_packages[@]}" ]]; then
   clear
-  echo "Could not find the following execs: ${missing_packages[@]}"
+  echo "Could not find the following execs (svn is actually package subversion, makeinfo is actually package texinfo if you're missing them): ${missing_packages[@]}"
   echo 'Install the missing packages before running this script.'
   exit 1
 fi
@@ -59,7 +59,7 @@ if [[ $(version $version_have)  < $(version '2.8.10') ]]; then
 fi
 
 if [[ ! -f /usr/include/zlib.h ]]; then
-  echo "warning: you may need to install zlib development headers first [on ubuntu $ apt-get install zlib1g-dev]" # XXX do like configure does and attempt to compile and include zlib.h instead
+  echo "warning: you may need to install zlib development headers first if you want to build vlc [?] [on ubuntu $ apt-get install zlib1g-dev]" # XXX do like configure does and attempt to compile and include zlib.h instead
   sleep 1
 fi
 
