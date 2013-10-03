@@ -791,7 +791,10 @@ build_zvbi() {
   cd zvbi-0.2.34
     apply_patch https://raw.github.com/rdp/ffmpeg-windows-build-helpers/master/patches/zvbi-win32.patch
     apply_patch https://raw.github.com/rdp/ffmpeg-windows-build-helpers/master/patches/zvbi-ioctl.patch
-    generic_configure_make_install 
+    generic_configure "	--disable-dvb --disable-bktr --disable-nls --disable-proxy --without-doxygen" # thanks vlc!
+    cd src
+      do_make_install 
+    cd ..
   cd ..
   export CFLAGS=$original_cflags
 }
@@ -918,7 +921,7 @@ build_ffmpeg() {
    local arch=x86_64
   fi
 
-config_options="--arch=$arch --target-os=mingw32 --cross-prefix=$cross_prefix --pkg-config=pkg-config --enable-gpl --enable-libx264 --enable-avisynth --enable-libxvid --enable-libmp3lame --enable-version3 --enable-zlib --enable-librtmp --enable-libvorbis --enable-libtheora --enable-libspeex --enable-libopenjpeg --enable-gnutls --enable-libgsm --enable-libfreetype --enable-libopus --disable-w32threads --enable-frei0r --enable-filter=frei0r --enable-libvo-aacenc --enable-bzlib --enable-libxavs --extra-cflags=-DPTW32_STATIC_LIB --enable-libopencore-amrnb --enable-libopencore-amrwb --enable-libvo-amrwbenc --enable-libschroedinger --enable-libvpx --enable-libilbc --enable-libtwolame --extra-cflags=-DLIBTWOLAME_STATIC --prefix=$mingw_w64_x86_64_prefix $extra_configure_opts " # other possibilities: --enable-w32threads --enable-libflite
+config_options="--arch=$arch --target-os=mingw32 --cross-prefix=$cross_prefix --pkg-config=pkg-config --enable-gpl --enable-libx264 --enable-avisynth --enable-libxvid --enable-libmp3lame --enable-version3 --enable-zlib --enable-librtmp --enable-libvorbis --enable-libtheora --enable-libspeex --enable-libopenjpeg --enable-gnutls --enable-libgsm --enable-libfreetype --enable-libopus --disable-w32threads --enable-frei0r --enable-filter=frei0r --enable-libvo-aacenc --enable-bzlib --enable-libxavs --extra-cflags=-DPTW32_STATIC_LIB --enable-libopencore-amrnb --enable-libopencore-amrwb --enable-libvo-amrwbenc --enable-libschroedinger --enable-libvpx --enable-libilbc --enable-libtwolame --extra-cflags=-DLIBTWOLAME_STATIC --enable-libzvbi --prefix=$mingw_w64_x86_64_prefix $extra_configure_opts " # other possibilities: --enable-w32threads --enable-libflite
   if [[ "$non_free" = "y" ]]; then
     config_options="$config_options --enable-nonfree --enable-libfdk-aac" # --enable-libfaac -- faac deemed too poor quality and becomes the default -- add it in and uncomment the build_faac line to include it --enable-openssl --enable-libaacplus
   else
@@ -980,7 +983,7 @@ build_dependencies() {
   build_x264
   build_lame
   build_twolame
-  #build_zvbi # still broken
+  build_zvbi
   build_libvpx
   build_vo_aacenc
   build_freetype
