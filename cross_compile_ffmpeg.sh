@@ -786,12 +786,14 @@ build_lame() {
 }
 
 build_zvbi() {
-  download_and_unpack_file http://sourceforge.net/projects/zapping/files/zvbi/0.2.35/zvbi-0.2.35.tar.bz2/download zvbi-0.2.35
-  cd zvbi-0.2.35
+  export CFLAGS=-DPTW32_STATIC_LIB # seems needed
+  download_and_unpack_file http://sourceforge.net/projects/zapping/files/zvbi/0.2.34/zvbi-0.2.34.tar.bz2/download zvbi-0.2.34
+  cd zvbi-0.2.34
     apply_patch https://raw.github.com/rdp/ffmpeg-windows-build-helpers/master/patches/zvbi-win32.patch
     apply_patch https://raw.github.com/rdp/ffmpeg-windows-build-helpers/master/patches/zvbi-ioctl.patch
     generic_configure_make_install 
   cd ..
+  export CFLAGS=$original_cflags
 }
 
 build_twolame() {
@@ -978,7 +980,7 @@ build_dependencies() {
   build_x264
   build_lame
   build_twolame
-build_zvbi
+  #build_zvbi # still broken
   build_libvpx
   build_vo_aacenc
   build_freetype
