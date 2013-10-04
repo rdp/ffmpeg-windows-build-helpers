@@ -846,6 +846,7 @@ build_vidstab() {
   do_git_checkout https://github.com/georgmartius/vid.stab.git vid.stab
   cd vid.stab
     do_cmake
+    sed -i "s/SHARED/STATIC/" CMakeLists.txt # ??
     do_make_install 
   cd ..
 }
@@ -930,12 +931,13 @@ build_ffmpeg() {
   local output_dir="ffmpeg_git"
 
   # FFmpeg 
-  local extra_configure_opts="--enable-libsoxr --enable-fontconfig --enable-libass --enable-libutvideo --enable-libbluray --enable-iconv --enable-libtwolame --extra-cflags=-DLIBTWOLAME_STATIC --enable-libzvbi --enable-libcaca --enable-libmodplug --extra-libs=-lstdc++"
+  local extra_configure_opts="--enable-libsoxr --enable-fontconfig --enable-libass --enable-libutvideo --enable-libbluray --enable-iconv --enable-libtwolame --extra-cflags=-DLIBTWOLAME_STATIC --enable-libzvbi --enable-libcaca --enable-libmodplug --extra-libs=-lstdc++ --enable-libvidstab"
 
   if [[ $type = "libav" ]]; then
+    # libav [ffmpeg fork]  has a few missing options?
     git_url="https://github.com/libav/libav.git"
     output_dir="libav_git"
-    extra_configure_opts="" # libav has a few missing options?
+    extra_configure_opts=""
   fi
 
   extra_configure_opts="$extra_configure_opts --extra-cflags=$CFLAGS" # not sure if extra-cflags needed or not?
@@ -1019,7 +1021,7 @@ build_dependencies() {
   build_x264
   build_lame
   build_twolame
-  #build_vidstab # not working yet
+  build_vidstab
   build_libcaca
   build_libmodplug
   build_zvbi
