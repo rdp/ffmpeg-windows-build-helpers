@@ -1,7 +1,7 @@
 ffmpeg-windows-build-helpers
 ============================
 
-This helper script lets you cross compile a windows 32 or 64 bit version of ffmpeg/mplayer/mp4box.exe,
+This helper script lets you cross compile a windows 32 or 64 bit version of ffmpeg/mplayer/mp4box.exe, etc.
 including many dependency libraries they use.
 
 To run the script:
@@ -16,20 +16,22 @@ chmod u+x cross_compile_ffmpeg.sh
 ./cross_compile_ffmpeg.sh
 ```
 
-And follow the prompts.
-It works with 32 or 64 bit (hoost) Linux, and can produce either/or 32 and 64 bit windows ffmpeg.exe's
-
-See also 
-http://github.com/rdp/ffmpeg-windows-build-helpers/wiki for more tips, including being able to build it more quickly!
+And follow the prompts.  It should end up with a working static ffmpeg.exe within the sandbox directory.
+It works with 32 or 64 bit (host) Linux, and can produce either/or 32 and 64 bit windows ffmpeg.exe's, with lots of dependencies built in. To build more than just FFmpeg, use command line parameters to the script.
 
 OS X users, this may help: https://github.com/rdp/ffmpeg-windows-build-helpers/wiki/OS-X
 
 Also NB that it has some command line parameters you can pass it, for instance to speed
-up the building speed of gcc, build shared, etc. run it with 
+up the building speed of gcc, build shared, etc. 
+Run it with 
 ./cross_compile_ffmpeg.sh -h 
 to see them all
 
-If you want to customize your FFmpeg final executable even more (remove features you don't need, etc.) then edit the script and tweak the "--enable" settings in the build_ffmpeg method near the buttom.  Ping me if this doesn't make sense.
+
+If you want to customize your FFmpeg final executable even more (remove features you don't need, etc.) then edit the script
+1. Add or remove the "--enable-xxx" settings in the build_ffmpeg method (under config_options) near the bottom
+2. Remove or add the # to the lines you're enabling or disabling in the build_dependencies() function
+3. You can write custom functions for new features you want to integrate, make sure to add them to the build_dependencies() functions and also include the corresponding "--enable-xxx" settings to the build_ffmpeg() function under the config_options
 
 Also NB that you can also "cross compile" mp4box.exe if you pass in the appropriate command line parameter.
 
