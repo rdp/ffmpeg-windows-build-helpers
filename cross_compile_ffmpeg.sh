@@ -59,7 +59,7 @@ if [[ $(version $version_have)  < $(version '2.8.10') ]]; then
 fi
 
 if [[ ! -f /usr/include/zlib.h ]]; then
-  echo "warning: you may need to install zlib development headers first if you want to build vlc [?] [on ubuntu $ apt-get install zlib1g-dev]" # XXX do like configure does and attempt to compile and include zlib.h instead
+  echo "warning: you may need to install zlib development headers first if you want to build mp4box [on ubuntu: $ apt-get install zlib1g-dev]" # XXX do like configure does and attempt to compile and include zlib.h instead?
   sleep 1
 fi
 
