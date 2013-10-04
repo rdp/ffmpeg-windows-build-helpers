@@ -359,15 +359,13 @@ generic_configure_make_install() {
 build_x264() {
   do_git_checkout "http://repo.or.cz/r/x264.git" "x264" "origin/stable"
   cd x264
-  # TODO remove the no-aggressive-loop ... should be unneeded now
-  do_configure "--extra-cflags=-fno-aggressive-loop-optimizations --host=$host_target --enable-static --cross-prefix=$cross_prefix --prefix=$mingw_w64_x86_64_prefix --extra-cflags=-DPTW32_STATIC_LIB --enable-debug" # --enable-win32thread --enable-debug shouldn't hurt us since ffmpeg strips it anyway
-# no-aggressive ref: https://ffmpeg.org/trac/ffmpeg/ticket/2310
+  do_configure "--host=$host_target --enable-static --cross-prefix=$cross_prefix --prefix=$mingw_w64_x86_64_prefix --extra-cflags=-DPTW32_STATIC_LIB --enable-debug" # --enable-win32thread --enable-debug shouldn't hurt us since ffmpeg strips it anyway I think
   # TODO more march=native here?
+  # TODO profile guided here option, with wine?
   # rm -f already_ran_make # just in case the git checkout did something, re-make
   do_make_install
   cd ..
 }
-
 
 build_librtmp() {
   #  download_and_unpack_file http://rtmpdump.mplayerhq.hu/download/rtmpdump-2.3.tgz rtmpdump-2.3 # has some odd configure failure
