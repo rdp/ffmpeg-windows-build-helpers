@@ -921,7 +921,7 @@ build_ffmpeg() {
     extra_configure_opts=""
   fi
 
-  extra_configure_opts="$extra_configure_opts --extra-cflags=$CFLAGS" # not sure if extra-cflags needed or not?
+  extra_configure_opts="$extra_configure_opts --extra-cflags=$CFLAGS --cpu=k8-sse3 " # extra-cflags is not needed, but adds it to the console output which I lke
 
   # can't mix and match --enable-static --enable-shared unfortunately, or the final executable seems to just use shared if the're both present
   if [[ $shared == "shared" ]]; then
@@ -971,7 +971,7 @@ config_options="--arch=$arch --target-os=mingw32 --cross-prefix=$cross_prefix --
 find_all_build_exes() {
   found=""
 # NB that we're currently in the sandbox dir
-  for file in `find . -name ffmpeg.exe` `find . -name MP4Box.exe` `find . -name mplayer.exe` `find . -name mencoder.exe` `find . -name avconv.exe` `find . -name avprobe.exe`; do
+  for file in `find . -name ffmpeg.exe` `find . -name ffmpeg_g.exe` `find . -name MP4Box.exe` `find . -name mplayer.exe` `find . -name mencoder.exe` `find . -name avconv.exe` `find . -name avprobe.exe`; do
     found="$found $(readlink -f $file)"
   done
 
