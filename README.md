@@ -32,6 +32,7 @@ If you want to customize your FFmpeg final executable even more (remove features
 1. Add or remove the "--enable-xxx" settings in the build_ffmpeg method (under config_options) near the bottom
 2. Remove or add the # to the lines you're enabling or disabling in the build_dependencies() function
 3. You can write custom functions for new features you want to integrate, make sure to add them to the build_dependencies() functions and also include the corresponding "--enable-xxx" settings to the build_ffmpeg() function under the config_options
+4. There are some helper method do_XXX etc. for checking out code, running make, etc. that may be useful.
 
 Also NB that you can also "cross compile" mp4box.exe if you pass in the appropriate command line parameter.
 
@@ -51,4 +52,9 @@ Related projects:
 
 vlc has its "contribs" building (cross compiling) system: https://wiki.videolan.org/Win32Compile/
 mxe "m cross environment" https://github.com/mxe/mxe is for cross compiling many things.
+
+For building it in a native windows environment:
+https://github.com/jb-alvarado/media-autobuild_suite
+https://github.com/svnpenn/a/blob/master/install-ffmpeg.sh (cygwin)
+ping me if you want this script ported to MSYS et al.
 
