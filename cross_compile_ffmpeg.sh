@@ -1115,8 +1115,8 @@ while true; do
          echo "also deleting $(dirname $file)/already_ran_make*"
          rm $(dirname $file)/already_ran_make*
          rm $(dirname $(dirname $file))/already_ran_make* # vlc is packaged somewhere nested 2 deep
+         rm $file
        done
-       exit
        export CFLAGS="${1#*=}"; original_cflags="${1#*=}"; echo "setting cflags as $original_cflags"; shift ;;
     --build-vlc=* ) build_vlc="${1#*=}"; shift ;;
     --disable-nonfree=* ) disable_nonfree="${1#*=}"; shift ;;
@@ -1134,7 +1134,8 @@ done
 
 intro # remember to always run the intro, since it adjust pwd
 check_missing_packages
-#install_cross_compiler 
+install_cross_compiler 
+
 export PKG_CONFIG_LIBDIR= # disable pkg-config from reverting back to and finding system installed packages [yikes]
 
 original_path="$PATH"
