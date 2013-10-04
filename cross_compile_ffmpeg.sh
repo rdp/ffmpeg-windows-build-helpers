@@ -165,6 +165,8 @@ setup_env() {
   export PKG_CONFIG_LIBDIR= # disable pkg-config from reverting back to and finding system installed packages [yikes]
 }
 
+# helper methods for downloading and building projects that can take generic input
+
 do_svn_checkout() {
   repo_url="$1"
   to_dir="$2"
@@ -296,6 +298,64 @@ do_make_install() {
   fi
 }
 
+do_cmake() {
+  extra_args="$1"
+  local touch_name=$(get_small_touchfile_name already_ran_cmake "$extra_args")
+
+  if [ ! -f $touch_name ]; then
+    cmake . -DENABLE_STATIC_RUNTIME=1 -DCMAKE_SYSTEM_NAME=Windows -DCMAKE_RANLIB=${cross_prefix}ranlib -DCMAKE_C_COMPILER=${cross_prefix}gcc -DCMAKE_CXX_COMPILER=${cross_prefix}g++ -DCMAKE_RC_COMPILER=${cross_prefix}windres -DCMAKE_INSTALL_PREFIX=$mingw_w64_x86_64_prefix $extra_args  || exit 1
+    touch $touch_name || exit 1
+  fi
+}
+
+apply_patch() {
+ local url=$1
+ local patch_name=$(basename $url)
+ local patch_done_name="$patch_name.done"
+ if [[ ! -e $patch_done_name ]]; then
+   curl $url -O || exit 1
+   echo "applying patch $patch_name"
+   patch -p0 < "$patch_name" || exit 1
+   touch $patch_done_name
+ else
+   echo "patch $patch_name already applied"
+ fi
+}
+
+download_and_unpack_file() {
+  url="$1"
+  output_name=$(basename $url)
+  output_dir="$2"
+  if [ ! -f "$output_dir/unpacked.successfully" ]; then
+    echo "downloading $url"
+    curl "$url" -O -L || exit 1
+    tar -xf "$output_name" || unzip $output_name || exit 1
+    touch "$output_dir/unpacked.successfully" || exit 1
+    rm "$output_name"
+  fi
+}
+
+generic_configure() {
+  local extra_configure_options="$1"
+  do_configure "--host=$host_target --prefix=$mingw_w64_x86_64_prefix --disable-shared --enable-static $extra_configure_options"
+}
+
+# needs 2 parameters currently [url, name it will be unpacked to]
+generic_download_and_install() {
+  local url="$1"
+  local english_name="$2" 
+  local extra_configure_options="$3"
+  download_and_unpack_file $url $english_name
+  cd $english_name || exit "needs 2 parameters"
+  generic_configure_make_install "$extra_configure_options"
+  cd ..
+}
+
+generic_configure_make_install() {
+  generic_configure "$1"
+  do_make_install
+}
+
 build_x264() {
   do_git_checkout "http://repo.or.cz/r/x264.git" "x264" "origin/stable"
   cd x264
@@ -343,17 +403,6 @@ build_qt() {
     sed -i 's/Libs: -L${libdir} -lQtGui/Libs: -L${libdir} -lcomctl32 -lqjpeg -lqtaccessiblewidgets -lQtGui/' "$PKG_CONFIG_PATH/QtGui.pc" # sniff
   cd ..
   export CFLAGS=$original_cflags
-}
-
-do_cmake() {
-  extra_args="$1"
-  local touch_name=$(get_small_touchfile_name already_ran_cmake "$extra_args")
-
-  if [ ! -f $touch_name ]; then
-    cmake . -DENABLE_STATIC_RUNTIME=1 -DCMAKE_SYSTEM_NAME=Windows -DCMAKE_RANLIB=${cross_prefix}ranlib -DCMAKE_C_COMPILER=${cross_prefix}gcc -DCMAKE_CXX_COMPILER=${cross_prefix}g++ -DCMAKE_RC_COMPILER=${cross_prefix}windres -DCMAKE_INSTALL_PREFIX=$mingw_w64_x86_64_prefix $extra_args  || exit 1
-    touch $touch_name || exit 1
-  fi
-
 }
 
 build_libsoxr() {
@@ -408,19 +457,6 @@ build_libvpx() {
   cd ..
 }
 
-apply_patch() {
- local url=$1
- local patch_name=$(basename $url)
- local patch_done_name="$patch_name.done"
- if [[ ! -e $patch_done_name ]]; then
-   curl $url -O || exit 1
-   echo "applying patch $patch_name"
-   patch -p0 < "$patch_name" || exit 1
-   touch $patch_done_name
- else
-   echo "patch $patch_name already applied"
- fi
-}
 
 build_libutvideo() {
   download_and_unpack_file https://github.com/downloads/rdp/FFmpeg/utvideo-11.1.1-src.zip utvideo-11.1.1
@@ -430,39 +466,6 @@ build_libutvideo() {
   cd ..
 }
 
-download_and_unpack_file() {
-  url="$1"
-  output_name=$(basename $url)
-  output_dir="$2"
-  if [ ! -f "$output_dir/unpacked.successfully" ]; then
-    echo "downloading $url"
-    curl "$url" -O -L || exit 1
-    tar -xf "$output_name" || unzip $output_name || exit 1
-    touch "$output_dir/unpacked.successfully" || exit 1
-    rm "$output_name"
-  fi
-}
-
-generic_configure() {
-  local extra_configure_options="$1"
-  do_configure "--host=$host_target --prefix=$mingw_w64_x86_64_prefix --disable-shared --enable-static $extra_configure_options"
-}
-
-# needs 2 parameters currently
-generic_download_and_install() {
-  local url="$1"
-  local english_name="$2" 
-  local extra_configure_options="$3"
-  download_and_unpack_file $url $english_name
-  cd $english_name || exit "needs 2 parameters"
-  generic_configure_make_install "$extra_configure_options"
-  cd ..
-}
-
-generic_configure_make_install() {
-  generic_configure "$1"
-  do_make_install
-}
 
 build_libilbc() {
   do_git_checkout https://github.com/dekkers/libilbc.git libilbc_git
