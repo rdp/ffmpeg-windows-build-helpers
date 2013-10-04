@@ -36,39 +36,39 @@ user_input=$(echo $user_input | tr '[A-Z]' '[a-z]')
 }
 
 check_missing_packages () {
-local check_packages=('curl' 'pkg-config' 'make' 'git' 'svn' 'cmake' 'gcc' 'autoconf' 'libtool' 'automake' 'yasm' 'cvs' 'flex' 'bison' 'makeinfo')
-for package in "${check_packages[@]}"; do
-  type -P "$package" >/dev/null || missing_packages=("$package" "${missing_packages[@]}")
-done
+  local check_packages=('curl' 'pkg-config' 'make' 'git' 'svn' 'cmake' 'gcc' 'autoconf' 'libtool' 'automake' 'yasm' 'cvs' 'flex' 'bison' 'makeinfo')
+  for package in "${check_packages[@]}"; do
+    type -P "$package" >/dev/null || missing_packages=("$package" "${missing_packages[@]}")
+  done
 
-if [[ -n "${missing_packages[@]}" ]]; then
-  clear
-  echo "Could not find the following execs (svn is actually package subversion, makeinfo is actually package texinfo if you're missing them): ${missing_packages[@]}"
-  echo 'Install the missing packages before running this script.'
-  exit 1
-fi
+  if [[ -n "${missing_packages[@]}" ]]; then
+    clear
+    echo "Could not find the following execs (svn is actually package subversion, makeinfo is actually package texinfo if you're missing them): ${missing_packages[@]}"
+    echo 'Install the missing packages before running this script.'
+    exit 1
+  fi
 
-local out=`cmake --version` # like cmake version 2.8.7
-local version_have=`echo "$out" | cut -d " " -f 3`
+  local out=`cmake --version` # like cmake version 2.8.7
+  local version_have=`echo "$out" | cut -d " " -f 3`
 
-function version { echo "$@" | awk -F. '{ printf("%d%03d%03d%03d\n", $1,$2,$3,$4); }'; }
+  function version { echo "$@" | awk -F. '{ printf("%d%03d%03d%03d\n", $1,$2,$3,$4); }'; }
 
-if [[ $(version $version_have)  < $(version '2.8.10') ]]; then
-  echo "your cmake version is too old $version_have wanted 2.8.10"
-  exit 1
-fi
+  if [[ $(version $version_have)  < $(version '2.8.10') ]]; then
+    echo "your cmake version is too old $version_have wanted 2.8.10"
+    exit 1
+  fi
 
-if [[ ! -f /usr/include/zlib.h ]]; then
-  echo "warning: you may need to install zlib development headers first if you want to build mp4box [on ubuntu: $ apt-get install zlib1g-dev]" # XXX do like configure does and attempt to compile and include zlib.h instead?
-  sleep 1
-fi
+  if [[ ! -f /usr/include/zlib.h ]]; then
+    echo "warning: you may need to install zlib development headers first if you want to build mp4box [on ubuntu: $ apt-get install zlib1g-dev]" # XXX do like configure does and attempt to compile and include zlib.h instead?
+    sleep 1
+  fi
 
-out=`yasm --version`
-yasm_version=`echo "$out" | cut -d " " -f 2` # like 1.1.0.112
-if [[ $(version $yasm_version)  < $(version '1.2.0') ]]; then
-  echo "your yasm version is too old $yasm_version wanted 1.2.0"
-  exit 1
-fi
+  out=`yasm --version`
+  yasm_version=`echo "$out" | cut -d " " -f 2` # like 1.1.0.112
+  if [[ $(version $yasm_version)  < $(version '1.2.0') ]]; then
+    echo "your yasm version is too old $yasm_version wanted 1.2.0"
+    exit 1
+  fi
 
 }
 
