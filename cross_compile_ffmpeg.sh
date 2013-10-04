@@ -161,10 +161,6 @@ install_cross_compiler() {
   echo "Ok, done building MinGW-w64 cross-compiler..."
 }
 
-setup_env() {
-  export PKG_CONFIG_LIBDIR= # disable pkg-config from reverting back to and finding system installed packages [yikes]
-}
-
 # helper methods for downloading and building projects that can take generic input
 
 do_svn_checkout() {
@@ -788,7 +784,7 @@ build_zvbi() {
       do_make_install 
     cd ..
   cd ..
-  export CFLAGS=$original_cflags
+  export CFLAGS=$original_cflags # it was set to the win32-pthreads ones, so revert it
 }
 
 build_libmodplug() {
@@ -1116,8 +1112,8 @@ done
 
 intro # remember to always run the intro, since it adjust pwd
 check_missing_packages
-install_cross_compiler # always run this, too, since it adjust the PATH
-setup_env
+install_cross_compiler 
+export PKG_CONFIG_LIBDIR= # disable pkg-config from reverting back to and finding system installed packages [yikes]
 
 original_path="$PATH"
 if [ -d "mingw-w64-i686" ]; then # they installed a 32-bit compiler
