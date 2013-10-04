@@ -1095,7 +1095,12 @@ while true; do
     --git-get-latest=* ) git_get_latest="${1#*=}"; shift ;;
     --build-mplayer=* ) build_mplayer="${1#*=}"; shift ;;
     --build-libav=* ) build_libav="${1#*=}"; shift ;;
-    --cflags=* ) export CFLAGS="${1#*=}"; original_cflags="${1#*=}"; echo "setting cflags as $original_cflags"; shift ;;
+    --cflags=* ) 
+       cd sandbox
+         for file in ./**/{vlc,mplayer,ffmpeg,MP4Box}.exe; do echo $file; done
+         exit
+       export CFLAGS="${1#*=}"; original_cflags="${1#*=}"; echo "setting cflags as $original_cflags"; shift ;;
+
     --build-vlc=* ) build_vlc="${1#*=}"; shift ;;
     --disable-nonfree=* ) disable_nonfree="${1#*=}"; shift ;;
     -d ) gcc_cpu_count=2; disable_nonfree="y"; sandbox_ok="y"; build_choice="multi"; shift ;;
