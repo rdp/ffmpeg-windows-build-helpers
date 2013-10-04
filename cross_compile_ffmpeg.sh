@@ -1110,13 +1110,14 @@ while true; do
     --build-mplayer=* ) build_mplayer="${1#*=}"; shift ;;
     --build-libav=* ) build_libav="${1#*=}"; shift ;;
     --cflags=* ) 
-       export CFLAGS="${1#*=}"; original_cflags="${1#*=}"; echo "setting cflags as $original_cflags"; shift ;;
        for file in $(find_all_build_exes); do
          echo "deleting $file in case it isn't rebuilt with new different cflags, which could cause confusion"
-         echo "would also delete $(dirname $file)/already_ran_make*"
+         echo "also deleting $(dirname $file)/already_ran_make*"
+         rm $(dirname $file)/already_ran_make*
+         rm $(dirname $(dirname $file))/already_ran_make* # vlc is packaged somewhere nested 2 deep
        done
        exit
-
+       export CFLAGS="${1#*=}"; original_cflags="${1#*=}"; echo "setting cflags as $original_cflags"; shift ;;
     --build-vlc=* ) build_vlc="${1#*=}"; shift ;;
     --disable-nonfree=* ) disable_nonfree="${1#*=}"; shift ;;
     -d ) gcc_cpu_count=2; disable_nonfree="y"; sandbox_ok="y"; build_choice="multi"; shift ;;
