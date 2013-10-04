@@ -1,3 +1,16 @@
+ffmpeg   -y -i sintel.mpg -t {10,150} -an out.mp4
+
+k8 
+  8.6 8.5 8.6 8.7 8.6 8.3 7.8
+  big: 55 fps 82.4
+
+my normal, non k8:
+  8.9 8.4 8.5 7.6? 7.8?
+  55 fps 82.6
+
+his: 
+  7.8 7.7 
+  83.2 [who knows, may have been a fluke even]
 
 -march=core-avx2
 
@@ -53,13 +66,13 @@ ffmpeg -i sintel.mpg -ss 90 -an -f flv rtmp://live.justin.tv/
 
 50%
 
-700 kbit upload, makes sense…
+700 kbit upload, makes senseï¿½
 
 
 mac:
 ffmpeg -i sintel.mpg -ss 90 -an -f flv ...:
 
-12 minutes, 37 fps, low cpu…
+12 minutes, 37 fps, low cpuï¿½
 
 should have been:
 frame=21654 fps=209 q=31.0 Lsize=   46193kB time=00:13:14.82 bitrate= 476.1kbits/s    
@@ -72,9 +85,9 @@ so it's basically  47/30*40 ~ 62 KB/s
 
 did show 100K outbound, 2.2K incoming, which is good.
 
-Does show the odd pause right when it gets started…
+Does show the odd pause right when it gets startedï¿½
 
-If it's a leak, it's a slow one… (this is sans --enable-librtmp though).
+If it's a leak, it's a slow oneï¿½ (this is sans --enable-librtmp though).
 
 No hint of a leak when streaming a file.
 
