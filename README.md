@@ -45,7 +45,7 @@ So if you're cross compiling it on the box you'll end up targeting it for, you c
 NB that if you have wine installed you may need to run this command first to disable it (if you are building for a different architecture than the building machine, especially), so that it doesn't auto run files like conftest.exe, etc. during the build (they will crash with an annoying popup prompt otherwise)
 $ sudo update-binfmts --disable wine
 ref: http://askubuntu.com/questions/344088/how-to-ensure-wine-does-not-auto-run-exe-files
-NB that this might not significantly improve speed, ping me if you want some more aggressive optimization possibilities.
+NB that using a -march might not significantly improve speed [YMMV], ping me if you want even more aggressive optimization possibilities, I may be able to come up with a few more.
 
 Feedback welcome roger-projects@googlegroups.com
 
@@ -54,8 +54,8 @@ Related projects:
 vlc has its "contribs" building (cross compiling) system: https://wiki.videolan.org/Win32Compile/
 mxe "m cross environment" https://github.com/mxe/mxe is for cross compiling many things.
 
-For building it in a native windows environment:
+For building FFmpeg (for windows) in a more native windows environment these might help (though it might be slower as well unless):
 https://github.com/jb-alvarado/media-autobuild_suite
-https://github.com/svnpenn/a/blob/master/install-ffmpeg.sh (cygwin)
+https://github.com/svnpenn/a/blob/master/install-ffmpeg.sh (cygwin) http://ffmpeg.zeranoe.com/forum/viewtopic.php?f=19&t=1193&p=5006&hilit=svnpenn#p5006
 ping me if you want this script ported to MSYS et al.
 
