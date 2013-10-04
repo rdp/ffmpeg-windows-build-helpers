@@ -113,31 +113,31 @@ The resultant binary will not be distributable, but might be useful for in-house
 
 pick_compiler_flavors() {
 
-while [[ "$build_choice" != [1-3] ]]; do
-if [[ -n "${unknown_opts[@]}" ]]; then
-  echo -n 'Unknown option(s)'
-  for unknown_opt in "${unknown_opts[@]}"; do
-    echo -n " '$unknown_opt'"
-  done
-  echo ', ignored.'; echo
-fi
-cat <<'EOF'
+  while [[ "$build_choice" != [1-3] ]]; do
+    if [[ -n "${unknown_opts[@]}" ]]; then
+      echo -n 'Unknown option(s)'
+      for unknown_opt in "${unknown_opts[@]}"; do
+        echo -n " '$unknown_opt'"
+      done
+      echo ', ignored.'; echo
+    fi
+    cat <<'EOF'
 What version of MinGW-w64 would you like to build or update?
   1. Both Win32 and Win64
   2. Win32 (32-bit only)
   3. Win64 (64-bit only)
   4. Exit
 EOF
-echo -n 'Input your choice [1-5]: '
-read build_choice
-done
-case "$build_choice" in
+    echo -n 'Input your choice [1-5]: '
+    read build_choice
+  done
+  case "$build_choice" in
   1 ) build_choice=multi ;;
   2 ) build_choice=win32 ;;
   3 ) build_choice=win64 ;;
   4 ) exit 0 ;;
   * ) clear;  echo 'Your choice was not valid, please try again.'; echo ;;
-esac
+  esac
 }
 
 install_cross_compiler() {
