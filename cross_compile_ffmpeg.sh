@@ -885,11 +885,11 @@ build_mplayer() {
   do_git_checkout https://github.com/FFmpeg/FFmpeg ffmpeg bbcaf25d4 # random, known to work revision with 2013-09-11
 
   # XXX retry this with a slightly even more updated mplayer than one from 7/18
-  #do_git_checkout https://github.com/pigoz/mplayer-svn.git mplayer-svn-git # lacks submodules for dvdnav unfortunately...
+  #do_git_checkout https://github.com/pigoz/mplayer-svn.git mplayer-svn-git # lacks submodules for dvdnav unfortunately, for now...
   #cd mplayer-svn-git
   #do_git_checkout https://github.com/FFmpeg/FFmpeg # TODO some specific revision here?
 
-  do_configure "--enable-cross-compile --host-cc=cc --cc=${cross_prefix}gcc --windres=${cross_prefix}windres --ranlib=${cross_prefix}ranlib --ar=${cross_prefix}ar --as=${cross_prefix}as --nm=${cross_prefix}nm --enable-runtime-cpudetection --with-dvdnav-config=PATH $extra_config_options"
+  do_configure "--enable-cross-compile --host-cc=cc --cc=${cross_prefix}gcc --windres=${cross_prefix}windres --ranlib=${cross_prefix}ranlib --ar=${cross_prefix}ar --as=${cross_prefix}as --nm=${cross_prefix}nm --enable-runtime-cpudetection --extra-cflags=$CFLAGS" # --with-dvdnav-config=...
   rm already_ran_make* # try to force re-link just in case...this might not be enough tho
   rm *.exe
   do_make
