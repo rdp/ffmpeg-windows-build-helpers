@@ -1,9 +1,13 @@
 == actual todos ==
 
-speed test
-add links to the windows only builds
-
 == maybe/never do ==
+
+speed test
+
+windows'ify it
+  then some download with all of it?
+
+inux VM download with all of it
 
 don't ffmpeg enable runtime cpu detect for march cases?
 
