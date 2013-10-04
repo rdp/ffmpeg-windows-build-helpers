@@ -72,16 +72,6 @@ check_missing_packages () {
 
 }
 
-cur_dir="$(pwd)/sandbox"
-cpu_count="$(grep -c processor /proc/cpuinfo)" # linux
-if [ -z "$cpu_count" ]; then
-  cpu_count=`sysctl -n hw.ncpu | tr -d '\n'` # OS X
-  if [ -z "$cpu_count" ]; then
-    echo "warning, unable to determine cpu count, defaulting to 1"
-    cpu_count=1 # boxes where we don't know how to determine cpu count [OS X for instance], default to just 1, instead of blank, which means infinite 
-  fi
-fi
-original_cpu_count=$cpu_count # save it away for some that revert it temporarily
 
 intro() {
   cat <<EOL
@@ -1067,7 +1057,17 @@ build_apps() {
   fi
 }
 
-# defaults :)
+# set some parameters initial values
+cur_dir="$(pwd)/sandbox"
+cpu_count="$(grep -c processor /proc/cpuinfo)" # linux
+if [ -z "$cpu_count" ]; then
+  cpu_count=`sysctl -n hw.ncpu | tr -d '\n'` # OS X
+  if [ -z "$cpu_count" ]; then
+    echo "warning, unable to determine cpu count, defaulting to 1"
+    cpu_count=1 # boxes where we don't know how to determine cpu count [OS X for instance], default to just 1, instead of blank, which means infinite 
+  fi
+fi
+original_cpu_count=$cpu_count # save it away for some that revert it temporarily
 gcc_cpu_count=1 # allow them to specify more than 1, but default to the one that's most compatible...
 build_ffmpeg_static=y
 build_ffmpeg_shared=n
@@ -1079,6 +1079,7 @@ git_get_latest=y
 unset CFLAGS # I think this resets it...we don't want any linux CFLAGS seeping through...they can set this via --cflags=  if they want it set to anything
 original_cflags= # no export needed, this is just a local copy
 
+# parse command line parameters, if any
 while true; do
   case $1 in
     -h | --help ) echo "available options [with defaults]: 
