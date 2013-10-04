@@ -21,18 +21,18 @@
 
 
 yes_no_sel () {
-unset user_input
-local question="$1"
-shift
-while [[ "$user_input" != [YyNn] ]]; do
-  echo -n "$question"
-  read user_input
-  if [[ "$user_input" != [YyNn] ]]; then
-    clear; echo 'Your selection was not vaild, please try again.'; echo
-  fi
-done
-# downcase it
-user_input=$(echo $user_input | tr '[A-Z]' '[a-z]')
+  unset user_input
+  local question="$1"
+  shift
+  while [[ "$user_input" != [YyNn] ]]; do
+    echo -n "$question"
+    read user_input
+    if [[ "$user_input" != [YyNn] ]]; then
+      clear; echo 'Your selection was not vaild, please try again.'; echo
+    fi
+  done
+  # downcase it
+  user_input=$(echo $user_input | tr '[A-Z]' '[a-z]')
 }
 
 check_missing_packages () {
