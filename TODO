@@ -1,6 +1,10 @@
 == actual todos ==
 
 == maybe/never do ==
+windows'ify it
+  then some download with all of it?
+
+linux VM download with all of it
 
 don't ffmpeg enable runtime cpu detect for march cases? [meh, just for a smaller binary? or does it make it faster?]
 
