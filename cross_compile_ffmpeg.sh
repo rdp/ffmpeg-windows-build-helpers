@@ -921,7 +921,7 @@ build_ffmpeg() {
     extra_configure_opts=""
   fi
 
-  extra_configure_opts="$extra_configure_opts --extra-cflags=$CFLAGS --cpu=k8-sse3 " # extra-cflags is not needed, but adds it to the console output which I lke
+  extra_configure_opts="$extra_configure_opts --extra-cflags=$CFLAGS" # extra-cflags is not needed, but adds it to the console output which I lke
 
   # can't mix and match --enable-static --enable-shared unfortunately, or the final executable seems to just use shared if the're both present
   if [[ $shared == "shared" ]]; then
