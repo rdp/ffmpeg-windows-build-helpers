@@ -103,12 +103,6 @@ The resultant binary will not be distributable, but might be useful for in-house
       non_free="$user_input" # save it away
     fi
   fi
-
-  #yes_no_sel "Would you like to compile with -march=native, which can get a few percent speedup
-#but also makes it so you cannot distribute the binary to machines of other architecture/cpu 
-#(also note that you should only enable this if compiling on a VM on the same box you intend to target, otherwise
-#it makes no sense)  Use march=native? THIS IS JUST EXPERIMENTAL AND DOES NOT WORK FULLY YET--choose n typically. [y/n]?" 
-  #march_native="$user_input"
 }
 
 pick_compiler_flavors() {
