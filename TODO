@@ -1,11 +1,8 @@
 == actual todos ==
 
-speed test
-add links to the windows only builds
-
 == maybe/never do ==
 
-don't ffmpeg enable runtime cpu detect for march cases?
+don't ffmpeg enable runtime cpu detect for march cases? [meh, just for a smaller binary? or does it make it faster?]
 
 clean sandbox build all with libfdk [i.e. can it still build everything everything?] 
 
@@ -51,8 +48,9 @@ it should notice when configure was originally from some other git commit...anyw
 x264 pkg-config should specify -libpthread? (repro by compiling ffmpeg with windows threads, you'll see...)
   tell them? others that require tweaks also?
 
-make march work with ffmpeg/x264
- compare speeds, plus 64 vs 32 bit for everything
+out only real speedup hopes: configure ffmpeg --cpu, libx264 profile guided <sigh>
+  make march work with ffmpeg/x264
+   compare speeds, plus 64 vs 32 bit for everything
   then with profiled LOL
 
 tell those that fail with multi-threaded make

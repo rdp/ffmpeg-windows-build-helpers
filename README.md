@@ -44,6 +44,7 @@ So if you're cross compiling it on the box you'll end up targeting it for, you c
 NB that if you have wine installed you may need to run this command first to disable it (if you are building for a different architecture than the building machine, especially), so that it doesn't auto run files like conftest.exe, etc. during the build (they will crash with an annoying popup prompt otherwise)
 $ sudo update-binfmts --disable wine
 ref: http://askubuntu.com/questions/344088/how-to-ensure-wine-does-not-auto-run-exe-files
+NB that this might not significantly improve speed, ping me if you want some more aggressive optimization possibilities.
 
 Feedback welcome roger-projects@googlegroups.com
 
