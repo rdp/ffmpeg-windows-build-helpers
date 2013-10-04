@@ -186,7 +186,7 @@ do_svn_checkout() {
   fi
 }
 
-update_to_desired_branch_or_revision() {
+update_to_desired_git_branch_or_revision() {
   local to_dir="$1"
   local desired_branch="$2"
   if [ -n "$desired_branch" ]; then
@@ -210,7 +210,7 @@ do_git_checkout() {
     git clone $repo_url $to_dir.tmp || exit 1
     mv $to_dir.tmp $to_dir
     echo "done downloading $to_dir"
-    update_to_desired_branch_or_revision $to_dir $desired_branch
+    update_to_desired_git_branch_or_revision $to_dir $desired_branch
   else
     cd $to_dir
     echo "Updating to latest $to_dir version... $desired_branch"
@@ -224,7 +224,7 @@ do_git_checkout() {
         echo "not doing git get latest pull for latest code $to_dir"
       fi
     fi
-    update_to_desired_branch_or_revision "." $desired_branch
+    update_to_desired_git_branch_or_revision "." $desired_branch
     new_git_version=`git rev-parse HEAD`
     if [[ "$old_git_version" != "$new_git_version" ]]; then
      echo "got upstream changes, forcing re-configure."
