@@ -1096,9 +1096,6 @@ while true; do
     --build-mplayer=* ) build_mplayer="${1#*=}"; shift ;;
     --build-libav=* ) build_libav="${1#*=}"; shift ;;
     --cflags=* ) 
-       cd sandbox
-         for file in ./**/{vlc,mplayer,ffmpeg,MP4Box}.exe; do echo $file; done
-         exit
        export CFLAGS="${1#*=}"; original_cflags="${1#*=}"; echo "setting cflags as $original_cflags"; shift ;;
 
     --build-vlc=* ) build_vlc="${1#*=}"; shift ;;
@@ -1117,7 +1114,7 @@ done
 
 intro # remember to always run the intro, since it adjust pwd
 check_missing_packages
-install_cross_compiler 
+#install_cross_compiler 
 export PKG_CONFIG_LIBDIR= # disable pkg-config from reverting back to and finding system installed packages [yikes]
 
 original_path="$PATH"
@@ -1166,6 +1163,6 @@ find_all_build_exes() {
   echo $found # pseudo return value...
 }
 
-for file in $(find_all_build_exes()); do
-  echo "buitl $file"
+for file in $(find_all_build_exes); do
+  echo "built $file"
 done
