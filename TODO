@@ -102,3 +102,5 @@ profile guided builds?
 
 other "-march" like options? fastmath? f full program?
   x264 fomit frame pointer for 32 bit?
+
+qt seemed to infer too much about the cpu [possibly?]
