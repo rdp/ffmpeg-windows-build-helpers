@@ -53,6 +53,7 @@ Related projects:
 
 vlc has its "contribs" building (cross compiling) system: https://wiki.videolan.org/Win32Compile/
 mxe "m cross environment" https://github.com/mxe/mxe is for cross compiling many things.
+https://github.com/qyot27/mpv/blob/extra-new/DOCS/crosscompile-mingw-tedious.txt lists lots of howto's
 
 For building FFmpeg (for windows) in a more native windows environment these might help (though it might be slower as well unless):
 https://github.com/jb-alvarado/media-autobuild_suite
