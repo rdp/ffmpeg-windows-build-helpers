@@ -6,6 +6,8 @@ windows'ify it
 
 linux VM download with all of it
 
+https://github.com/qyot27/mpv/blob/extra-new/DOCS/crosscompile-mingw-tedious.txt lists some more dependencies, some of which even work with FFmpeg.  Some might work with Mplayer.  Might as well add them, right?
+
 don't ffmpeg enable runtime cpu detect for march cases? [meh, just for a smaller binary? or does it make it faster?]
 
 clean sandbox build all with libfdk [i.e. can it still build everything everything?] 
