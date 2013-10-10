@@ -17,8 +17,8 @@ chmod u+x cross_compile_ffmpeg.sh
 ```
 
 And follow the prompts.  
-
 It should end up with a working static ffmpeg.exe within the sandbox directory.
+
 It works with 32 or 64 bit (host) Linux, and can produce either/or 32 and 64 bit windows ffmpeg.exe's, with lots of dependencies built in. To build more than just FFmpeg, use command line parameters to the script.
 
 OS X users, this may help: https://github.com/rdp/ffmpeg-windows-build-helpers/wiki/OS-X
@@ -30,7 +30,7 @@ Run it like
 to see all the various options available to you.
 
 If you're using a "fresh" linux distro then the following command "might" install all the local dependencies you may need (if not, it will prompt you).
-```sudo apt-get install subversion texinfo cmake bison flex cvs yasm automake libtool git g++ zlib1g-dev```
+```sudo apt-get install subversion texinfo cmake bison flex cvs yasm automake libtool git g++ curl zlib1g-dev```
 
 
 If you want to customize your FFmpeg final executable even more (remove features you don't need, etc.) then edit the script
