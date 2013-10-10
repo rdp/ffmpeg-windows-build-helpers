@@ -968,6 +968,20 @@ config_options="--arch=$arch --target-os=mingw32 --cross-prefix=$cross_prefix --
   cd ..
 }
 
+find_all_build_exes() {
+  found=""
+# NB that we're currently in the sandbox dir
+  for file in `find . -name ffmpeg.exe` `find . -name MP4Box.exe` `find . -name mplayer.exe` `find . -name mencoder.exe` `find . -name avconv.exe` `find . -name avprobe.exe`; do
+    found="$found $(readlink -f $file)"
+  done
+
+  # bash glob fails here again?
+  for file in `find . -name vlc.exe | grep -- -`; do
+    found="$found $(readlink -f $file)"
+  done
+  echo $found # pseudo return value...
+}
+
 build_dependencies() {
   echo "PKG_CONFIG_PATH=$PKG_CONFIG_PATH" # debug
 #  build_win32_pthreads # vpx etc. depend on this--provided by the compiler build script now, so shouldn't have to build our own
@@ -1097,6 +1111,11 @@ while true; do
     --build-libav=* ) build_libav="${1#*=}"; shift ;;
     --cflags=* ) 
        export CFLAGS="${1#*=}"; original_cflags="${1#*=}"; echo "setting cflags as $original_cflags"; shift ;;
+       for file in $(find_all_build_exes); do
+         echo "deleting $file in case it isn't rebuilt with new different cflags, which could cause confusion"
+         echo "would also delete $(dirname $file)/already_ran_make*"
+       done
+       exit
 
     --build-vlc=* ) build_vlc="${1#*=}"; shift ;;
     --disable-nonfree=* ) disable_nonfree="${1#*=}"; shift ;;
@@ -1148,20 +1167,7 @@ if [ -d "mingw-w64-x86_64" ]; then # they installed a 64-bit compiler
   cd ..
 fi
 
-# NB that we're currently in the sandbox dir
 
-find_all_build_exes() {
-  found=""
-  for file in `find . -name ffmpeg.exe` `find . -name MP4Box.exe` `find . -name mplayer.exe` `find . -name mencoder.exe` `find . -name avconv.exe` `find . -name avprobe.exe`; do
-    found="$found $(readlink -f $file)"
-  done
-
-  # bash glob fails here again?
-  for file in `find . -name vlc.exe | grep -- -`; do
-    found="$found $(readlink -f $file)"
-  done
-  echo $found # pseudo return value...
-}
 
 for file in $(find_all_build_exes); do
   echo "built $file"
