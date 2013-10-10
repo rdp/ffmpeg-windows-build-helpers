@@ -1153,11 +1153,19 @@ fi
 
 # NB that we're currently in the sandbox dir
 
-for file in `find . -name ffmpeg.exe` `find . -name MP4Box.exe` `find . -name mplayer.exe` `find . -name mencoder.exe` `find . -name avconv.exe` `find . -name avprobe.exe`; do
-  echo "built $(readlink -f $file)"
-done
+find_all_build_exes() {
+  found=""
+  for file in `find . -name ffmpeg.exe` `find . -name MP4Box.exe` `find . -name mplayer.exe` `find . -name mencoder.exe` `find . -name avconv.exe` `find . -name avprobe.exe`; do
+    found="$found $(readlink -f $file)"
+  done
 
-# bash glob fails here again?
-for file in `find . -name vlc.exe | grep -- -`; do
-  echo "built $(readlink -f $file)"
+  # bash glob fails here again?
+  for file in `find . -name vlc.exe | grep -- -`; do
+    found="$found $(readlink -f $file)"
+  done
+  echo $found # pseudo return value...
+}
+
+for file in $(find_all_build_exes()); do
+  echo "buitl $file"
 done
