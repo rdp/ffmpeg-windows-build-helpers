@@ -16,6 +16,8 @@ complain to vlc you can't build multi thread make :P
 
 tell mingw-w64 that they should support VARIANT
 
+use libcaca git instead, tell them it still isn't enough...
+
 test all things dvd to make sure they play anything...
 
 submit dvdread gcc_pack upstreams [?] and static linking, after checking SVN to see if they're already there?
