@@ -352,7 +352,7 @@ generic_configure_make_install() {
   do_make_install
 }
 
-x264_profile_guided=y
+#x264_profile_guided=y
 
 build_x264() {
   do_git_checkout "http://repo.or.cz/r/x264.git" "x264" "origin/stable"
@@ -368,7 +368,6 @@ build_x264() {
     # XXX does this kill git updates? maybe a more general fix, since vid.stab does also?
     sed -i "s_\\, ./x264_, wine ./x264_" Makefile # in case they have wine auto-run disabled http://askubuntu.com/questions/344088/how-to-ensure-wine-does-not-auto-run-exe-files
     do_make_install "fprofiled VIDS=example.y4m" # guess it has its own make fprofiled, so we don't need to manually add -fprofile-generate here...
-    exit
   else 
     do_configure "$configure_flags"
     do_make_install

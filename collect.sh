@@ -58,7 +58,9 @@ copy_from() {
     cp $file2 "../../$root/$to_dir"
   done
   cd ../..
-  cp -r ./sandbox/$from_dir/vlc_rdp/vlc-2.2.0-git $root/$to_dir/vlc
+  if [[ -f ./sandbox/$from_dir/vlc_rdp/vlc-2.2.0-git/vlc.exe ]]; then
+    cp -r ./sandbox/$from_dir/vlc_rdp/vlc-2.2.0-git $root/$to_dir/vlc
+  fi
 }
 
 copy_from win32 32-bit
