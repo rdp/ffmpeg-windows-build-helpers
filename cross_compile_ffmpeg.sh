@@ -352,10 +352,13 @@ generic_configure_make_install() {
   do_make_install
 }
 
+x264_profile_guided=y
+
 build_x264() {
   do_git_checkout "http://repo.or.cz/r/x264.git" "x264" "origin/stable"
   cd x264
-  do_configure "--host=$host_target --enable-static --cross-prefix=$cross_prefix --prefix=$mingw_w64_x86_64_prefix --extra-cflags=-DPTW32_STATIC_LIB --enable-debug" # --enable-win32thread --enable-debug shouldn't hurt us since ffmpeg strips it anyway I think
+  local configure_flags="--host=$host_target --enable-static --cross-prefix=$cross_prefix --prefix=$mingw_w64_x86_64_prefix --extra-cflags=-DPTW32_STATIC_LIB --enable-debug" # --enable-win32thread --enable-debug shouldn't hurt us since ffmpeg strips it anyway I think
+  do_configure $configure_flags
   # TODO more march=native here?
   # TODO profile guided here option, with wine?
   # rm -f already_ran_make # just in case the git checkout did something, re-make
