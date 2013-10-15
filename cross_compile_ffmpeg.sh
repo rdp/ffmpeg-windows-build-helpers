@@ -441,7 +441,7 @@ build_libopenjpeg() {
 }
 
 build_libvpx() {
-  do_git_checkout https://git.chromium.org/git/webm/libvpx.git "libvpx_git" 2d13e7b33e1ee
+  do_git_checkout https://git.chromium.org/git/webm/libvpx.git "libvpx_git"
   cd libvpx_git
   export CROSS="$cross_prefix"
   if [[ "$bits_target" = "32" ]]; then
@@ -453,7 +453,6 @@ build_libvpx() {
   unset CROSS
   cd ..
 }
-
 
 build_libutvideo() {
   download_and_unpack_file https://github.com/downloads/rdp/FFmpeg/utvideo-11.1.1-src.zip utvideo-11.1.1
