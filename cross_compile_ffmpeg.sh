@@ -366,7 +366,7 @@ build_x264() {
     rm example.y4m # in case it exists already...
     bunzip2 example.y4m.bz2 || exit 1
     # XXX does this kill git updates? maybe a more general fix, since vid.stab does also?
-    sed -i "s_./x264_wine ./x264_" Makefile # in case they have wine auto-run disabled http://askubuntu.com/questions/344088/how-to-ensure-wine-does-not-auto-run-exe-files
+    sed -i "s_\\, ./x264_, wine ./x264_" Makefile # in case they have wine auto-run disabled http://askubuntu.com/questions/344088/how-to-ensure-wine-does-not-auto-run-exe-files
     do_make_install "fprofiled VIDS=example.y4m" # guess it has its own make fprofiled, so we don't need to manually add -fprofile-generate here...
     exit
   else 
