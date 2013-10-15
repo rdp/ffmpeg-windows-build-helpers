@@ -358,11 +358,21 @@ build_x264() {
   do_git_checkout "http://repo.or.cz/r/x264.git" "x264" "origin/stable"
   cd x264
   local configure_flags="--host=$host_target --enable-static --cross-prefix=$cross_prefix --prefix=$mingw_w64_x86_64_prefix --extra-cflags=-DPTW32_STATIC_LIB --enable-debug" # --enable-win32thread --enable-debug shouldn't hurt us since ffmpeg strips it anyway I think
-  do_configure "$configure_flags"
-  # TODO more march=native here?
-  # TODO profile guided here option, with wine?
-  # rm -f already_ran_make # just in case the git checkout did something, re-make
-  do_make_install
+  if [[ $x264_profile_guided = y ]]; then
+    # TODO more march=native here?
+    # TODO profile guided here option, with wine?
+    do_configure "$configure_flags"
+    curl http://samples.mplayerhq.hu/yuv4mpeg2/example.y4m.bz2 -O || exit 1
+    rm example.y4m # in case it exists already...
+    bunzip2 example.y4m.bz2 || exit 1
+    # XXX does this kill git updates? maybe a more general fix, since vid.stab does also?
+    sed -i "s_./x264_wine ./x264_" Makefile # in case they have wine auto-run disabled http://askubuntu.com/questions/344088/how-to-ensure-wine-does-not-auto-run-exe-files
+    do_make_install "fprofiled VIDS=example.y4m" # guess it has its own make fprofiled, so we don't need to manually add -fprofile-generate here...
+    exit
+  else 
+    do_configure "$configure_flags"
+    do_make_install
+  fi
   cd ..
 }
 
@@ -973,7 +983,7 @@ config_options="--arch=$arch --target-os=mingw32 --cross-prefix=$cross_prefix --
 find_all_build_exes() {
   found=""
 # NB that we're currently in the sandbox dir
-  for file in `find . -name ffmpeg.exe` `find . -name ffmpeg_g.exe` `find . -name MP4Box.exe` `find . -name mplayer.exe` `find . -name mencoder.exe` `find . -name avconv.exe` `find . -name avprobe.exe`; do
+  for file in `find . -name ffmpeg.exe` `find . -name ffmpeg_g.exe` `find . -name MP4Box.exe` `find . -name mplayer.exe` `find . -name mencoder.exe` `find . -name avconv.exe` `find . -name avprobe.exe` `find . -name x264.exe`; do
     found="$found $(readlink -f $file)"
   done
 

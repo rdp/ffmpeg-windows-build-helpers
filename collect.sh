@@ -50,11 +50,11 @@ cp ./sandbox/x86_64/ffmpeg_git_shared/*/*-*.dll "$dir"
 
 
 copy_from() {
- from_dir=$1
- to_dir=$2
+ from_dir=$1 # like win32
+ to_dir=$2 # like 32-bit
 
   cd sandbox/$from_dir
-  for file2 in `find . -name MP4Box.exe` `find . -name mplayer.exe` `find . -name mencoder.exe` `find . -name avconv.exe` `find . -name avprobe.exe`; do
+  for file2 in `find . -name MP4Box.exe` `find . -name mplayer.exe` `find . -name mencoder.exe` `find . -name avconv.exe` `find . -name avprobe.exe` `find . -name x264.exe`; do
     cp $file2 "../../$root/$to_dir"
   done
   cd ../..
