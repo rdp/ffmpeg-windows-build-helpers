@@ -15,6 +15,8 @@ don't ffmpeg enable runtime cpu detect for march cases? [meh, just for a smaller
 
 clean sandbox build all with libfdk [i.e. can it still build everything everything?] 
 
+march without runtime cpu with hard core 1GB y4m fprofiled x264 and amd/intel cpu specified...LOLyeah...ask sherpya if he gets any speedups.
+
 complain to vlc you can't build multi thread make :P
 
 tell mingw-w64 that they should support VARIANT
