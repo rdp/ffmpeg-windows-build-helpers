@@ -785,7 +785,7 @@ build_lame() {
 }
 
 build_zvbi() {
-  export CFLAGS=-DPTW32_STATIC_LIB # seems needed
+  export CFLAGS=-DPTW32_STATIC_LIB # seems needed XXX
   download_and_unpack_file http://sourceforge.net/projects/zapping/files/zvbi/0.2.34/zvbi-0.2.34.tar.bz2/download zvbi-0.2.34
   cd zvbi-0.2.34
     apply_patch https://raw.github.com/rdp/ffmpeg-windows-build-helpers/master/patches/zvbi-win32.patch
