@@ -516,7 +516,8 @@ build_libflite() {
 build_libgsm() {
   download_and_unpack_file http://www.quut.com/gsm/gsm-1.0.13.tar.gz gsm-1.0-pl13
   cd gsm-1.0-pl13
-  make CC=${cross_prefix}gcc AR=${cross_prefix}ar RANLIB=${cross_prefix}ranlib INSTALL_ROOT=${mingw_w64_x86_64_prefix} # fails, but in a way we expect (toast.c) LODO fix somehow?
+  apply_patch https://raw.github.com/Jan-E/ffmpeg-windows-build-helpers/master/patches/libgsm.patch
+  do_make "CC=${cross_prefix}gcc AR=${cross_prefix}ar RANLIB=${cross_prefix}ranlib INSTALL_ROOT=${mingw_w64_x86_64_prefix}"
   cp lib/libgsm.a $mingw_w64_x86_64_prefix/lib || exit 1
   mkdir -p $mingw_w64_x86_64_prefix/include/gsm
   cp inc/gsm.h $mingw_w64_x86_64_prefix/include/gsm || exit 1
@@ -738,11 +739,13 @@ build_openssl() {
   export AR="${cross}ar"
   export RANLIB="${cross}ranlib"
   if [ "$bits_target" = "32" ]; then
-    do_configure "--prefix=$mingw_w64_x86_64_prefix no-shared mingw" ./Configure
+    do_configure "--prefix=$mingw_w64_x86_64_prefix no-shared no-asm mingw" ./Configure
   else
-    do_configure "--prefix=$mingw_w64_x86_64_prefix no-shared mingw64" ./Configure
+    do_configure "--prefix=$mingw_w64_x86_64_prefix no-shared no-asm mingw64" ./Configure
   fi
+  cpu_count=1
   do_make_install
+  cpu_count=$original_cpu_count
   unset cross
   unset CC
   unset AR
@@ -811,7 +814,6 @@ build_zvbi() {
     apply_patch https://raw.github.com/rdp/ffmpeg-windows-build-helpers/master/patches/zvbi-ioctl.patch
     export LIBS=-lpng
     generic_configure " --disable-dvb --disable-bktr --disable-nls --disable-proxy --without-doxygen" # thanks vlc!
-    export LIBS=
     unset LIBS
     cd src
       do_make_install 
