@@ -1,7 +1,7 @@
 diff --git a/libavfilter/af_volume.c b/libavfilter/af_volume.c
 index a777249..3c1176a 100644
---- a/libavfilter/af_volume.c
-+++ b/libavfilter/af_volume.c
+--- libavfilter/af_volume.c
++++ libavfilter/af_volume.c
 @@ -51,18 +51,26 @@ static const AVOption volume_options[] = {
          { "fixed",  "select 8-bit fixed-point",     0, AV_OPT_TYPE_CONST, { .i64 = PRECISION_FIXED  }, INT_MIN, INT_MAX, A|F, "precision" },
          { "float",  "select 32-bit floating-point", 0, AV_OPT_TYPE_CONST, { .i64 = PRECISION_FLOAT  }, INT_MIN, INT_MAX, A|F, "precision" },
@@ -67,8 +67,8 @@ index a777249..3c1176a 100644
  
 diff --git a/libavfilter/af_volume.h b/libavfilter/af_volume.h
 index bd7932e..d79d040 100644
---- a/libavfilter/af_volume.h
-+++ b/libavfilter/af_volume.h
+--- libavfilter/af_volume.h
++++ libavfilter/af_volume.h
 @@ -48,6 +48,8 @@ typedef struct VolumeContext {
      void (*scale_samples)(uint8_t *dst, const uint8_t *src, int nb_samples,
                            int volume);
