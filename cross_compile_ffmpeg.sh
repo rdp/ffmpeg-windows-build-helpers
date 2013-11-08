@@ -942,6 +942,20 @@ build_mp4box() { # like build_gpac
   cd ..
 }
 
+apply_ffmpeg_patch() {
+ local url=$1
+ local patch_name=$(basename $url)
+ local patch_done_name="$patch_name.my_patch"
+ if [[ ! -e $patch_done_name ]]; then
+   curl $url -O || exit 1
+   echo "applying patch $patch_name"
+   patch -p1 < "$patch_name" && touch $patch_done_name && git diff > "/mnt/winshare/ffmpeg-windows-build-helpers/ffmpeg_patches/$patch_name"
+   git commit -a
+ else
+   echo "patch $patch_name already applied"
+ fi
+}
+
 build_ffmpeg() {
   local type=$1
   local shared=$2
@@ -970,6 +984,11 @@ build_ffmpeg() {
     extra_configure_opts="--enable-static --disable-shared $extra_configure_opts"
     cd $output_dir
   fi
+  
+  apply_ffmpeg_patch https://raw.github.com/Jan-E/ffmpeg-windows-build-helpers/master/ffmpeg_patches/volnorm.patch
+  apply_ffmpeg_patch https://raw.github.com/Jan-E/ffmpeg-windows-build-helpers/master/ffmpeg_patches/ass_fontsize.patch
+  apply_ffmpeg_patch https://raw.github.com/Jan-E/ffmpeg-windows-build-helpers/master/ffmpeg_patches/subtitles_non_fatal.patch
+  apply_ffmpeg_patch https://raw.github.com/Jan-E/ffmpeg-windows-build-helpers/master/ffmpeg_patches/asfenc.patch
 
   if [ "$bits_target" = "32" ]; then
    local arch=x86
@@ -1208,6 +1227,6 @@ if [ -d "mingw-w64-x86_64" ]; then # they installed a 64-bit compiler
   cd ..
 fi
 
-#for file in $(find_all_build_exes); do
-#  echo "built $file"
-#done
+for file in $(find_all_build_exes); do
+  echo "built $file"
+done
