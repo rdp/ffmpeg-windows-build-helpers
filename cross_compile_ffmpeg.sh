@@ -950,7 +950,7 @@ apply_ffmpeg_patch() {
    curl $url -O || exit 1
    echo "applying patch $patch_name"
    patch -p1 < "$patch_name" && touch $patch_done_name && git diff > "/mnt/winshare/ffmpeg-windows-build-helpers/ffmpeg_patches/$patch_name"
-   git commit -a
+   git commit -a -m applied
  else
    echo "patch $patch_name already applied"
  fi
@@ -989,6 +989,10 @@ build_ffmpeg() {
   apply_ffmpeg_patch https://raw.github.com/Jan-E/ffmpeg-windows-build-helpers/master/ffmpeg_patches/ass_fontsize.patch
   apply_ffmpeg_patch https://raw.github.com/Jan-E/ffmpeg-windows-build-helpers/master/ffmpeg_patches/subtitles_non_fatal.patch
   apply_ffmpeg_patch https://raw.github.com/Jan-E/ffmpeg-windows-build-helpers/master/ffmpeg_patches/asfenc.patch
+  apply_ffmpeg_patch https://raw.github.com/Jan-E/ffmpeg-windows-build-helpers/master/ffmpeg_patches/experiment.patch
+  apply_ffmpeg_patch https://raw.github.com/Jan-E/ffmpeg-windows-build-helpers/master/ffmpeg_patches/movenc.patch
+  apply_ffmpeg_patch https://raw.github.com/Jan-E/ffmpeg-windows-build-helpers/master/ffmpeg_patches/mpegvideo_enc.patch
+  apply_ffmpeg_patch https://raw.github.com/Jan-E/ffmpeg-windows-build-helpers/master/ffmpeg_patches/swscale.patch
 
   if [ "$bits_target" = "32" ]; then
    local arch=x86
