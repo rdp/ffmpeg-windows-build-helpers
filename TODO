@@ -119,3 +119,5 @@ other "-march" like options? fastmath? f full program?
 qt seemed to infer too much about the cpu [possibly?]
 
 somewhere mentioned the old "-fwhole-project" setting again somewhere LOL hmm...for optimizing x264 possibly?
+
+TWOLAME move to .pc?

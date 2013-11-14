@@ -678,7 +678,11 @@ build_gnutls() {
 }
 
 build_libnettle() {
-  generic_download_and_install http://www.lysator.liu.se/~nisse/archive/nettle-2.7.1.tar.gz nettle-2.7.1
+  download_and_unpack_file http://www.lysator.liu.se/~nisse/archive/nettle-2.7.1.tar.gz nettle-2.7.1
+  cd nettle-2.7.1
+    generic_configure "--disable-openssl" # in case we have both gnutls and openssl, just use gnutls [except that gnutls uses this so...huh? https://github.com/rdp/ffmpeg-windows-build-helpers/issues/25#issuecomment-28158515
+    do_make_install
+  cd ..
 }
 
 build_bzlib2() {
