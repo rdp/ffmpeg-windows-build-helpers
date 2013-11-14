@@ -23,10 +23,10 @@ cp ./sandbox/win32/ffmpeg_git/ffmpeg_g.exe "$dir"
 dir="$root/64-bit/ffmpeg-static"
 if [ -f ./sandbox/x86_64/ffmpeg_git/ffmpeg.exe ]; then
   mkdir $dir
+  cp ./sandbox/x86_64/ffmpeg_git/ffmpeg.exe "$dir"
+  cp ./sandbox/x86_64/ffmpeg_git/ffplay.exe "$dir"
+  cp ./sandbox/x86_64/ffmpeg_git/ffmpeg_g.exe "$dir"
 fi
-cp ./sandbox/x86_64/ffmpeg_git/ffmpeg.exe "$dir"
-cp ./sandbox/x86_64/ffmpeg_git/ffplay.exe "$dir"
-cp ./sandbox/x86_64/ffmpeg_git/ffmpeg_g.exe "$dir"
 
 dir="$root/32-bit/ffmpeg-shared"
 mkdir $dir
