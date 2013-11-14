@@ -1,0 +1,80 @@
+diff --git a/libavfilter/af_volume.c b/libavfilter/af_volume.c
+index cd24877..d40bb98 100644
+--- a/libavfilter/af_volume.c
++++ b/libavfilter/af_volume.c
+@@ -51,18 +51,26 @@ static const AVOption volume_options[] = {
+         { "fixed",  "select 8-bit fixed-point",     0, AV_OPT_TYPE_CONST, { .i64 = PRECISION_FIXED  }, INT_MIN, INT_MAX, A|F, "precision" },
+         { "float",  "select 32-bit floating-point", 0, AV_OPT_TYPE_CONST, { .i64 = PRECISION_FLOAT  }, INT_MIN, INT_MAX, A|F, "precision" },
+         { "double", "select 64-bit floating-point", 0, AV_OPT_TYPE_CONST, { .i64 = PRECISION_DOUBLE }, INT_MIN, INT_MAX, A|F, "precision" },
++    { "metadata", "set the metadata key for loudness normalization", OFFSET(metadata), AV_OPT_TYPE_STRING, { .str = NULL }, .flags = A|F },
++    { "normvol", "set volume normalization level",
++            OFFSET(normvol), AV_OPT_TYPE_DOUBLE, { .dbl = -23.0 }, INT_MIN, INT_MAX, A|F },
+     { NULL }
+ };
+ 
+ AVFILTER_DEFINE_CLASS(volume);
+ 
++static void set_fixed_volume(VolumeContext *vol, double volume)
++{
++    vol->volume_i = (int)(volume * 256 + 0.5);
++    vol->volume   = vol->volume_i / 256.0;
++}
++
+ static av_cold int init(AVFilterContext *ctx)
+ {
+     VolumeContext *vol = ctx->priv;
+ 
+     if (vol->precision == PRECISION_FIXED) {
+-        vol->volume_i = (int)(vol->volume * 256 + 0.5);
+-        vol->volume   = vol->volume_i / 256.0;
++        set_fixed_volume(vol, vol->volume);
+         av_log(ctx, AV_LOG_VERBOSE, "volume:(%d/256)(%f)(%1.2fdB) precision:fixed\n",
+                vol->volume_i, vol->volume, 20.0*log(vol->volume)/M_LN10);
+     } else {
+@@ -216,11 +224,31 @@ static int config_output(AVFilterLink *outlink)
+ 
+ static int filter_frame(AVFilterLink *inlink, AVFrame *buf)
+ {
+-    VolumeContext *vol    = inlink->dst->priv;
+-    AVFilterLink *outlink = inlink->dst->outputs[0];
++    AVFilterContext *ctx  = inlink->dst;
++    VolumeContext *vol    = ctx->priv;
++    AVFilterLink *outlink = ctx->outputs[0];
+     int nb_samples        = buf->nb_samples;
+     AVFrame *out_buf;
+ 
++    if (vol->metadata) {
++        double loudness, new_volume, pow_volume, timestamp, mx;
++        AVDictionaryEntry *e;
++        mx = 20; 
++        timestamp = (float)(1.0 * buf->pts / outlink->sample_rate);
++        mx = fmin(mx, timestamp);
++        e = av_dict_get(buf->metadata, vol->metadata, NULL, 0);
++        if (e) {
++            loudness = av_strtod(e->value, NULL);
++            if (loudness > -69) {
++                new_volume = fmax(-mx, fmin(mx, (vol->normvol - loudness)));
++                pow_volume = pow(10, new_volume / 20);
++                av_log(ctx, AV_LOG_VERBOSE, "loudness=%f => %f => volume=%f\n",
++                    loudness, new_volume, pow_volume);
++                set_fixed_volume(vol, pow_volume);
++            }
++        }
++    }
++
+     if (vol->volume == 1.0 || vol->volume_i == 256)
+         return ff_filter_frame(outlink, buf);
+ 
+diff --git a/libavfilter/af_volume.h b/libavfilter/af_volume.h
+index bd7932e..d79d040 100644
+--- a/libavfilter/af_volume.h
++++ b/libavfilter/af_volume.h
+@@ -48,6 +48,8 @@ typedef struct VolumeContext {
+     void (*scale_samples)(uint8_t *dst, const uint8_t *src, int nb_samples,
+                           int volume);
+     int samples_align;
++    char *metadata;
++    double normvol;
+ } VolumeContext;
+ 
+ void ff_volume_init_x86(VolumeContext *vol);

@@ -1,0 +1,20 @@
+diff -u -r ./gsm-1.0-pl13/inc/config.h /home/jan/sandbox/x86_64/gsm-1.0-pl13/inc/config.h
+--- inc/config.h	2006-04-26 21:14:26.000000000 +0200
++++ inc/config.h	2013-11-07 18:08:57.048020957 +0100
+@@ -17,11 +17,11 @@
+ #define	HAS_FCNTL_H	1		/* /usr/include/fcntl.h		*/
+ #define	HAS_ERRNO_DECL	1		/* errno.h declares errno	*/
+ 
+-#define	HAS_FSTAT 	1		/* fstat syscall		*/
+-#define	HAS_FCHMOD 	1		/* fchmod syscall		*/
+-#define	HAS_CHMOD 	1		/* chmod syscall		*/
+-#define	HAS_FCHOWN 	1		/* fchown syscall		*/
+-#define	HAS_CHOWN 	1		/* chown syscall		*/
++#undef	HAS_FSTAT 			/* fstat syscall		*/
++#undef	HAS_FCHMOD 			/* fchmod syscall		*/
++#undef	HAS_CHMOD 			/* chmod syscall		*/
++#undef	HAS_FCHOWN 			/* fchown syscall		*/
++#undef	HAS_CHOWN 			/* chown syscall		*/
+ /*efine	HAS__FSETMODE 	1		/* _fsetmode -- set file mode	*/
+ 
+ #define	HAS_STRING_H 	1		/* /usr/include/string.h 	*/

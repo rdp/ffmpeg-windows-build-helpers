@@ -1,0 +1,4488 @@
+diff --git a/libavcodec/aacenc.c b/libavcodec/aacenc.c
+index 5596b4b..db58189 100644
+--- a/libavcodec/aacenc.c
++++ b/libavcodec/aacenc.c
+@@ -823,8 +823,7 @@ AVCodec ff_aac_encoder = {
+     .encode2        = aac_encode_frame,
+     .close          = aac_encode_end,
+     .supported_samplerates = mpeg4audio_sample_rates,
+-    .capabilities   = CODEC_CAP_SMALL_LAST_FRAME | CODEC_CAP_DELAY |
+-                      CODEC_CAP_EXPERIMENTAL,
++    .capabilities   = CODEC_CAP_SMALL_LAST_FRAME | CODEC_CAP_DELAY,
+     .sample_fmts    = (const enum AVSampleFormat[]){ AV_SAMPLE_FMT_FLTP,
+                                                      AV_SAMPLE_FMT_NONE },
+     .priv_class     = &aacenc_class,
+diff --git a/libavcodec/avuienc.c b/libavcodec/avuienc.c
+index 9276935..49d0007 100644
+--- a/libavcodec/avuienc.c
++++ b/libavcodec/avuienc.c
+@@ -107,6 +107,5 @@ AVCodec ff_avui_encoder = {
+     .init         = avui_encode_init,
+     .encode2      = avui_encode_frame,
+     .close        = avui_encode_close,
+-    .capabilities = CODEC_CAP_EXPERIMENTAL,
+     .pix_fmts     = (const enum AVPixelFormat[]){ AV_PIX_FMT_UYVY422, AV_PIX_FMT_NONE },
+ };
+diff --git a/libavcodec/crystalhd.c b/libavcodec/crystalhd.c
+index 94f8c85..81741ea 100644
+--- a/libavcodec/crystalhd.c
++++ b/libavcodec/crystalhd.c
+@@ -1167,7 +1167,7 @@ AVCodec ff_msmpeg4_crystalhd_decoder = {
+     .init           = init,
+     .close          = uninit,
+     .decode         = decode,
+-    .capabilities   = CODEC_CAP_DR1 | CODEC_CAP_DELAY | CODEC_CAP_EXPERIMENTAL,
++    .capabilities   = CODEC_CAP_DR1 | CODEC_CAP_DELAY ,
+     .flush          = flush,
+     .pix_fmts       = (const enum AVPixelFormat[]){AV_PIX_FMT_YUYV422, AV_PIX_FMT_NONE},
+     .priv_class     = &msmpeg4_class,
+diff --git a/libavcodec/dcaenc.c b/libavcodec/dcaenc.c
+index cb73f42..275ec2f 100644
+--- a/libavcodec/dcaenc.c
++++ b/libavcodec/dcaenc.c
+@@ -960,7 +960,6 @@ AVCodec ff_dca_encoder = {
+     .priv_data_size        = sizeof(DCAContext),
+     .init                  = encode_init,
+     .encode2               = encode_frame,
+-    .capabilities          = CODEC_CAP_EXPERIMENTAL,
+     .sample_fmts           = (const enum AVSampleFormat[]){ AV_SAMPLE_FMT_S32,
+                                                             AV_SAMPLE_FMT_NONE },
+     .supported_samplerates = sample_rates,
+diff --git a/libavcodec/j2kenc.c b/libavcodec/j2kenc.c
+index d9f5eaf..d13e7ff 100644
+--- a/libavcodec/j2kenc.c
++++ b/libavcodec/j2kenc.c
+@@ -1,1056 +1,1055 @@
+-/*
+- * JPEG2000 image encoder
+- * Copyright (c) 2007 Kamil Nowosad
+- *
+- * This file is part of FFmpeg.
+- *
+- * FFmpeg is free software; you can redistribute it and/or
+- * modify it under the terms of the GNU Lesser General Public
+- * License as published by the Free Software Foundation; either
+- * version 2.1 of the License, or (at your option) any later version.
+- *
+- * FFmpeg is distributed in the hope that it will be useful,
+- * but WITHOUT ANY WARRANTY; without even the implied warranty of
+- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+- * Lesser General Public License for more details.
+- *
+- * You should have received a copy of the GNU Lesser General Public
+- * License along with FFmpeg; if not, write to the Free Software
+- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+- */
+-
+-/**
+- * JPEG2000 image encoder
+- * @file
+- * @author Kamil Nowosad
+- */
+-
+-#include <float.h>
+-#include "avcodec.h"
+-#include "internal.h"
+-#include "bytestream.h"
+-#include "jpeg2000.h"
+-#include "libavutil/common.h"
+-
+-#define NMSEDEC_BITS 7
+-#define NMSEDEC_FRACBITS (NMSEDEC_BITS-1)
+-#define WMSEDEC_SHIFT 13 ///< must be >= 13
+-#define LAMBDA_SCALE (100000000LL << (WMSEDEC_SHIFT - 13))
+-
+-static int lut_nmsedec_ref [1<<NMSEDEC_BITS],
+-           lut_nmsedec_ref0[1<<NMSEDEC_BITS],
+-           lut_nmsedec_sig [1<<NMSEDEC_BITS],
+-           lut_nmsedec_sig0[1<<NMSEDEC_BITS];
+-
+-static const int dwt_norms[2][4][10] = { // [dwt_type][band][rlevel] (multiplied by 10000)
+-    {{10000, 19650, 41770,  84030, 169000, 338400,  676900, 1353000, 2706000, 5409000},
+-     {20220, 39890, 83550, 170400, 342700, 686300, 1373000, 2746000, 5490000},
+-     {20220, 39890, 83550, 170400, 342700, 686300, 1373000, 2746000, 5490000},
+-     {20800, 38650, 83070, 171800, 347100, 695900, 1393000, 2786000, 5572000}},
+-
+-    {{10000, 15000, 27500, 53750, 106800, 213400, 426700, 853300, 1707000, 3413000},
+-     {10380, 15920, 29190, 57030, 113300, 226400, 452500, 904800, 1809000},
+-     {10380, 15920, 29190, 57030, 113300, 226400, 452500, 904800, 1809000},
+-     { 7186,  9218, 15860, 30430,  60190, 120100, 240000, 479700,  959300}}
+-};
+-
+-typedef struct {
+-   Jpeg2000Component *comp;
+-} Jpeg2000Tile;
+-
+-typedef struct {
+-    AVCodecContext *avctx;
+-    AVFrame picture;
+-
+-    int width, height; ///< image width and height
+-    uint8_t cbps[4]; ///< bits per sample in particular components
+-    int chroma_shift[2];
+-    uint8_t planar;
+-    int ncomponents;
+-    int tile_width, tile_height; ///< tile size
+-    int numXtiles, numYtiles;
+-
+-    uint8_t *buf_start;
+-    uint8_t *buf;
+-    uint8_t *buf_end;
+-    int bit_index;
+-
+-    int64_t lambda;
+-
+-    Jpeg2000CodingStyle codsty;
+-    Jpeg2000QuantStyle  qntsty;
+-
+-    Jpeg2000Tile *tile;
+-} Jpeg2000EncoderContext;
+-
+-
+-/* debug */
+-#if 0
+-#undef ifprintf
+-#undef printf
+-
+-static void nspaces(FILE *fd, int n)
+-{
+-    while(n--) putc(' ', fd);
+-}
+-
+-static void printcomp(Jpeg2000Component *comp)
+-{
+-    int i;
+-    for (i = 0; i < comp->y1 - comp->y0; i++)
+-        ff_jpeg2000_printv(comp->i_data + i * (comp->x1 - comp->x0), comp->x1 - comp->x0);
+-}
+-
+-static void dump(Jpeg2000EncoderContext *s, FILE *fd)
+-{
+-    int tileno, compno, reslevelno, bandno, precno;
+-    fprintf(fd, "XSiz = %d, YSiz = %d, tile_width = %d, tile_height = %d\n"
+-                "numXtiles = %d, numYtiles = %d, ncomponents = %d\n"
+-                "tiles:\n",
+-            s->width, s->height, s->tile_width, s->tile_height,
+-            s->numXtiles, s->numYtiles, s->ncomponents);
+-    for (tileno = 0; tileno < s->numXtiles * s->numYtiles; tileno++){
+-        Jpeg2000Tile *tile = s->tile + tileno;
+-        nspaces(fd, 2);
+-        fprintf(fd, "tile %d:\n", tileno);
+-        for(compno = 0; compno < s->ncomponents; compno++){
+-            Jpeg2000Component *comp = tile->comp + compno;
+-            nspaces(fd, 4);
+-            fprintf(fd, "component %d:\n", compno);
+-            nspaces(fd, 4);
+-            fprintf(fd, "x0 = %d, x1 = %d, y0 = %d, y1 = %d\n",
+-                        comp->x0, comp->x1, comp->y0, comp->y1);
+-            for(reslevelno = 0; reslevelno < s->nreslevels; reslevelno++){
+-                Jpeg2000ResLevel *reslevel = comp->reslevel + reslevelno;
+-                nspaces(fd, 6);
+-                fprintf(fd, "reslevel %d:\n", reslevelno);
+-                nspaces(fd, 6);
+-                fprintf(fd, "x0 = %d, x1 = %d, y0 = %d, y1 = %d, nbands = %d\n",
+-                        reslevel->x0, reslevel->x1, reslevel->y0,
+-                        reslevel->y1, reslevel->nbands);
+-                for(bandno = 0; bandno < reslevel->nbands; bandno++){
+-                    Jpeg2000Band *band = reslevel->band + bandno;
+-                    nspaces(fd, 8);
+-                    fprintf(fd, "band %d:\n", bandno);
+-                    nspaces(fd, 8);
+-                    fprintf(fd, "x0 = %d, x1 = %d, y0 = %d, y1 = %d,"
+-                                "codeblock_width = %d, codeblock_height = %d cblknx = %d cblkny = %d\n",
+-                                band->x0, band->x1,
+-                                band->y0, band->y1,
+-                                band->codeblock_width, band->codeblock_height,
+-                                band->cblknx, band->cblkny);
+-                    for (precno = 0; precno < reslevel->num_precincts_x * reslevel->num_precincts_y; precno++){
+-                        Jpeg2000Prec *prec = band->prec + precno;
+-                        nspaces(fd, 10);
+-                        fprintf(fd, "prec %d:\n", precno);
+-                        nspaces(fd, 10);
+-                        fprintf(fd, "xi0 = %d, xi1 = %d, yi0 = %d, yi1 = %d\n",
+-                                     prec->xi0, prec->xi1, prec->yi0, prec->yi1);
+-                    }
+-                }
+-            }
+-        }
+-    }
+-}
+-#endif
+-
+-/* bitstream routines */
+-
+-/** put n times val bit */
+-static void put_bits(Jpeg2000EncoderContext *s, int val, int n) // TODO: optimize
+-{
+-    while (n-- > 0){
+-        if (s->bit_index == 8)
+-        {
+-            s->bit_index = *s->buf == 0xff;
+-            *(++s->buf) = 0;
+-        }
+-        *s->buf |= val << (7 - s->bit_index++);
+-    }
+-}
+-
+-/** put n least significant bits of a number num */
+-static void put_num(Jpeg2000EncoderContext *s, int num, int n)
+-{
+-    while(--n >= 0)
+-        put_bits(s, (num >> n) & 1, 1);
+-}
+-
+-/** flush the bitstream */
+-static void j2k_flush(Jpeg2000EncoderContext *s)
+-{
+-    if (s->bit_index){
+-        s->bit_index = 0;
+-        s->buf++;
+-    }
+-}
+-
+-/* tag tree routines */
+-
+-/** code the value stored in node */
+-static void tag_tree_code(Jpeg2000EncoderContext *s, Jpeg2000TgtNode *node, int threshold)
+-{
+-    Jpeg2000TgtNode *stack[30];
+-    int sp = 1, curval = 0;
+-    stack[0] = node;
+-
+-    node = node->parent;
+-    while(node){
+-        if (node->vis){
+-            curval = node->val;
+-            break;
+-        }
+-        node->vis++;
+-        stack[sp++] = node;
+-        node = node->parent;
+-    }
+-    while(--sp >= 0){
+-        if (stack[sp]->val >= threshold){
+-            put_bits(s, 0, threshold - curval);
+-            break;
+-        }
+-        put_bits(s, 0, stack[sp]->val - curval);
+-        put_bits(s, 1, 1);
+-        curval = stack[sp]->val;
+-    }
+-}
+-
+-/** update the value in node */
+-static void tag_tree_update(Jpeg2000TgtNode *node)
+-{
+-    int lev = 0;
+-    while (node->parent){
+-        if (node->parent->val <= node->val)
+-            break;
+-        node->parent->val = node->val;
+-        node = node->parent;
+-        lev++;
+-    }
+-}
+-
+-static int put_siz(Jpeg2000EncoderContext *s)
+-{
+-    int i;
+-
+-    if (s->buf_end - s->buf < 40 + 3 * s->ncomponents)
+-        return -1;
+-
+-    bytestream_put_be16(&s->buf, JPEG2000_SIZ);
+-    bytestream_put_be16(&s->buf, 38 + 3 * s->ncomponents); // Lsiz
+-    bytestream_put_be16(&s->buf, 0); // Rsiz
+-    bytestream_put_be32(&s->buf, s->width); // width
+-    bytestream_put_be32(&s->buf, s->height); // height
+-    bytestream_put_be32(&s->buf, 0); // X0Siz
+-    bytestream_put_be32(&s->buf, 0); // Y0Siz
+-
+-    bytestream_put_be32(&s->buf, s->tile_width); // XTSiz
+-    bytestream_put_be32(&s->buf, s->tile_height); // YTSiz
+-    bytestream_put_be32(&s->buf, 0); // XT0Siz
+-    bytestream_put_be32(&s->buf, 0); // YT0Siz
+-    bytestream_put_be16(&s->buf, s->ncomponents); // CSiz
+-
+-    for (i = 0; i < s->ncomponents; i++){ // Ssiz_i XRsiz_i, YRsiz_i
+-        bytestream_put_byte(&s->buf, 7);
+-        bytestream_put_byte(&s->buf, i?1<<s->chroma_shift[0]:1);
+-        bytestream_put_byte(&s->buf, i?1<<s->chroma_shift[1]:1);
+-    }
+-    return 0;
+-}
+-
+-static int put_cod(Jpeg2000EncoderContext *s)
+-{
+-    Jpeg2000CodingStyle *codsty = &s->codsty;
+-
+-    if (s->buf_end - s->buf < 14)
+-        return -1;
+-
+-    bytestream_put_be16(&s->buf, JPEG2000_COD);
+-    bytestream_put_be16(&s->buf, 12); // Lcod
+-    bytestream_put_byte(&s->buf, 0);  // Scod
+-    // SGcod
+-    bytestream_put_byte(&s->buf, 0); // progression level
+-    bytestream_put_be16(&s->buf, 1); // num of layers
+-    if(s->avctx->pix_fmt == AV_PIX_FMT_YUV444P){
+-        bytestream_put_byte(&s->buf, 2); // ICT
+-    }else{
+-        bytestream_put_byte(&s->buf, 0); // unspecified
+-    }
+-    // SPcod
+-    bytestream_put_byte(&s->buf, codsty->nreslevels - 1); // num of decomp. levels
+-    bytestream_put_byte(&s->buf, codsty->log2_cblk_width-2); // cblk width
+-    bytestream_put_byte(&s->buf, codsty->log2_cblk_height-2); // cblk height
+-    bytestream_put_byte(&s->buf, 0); // cblk style
+-    bytestream_put_byte(&s->buf, codsty->transform == FF_DWT53); // transformation
+-    return 0;
+-}
+-
+-static int put_qcd(Jpeg2000EncoderContext *s, int compno)
+-{
+-    int i, size;
+-    Jpeg2000CodingStyle *codsty = &s->codsty;
+-    Jpeg2000QuantStyle  *qntsty = &s->qntsty;
+-
+-    if (qntsty->quantsty == JPEG2000_QSTY_NONE)
+-        size = 4 + 3 * (codsty->nreslevels-1);
+-    else // QSTY_SE
+-        size = 5 + 6 * (codsty->nreslevels-1);
+-
+-    if (s->buf_end - s->buf < size + 2)
+-        return -1;
+-
+-    bytestream_put_be16(&s->buf, JPEG2000_QCD);
+-    bytestream_put_be16(&s->buf, size);  // LQcd
+-    bytestream_put_byte(&s->buf, (qntsty->nguardbits << 5) | qntsty->quantsty);  // Sqcd
+-    if (qntsty->quantsty == JPEG2000_QSTY_NONE)
+-        for (i = 0; i < codsty->nreslevels * 3 - 2; i++)
+-            bytestream_put_byte(&s->buf, qntsty->expn[i] << 3);
+-    else // QSTY_SE
+-        for (i = 0; i < codsty->nreslevels * 3 - 2; i++)
+-            bytestream_put_be16(&s->buf, (qntsty->expn[i] << 11) | qntsty->mant[i]);
+-    return 0;
+-}
+-
+-static uint8_t *put_sot(Jpeg2000EncoderContext *s, int tileno)
+-{
+-    uint8_t *psotptr;
+-
+-    if (s->buf_end - s->buf < 12)
+-        return NULL;
+-
+-    bytestream_put_be16(&s->buf, JPEG2000_SOT);
+-    bytestream_put_be16(&s->buf, 10); // Lsot
+-    bytestream_put_be16(&s->buf, tileno); // Isot
+-
+-    psotptr = s->buf;
+-    bytestream_put_be32(&s->buf, 0); // Psot (filled in later)
+-
+-    bytestream_put_byte(&s->buf, 0); // TPsot
+-    bytestream_put_byte(&s->buf, 1); // TNsot
+-    return psotptr;
+-}
+-
+-/**
+- * compute the sizes of tiles, resolution levels, bands, etc.
+- * allocate memory for them
+- * divide the input image into tile-components
+- */
+-static int init_tiles(Jpeg2000EncoderContext *s)
+-{
+-    int tileno, tilex, tiley, compno;
+-    Jpeg2000CodingStyle *codsty = &s->codsty;
+-    Jpeg2000QuantStyle  *qntsty = &s->qntsty;
+-
+-    s->numXtiles = ff_jpeg2000_ceildiv(s->width, s->tile_width);
+-    s->numYtiles = ff_jpeg2000_ceildiv(s->height, s->tile_height);
+-
+-    s->tile = av_malloc(s->numXtiles * s->numYtiles * sizeof(Jpeg2000Tile));
+-    if (!s->tile)
+-        return AVERROR(ENOMEM);
+-    for (tileno = 0, tiley = 0; tiley < s->numYtiles; tiley++)
+-        for (tilex = 0; tilex < s->numXtiles; tilex++, tileno++){
+-            Jpeg2000Tile *tile = s->tile + tileno;
+-
+-            tile->comp = av_mallocz(s->ncomponents * sizeof(Jpeg2000Component));
+-            if (!tile->comp)
+-                return AVERROR(ENOMEM);
+-            for (compno = 0; compno < s->ncomponents; compno++){
+-                Jpeg2000Component *comp = tile->comp + compno;
+-                int ret, i, j;
+-
+-                comp->coord[0][0] = comp->coord_o[0][0] = tilex * s->tile_width;
+-                comp->coord[0][1] = comp->coord_o[0][1] = FFMIN((tilex+1)*s->tile_width, s->width);
+-                comp->coord[1][0] = comp->coord_o[1][0] = tiley * s->tile_height;
+-                comp->coord[1][1] = comp->coord_o[1][1] = FFMIN((tiley+1)*s->tile_height, s->height);
+-                if (compno > 0)
+-                    for (i = 0; i < 2; i++)
+-                        for (j = 0; j < 2; j++)
+-                            comp->coord[i][j] = comp->coord_o[i][j] = ff_jpeg2000_ceildivpow2(comp->coord[i][j], s->chroma_shift[i]);
+-
+-                if (ret = ff_jpeg2000_init_component(comp,
+-                                                codsty,
+-                                                qntsty,
+-                                                s->cbps[compno],
+-                                                compno?1<<s->chroma_shift[0]:1,
+-                                                compno?1<<s->chroma_shift[1]:1,
+-                                                s->avctx
+-                                               ))
+-                    return ret;
+-            }
+-        }
+-    return 0;
+-}
+-
+-static void copy_frame(Jpeg2000EncoderContext *s)
+-{
+-    int tileno, compno, i, y, x;
+-    uint8_t *line;
+-    for (tileno = 0; tileno < s->numXtiles * s->numYtiles; tileno++){
+-        Jpeg2000Tile *tile = s->tile + tileno;
+-        if (s->planar){
+-            for (compno = 0; compno < s->ncomponents; compno++){
+-                Jpeg2000Component *comp = tile->comp + compno;
+-                int *dst = comp->i_data;
+-                line = s->picture.data[compno]
+-                       + comp->coord[1][0] * s->picture.linesize[compno]
+-                       + comp->coord[0][0];
+-                for (y = comp->coord[1][0]; y < comp->coord[1][1]; y++){
+-                    uint8_t *ptr = line;
+-                    for (x = comp->coord[0][0]; x < comp->coord[0][1]; x++)
+-                        *dst++ = *ptr++ - (1 << 7);
+-                    line += s->picture.linesize[compno];
+-                }
+-            }
+-        } else{
+-            line = s->picture.data[0] + tile->comp[0].coord[1][0] * s->picture.linesize[0]
+-                   + tile->comp[0].coord[0][0] * s->ncomponents;
+-
+-            i = 0;
+-            for (y = tile->comp[0].coord[1][0]; y < tile->comp[0].coord[1][1]; y++){
+-                uint8_t *ptr = line;
+-                for (x = tile->comp[0].coord[0][0]; x < tile->comp[0].coord[0][1]; x++, i++){
+-                    for (compno = 0; compno < s->ncomponents; compno++){
+-                        tile->comp[compno].i_data[i] = *ptr++  - (1 << 7);
+-                    }
+-                }
+-                line += s->picture.linesize[0];
+-            }
+-        }
+-    }
+-}
+-
+-static void init_quantization(Jpeg2000EncoderContext *s)
+-{
+-    int compno, reslevelno, bandno;
+-    Jpeg2000QuantStyle  *qntsty = &s->qntsty;
+-    Jpeg2000CodingStyle *codsty = &s->codsty;
+-
+-    for (compno = 0; compno < s->ncomponents; compno++){
+-        int gbandno = 0;
+-        for (reslevelno = 0; reslevelno < codsty->nreslevels; reslevelno++){
+-            int nbands, lev = codsty->nreslevels - reslevelno - 1;
+-            nbands = reslevelno ? 3 : 1;
+-            for (bandno = 0; bandno < nbands; bandno++, gbandno++){
+-                int expn, mant;
+-
+-                if (codsty->transform == FF_DWT97_INT){
+-                    int bandpos = bandno + (reslevelno>0),
+-                        ss = 81920000 / dwt_norms[0][bandpos][lev],
+-                        log = av_log2(ss);
+-                    mant = (11 - log < 0 ? ss >> log - 11 : ss << 11 - log) & 0x7ff;
+-                    expn = s->cbps[compno] - log + 13;
+-                } else
+-                    expn = ((bandno&2)>>1) + (reslevelno>0) + s->cbps[compno];
+-
+-                qntsty->expn[gbandno] = expn;
+-                qntsty->mant[gbandno] = mant;
+-            }
+-        }
+-    }
+-}
+-
+-static void init_luts(void)
+-{
+-    int i, a,
+-        mask = ~((1<<NMSEDEC_FRACBITS)-1);
+-
+-    for (i = 0; i < (1 << NMSEDEC_BITS); i++){
+-        lut_nmsedec_sig[i]  = FFMAX(6*i - (9<<NMSEDEC_FRACBITS-1) << 12-NMSEDEC_FRACBITS, 0);
+-        lut_nmsedec_sig0[i] = FFMAX((i*i + (1<<NMSEDEC_FRACBITS-1) & mask) << 1, 0);
+-
+-        a = (i >> (NMSEDEC_BITS-2)&2) + 1;
+-        lut_nmsedec_ref[i]  = FFMAX((-2*i + (1<<NMSEDEC_FRACBITS) + a*i - (a*a<<NMSEDEC_FRACBITS-2))
+-                                    << 13-NMSEDEC_FRACBITS, 0);
+-        lut_nmsedec_ref0[i] = FFMAX(((i*i + (1-4*i << NMSEDEC_FRACBITS-1) + (1<<2*NMSEDEC_FRACBITS)) & mask)
+-                                    << 1, 0);
+-    }
+-}
+-
+-/* tier-1 routines */
+-static int getnmsedec_sig(int x, int bpno)
+-{
+-    if (bpno > NMSEDEC_FRACBITS)
+-        return lut_nmsedec_sig[(x >> (bpno - NMSEDEC_FRACBITS)) & ((1 << NMSEDEC_BITS) - 1)];
+-    return lut_nmsedec_sig0[x & ((1 << NMSEDEC_BITS) - 1)];
+-}
+-
+-static int getnmsedec_ref(int x, int bpno)
+-{
+-    if (bpno > NMSEDEC_FRACBITS)
+-        return lut_nmsedec_ref[(x >> (bpno - NMSEDEC_FRACBITS)) & ((1 << NMSEDEC_BITS) - 1)];
+-    return lut_nmsedec_ref0[x & ((1 << NMSEDEC_BITS) - 1)];
+-}
+-
+-static void encode_sigpass(Jpeg2000T1Context *t1, int width, int height, int bandno, int *nmsedec, int bpno)
+-{
+-    int y0, x, y, mask = 1 << (bpno + NMSEDEC_FRACBITS);
+-    for (y0 = 0; y0 < height; y0 += 4)
+-        for (x = 0; x < width; x++)
+-            for (y = y0; y < height && y < y0+4; y++){
+-                if (!(t1->flags[y+1][x+1] & JPEG2000_T1_SIG) && (t1->flags[y+1][x+1] & JPEG2000_T1_SIG_NB)){
+-                    int ctxno = ff_jpeg2000_getsigctxno(t1->flags[y+1][x+1], bandno),
+-                        bit = t1->data[y][x] & mask ? 1 : 0;
+-                    ff_mqc_encode(&t1->mqc, t1->mqc.cx_states + ctxno, bit);
+-                    if (bit){
+-                        int xorbit;
+-                        int ctxno = ff_jpeg2000_getsgnctxno(t1->flags[y+1][x+1], &xorbit);
+-                        ff_mqc_encode(&t1->mqc, t1->mqc.cx_states + ctxno, (t1->flags[y+1][x+1] >> 15) ^ xorbit);
+-                        *nmsedec += getnmsedec_sig(t1->data[y][x], bpno + NMSEDEC_FRACBITS);
+-                        ff_jpeg2000_set_significance(t1, x, y, t1->flags[y+1][x+1] >> 15);
+-                    }
+-                    t1->flags[y+1][x+1] |= JPEG2000_T1_VIS;
+-                }
+-            }
+-}
+-
+-static void encode_refpass(Jpeg2000T1Context *t1, int width, int height, int *nmsedec, int bpno)
+-{
+-    int y0, x, y, mask = 1 << (bpno + NMSEDEC_FRACBITS);
+-    for (y0 = 0; y0 < height; y0 += 4)
+-        for (x = 0; x < width; x++)
+-            for (y = y0; y < height && y < y0+4; y++)
+-                if ((t1->flags[y+1][x+1] & (JPEG2000_T1_SIG | JPEG2000_T1_VIS)) == JPEG2000_T1_SIG){
+-                    int ctxno = ff_jpeg2000_getrefctxno(t1->flags[y+1][x+1]);
+-                    *nmsedec += getnmsedec_ref(t1->data[y][x], bpno + NMSEDEC_FRACBITS);
+-                    ff_mqc_encode(&t1->mqc, t1->mqc.cx_states + ctxno, t1->data[y][x] & mask ? 1:0);
+-                    t1->flags[y+1][x+1] |= JPEG2000_T1_REF;
+-                }
+-}
+-
+-static void encode_clnpass(Jpeg2000T1Context *t1, int width, int height, int bandno, int *nmsedec, int bpno)
+-{
+-    int y0, x, y, mask = 1 << (bpno + NMSEDEC_FRACBITS);
+-    for (y0 = 0; y0 < height; y0 += 4)
+-        for (x = 0; x < width; x++){
+-            if (y0 + 3 < height && !(
+-            (t1->flags[y0+1][x+1] & (JPEG2000_T1_SIG_NB | JPEG2000_T1_VIS | JPEG2000_T1_SIG)) ||
+-            (t1->flags[y0+2][x+1] & (JPEG2000_T1_SIG_NB | JPEG2000_T1_VIS | JPEG2000_T1_SIG)) ||
+-            (t1->flags[y0+3][x+1] & (JPEG2000_T1_SIG_NB | JPEG2000_T1_VIS | JPEG2000_T1_SIG)) ||
+-            (t1->flags[y0+4][x+1] & (JPEG2000_T1_SIG_NB | JPEG2000_T1_VIS | JPEG2000_T1_SIG))))
+-            {
+-                // aggregation mode
+-                int rlen;
+-                for (rlen = 0; rlen < 4; rlen++)
+-                    if (t1->data[y0+rlen][x] & mask)
+-                        break;
+-                ff_mqc_encode(&t1->mqc, t1->mqc.cx_states + MQC_CX_RL, rlen != 4);
+-                if (rlen == 4)
+-                    continue;
+-                ff_mqc_encode(&t1->mqc, t1->mqc.cx_states + MQC_CX_UNI, rlen >> 1);
+-                ff_mqc_encode(&t1->mqc, t1->mqc.cx_states + MQC_CX_UNI, rlen & 1);
+-                for (y = y0 + rlen; y < y0 + 4; y++){
+-                    if (!(t1->flags[y+1][x+1] & (JPEG2000_T1_SIG | JPEG2000_T1_VIS))){
+-                        int ctxno = ff_jpeg2000_getsigctxno(t1->flags[y+1][x+1], bandno);
+-                        if (y > y0 + rlen)
+-                            ff_mqc_encode(&t1->mqc, t1->mqc.cx_states + ctxno, t1->data[y][x] & mask ? 1:0);
+-                        if (t1->data[y][x] & mask){ // newly significant
+-                            int xorbit;
+-                            int ctxno = ff_jpeg2000_getsgnctxno(t1->flags[y+1][x+1], &xorbit);
+-                            *nmsedec += getnmsedec_sig(t1->data[y][x], bpno + NMSEDEC_FRACBITS);
+-                            ff_mqc_encode(&t1->mqc, t1->mqc.cx_states + ctxno, (t1->flags[y+1][x+1] >> 15) ^ xorbit);
+-                            ff_jpeg2000_set_significance(t1, x, y, t1->flags[y+1][x+1] >> 15);
+-                        }
+-                    }
+-                    t1->flags[y+1][x+1] &= ~JPEG2000_T1_VIS;
+-                }
+-            } else{
+-                for (y = y0; y < y0 + 4 && y < height; y++){
+-                    if (!(t1->flags[y+1][x+1] & (JPEG2000_T1_SIG | JPEG2000_T1_VIS))){
+-                        int ctxno = ff_jpeg2000_getsigctxno(t1->flags[y+1][x+1], bandno);
+-                        ff_mqc_encode(&t1->mqc, t1->mqc.cx_states + ctxno, t1->data[y][x] & mask ? 1:0);
+-                        if (t1->data[y][x] & mask){ // newly significant
+-                            int xorbit;
+-                            int ctxno = ff_jpeg2000_getsgnctxno(t1->flags[y+1][x+1], &xorbit);
+-                            *nmsedec += getnmsedec_sig(t1->data[y][x], bpno + NMSEDEC_FRACBITS);
+-                            ff_mqc_encode(&t1->mqc, t1->mqc.cx_states + ctxno, (t1->flags[y+1][x+1] >> 15) ^ xorbit);
+-                            ff_jpeg2000_set_significance(t1, x, y, t1->flags[y+1][x+1] >> 15);
+-                        }
+-                    }
+-                    t1->flags[y+1][x+1] &= ~JPEG2000_T1_VIS;
+-                }
+-            }
+-        }
+-}
+-
+-static void encode_cblk(Jpeg2000EncoderContext *s, Jpeg2000T1Context *t1, Jpeg2000Cblk *cblk, Jpeg2000Tile *tile,
+-                        int width, int height, int bandpos, int lev)
+-{
+-    int pass_t = 2, passno, x, y, max=0, nmsedec, bpno;
+-    int64_t wmsedec = 0;
+-
+-    for (y = 0; y < height+2; y++)
+-        memset(t1->flags[y], 0, (width+2)*sizeof(int));
+-
+-    for (y = 0; y < height; y++){
+-        for (x = 0; x < width; x++){
+-            if (t1->data[y][x] < 0){
+-                t1->flags[y+1][x+1] |= JPEG2000_T1_SGN;
+-                t1->data[y][x] = -t1->data[y][x];
+-            }
+-            max = FFMAX(max, t1->data[y][x]);
+-        }
+-    }
+-
+-    if (max == 0){
+-        cblk->nonzerobits = 0;
+-        bpno = 0;
+-    } else{
+-        cblk->nonzerobits = av_log2(max) + 1 - NMSEDEC_FRACBITS;
+-        bpno = cblk->nonzerobits - 1;
+-    }
+-
+-    ff_mqc_initenc(&t1->mqc, cblk->data);
+-
+-    for (passno = 0; bpno >= 0; passno++){
+-        nmsedec=0;
+-
+-        switch(pass_t){
+-            case 0: encode_sigpass(t1, width, height, bandpos, &nmsedec, bpno);
+-                    break;
+-            case 1: encode_refpass(t1, width, height, &nmsedec, bpno);
+-                    break;
+-            case 2: encode_clnpass(t1, width, height, bandpos, &nmsedec, bpno);
+-                    break;
+-        }
+-
+-        cblk->passes[passno].rate = 3 + ff_mqc_length(&t1->mqc);
+-        wmsedec += (int64_t)nmsedec << (2*bpno);
+-        cblk->passes[passno].disto = wmsedec;
+-
+-        if (++pass_t == 3){
+-            pass_t = 0;
+-            bpno--;
+-        }
+-    }
+-    cblk->npasses = passno;
+-    cblk->ninclpasses = passno;
+-
+-    // TODO: optional flush on each pass
+-    cblk->passes[passno-1].rate = ff_mqc_flush(&t1->mqc);
+-}
+-
+-/* tier-2 routines: */
+-
+-static void putnumpasses(Jpeg2000EncoderContext *s, int n)
+-{
+-    if (n == 1)
+-        put_num(s, 0, 1);
+-    else if (n == 2)
+-        put_num(s, 2, 2);
+-    else if (n <= 5)
+-        put_num(s, 0xc | (n-3), 4);
+-    else if (n <= 36)
+-        put_num(s, 0x1e0 | (n-6), 9);
+-    else
+-        put_num(s, 0xff80 | (n-37), 16);
+-}
+-
+-
+-static int encode_packet(Jpeg2000EncoderContext *s, Jpeg2000ResLevel *rlevel, int precno,
+-                          uint8_t *expn, int numgbits)
+-{
+-    int bandno, empty = 1;
+-
+-    // init bitstream
+-    *s->buf = 0;
+-    s->bit_index = 0;
+-
+-    // header
+-
+-    // is the packet empty?
+-    for (bandno = 0; bandno < rlevel->nbands; bandno++){
+-        if (rlevel->band[bandno].coord[0][0] < rlevel->band[bandno].coord[0][1]
+-        &&  rlevel->band[bandno].coord[1][0] < rlevel->band[bandno].coord[1][1]){
+-            empty = 0;
+-            break;
+-        }
+-    }
+-
+-    put_bits(s, !empty, 1);
+-    if (empty){
+-        j2k_flush(s);
+-        return 0;
+-    }
+-
+-    for (bandno = 0; bandno < rlevel->nbands; bandno++){
+-        Jpeg2000Band *band = rlevel->band + bandno;
+-        Jpeg2000Prec *prec = band->prec + precno;
+-        int yi, xi, pos;
+-        int cblknw = prec->nb_codeblocks_width;
+-
+-        if (band->coord[0][0] == band->coord[0][1]
+-        ||  band->coord[1][0] == band->coord[1][1])
+-            continue;
+-
+-        for (pos=0, yi = 0; yi < prec->nb_codeblocks_height; yi++){
+-            for (xi = 0; xi < cblknw; xi++, pos++){
+-                prec->cblkincl[pos].val = prec->cblk[yi * cblknw + xi].ninclpasses == 0;
+-                tag_tree_update(prec->cblkincl + pos);
+-                prec->zerobits[pos].val = expn[bandno] + numgbits - 1 - prec->cblk[yi * cblknw + xi].nonzerobits;
+-                tag_tree_update(prec->zerobits + pos);
+-            }
+-        }
+-
+-        for (pos=0, yi = 0; yi < prec->nb_codeblocks_height; yi++){
+-            for (xi = 0; xi < cblknw; xi++, pos++){
+-                int pad = 0, llen, length;
+-                Jpeg2000Cblk *cblk = prec->cblk + yi * cblknw + xi;
+-
+-                if (s->buf_end - s->buf < 20) // approximately
+-                    return -1;
+-
+-                // inclusion information
+-                tag_tree_code(s, prec->cblkincl + pos, 1);
+-                if (!cblk->ninclpasses)
+-                    continue;
+-                // zerobits information
+-                tag_tree_code(s, prec->zerobits + pos, 100);
+-                // number of passes
+-                putnumpasses(s, cblk->ninclpasses);
+-
+-                length = cblk->passes[cblk->ninclpasses-1].rate;
+-                llen = av_log2(length) - av_log2(cblk->ninclpasses) - 2;
+-                if (llen < 0){
+-                    pad = -llen;
+-                    llen = 0;
+-                }
+-                // length of code block
+-                put_bits(s, 1, llen);
+-                put_bits(s, 0, 1);
+-                put_num(s, length, av_log2(length)+1+pad);
+-            }
+-        }
+-    }
+-    j2k_flush(s);
+-    for (bandno = 0; bandno < rlevel->nbands; bandno++){
+-        Jpeg2000Band *band = rlevel->band + bandno;
+-        Jpeg2000Prec *prec = band->prec + precno;
+-        int yi, cblknw = prec->nb_codeblocks_width;
+-        for (yi =0; yi < prec->nb_codeblocks_height; yi++){
+-            int xi;
+-            for (xi = 0; xi < cblknw; xi++){
+-                Jpeg2000Cblk *cblk = prec->cblk + yi * cblknw + xi;
+-                if (cblk->ninclpasses){
+-                    if (s->buf_end - s->buf < cblk->passes[cblk->ninclpasses-1].rate)
+-                        return -1;
+-                    bytestream_put_buffer(&s->buf, cblk->data, cblk->passes[cblk->ninclpasses-1].rate);
+-                }
+-            }
+-        }
+-    }
+-    return 0;
+-}
+-
+-static int encode_packets(Jpeg2000EncoderContext *s, Jpeg2000Tile *tile, int tileno)
+-{
+-    int compno, reslevelno, ret;
+-    Jpeg2000CodingStyle *codsty = &s->codsty;
+-    Jpeg2000QuantStyle  *qntsty = &s->qntsty;
+-
+-    av_log(s->avctx, AV_LOG_DEBUG, "tier2\n");
+-    // lay-rlevel-comp-pos progression
+-    for (reslevelno = 0; reslevelno < codsty->nreslevels; reslevelno++){
+-        for (compno = 0; compno < s->ncomponents; compno++){
+-            int precno;
+-            Jpeg2000ResLevel *reslevel = s->tile[tileno].comp[compno].reslevel + reslevelno;
+-            for (precno = 0; precno < reslevel->num_precincts_x * reslevel->num_precincts_y; precno++){
+-                if (ret = encode_packet(s, reslevel, precno, qntsty->expn + (reslevelno ? 3*reslevelno-2 : 0),
+-                              qntsty->nguardbits))
+-                    return ret;
+-            }
+-        }
+-    }
+-    av_log(s->avctx, AV_LOG_DEBUG, "after tier2\n");
+-    return 0;
+-}
+-
+-static int getcut(Jpeg2000Cblk *cblk, int64_t lambda, int dwt_norm)
+-{
+-    int passno, res = 0;
+-    for (passno = 0; passno < cblk->npasses; passno++){
+-        int dr;
+-        int64_t dd;
+-
+-        dr = cblk->passes[passno].rate
+-           - (res ? cblk->passes[res-1].rate:0);
+-        dd = cblk->passes[passno].disto
+-           - (res ? cblk->passes[res-1].disto:0);
+-
+-        if (((dd * dwt_norm) >> WMSEDEC_SHIFT) * dwt_norm >= dr * lambda)
+-            res = passno+1;
+-    }
+-    return res;
+-}
+-
+-static void truncpasses(Jpeg2000EncoderContext *s, Jpeg2000Tile *tile)
+-{
+-    int precno, compno, reslevelno, bandno, cblkno, lev;
+-    Jpeg2000CodingStyle *codsty = &s->codsty;
+-
+-    for (compno = 0; compno < s->ncomponents; compno++){
+-        Jpeg2000Component *comp = tile->comp + compno;
+-
+-        for (reslevelno = 0, lev = codsty->nreslevels-1; reslevelno < codsty->nreslevels; reslevelno++, lev--){
+-            Jpeg2000ResLevel *reslevel = comp->reslevel + reslevelno;
+-
+-            for (precno = 0; precno < reslevel->num_precincts_x * reslevel->num_precincts_y; precno++){
+-                for (bandno = 0; bandno < reslevel->nbands ; bandno++){
+-                    int bandpos = bandno + (reslevelno > 0);
+-                    Jpeg2000Band *band = reslevel->band + bandno;
+-                    Jpeg2000Prec *prec = band->prec + precno;
+-
+-                    for (cblkno = 0; cblkno < prec->nb_codeblocks_height * prec->nb_codeblocks_width; cblkno++){
+-                        Jpeg2000Cblk *cblk = prec->cblk + cblkno;
+-
+-                        cblk->ninclpasses = getcut(cblk, s->lambda,
+-                                (int64_t)dwt_norms[codsty->transform == FF_DWT53][bandpos][lev] * (int64_t)band->i_stepsize >> 15);
+-                    }
+-                }
+-            }
+-        }
+-    }
+-}
+-
+-static int encode_tile(Jpeg2000EncoderContext *s, Jpeg2000Tile *tile, int tileno)
+-{
+-    int compno, reslevelno, bandno, ret;
+-    Jpeg2000T1Context t1;
+-    Jpeg2000CodingStyle *codsty = &s->codsty;
+-    for (compno = 0; compno < s->ncomponents; compno++){
+-        Jpeg2000Component *comp = s->tile[tileno].comp + compno;
+-
+-        av_log(s->avctx, AV_LOG_DEBUG,"dwt\n");
+-        if (ret = ff_dwt_encode(&comp->dwt, comp->i_data))
+-            return ret;
+-        av_log(s->avctx, AV_LOG_DEBUG,"after dwt -> tier1\n");
+-
+-        for (reslevelno = 0; reslevelno < codsty->nreslevels; reslevelno++){
+-            Jpeg2000ResLevel *reslevel = comp->reslevel + reslevelno;
+-
+-            for (bandno = 0; bandno < reslevel->nbands ; bandno++){
+-                Jpeg2000Band *band = reslevel->band + bandno;
+-                Jpeg2000Prec *prec = band->prec; // we support only 1 precinct per band ATM in the encoder
+-                int cblkx, cblky, cblkno=0, xx0, x0, xx1, y0, yy0, yy1, bandpos;
+-                yy0 = bandno == 0 ? 0 : comp->reslevel[reslevelno-1].coord[1][1] - comp->reslevel[reslevelno-1].coord[1][0];
+-                y0 = yy0;
+-                yy1 = FFMIN(ff_jpeg2000_ceildivpow2(band->coord[1][0] + 1, band->log2_cblk_height) << band->log2_cblk_height,
+-                            band->coord[1][1]) - band->coord[1][0] + yy0;
+-
+-                if (band->coord[0][0] == band->coord[0][1] || band->coord[1][0] == band->coord[1][1])
+-                    continue;
+-
+-                bandpos = bandno + (reslevelno > 0);
+-
+-                for (cblky = 0; cblky < prec->nb_codeblocks_height; cblky++){
+-                    if (reslevelno == 0 || bandno == 1)
+-                        xx0 = 0;
+-                    else
+-                        xx0 = comp->reslevel[reslevelno-1].coord[0][1] - comp->reslevel[reslevelno-1].coord[0][0];
+-                    x0 = xx0;
+-                    xx1 = FFMIN(ff_jpeg2000_ceildivpow2(band->coord[0][0] + 1, band->log2_cblk_width) << band->log2_cblk_width,
+-                                band->coord[0][1]) - band->coord[0][0] + xx0;
+-
+-                    for (cblkx = 0; cblkx < prec->nb_codeblocks_width; cblkx++, cblkno++){
+-                        int y, x;
+-                        if (codsty->transform == FF_DWT53){
+-                            for (y = yy0; y < yy1; y++){
+-                                int *ptr = t1.data[y-yy0];
+-                                for (x = xx0; x < xx1; x++){
+-                                    *ptr++ = comp->i_data[(comp->coord[0][1] - comp->coord[0][0]) * y + x] << NMSEDEC_FRACBITS;
+-                                }
+-                            }
+-                        } else{
+-                            for (y = yy0; y < yy1; y++){
+-                                int *ptr = t1.data[y-yy0];
+-                                for (x = xx0; x < xx1; x++){
+-                                    *ptr = (comp->i_data[(comp->coord[0][1] - comp->coord[0][0]) * y + x]);
+-                                    *ptr = (int64_t)*ptr * (int64_t)(16384 * 65536 / band->i_stepsize) >> 15 - NMSEDEC_FRACBITS;
+-                                    ptr++;
+-                                }
+-                            }
+-                        }
+-                        encode_cblk(s, &t1, prec->cblk + cblkno, tile, xx1 - xx0, yy1 - yy0,
+-                                    bandpos, codsty->nreslevels - reslevelno - 1);
+-                        xx0 = xx1;
+-                        xx1 = FFMIN(xx1 + (1 << band->log2_cblk_width), band->coord[0][1] - band->coord[0][0] + x0);
+-                    }
+-                    yy0 = yy1;
+-                    yy1 = FFMIN(yy1 + (1 << band->log2_cblk_height), band->coord[1][1] - band->coord[1][0] + y0);
+-                }
+-            }
+-        }
+-        av_log(s->avctx, AV_LOG_DEBUG, "after tier1\n");
+-    }
+-
+-    av_log(s->avctx, AV_LOG_DEBUG, "rate control\n");
+-    truncpasses(s, tile);
+-    if (ret = encode_packets(s, tile, tileno))
+-        return ret;
+-    av_log(s->avctx, AV_LOG_DEBUG, "after rate control\n");
+-    return 0;
+-}
+-
+-static void cleanup(Jpeg2000EncoderContext *s)
+-{
+-    int tileno, compno;
+-    Jpeg2000CodingStyle *codsty = &s->codsty;
+-
+-    for (tileno = 0; tileno < s->numXtiles * s->numYtiles; tileno++){
+-        for (compno = 0; compno < s->ncomponents; compno++){
+-            Jpeg2000Component *comp = s->tile[tileno].comp + compno;
+-            ff_jpeg2000_cleanup(comp, codsty);
+-        }
+-        av_freep(&s->tile[tileno].comp);
+-    }
+-    av_freep(&s->tile);
+-}
+-
+-static void reinit(Jpeg2000EncoderContext *s)
+-{
+-    int tileno, compno;
+-    for (tileno = 0; tileno < s->numXtiles * s->numYtiles; tileno++){
+-        Jpeg2000Tile *tile = s->tile + tileno;
+-        for (compno = 0; compno < s->ncomponents; compno++)
+-            ff_jpeg2000_reinit(tile->comp + compno, &s->codsty);
+-    }
+-}
+-
+-static int encode_frame(AVCodecContext *avctx, AVPacket *pkt,
+-                        const AVFrame *pict, int *got_packet)
+-{
+-    int tileno, ret;
+-    Jpeg2000EncoderContext *s = avctx->priv_data;
+-
+-    if ((ret = ff_alloc_packet2(avctx, pkt, avctx->width*avctx->height*9 + FF_MIN_BUFFER_SIZE)) < 0)
+-        return ret;
+-
+-    // init:
+-    s->buf = s->buf_start = pkt->data;
+-    s->buf_end = pkt->data + pkt->size;
+-
+-    s->picture = *pict;
+-    avctx->coded_frame= &s->picture;
+-
+-    s->lambda = s->picture.quality * LAMBDA_SCALE;
+-
+-    copy_frame(s);
+-    reinit(s);
+-
+-    if (s->buf_end - s->buf < 2)
+-        return -1;
+-    bytestream_put_be16(&s->buf, JPEG2000_SOC);
+-    if (ret = put_siz(s))
+-        return ret;
+-    if (ret = put_cod(s))
+-        return ret;
+-    if (ret = put_qcd(s, 0))
+-        return ret;
+-
+-    for (tileno = 0; tileno < s->numXtiles * s->numYtiles; tileno++){
+-        uint8_t *psotptr;
+-        if (!(psotptr = put_sot(s, tileno)))
+-            return -1;
+-        if (s->buf_end - s->buf < 2)
+-            return -1;
+-        bytestream_put_be16(&s->buf, JPEG2000_SOD);
+-        if (ret = encode_tile(s, s->tile + tileno, tileno))
+-            return ret;
+-        bytestream_put_be32(&psotptr, s->buf - psotptr + 6);
+-    }
+-    if (s->buf_end - s->buf < 2)
+-        return -1;
+-    bytestream_put_be16(&s->buf, JPEG2000_EOC);
+-
+-    av_log(s->avctx, AV_LOG_DEBUG, "end\n");
+-    pkt->size = s->buf - s->buf_start;
+-    pkt->flags |= AV_PKT_FLAG_KEY;
+-    *got_packet = 1;
+-
+-    return 0;
+-}
+-
+-static av_cold int j2kenc_init(AVCodecContext *avctx)
+-{
+-    int i, ret;
+-    Jpeg2000EncoderContext *s = avctx->priv_data;
+-    Jpeg2000CodingStyle *codsty = &s->codsty;
+-    Jpeg2000QuantStyle  *qntsty = &s->qntsty;
+-
+-    s->avctx = avctx;
+-    av_log(s->avctx, AV_LOG_DEBUG, "init\n");
+-
+-    // defaults:
+-    // TODO: implement setting non-standard precinct size
+-    memset(codsty->log2_prec_widths , 15, sizeof(codsty->log2_prec_widths ));
+-    memset(codsty->log2_prec_heights, 15, sizeof(codsty->log2_prec_heights));
+-    codsty->nreslevels2decode=
+-    codsty->nreslevels       = 7;
+-    codsty->log2_cblk_width  = 4;
+-    codsty->log2_cblk_height = 4;
+-    codsty->transform        = avctx->prediction_method ? FF_DWT53 : FF_DWT97_INT;
+-
+-    qntsty->nguardbits       = 1;
+-
+-    s->tile_width            = 256;
+-    s->tile_height           = 256;
+-
+-    if (codsty->transform == FF_DWT53)
+-        qntsty->quantsty = JPEG2000_QSTY_NONE;
+-    else
+-        qntsty->quantsty = JPEG2000_QSTY_SE;
+-
+-    s->width = avctx->width;
+-    s->height = avctx->height;
+-
+-    for (i = 0; i < 3; i++)
+-        s->cbps[i] = 8;
+-
+-    if (avctx->pix_fmt == AV_PIX_FMT_RGB24){
+-        s->ncomponents = 3;
+-    } else if (avctx->pix_fmt == AV_PIX_FMT_GRAY8){
+-        s->ncomponents = 1;
+-    } else{ // planar YUV
+-        s->planar = 1;
+-        s->ncomponents = 3;
+-        avcodec_get_chroma_sub_sample(avctx->pix_fmt,
+-                s->chroma_shift, s->chroma_shift + 1);
+-    }
+-
+-    ff_jpeg2000_init_tier1_luts();
+-    ff_mqc_init_context_tables();
+-    init_luts();
+-
+-    init_quantization(s);
+-    if (ret=init_tiles(s))
+-        return ret;
+-
+-    av_log(s->avctx, AV_LOG_DEBUG, "after init\n");
+-
+-    return 0;
+-}
+-
+-static int j2kenc_destroy(AVCodecContext *avctx)
+-{
+-    Jpeg2000EncoderContext *s = avctx->priv_data;
+-
+-    cleanup(s);
+-    return 0;
+-}
+-
+-AVCodec ff_jpeg2000_encoder = {
+-    .name           = "jpeg2000",
+-    .long_name      = NULL_IF_CONFIG_SMALL("JPEG 2000"),
+-    .type           = AVMEDIA_TYPE_VIDEO,
+-    .id             = AV_CODEC_ID_JPEG2000,
+-    .priv_data_size = sizeof(Jpeg2000EncoderContext),
+-    .init           = j2kenc_init,
+-    .encode2        = encode_frame,
+-    .close          = j2kenc_destroy,
+-    .capabilities   = CODEC_CAP_EXPERIMENTAL,
+-    .pix_fmts       = (const enum AVPixelFormat[]) {
+-        AV_PIX_FMT_RGB24, AV_PIX_FMT_YUV444P, AV_PIX_FMT_GRAY8,
+-/*      AV_PIX_FMT_YUV420P,
+-        AV_PIX_FMT_YUV422P, AV_PIX_FMT_YUV444P,
+-        AV_PIX_FMT_YUV410P, AV_PIX_FMT_YUV411P,*/
+-        AV_PIX_FMT_NONE
+-    }
+-};
++/*
++ * JPEG2000 image encoder
++ * Copyright (c) 2007 Kamil Nowosad
++ *
++ * This file is part of FFmpeg.
++ *
++ * FFmpeg is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU Lesser General Public
++ * License as published by the Free Software Foundation; either
++ * version 2.1 of the License, or (at your option) any later version.
++ *
++ * FFmpeg is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * Lesser General Public License for more details.
++ *
++ * You should have received a copy of the GNU Lesser General Public
++ * License along with FFmpeg; if not, write to the Free Software
++ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
++ */
++
++/**
++ * JPEG2000 image encoder
++ * @file
++ * @author Kamil Nowosad
++ */
++
++#include <float.h>
++#include "avcodec.h"
++#include "internal.h"
++#include "bytestream.h"
++#include "jpeg2000.h"
++#include "libavutil/common.h"
++
++#define NMSEDEC_BITS 7
++#define NMSEDEC_FRACBITS (NMSEDEC_BITS-1)
++#define WMSEDEC_SHIFT 13 ///< must be >= 13
++#define LAMBDA_SCALE (100000000LL << (WMSEDEC_SHIFT - 13))
++
++static int lut_nmsedec_ref [1<<NMSEDEC_BITS],
++           lut_nmsedec_ref0[1<<NMSEDEC_BITS],
++           lut_nmsedec_sig [1<<NMSEDEC_BITS],
++           lut_nmsedec_sig0[1<<NMSEDEC_BITS];
++
++static const int dwt_norms[2][4][10] = { // [dwt_type][band][rlevel] (multiplied by 10000)
++    {{10000, 19650, 41770,  84030, 169000, 338400,  676900, 1353000, 2706000, 5409000},
++     {20220, 39890, 83550, 170400, 342700, 686300, 1373000, 2746000, 5490000},
++     {20220, 39890, 83550, 170400, 342700, 686300, 1373000, 2746000, 5490000},
++     {20800, 38650, 83070, 171800, 347100, 695900, 1393000, 2786000, 5572000}},
++
++    {{10000, 15000, 27500, 53750, 106800, 213400, 426700, 853300, 1707000, 3413000},
++     {10380, 15920, 29190, 57030, 113300, 226400, 452500, 904800, 1809000},
++     {10380, 15920, 29190, 57030, 113300, 226400, 452500, 904800, 1809000},
++     { 7186,  9218, 15860, 30430,  60190, 120100, 240000, 479700,  959300}}
++};
++
++typedef struct {
++   Jpeg2000Component *comp;
++} Jpeg2000Tile;
++
++typedef struct {
++    AVCodecContext *avctx;
++    AVFrame picture;
++
++    int width, height; ///< image width and height
++    uint8_t cbps[4]; ///< bits per sample in particular components
++    int chroma_shift[2];
++    uint8_t planar;
++    int ncomponents;
++    int tile_width, tile_height; ///< tile size
++    int numXtiles, numYtiles;
++
++    uint8_t *buf_start;
++    uint8_t *buf;
++    uint8_t *buf_end;
++    int bit_index;
++
++    int64_t lambda;
++
++    Jpeg2000CodingStyle codsty;
++    Jpeg2000QuantStyle  qntsty;
++
++    Jpeg2000Tile *tile;
++} Jpeg2000EncoderContext;
++
++
++/* debug */
++#if 0
++#undef ifprintf
++#undef printf
++
++static void nspaces(FILE *fd, int n)
++{
++    while(n--) putc(' ', fd);
++}
++
++static void printcomp(Jpeg2000Component *comp)
++{
++    int i;
++    for (i = 0; i < comp->y1 - comp->y0; i++)
++        ff_jpeg2000_printv(comp->i_data + i * (comp->x1 - comp->x0), comp->x1 - comp->x0);
++}
++
++static void dump(Jpeg2000EncoderContext *s, FILE *fd)
++{
++    int tileno, compno, reslevelno, bandno, precno;
++    fprintf(fd, "XSiz = %d, YSiz = %d, tile_width = %d, tile_height = %d\n"
++                "numXtiles = %d, numYtiles = %d, ncomponents = %d\n"
++                "tiles:\n",
++            s->width, s->height, s->tile_width, s->tile_height,
++            s->numXtiles, s->numYtiles, s->ncomponents);
++    for (tileno = 0; tileno < s->numXtiles * s->numYtiles; tileno++){
++        Jpeg2000Tile *tile = s->tile + tileno;
++        nspaces(fd, 2);
++        fprintf(fd, "tile %d:\n", tileno);
++        for(compno = 0; compno < s->ncomponents; compno++){
++            Jpeg2000Component *comp = tile->comp + compno;
++            nspaces(fd, 4);
++            fprintf(fd, "component %d:\n", compno);
++            nspaces(fd, 4);
++            fprintf(fd, "x0 = %d, x1 = %d, y0 = %d, y1 = %d\n",
++                        comp->x0, comp->x1, comp->y0, comp->y1);
++            for(reslevelno = 0; reslevelno < s->nreslevels; reslevelno++){
++                Jpeg2000ResLevel *reslevel = comp->reslevel + reslevelno;
++                nspaces(fd, 6);
++                fprintf(fd, "reslevel %d:\n", reslevelno);
++                nspaces(fd, 6);
++                fprintf(fd, "x0 = %d, x1 = %d, y0 = %d, y1 = %d, nbands = %d\n",
++                        reslevel->x0, reslevel->x1, reslevel->y0,
++                        reslevel->y1, reslevel->nbands);
++                for(bandno = 0; bandno < reslevel->nbands; bandno++){
++                    Jpeg2000Band *band = reslevel->band + bandno;
++                    nspaces(fd, 8);
++                    fprintf(fd, "band %d:\n", bandno);
++                    nspaces(fd, 8);
++                    fprintf(fd, "x0 = %d, x1 = %d, y0 = %d, y1 = %d,"
++                                "codeblock_width = %d, codeblock_height = %d cblknx = %d cblkny = %d\n",
++                                band->x0, band->x1,
++                                band->y0, band->y1,
++                                band->codeblock_width, band->codeblock_height,
++                                band->cblknx, band->cblkny);
++                    for (precno = 0; precno < reslevel->num_precincts_x * reslevel->num_precincts_y; precno++){
++                        Jpeg2000Prec *prec = band->prec + precno;
++                        nspaces(fd, 10);
++                        fprintf(fd, "prec %d:\n", precno);
++                        nspaces(fd, 10);
++                        fprintf(fd, "xi0 = %d, xi1 = %d, yi0 = %d, yi1 = %d\n",
++                                     prec->xi0, prec->xi1, prec->yi0, prec->yi1);
++                    }
++                }
++            }
++        }
++    }
++}
++#endif
++
++/* bitstream routines */
++
++/** put n times val bit */
++static void put_bits(Jpeg2000EncoderContext *s, int val, int n) // TODO: optimize
++{
++    while (n-- > 0){
++        if (s->bit_index == 8)
++        {
++            s->bit_index = *s->buf == 0xff;
++            *(++s->buf) = 0;
++        }
++        *s->buf |= val << (7 - s->bit_index++);
++    }
++}
++
++/** put n least significant bits of a number num */
++static void put_num(Jpeg2000EncoderContext *s, int num, int n)
++{
++    while(--n >= 0)
++        put_bits(s, (num >> n) & 1, 1);
++}
++
++/** flush the bitstream */
++static void j2k_flush(Jpeg2000EncoderContext *s)
++{
++    if (s->bit_index){
++        s->bit_index = 0;
++        s->buf++;
++    }
++}
++
++/* tag tree routines */
++
++/** code the value stored in node */
++static void tag_tree_code(Jpeg2000EncoderContext *s, Jpeg2000TgtNode *node, int threshold)
++{
++    Jpeg2000TgtNode *stack[30];
++    int sp = 1, curval = 0;
++    stack[0] = node;
++
++    node = node->parent;
++    while(node){
++        if (node->vis){
++            curval = node->val;
++            break;
++        }
++        node->vis++;
++        stack[sp++] = node;
++        node = node->parent;
++    }
++    while(--sp >= 0){
++        if (stack[sp]->val >= threshold){
++            put_bits(s, 0, threshold - curval);
++            break;
++        }
++        put_bits(s, 0, stack[sp]->val - curval);
++        put_bits(s, 1, 1);
++        curval = stack[sp]->val;
++    }
++}
++
++/** update the value in node */
++static void tag_tree_update(Jpeg2000TgtNode *node)
++{
++    int lev = 0;
++    while (node->parent){
++        if (node->parent->val <= node->val)
++            break;
++        node->parent->val = node->val;
++        node = node->parent;
++        lev++;
++    }
++}
++
++static int put_siz(Jpeg2000EncoderContext *s)
++{
++    int i;
++
++    if (s->buf_end - s->buf < 40 + 3 * s->ncomponents)
++        return -1;
++
++    bytestream_put_be16(&s->buf, JPEG2000_SIZ);
++    bytestream_put_be16(&s->buf, 38 + 3 * s->ncomponents); // Lsiz
++    bytestream_put_be16(&s->buf, 0); // Rsiz
++    bytestream_put_be32(&s->buf, s->width); // width
++    bytestream_put_be32(&s->buf, s->height); // height
++    bytestream_put_be32(&s->buf, 0); // X0Siz
++    bytestream_put_be32(&s->buf, 0); // Y0Siz
++
++    bytestream_put_be32(&s->buf, s->tile_width); // XTSiz
++    bytestream_put_be32(&s->buf, s->tile_height); // YTSiz
++    bytestream_put_be32(&s->buf, 0); // XT0Siz
++    bytestream_put_be32(&s->buf, 0); // YT0Siz
++    bytestream_put_be16(&s->buf, s->ncomponents); // CSiz
++
++    for (i = 0; i < s->ncomponents; i++){ // Ssiz_i XRsiz_i, YRsiz_i
++        bytestream_put_byte(&s->buf, 7);
++        bytestream_put_byte(&s->buf, i?1<<s->chroma_shift[0]:1);
++        bytestream_put_byte(&s->buf, i?1<<s->chroma_shift[1]:1);
++    }
++    return 0;
++}
++
++static int put_cod(Jpeg2000EncoderContext *s)
++{
++    Jpeg2000CodingStyle *codsty = &s->codsty;
++
++    if (s->buf_end - s->buf < 14)
++        return -1;
++
++    bytestream_put_be16(&s->buf, JPEG2000_COD);
++    bytestream_put_be16(&s->buf, 12); // Lcod
++    bytestream_put_byte(&s->buf, 0);  // Scod
++    // SGcod
++    bytestream_put_byte(&s->buf, 0); // progression level
++    bytestream_put_be16(&s->buf, 1); // num of layers
++    if(s->avctx->pix_fmt == AV_PIX_FMT_YUV444P){
++        bytestream_put_byte(&s->buf, 2); // ICT
++    }else{
++        bytestream_put_byte(&s->buf, 0); // unspecified
++    }
++    // SPcod
++    bytestream_put_byte(&s->buf, codsty->nreslevels - 1); // num of decomp. levels
++    bytestream_put_byte(&s->buf, codsty->log2_cblk_width-2); // cblk width
++    bytestream_put_byte(&s->buf, codsty->log2_cblk_height-2); // cblk height
++    bytestream_put_byte(&s->buf, 0); // cblk style
++    bytestream_put_byte(&s->buf, codsty->transform == FF_DWT53); // transformation
++    return 0;
++}
++
++static int put_qcd(Jpeg2000EncoderContext *s, int compno)
++{
++    int i, size;
++    Jpeg2000CodingStyle *codsty = &s->codsty;
++    Jpeg2000QuantStyle  *qntsty = &s->qntsty;
++
++    if (qntsty->quantsty == JPEG2000_QSTY_NONE)
++        size = 4 + 3 * (codsty->nreslevels-1);
++    else // QSTY_SE
++        size = 5 + 6 * (codsty->nreslevels-1);
++
++    if (s->buf_end - s->buf < size + 2)
++        return -1;
++
++    bytestream_put_be16(&s->buf, JPEG2000_QCD);
++    bytestream_put_be16(&s->buf, size);  // LQcd
++    bytestream_put_byte(&s->buf, (qntsty->nguardbits << 5) | qntsty->quantsty);  // Sqcd
++    if (qntsty->quantsty == JPEG2000_QSTY_NONE)
++        for (i = 0; i < codsty->nreslevels * 3 - 2; i++)
++            bytestream_put_byte(&s->buf, qntsty->expn[i] << 3);
++    else // QSTY_SE
++        for (i = 0; i < codsty->nreslevels * 3 - 2; i++)
++            bytestream_put_be16(&s->buf, (qntsty->expn[i] << 11) | qntsty->mant[i]);
++    return 0;
++}
++
++static uint8_t *put_sot(Jpeg2000EncoderContext *s, int tileno)
++{
++    uint8_t *psotptr;
++
++    if (s->buf_end - s->buf < 12)
++        return NULL;
++
++    bytestream_put_be16(&s->buf, JPEG2000_SOT);
++    bytestream_put_be16(&s->buf, 10); // Lsot
++    bytestream_put_be16(&s->buf, tileno); // Isot
++
++    psotptr = s->buf;
++    bytestream_put_be32(&s->buf, 0); // Psot (filled in later)
++
++    bytestream_put_byte(&s->buf, 0); // TPsot
++    bytestream_put_byte(&s->buf, 1); // TNsot
++    return psotptr;
++}
++
++/**
++ * compute the sizes of tiles, resolution levels, bands, etc.
++ * allocate memory for them
++ * divide the input image into tile-components
++ */
++static int init_tiles(Jpeg2000EncoderContext *s)
++{
++    int tileno, tilex, tiley, compno;
++    Jpeg2000CodingStyle *codsty = &s->codsty;
++    Jpeg2000QuantStyle  *qntsty = &s->qntsty;
++
++    s->numXtiles = ff_jpeg2000_ceildiv(s->width, s->tile_width);
++    s->numYtiles = ff_jpeg2000_ceildiv(s->height, s->tile_height);
++
++    s->tile = av_malloc(s->numXtiles * s->numYtiles * sizeof(Jpeg2000Tile));
++    if (!s->tile)
++        return AVERROR(ENOMEM);
++    for (tileno = 0, tiley = 0; tiley < s->numYtiles; tiley++)
++        for (tilex = 0; tilex < s->numXtiles; tilex++, tileno++){
++            Jpeg2000Tile *tile = s->tile + tileno;
++
++            tile->comp = av_mallocz(s->ncomponents * sizeof(Jpeg2000Component));
++            if (!tile->comp)
++                return AVERROR(ENOMEM);
++            for (compno = 0; compno < s->ncomponents; compno++){
++                Jpeg2000Component *comp = tile->comp + compno;
++                int ret, i, j;
++
++                comp->coord[0][0] = comp->coord_o[0][0] = tilex * s->tile_width;
++                comp->coord[0][1] = comp->coord_o[0][1] = FFMIN((tilex+1)*s->tile_width, s->width);
++                comp->coord[1][0] = comp->coord_o[1][0] = tiley * s->tile_height;
++                comp->coord[1][1] = comp->coord_o[1][1] = FFMIN((tiley+1)*s->tile_height, s->height);
++                if (compno > 0)
++                    for (i = 0; i < 2; i++)
++                        for (j = 0; j < 2; j++)
++                            comp->coord[i][j] = comp->coord_o[i][j] = ff_jpeg2000_ceildivpow2(comp->coord[i][j], s->chroma_shift[i]);
++
++                if (ret = ff_jpeg2000_init_component(comp,
++                                                codsty,
++                                                qntsty,
++                                                s->cbps[compno],
++                                                compno?1<<s->chroma_shift[0]:1,
++                                                compno?1<<s->chroma_shift[1]:1,
++                                                s->avctx
++                                               ))
++                    return ret;
++            }
++        }
++    return 0;
++}
++
++static void copy_frame(Jpeg2000EncoderContext *s)
++{
++    int tileno, compno, i, y, x;
++    uint8_t *line;
++    for (tileno = 0; tileno < s->numXtiles * s->numYtiles; tileno++){
++        Jpeg2000Tile *tile = s->tile + tileno;
++        if (s->planar){
++            for (compno = 0; compno < s->ncomponents; compno++){
++                Jpeg2000Component *comp = tile->comp + compno;
++                int *dst = comp->i_data;
++                line = s->picture.data[compno]
++                       + comp->coord[1][0] * s->picture.linesize[compno]
++                       + comp->coord[0][0];
++                for (y = comp->coord[1][0]; y < comp->coord[1][1]; y++){
++                    uint8_t *ptr = line;
++                    for (x = comp->coord[0][0]; x < comp->coord[0][1]; x++)
++                        *dst++ = *ptr++ - (1 << 7);
++                    line += s->picture.linesize[compno];
++                }
++            }
++        } else{
++            line = s->picture.data[0] + tile->comp[0].coord[1][0] * s->picture.linesize[0]
++                   + tile->comp[0].coord[0][0] * s->ncomponents;
++
++            i = 0;
++            for (y = tile->comp[0].coord[1][0]; y < tile->comp[0].coord[1][1]; y++){
++                uint8_t *ptr = line;
++                for (x = tile->comp[0].coord[0][0]; x < tile->comp[0].coord[0][1]; x++, i++){
++                    for (compno = 0; compno < s->ncomponents; compno++){
++                        tile->comp[compno].i_data[i] = *ptr++  - (1 << 7);
++                    }
++                }
++                line += s->picture.linesize[0];
++            }
++        }
++    }
++}
++
++static void init_quantization(Jpeg2000EncoderContext *s)
++{
++    int compno, reslevelno, bandno;
++    Jpeg2000QuantStyle  *qntsty = &s->qntsty;
++    Jpeg2000CodingStyle *codsty = &s->codsty;
++
++    for (compno = 0; compno < s->ncomponents; compno++){
++        int gbandno = 0;
++        for (reslevelno = 0; reslevelno < codsty->nreslevels; reslevelno++){
++            int nbands, lev = codsty->nreslevels - reslevelno - 1;
++            nbands = reslevelno ? 3 : 1;
++            for (bandno = 0; bandno < nbands; bandno++, gbandno++){
++                int expn, mant;
++
++                if (codsty->transform == FF_DWT97_INT){
++                    int bandpos = bandno + (reslevelno>0),
++                        ss = 81920000 / dwt_norms[0][bandpos][lev],
++                        log = av_log2(ss);
++                    mant = (11 - log < 0 ? ss >> log - 11 : ss << 11 - log) & 0x7ff;
++                    expn = s->cbps[compno] - log + 13;
++                } else
++                    expn = ((bandno&2)>>1) + (reslevelno>0) + s->cbps[compno];
++
++                qntsty->expn[gbandno] = expn;
++                qntsty->mant[gbandno] = mant;
++            }
++        }
++    }
++}
++
++static void init_luts(void)
++{
++    int i, a,
++        mask = ~((1<<NMSEDEC_FRACBITS)-1);
++
++    for (i = 0; i < (1 << NMSEDEC_BITS); i++){
++        lut_nmsedec_sig[i]  = FFMAX(6*i - (9<<NMSEDEC_FRACBITS-1) << 12-NMSEDEC_FRACBITS, 0);
++        lut_nmsedec_sig0[i] = FFMAX((i*i + (1<<NMSEDEC_FRACBITS-1) & mask) << 1, 0);
++
++        a = (i >> (NMSEDEC_BITS-2)&2) + 1;
++        lut_nmsedec_ref[i]  = FFMAX((-2*i + (1<<NMSEDEC_FRACBITS) + a*i - (a*a<<NMSEDEC_FRACBITS-2))
++                                    << 13-NMSEDEC_FRACBITS, 0);
++        lut_nmsedec_ref0[i] = FFMAX(((i*i + (1-4*i << NMSEDEC_FRACBITS-1) + (1<<2*NMSEDEC_FRACBITS)) & mask)
++                                    << 1, 0);
++    }
++}
++
++/* tier-1 routines */
++static int getnmsedec_sig(int x, int bpno)
++{
++    if (bpno > NMSEDEC_FRACBITS)
++        return lut_nmsedec_sig[(x >> (bpno - NMSEDEC_FRACBITS)) & ((1 << NMSEDEC_BITS) - 1)];
++    return lut_nmsedec_sig0[x & ((1 << NMSEDEC_BITS) - 1)];
++}
++
++static int getnmsedec_ref(int x, int bpno)
++{
++    if (bpno > NMSEDEC_FRACBITS)
++        return lut_nmsedec_ref[(x >> (bpno - NMSEDEC_FRACBITS)) & ((1 << NMSEDEC_BITS) - 1)];
++    return lut_nmsedec_ref0[x & ((1 << NMSEDEC_BITS) - 1)];
++}
++
++static void encode_sigpass(Jpeg2000T1Context *t1, int width, int height, int bandno, int *nmsedec, int bpno)
++{
++    int y0, x, y, mask = 1 << (bpno + NMSEDEC_FRACBITS);
++    for (y0 = 0; y0 < height; y0 += 4)
++        for (x = 0; x < width; x++)
++            for (y = y0; y < height && y < y0+4; y++){
++                if (!(t1->flags[y+1][x+1] & JPEG2000_T1_SIG) && (t1->flags[y+1][x+1] & JPEG2000_T1_SIG_NB)){
++                    int ctxno = ff_jpeg2000_getsigctxno(t1->flags[y+1][x+1], bandno),
++                        bit = t1->data[y][x] & mask ? 1 : 0;
++                    ff_mqc_encode(&t1->mqc, t1->mqc.cx_states + ctxno, bit);
++                    if (bit){
++                        int xorbit;
++                        int ctxno = ff_jpeg2000_getsgnctxno(t1->flags[y+1][x+1], &xorbit);
++                        ff_mqc_encode(&t1->mqc, t1->mqc.cx_states + ctxno, (t1->flags[y+1][x+1] >> 15) ^ xorbit);
++                        *nmsedec += getnmsedec_sig(t1->data[y][x], bpno + NMSEDEC_FRACBITS);
++                        ff_jpeg2000_set_significance(t1, x, y, t1->flags[y+1][x+1] >> 15);
++                    }
++                    t1->flags[y+1][x+1] |= JPEG2000_T1_VIS;
++                }
++            }
++}
++
++static void encode_refpass(Jpeg2000T1Context *t1, int width, int height, int *nmsedec, int bpno)
++{
++    int y0, x, y, mask = 1 << (bpno + NMSEDEC_FRACBITS);
++    for (y0 = 0; y0 < height; y0 += 4)
++        for (x = 0; x < width; x++)
++            for (y = y0; y < height && y < y0+4; y++)
++                if ((t1->flags[y+1][x+1] & (JPEG2000_T1_SIG | JPEG2000_T1_VIS)) == JPEG2000_T1_SIG){
++                    int ctxno = ff_jpeg2000_getrefctxno(t1->flags[y+1][x+1]);
++                    *nmsedec += getnmsedec_ref(t1->data[y][x], bpno + NMSEDEC_FRACBITS);
++                    ff_mqc_encode(&t1->mqc, t1->mqc.cx_states + ctxno, t1->data[y][x] & mask ? 1:0);
++                    t1->flags[y+1][x+1] |= JPEG2000_T1_REF;
++                }
++}
++
++static void encode_clnpass(Jpeg2000T1Context *t1, int width, int height, int bandno, int *nmsedec, int bpno)
++{
++    int y0, x, y, mask = 1 << (bpno + NMSEDEC_FRACBITS);
++    for (y0 = 0; y0 < height; y0 += 4)
++        for (x = 0; x < width; x++){
++            if (y0 + 3 < height && !(
++            (t1->flags[y0+1][x+1] & (JPEG2000_T1_SIG_NB | JPEG2000_T1_VIS | JPEG2000_T1_SIG)) ||
++            (t1->flags[y0+2][x+1] & (JPEG2000_T1_SIG_NB | JPEG2000_T1_VIS | JPEG2000_T1_SIG)) ||
++            (t1->flags[y0+3][x+1] & (JPEG2000_T1_SIG_NB | JPEG2000_T1_VIS | JPEG2000_T1_SIG)) ||
++            (t1->flags[y0+4][x+1] & (JPEG2000_T1_SIG_NB | JPEG2000_T1_VIS | JPEG2000_T1_SIG))))
++            {
++                // aggregation mode
++                int rlen;
++                for (rlen = 0; rlen < 4; rlen++)
++                    if (t1->data[y0+rlen][x] & mask)
++                        break;
++                ff_mqc_encode(&t1->mqc, t1->mqc.cx_states + MQC_CX_RL, rlen != 4);
++                if (rlen == 4)
++                    continue;
++                ff_mqc_encode(&t1->mqc, t1->mqc.cx_states + MQC_CX_UNI, rlen >> 1);
++                ff_mqc_encode(&t1->mqc, t1->mqc.cx_states + MQC_CX_UNI, rlen & 1);
++                for (y = y0 + rlen; y < y0 + 4; y++){
++                    if (!(t1->flags[y+1][x+1] & (JPEG2000_T1_SIG | JPEG2000_T1_VIS))){
++                        int ctxno = ff_jpeg2000_getsigctxno(t1->flags[y+1][x+1], bandno);
++                        if (y > y0 + rlen)
++                            ff_mqc_encode(&t1->mqc, t1->mqc.cx_states + ctxno, t1->data[y][x] & mask ? 1:0);
++                        if (t1->data[y][x] & mask){ // newly significant
++                            int xorbit;
++                            int ctxno = ff_jpeg2000_getsgnctxno(t1->flags[y+1][x+1], &xorbit);
++                            *nmsedec += getnmsedec_sig(t1->data[y][x], bpno + NMSEDEC_FRACBITS);
++                            ff_mqc_encode(&t1->mqc, t1->mqc.cx_states + ctxno, (t1->flags[y+1][x+1] >> 15) ^ xorbit);
++                            ff_jpeg2000_set_significance(t1, x, y, t1->flags[y+1][x+1] >> 15);
++                        }
++                    }
++                    t1->flags[y+1][x+1] &= ~JPEG2000_T1_VIS;
++                }
++            } else{
++                for (y = y0; y < y0 + 4 && y < height; y++){
++                    if (!(t1->flags[y+1][x+1] & (JPEG2000_T1_SIG | JPEG2000_T1_VIS))){
++                        int ctxno = ff_jpeg2000_getsigctxno(t1->flags[y+1][x+1], bandno);
++                        ff_mqc_encode(&t1->mqc, t1->mqc.cx_states + ctxno, t1->data[y][x] & mask ? 1:0);
++                        if (t1->data[y][x] & mask){ // newly significant
++                            int xorbit;
++                            int ctxno = ff_jpeg2000_getsgnctxno(t1->flags[y+1][x+1], &xorbit);
++                            *nmsedec += getnmsedec_sig(t1->data[y][x], bpno + NMSEDEC_FRACBITS);
++                            ff_mqc_encode(&t1->mqc, t1->mqc.cx_states + ctxno, (t1->flags[y+1][x+1] >> 15) ^ xorbit);
++                            ff_jpeg2000_set_significance(t1, x, y, t1->flags[y+1][x+1] >> 15);
++                        }
++                    }
++                    t1->flags[y+1][x+1] &= ~JPEG2000_T1_VIS;
++                }
++            }
++        }
++}
++
++static void encode_cblk(Jpeg2000EncoderContext *s, Jpeg2000T1Context *t1, Jpeg2000Cblk *cblk, Jpeg2000Tile *tile,
++                        int width, int height, int bandpos, int lev)
++{
++    int pass_t = 2, passno, x, y, max=0, nmsedec, bpno;
++    int64_t wmsedec = 0;
++
++    for (y = 0; y < height+2; y++)
++        memset(t1->flags[y], 0, (width+2)*sizeof(int));
++
++    for (y = 0; y < height; y++){
++        for (x = 0; x < width; x++){
++            if (t1->data[y][x] < 0){
++                t1->flags[y+1][x+1] |= JPEG2000_T1_SGN;
++                t1->data[y][x] = -t1->data[y][x];
++            }
++            max = FFMAX(max, t1->data[y][x]);
++        }
++    }
++
++    if (max == 0){
++        cblk->nonzerobits = 0;
++        bpno = 0;
++    } else{
++        cblk->nonzerobits = av_log2(max) + 1 - NMSEDEC_FRACBITS;
++        bpno = cblk->nonzerobits - 1;
++    }
++
++    ff_mqc_initenc(&t1->mqc, cblk->data);
++
++    for (passno = 0; bpno >= 0; passno++){
++        nmsedec=0;
++
++        switch(pass_t){
++            case 0: encode_sigpass(t1, width, height, bandpos, &nmsedec, bpno);
++                    break;
++            case 1: encode_refpass(t1, width, height, &nmsedec, bpno);
++                    break;
++            case 2: encode_clnpass(t1, width, height, bandpos, &nmsedec, bpno);
++                    break;
++        }
++
++        cblk->passes[passno].rate = 3 + ff_mqc_length(&t1->mqc);
++        wmsedec += (int64_t)nmsedec << (2*bpno);
++        cblk->passes[passno].disto = wmsedec;
++
++        if (++pass_t == 3){
++            pass_t = 0;
++            bpno--;
++        }
++    }
++    cblk->npasses = passno;
++    cblk->ninclpasses = passno;
++
++    // TODO: optional flush on each pass
++    cblk->passes[passno-1].rate = ff_mqc_flush(&t1->mqc);
++}
++
++/* tier-2 routines: */
++
++static void putnumpasses(Jpeg2000EncoderContext *s, int n)
++{
++    if (n == 1)
++        put_num(s, 0, 1);
++    else if (n == 2)
++        put_num(s, 2, 2);
++    else if (n <= 5)
++        put_num(s, 0xc | (n-3), 4);
++    else if (n <= 36)
++        put_num(s, 0x1e0 | (n-6), 9);
++    else
++        put_num(s, 0xff80 | (n-37), 16);
++}
++
++
++static int encode_packet(Jpeg2000EncoderContext *s, Jpeg2000ResLevel *rlevel, int precno,
++                          uint8_t *expn, int numgbits)
++{
++    int bandno, empty = 1;
++
++    // init bitstream
++    *s->buf = 0;
++    s->bit_index = 0;
++
++    // header
++
++    // is the packet empty?
++    for (bandno = 0; bandno < rlevel->nbands; bandno++){
++        if (rlevel->band[bandno].coord[0][0] < rlevel->band[bandno].coord[0][1]
++        &&  rlevel->band[bandno].coord[1][0] < rlevel->band[bandno].coord[1][1]){
++            empty = 0;
++            break;
++        }
++    }
++
++    put_bits(s, !empty, 1);
++    if (empty){
++        j2k_flush(s);
++        return 0;
++    }
++
++    for (bandno = 0; bandno < rlevel->nbands; bandno++){
++        Jpeg2000Band *band = rlevel->band + bandno;
++        Jpeg2000Prec *prec = band->prec + precno;
++        int yi, xi, pos;
++        int cblknw = prec->nb_codeblocks_width;
++
++        if (band->coord[0][0] == band->coord[0][1]
++        ||  band->coord[1][0] == band->coord[1][1])
++            continue;
++
++        for (pos=0, yi = 0; yi < prec->nb_codeblocks_height; yi++){
++            for (xi = 0; xi < cblknw; xi++, pos++){
++                prec->cblkincl[pos].val = prec->cblk[yi * cblknw + xi].ninclpasses == 0;
++                tag_tree_update(prec->cblkincl + pos);
++                prec->zerobits[pos].val = expn[bandno] + numgbits - 1 - prec->cblk[yi * cblknw + xi].nonzerobits;
++                tag_tree_update(prec->zerobits + pos);
++            }
++        }
++
++        for (pos=0, yi = 0; yi < prec->nb_codeblocks_height; yi++){
++            for (xi = 0; xi < cblknw; xi++, pos++){
++                int pad = 0, llen, length;
++                Jpeg2000Cblk *cblk = prec->cblk + yi * cblknw + xi;
++
++                if (s->buf_end - s->buf < 20) // approximately
++                    return -1;
++
++                // inclusion information
++                tag_tree_code(s, prec->cblkincl + pos, 1);
++                if (!cblk->ninclpasses)
++                    continue;
++                // zerobits information
++                tag_tree_code(s, prec->zerobits + pos, 100);
++                // number of passes
++                putnumpasses(s, cblk->ninclpasses);
++
++                length = cblk->passes[cblk->ninclpasses-1].rate;
++                llen = av_log2(length) - av_log2(cblk->ninclpasses) - 2;
++                if (llen < 0){
++                    pad = -llen;
++                    llen = 0;
++                }
++                // length of code block
++                put_bits(s, 1, llen);
++                put_bits(s, 0, 1);
++                put_num(s, length, av_log2(length)+1+pad);
++            }
++        }
++    }
++    j2k_flush(s);
++    for (bandno = 0; bandno < rlevel->nbands; bandno++){
++        Jpeg2000Band *band = rlevel->band + bandno;
++        Jpeg2000Prec *prec = band->prec + precno;
++        int yi, cblknw = prec->nb_codeblocks_width;
++        for (yi =0; yi < prec->nb_codeblocks_height; yi++){
++            int xi;
++            for (xi = 0; xi < cblknw; xi++){
++                Jpeg2000Cblk *cblk = prec->cblk + yi * cblknw + xi;
++                if (cblk->ninclpasses){
++                    if (s->buf_end - s->buf < cblk->passes[cblk->ninclpasses-1].rate)
++                        return -1;
++                    bytestream_put_buffer(&s->buf, cblk->data, cblk->passes[cblk->ninclpasses-1].rate);
++                }
++            }
++        }
++    }
++    return 0;
++}
++
++static int encode_packets(Jpeg2000EncoderContext *s, Jpeg2000Tile *tile, int tileno)
++{
++    int compno, reslevelno, ret;
++    Jpeg2000CodingStyle *codsty = &s->codsty;
++    Jpeg2000QuantStyle  *qntsty = &s->qntsty;
++
++    av_log(s->avctx, AV_LOG_DEBUG, "tier2\n");
++    // lay-rlevel-comp-pos progression
++    for (reslevelno = 0; reslevelno < codsty->nreslevels; reslevelno++){
++        for (compno = 0; compno < s->ncomponents; compno++){
++            int precno;
++            Jpeg2000ResLevel *reslevel = s->tile[tileno].comp[compno].reslevel + reslevelno;
++            for (precno = 0; precno < reslevel->num_precincts_x * reslevel->num_precincts_y; precno++){
++                if (ret = encode_packet(s, reslevel, precno, qntsty->expn + (reslevelno ? 3*reslevelno-2 : 0),
++                              qntsty->nguardbits))
++                    return ret;
++            }
++        }
++    }
++    av_log(s->avctx, AV_LOG_DEBUG, "after tier2\n");
++    return 0;
++}
++
++static int getcut(Jpeg2000Cblk *cblk, int64_t lambda, int dwt_norm)
++{
++    int passno, res = 0;
++    for (passno = 0; passno < cblk->npasses; passno++){
++        int dr;
++        int64_t dd;
++
++        dr = cblk->passes[passno].rate
++           - (res ? cblk->passes[res-1].rate:0);
++        dd = cblk->passes[passno].disto
++           - (res ? cblk->passes[res-1].disto:0);
++
++        if (((dd * dwt_norm) >> WMSEDEC_SHIFT) * dwt_norm >= dr * lambda)
++            res = passno+1;
++    }
++    return res;
++}
++
++static void truncpasses(Jpeg2000EncoderContext *s, Jpeg2000Tile *tile)
++{
++    int precno, compno, reslevelno, bandno, cblkno, lev;
++    Jpeg2000CodingStyle *codsty = &s->codsty;
++
++    for (compno = 0; compno < s->ncomponents; compno++){
++        Jpeg2000Component *comp = tile->comp + compno;
++
++        for (reslevelno = 0, lev = codsty->nreslevels-1; reslevelno < codsty->nreslevels; reslevelno++, lev--){
++            Jpeg2000ResLevel *reslevel = comp->reslevel + reslevelno;
++
++            for (precno = 0; precno < reslevel->num_precincts_x * reslevel->num_precincts_y; precno++){
++                for (bandno = 0; bandno < reslevel->nbands ; bandno++){
++                    int bandpos = bandno + (reslevelno > 0);
++                    Jpeg2000Band *band = reslevel->band + bandno;
++                    Jpeg2000Prec *prec = band->prec + precno;
++
++                    for (cblkno = 0; cblkno < prec->nb_codeblocks_height * prec->nb_codeblocks_width; cblkno++){
++                        Jpeg2000Cblk *cblk = prec->cblk + cblkno;
++
++                        cblk->ninclpasses = getcut(cblk, s->lambda,
++                                (int64_t)dwt_norms[codsty->transform == FF_DWT53][bandpos][lev] * (int64_t)band->i_stepsize >> 15);
++                    }
++                }
++            }
++        }
++    }
++}
++
++static int encode_tile(Jpeg2000EncoderContext *s, Jpeg2000Tile *tile, int tileno)
++{
++    int compno, reslevelno, bandno, ret;
++    Jpeg2000T1Context t1;
++    Jpeg2000CodingStyle *codsty = &s->codsty;
++    for (compno = 0; compno < s->ncomponents; compno++){
++        Jpeg2000Component *comp = s->tile[tileno].comp + compno;
++
++        av_log(s->avctx, AV_LOG_DEBUG,"dwt\n");
++        if (ret = ff_dwt_encode(&comp->dwt, comp->i_data))
++            return ret;
++        av_log(s->avctx, AV_LOG_DEBUG,"after dwt -> tier1\n");
++
++        for (reslevelno = 0; reslevelno < codsty->nreslevels; reslevelno++){
++            Jpeg2000ResLevel *reslevel = comp->reslevel + reslevelno;
++
++            for (bandno = 0; bandno < reslevel->nbands ; bandno++){
++                Jpeg2000Band *band = reslevel->band + bandno;
++                Jpeg2000Prec *prec = band->prec; // we support only 1 precinct per band ATM in the encoder
++                int cblkx, cblky, cblkno=0, xx0, x0, xx1, y0, yy0, yy1, bandpos;
++                yy0 = bandno == 0 ? 0 : comp->reslevel[reslevelno-1].coord[1][1] - comp->reslevel[reslevelno-1].coord[1][0];
++                y0 = yy0;
++                yy1 = FFMIN(ff_jpeg2000_ceildivpow2(band->coord[1][0] + 1, band->log2_cblk_height) << band->log2_cblk_height,
++                            band->coord[1][1]) - band->coord[1][0] + yy0;
++
++                if (band->coord[0][0] == band->coord[0][1] || band->coord[1][0] == band->coord[1][1])
++                    continue;
++
++                bandpos = bandno + (reslevelno > 0);
++
++                for (cblky = 0; cblky < prec->nb_codeblocks_height; cblky++){
++                    if (reslevelno == 0 || bandno == 1)
++                        xx0 = 0;
++                    else
++                        xx0 = comp->reslevel[reslevelno-1].coord[0][1] - comp->reslevel[reslevelno-1].coord[0][0];
++                    x0 = xx0;
++                    xx1 = FFMIN(ff_jpeg2000_ceildivpow2(band->coord[0][0] + 1, band->log2_cblk_width) << band->log2_cblk_width,
++                                band->coord[0][1]) - band->coord[0][0] + xx0;
++
++                    for (cblkx = 0; cblkx < prec->nb_codeblocks_width; cblkx++, cblkno++){
++                        int y, x;
++                        if (codsty->transform == FF_DWT53){
++                            for (y = yy0; y < yy1; y++){
++                                int *ptr = t1.data[y-yy0];
++                                for (x = xx0; x < xx1; x++){
++                                    *ptr++ = comp->i_data[(comp->coord[0][1] - comp->coord[0][0]) * y + x] << NMSEDEC_FRACBITS;
++                                }
++                            }
++                        } else{
++                            for (y = yy0; y < yy1; y++){
++                                int *ptr = t1.data[y-yy0];
++                                for (x = xx0; x < xx1; x++){
++                                    *ptr = (comp->i_data[(comp->coord[0][1] - comp->coord[0][0]) * y + x]);
++                                    *ptr = (int64_t)*ptr * (int64_t)(16384 * 65536 / band->i_stepsize) >> 15 - NMSEDEC_FRACBITS;
++                                    ptr++;
++                                }
++                            }
++                        }
++                        encode_cblk(s, &t1, prec->cblk + cblkno, tile, xx1 - xx0, yy1 - yy0,
++                                    bandpos, codsty->nreslevels - reslevelno - 1);
++                        xx0 = xx1;
++                        xx1 = FFMIN(xx1 + (1 << band->log2_cblk_width), band->coord[0][1] - band->coord[0][0] + x0);
++                    }
++                    yy0 = yy1;
++                    yy1 = FFMIN(yy1 + (1 << band->log2_cblk_height), band->coord[1][1] - band->coord[1][0] + y0);
++                }
++            }
++        }
++        av_log(s->avctx, AV_LOG_DEBUG, "after tier1\n");
++    }
++
++    av_log(s->avctx, AV_LOG_DEBUG, "rate control\n");
++    truncpasses(s, tile);
++    if (ret = encode_packets(s, tile, tileno))
++        return ret;
++    av_log(s->avctx, AV_LOG_DEBUG, "after rate control\n");
++    return 0;
++}
++
++static void cleanup(Jpeg2000EncoderContext *s)
++{
++    int tileno, compno;
++    Jpeg2000CodingStyle *codsty = &s->codsty;
++
++    for (tileno = 0; tileno < s->numXtiles * s->numYtiles; tileno++){
++        for (compno = 0; compno < s->ncomponents; compno++){
++            Jpeg2000Component *comp = s->tile[tileno].comp + compno;
++            ff_jpeg2000_cleanup(comp, codsty);
++        }
++        av_freep(&s->tile[tileno].comp);
++    }
++    av_freep(&s->tile);
++}
++
++static void reinit(Jpeg2000EncoderContext *s)
++{
++    int tileno, compno;
++    for (tileno = 0; tileno < s->numXtiles * s->numYtiles; tileno++){
++        Jpeg2000Tile *tile = s->tile + tileno;
++        for (compno = 0; compno < s->ncomponents; compno++)
++            ff_jpeg2000_reinit(tile->comp + compno, &s->codsty);
++    }
++}
++
++static int encode_frame(AVCodecContext *avctx, AVPacket *pkt,
++                        const AVFrame *pict, int *got_packet)
++{
++    int tileno, ret;
++    Jpeg2000EncoderContext *s = avctx->priv_data;
++
++    if ((ret = ff_alloc_packet2(avctx, pkt, avctx->width*avctx->height*9 + FF_MIN_BUFFER_SIZE)) < 0)
++        return ret;
++
++    // init:
++    s->buf = s->buf_start = pkt->data;
++    s->buf_end = pkt->data + pkt->size;
++
++    s->picture = *pict;
++    avctx->coded_frame= &s->picture;
++
++    s->lambda = s->picture.quality * LAMBDA_SCALE;
++
++    copy_frame(s);
++    reinit(s);
++
++    if (s->buf_end - s->buf < 2)
++        return -1;
++    bytestream_put_be16(&s->buf, JPEG2000_SOC);
++    if (ret = put_siz(s))
++        return ret;
++    if (ret = put_cod(s))
++        return ret;
++    if (ret = put_qcd(s, 0))
++        return ret;
++
++    for (tileno = 0; tileno < s->numXtiles * s->numYtiles; tileno++){
++        uint8_t *psotptr;
++        if (!(psotptr = put_sot(s, tileno)))
++            return -1;
++        if (s->buf_end - s->buf < 2)
++            return -1;
++        bytestream_put_be16(&s->buf, JPEG2000_SOD);
++        if (ret = encode_tile(s, s->tile + tileno, tileno))
++            return ret;
++        bytestream_put_be32(&psotptr, s->buf - psotptr + 6);
++    }
++    if (s->buf_end - s->buf < 2)
++        return -1;
++    bytestream_put_be16(&s->buf, JPEG2000_EOC);
++
++    av_log(s->avctx, AV_LOG_DEBUG, "end\n");
++    pkt->size = s->buf - s->buf_start;
++    pkt->flags |= AV_PKT_FLAG_KEY;
++    *got_packet = 1;
++
++    return 0;
++}
++
++static av_cold int j2kenc_init(AVCodecContext *avctx)
++{
++    int i, ret;
++    Jpeg2000EncoderContext *s = avctx->priv_data;
++    Jpeg2000CodingStyle *codsty = &s->codsty;
++    Jpeg2000QuantStyle  *qntsty = &s->qntsty;
++
++    s->avctx = avctx;
++    av_log(s->avctx, AV_LOG_DEBUG, "init\n");
++
++    // defaults:
++    // TODO: implement setting non-standard precinct size
++    memset(codsty->log2_prec_widths , 15, sizeof(codsty->log2_prec_widths ));
++    memset(codsty->log2_prec_heights, 15, sizeof(codsty->log2_prec_heights));
++    codsty->nreslevels2decode=
++    codsty->nreslevels       = 7;
++    codsty->log2_cblk_width  = 4;
++    codsty->log2_cblk_height = 4;
++    codsty->transform        = avctx->prediction_method ? FF_DWT53 : FF_DWT97_INT;
++
++    qntsty->nguardbits       = 1;
++
++    s->tile_width            = 256;
++    s->tile_height           = 256;
++
++    if (codsty->transform == FF_DWT53)
++        qntsty->quantsty = JPEG2000_QSTY_NONE;
++    else
++        qntsty->quantsty = JPEG2000_QSTY_SE;
++
++    s->width = avctx->width;
++    s->height = avctx->height;
++
++    for (i = 0; i < 3; i++)
++        s->cbps[i] = 8;
++
++    if (avctx->pix_fmt == AV_PIX_FMT_RGB24){
++        s->ncomponents = 3;
++    } else if (avctx->pix_fmt == AV_PIX_FMT_GRAY8){
++        s->ncomponents = 1;
++    } else{ // planar YUV
++        s->planar = 1;
++        s->ncomponents = 3;
++        avcodec_get_chroma_sub_sample(avctx->pix_fmt,
++                s->chroma_shift, s->chroma_shift + 1);
++    }
++
++    ff_jpeg2000_init_tier1_luts();
++    ff_mqc_init_context_tables();
++    init_luts();
++
++    init_quantization(s);
++    if (ret=init_tiles(s))
++        return ret;
++
++    av_log(s->avctx, AV_LOG_DEBUG, "after init\n");
++
++    return 0;
++}
++
++static int j2kenc_destroy(AVCodecContext *avctx)
++{
++    Jpeg2000EncoderContext *s = avctx->priv_data;
++
++    cleanup(s);
++    return 0;
++}
++
++AVCodec ff_jpeg2000_encoder = {
++    .name           = "jpeg2000",
++    .long_name      = NULL_IF_CONFIG_SMALL("JPEG 2000"),
++    .type           = AVMEDIA_TYPE_VIDEO,
++    .id             = AV_CODEC_ID_JPEG2000,
++    .priv_data_size = sizeof(Jpeg2000EncoderContext),
++    .init           = j2kenc_init,
++    .encode2        = encode_frame,
++    .close          = j2kenc_destroy,
++    .pix_fmts       = (const enum AVPixelFormat[]) {
++        AV_PIX_FMT_RGB24, AV_PIX_FMT_YUV444P, AV_PIX_FMT_GRAY8,
++/*      AV_PIX_FMT_YUV420P,
++        AV_PIX_FMT_YUV422P, AV_PIX_FMT_YUV444P,
++        AV_PIX_FMT_YUV410P, AV_PIX_FMT_YUV411P,*/
++        AV_PIX_FMT_NONE
++    }
++};
+diff --git a/libavcodec/libvpxdec.c b/libavcodec/libvpxdec.c
+index de32f40..ace0223 100644
+--- a/libavcodec/libvpxdec.c
++++ b/libavcodec/libvpxdec.c
+@@ -1,149 +1,149 @@
+-/*
+- * Copyright (c) 2010, Google, Inc.
+- *
+- * This file is part of FFmpeg.
+- *
+- * FFmpeg is free software; you can redistribute it and/or
+- * modify it under the terms of the GNU Lesser General Public
+- * License as published by the Free Software Foundation; either
+- * version 2.1 of the License, or (at your option) any later version.
+- *
+- * FFmpeg is distributed in the hope that it will be useful,
+- * but WITHOUT ANY WARRANTY; without even the implied warranty of
+- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+- * Lesser General Public License for more details.
+- *
+- * You should have received a copy of the GNU Lesser General Public
+- * License along with FFmpeg; if not, write to the Free Software
+- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+- */
+-
+-/**
+- * @file
+- * VP8 decoder support via libvpx
+- */
+-
+-#define VPX_CODEC_DISABLE_COMPAT 1
+-#include <vpx/vpx_decoder.h>
+-#include <vpx/vp8dx.h>
+-
+-#include "libavutil/common.h"
+-#include "libavutil/imgutils.h"
+-#include "avcodec.h"
+-#include "internal.h"
+-
+-typedef struct VP8DecoderContext {
+-    struct vpx_codec_ctx decoder;
+-} VP8Context;
+-
+-static av_cold int vpx_init(AVCodecContext *avctx,
+-                            const struct vpx_codec_iface *iface)
+-{
+-    VP8Context *ctx = avctx->priv_data;
+-    struct vpx_codec_dec_cfg deccfg = {
+-        /* token partitions+1 would be a decent choice */
+-        .threads = FFMIN(avctx->thread_count, 16)
+-    };
+-
+-    av_log(avctx, AV_LOG_INFO, "%s\n", vpx_codec_version_str());
+-    av_log(avctx, AV_LOG_VERBOSE, "%s\n", vpx_codec_build_config());
+-
+-    if (vpx_codec_dec_init(&ctx->decoder, iface, &deccfg, 0) != VPX_CODEC_OK) {
+-        const char *error = vpx_codec_error(&ctx->decoder);
+-        av_log(avctx, AV_LOG_ERROR, "Failed to initialize decoder: %s\n",
+-               error);
+-        return AVERROR(EINVAL);
+-    }
+-
+-    avctx->pix_fmt = AV_PIX_FMT_YUV420P;
+-    return 0;
+-}
+-
+-static int vp8_decode(AVCodecContext *avctx,
+-                      void *data, int *got_frame, AVPacket *avpkt)
+-{
+-    VP8Context *ctx = avctx->priv_data;
+-    AVFrame *picture = data;
+-    const void *iter = NULL;
+-    struct vpx_image *img;
+-    int ret;
+-
+-    if (vpx_codec_decode(&ctx->decoder, avpkt->data, avpkt->size, NULL, 0) !=
+-        VPX_CODEC_OK) {
+-        const char *error  = vpx_codec_error(&ctx->decoder);
+-        const char *detail = vpx_codec_error_detail(&ctx->decoder);
+-
+-        av_log(avctx, AV_LOG_ERROR, "Failed to decode frame: %s\n", error);
+-        if (detail)
+-            av_log(avctx, AV_LOG_ERROR, "  Additional information: %s\n",
+-                   detail);
+-        return AVERROR_INVALIDDATA;
+-    }
+-
+-    if ((img = vpx_codec_get_frame(&ctx->decoder, &iter))) {
+-        if (img->fmt != VPX_IMG_FMT_I420) {
+-            av_log(avctx, AV_LOG_ERROR, "Unsupported output colorspace (%d)\n",
+-                   img->fmt);
+-            return AVERROR_INVALIDDATA;
+-        }
+-
+-        if ((int) img->d_w != avctx->width || (int) img->d_h != avctx->height) {
+-            av_log(avctx, AV_LOG_INFO, "dimension change! %dx%d -> %dx%d\n",
+-                   avctx->width, avctx->height, img->d_w, img->d_h);
+-            if (av_image_check_size(img->d_w, img->d_h, 0, avctx))
+-                return AVERROR_INVALIDDATA;
+-            avcodec_set_dimensions(avctx, img->d_w, img->d_h);
+-        }
+-        if ((ret = ff_get_buffer(avctx, picture, 0)) < 0)
+-            return ret;
+-        av_image_copy(picture->data, picture->linesize, (const uint8_t **)img->planes,
+-                      img->stride, avctx->pix_fmt, img->d_w, img->d_h);
+-        *got_frame           = 1;
+-    }
+-    return avpkt->size;
+-}
+-
+-static av_cold int vp8_free(AVCodecContext *avctx)
+-{
+-    VP8Context *ctx = avctx->priv_data;
+-    vpx_codec_destroy(&ctx->decoder);
+-    return 0;
+-}
+-
+-#if CONFIG_LIBVPX_VP8_DECODER
+-static av_cold int vp8_init(AVCodecContext *avctx)
+-{
+-    return vpx_init(avctx, &vpx_codec_vp8_dx_algo);
+-}
+-
+-AVCodec ff_libvpx_vp8_decoder = {
+-    .name           = "libvpx",
+-    .long_name      = NULL_IF_CONFIG_SMALL("libvpx VP8"),
+-    .type           = AVMEDIA_TYPE_VIDEO,
+-    .id             = AV_CODEC_ID_VP8,
+-    .priv_data_size = sizeof(VP8Context),
+-    .init           = vp8_init,
+-    .close          = vp8_free,
+-    .decode         = vp8_decode,
+-    .capabilities   = CODEC_CAP_AUTO_THREADS | CODEC_CAP_DR1,
+-};
+-#endif /* CONFIG_LIBVPX_VP8_DECODER */
+-
+-#if CONFIG_LIBVPX_VP9_DECODER
+-static av_cold int vp9_init(AVCodecContext *avctx)
+-{
+-    return vpx_init(avctx, &vpx_codec_vp9_dx_algo);
+-}
+-
+-AVCodec ff_libvpx_vp9_decoder = {
+-    .name           = "libvpx-vp9",
+-    .long_name      = NULL_IF_CONFIG_SMALL("libvpx VP9"),
+-    .type           = AVMEDIA_TYPE_VIDEO,
+-    .id             = AV_CODEC_ID_VP9,
+-    .priv_data_size = sizeof(VP8Context),
+-    .init           = vp9_init,
+-    .close          = vp8_free,
+-    .decode         = vp8_decode,
+-    .capabilities   = CODEC_CAP_AUTO_THREADS | CODEC_CAP_EXPERIMENTAL,
+-};
+-#endif /* CONFIG_LIBVPX_VP9_DECODER */
++/*
++ * Copyright (c) 2010, Google, Inc.
++ *
++ * This file is part of FFmpeg.
++ *
++ * FFmpeg is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU Lesser General Public
++ * License as published by the Free Software Foundation; either
++ * version 2.1 of the License, or (at your option) any later version.
++ *
++ * FFmpeg is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * Lesser General Public License for more details.
++ *
++ * You should have received a copy of the GNU Lesser General Public
++ * License along with FFmpeg; if not, write to the Free Software
++ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
++ */
++
++/**
++ * @file
++ * VP8 decoder support via libvpx
++ */
++
++#define VPX_CODEC_DISABLE_COMPAT 1
++#include <vpx/vpx_decoder.h>
++#include <vpx/vp8dx.h>
++
++#include "libavutil/common.h"
++#include "libavutil/imgutils.h"
++#include "avcodec.h"
++#include "internal.h"
++
++typedef struct VP8DecoderContext {
++    struct vpx_codec_ctx decoder;
++} VP8Context;
++
++static av_cold int vpx_init(AVCodecContext *avctx,
++                            const struct vpx_codec_iface *iface)
++{
++    VP8Context *ctx = avctx->priv_data;
++    struct vpx_codec_dec_cfg deccfg = {
++        /* token partitions+1 would be a decent choice */
++        .threads = FFMIN(avctx->thread_count, 16)
++    };
++
++    av_log(avctx, AV_LOG_INFO, "%s\n", vpx_codec_version_str());
++    av_log(avctx, AV_LOG_VERBOSE, "%s\n", vpx_codec_build_config());
++
++    if (vpx_codec_dec_init(&ctx->decoder, iface, &deccfg, 0) != VPX_CODEC_OK) {
++        const char *error = vpx_codec_error(&ctx->decoder);
++        av_log(avctx, AV_LOG_ERROR, "Failed to initialize decoder: %s\n",
++               error);
++        return AVERROR(EINVAL);
++    }
++
++    avctx->pix_fmt = AV_PIX_FMT_YUV420P;
++    return 0;
++}
++
++static int vp8_decode(AVCodecContext *avctx,
++                      void *data, int *got_frame, AVPacket *avpkt)
++{
++    VP8Context *ctx = avctx->priv_data;
++    AVFrame *picture = data;
++    const void *iter = NULL;
++    struct vpx_image *img;
++    int ret;
++
++    if (vpx_codec_decode(&ctx->decoder, avpkt->data, avpkt->size, NULL, 0) !=
++        VPX_CODEC_OK) {
++        const char *error  = vpx_codec_error(&ctx->decoder);
++        const char *detail = vpx_codec_error_detail(&ctx->decoder);
++
++        av_log(avctx, AV_LOG_ERROR, "Failed to decode frame: %s\n", error);
++        if (detail)
++            av_log(avctx, AV_LOG_ERROR, "  Additional information: %s\n",
++                   detail);
++        return AVERROR_INVALIDDATA;
++    }
++
++    if ((img = vpx_codec_get_frame(&ctx->decoder, &iter))) {
++        if (img->fmt != VPX_IMG_FMT_I420) {
++            av_log(avctx, AV_LOG_ERROR, "Unsupported output colorspace (%d)\n",
++                   img->fmt);
++            return AVERROR_INVALIDDATA;
++        }
++
++        if ((int) img->d_w != avctx->width || (int) img->d_h != avctx->height) {
++            av_log(avctx, AV_LOG_INFO, "dimension change! %dx%d -> %dx%d\n",
++                   avctx->width, avctx->height, img->d_w, img->d_h);
++            if (av_image_check_size(img->d_w, img->d_h, 0, avctx))
++                return AVERROR_INVALIDDATA;
++            avcodec_set_dimensions(avctx, img->d_w, img->d_h);
++        }
++        if ((ret = ff_get_buffer(avctx, picture, 0)) < 0)
++            return ret;
++        av_image_copy(picture->data, picture->linesize, (const uint8_t **)img->planes,
++                      img->stride, avctx->pix_fmt, img->d_w, img->d_h);
++        *got_frame           = 1;
++    }
++    return avpkt->size;
++}
++
++static av_cold int vp8_free(AVCodecContext *avctx)
++{
++    VP8Context *ctx = avctx->priv_data;
++    vpx_codec_destroy(&ctx->decoder);
++    return 0;
++}
++
++#if CONFIG_LIBVPX_VP8_DECODER
++static av_cold int vp8_init(AVCodecContext *avctx)
++{
++    return vpx_init(avctx, &vpx_codec_vp8_dx_algo);
++}
++
++AVCodec ff_libvpx_vp8_decoder = {
++    .name           = "libvpx",
++    .long_name      = NULL_IF_CONFIG_SMALL("libvpx VP8"),
++    .type           = AVMEDIA_TYPE_VIDEO,
++    .id             = AV_CODEC_ID_VP8,
++    .priv_data_size = sizeof(VP8Context),
++    .init           = vp8_init,
++    .close          = vp8_free,
++    .decode         = vp8_decode,
++    .capabilities   = CODEC_CAP_AUTO_THREADS | CODEC_CAP_DR1,
++};
++#endif /* CONFIG_LIBVPX_VP8_DECODER */
++
++#if CONFIG_LIBVPX_VP9_DECODER
++static av_cold int vp9_init(AVCodecContext *avctx)
++{
++    return vpx_init(avctx, &vpx_codec_vp9_dx_algo);
++}
++
++AVCodec ff_libvpx_vp9_decoder = {
++    .name           = "libvpx-vp9",
++    .long_name      = NULL_IF_CONFIG_SMALL("libvpx VP9"),
++    .type           = AVMEDIA_TYPE_VIDEO,
++    .id             = AV_CODEC_ID_VP9,
++    .priv_data_size = sizeof(VP8Context),
++    .init           = vp9_init,
++    .close          = vp8_free,
++    .decode         = vp8_decode,
++    .capabilities   = CODEC_CAP_AUTO_THREADS,
++};
++#endif /* CONFIG_LIBVPX_VP9_DECODER */
+diff --git a/libavcodec/libvpxenc.c b/libavcodec/libvpxenc.c
+index 8ebf052..529b3e1 100644
+--- a/libavcodec/libvpxenc.c
++++ b/libavcodec/libvpxenc.c
+@@ -815,7 +815,7 @@ AVCodec ff_libvpx_vp9_encoder = {
+     .init           = vp9_init,
+     .encode2        = vp8_encode,
+     .close          = vp8_free,
+-    .capabilities   = CODEC_CAP_DELAY | CODEC_CAP_AUTO_THREADS | CODEC_CAP_EXPERIMENTAL,
++    .capabilities   = CODEC_CAP_DELAY | CODEC_CAP_AUTO_THREADS ,
+     .pix_fmts       = (const enum AVPixelFormat[]){ AV_PIX_FMT_YUV420P, AV_PIX_FMT_NONE },
+     .priv_class     = &class_vp9,
+     .defaults       = defaults,
+diff --git a/libavcodec/s302menc.c b/libavcodec/s302menc.c
+index c428d54..7bf5d4b 100644
+--- a/libavcodec/s302menc.c
++++ b/libavcodec/s302menc.c
+@@ -172,6 +172,6 @@ AVCodec ff_s302m_encoder = {
+     .sample_fmts           = (const enum AVSampleFormat[]){ AV_SAMPLE_FMT_S32,
+                                                             AV_SAMPLE_FMT_S16,
+                                                             AV_SAMPLE_FMT_NONE },
+-    .capabilities          = CODEC_CAP_VARIABLE_FRAME_SIZE | CODEC_CAP_EXPERIMENTAL,
++    .capabilities          = CODEC_CAP_VARIABLE_FRAME_SIZE ,
+     .supported_samplerates = (const int[]) { 48000, 0 },
+ };
+diff --git a/libavcodec/sonic.c b/libavcodec/sonic.c
+index 31bbe46..8fc7032 100644
+--- a/libavcodec/sonic.c
++++ b/libavcodec/sonic.c
+@@ -1,989 +1,987 @@
+-/*
+- * Simple free lossless/lossy audio codec
+- * Copyright (c) 2004 Alex Beregszaszi
+- *
+- * This file is part of FFmpeg.
+- *
+- * FFmpeg is free software; you can redistribute it and/or
+- * modify it under the terms of the GNU Lesser General Public
+- * License as published by the Free Software Foundation; either
+- * version 2.1 of the License, or (at your option) any later version.
+- *
+- * FFmpeg is distributed in the hope that it will be useful,
+- * but WITHOUT ANY WARRANTY; without even the implied warranty of
+- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+- * Lesser General Public License for more details.
+- *
+- * You should have received a copy of the GNU Lesser General Public
+- * License along with FFmpeg; if not, write to the Free Software
+- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+- */
+-#include "avcodec.h"
+-#include "get_bits.h"
+-#include "golomb.h"
+-#include "internal.h"
+-
+-/**
+- * @file
+- * Simple free lossless/lossy audio codec
+- * Based on Paul Francis Harrison's Bonk (http://www.logarithmic.net/pfh/bonk)
+- * Written and designed by Alex Beregszaszi
+- *
+- * TODO:
+- *  - CABAC put/get_symbol
+- *  - independent quantizer for channels
+- *  - >2 channels support
+- *  - more decorrelation types
+- *  - more tap_quant tests
+- *  - selectable intlist writers/readers (bonk-style, golomb, cabac)
+- */
+-
+-#define MAX_CHANNELS 2
+-
+-#define MID_SIDE 0
+-#define LEFT_SIDE 1
+-#define RIGHT_SIDE 2
+-
+-typedef struct SonicContext {
+-    int lossless, decorrelation;
+-
+-    int num_taps, downsampling;
+-    double quantization;
+-
+-    int channels, samplerate, block_align, frame_size;
+-
+-    int *tap_quant;
+-    int *int_samples;
+-    int *coded_samples[MAX_CHANNELS];
+-
+-    // for encoding
+-    int *tail;
+-    int tail_size;
+-    int *window;
+-    int window_size;
+-
+-    // for decoding
+-    int *predictor_k;
+-    int *predictor_state[MAX_CHANNELS];
+-} SonicContext;
+-
+-#define LATTICE_SHIFT   10
+-#define SAMPLE_SHIFT    4
+-#define LATTICE_FACTOR  (1 << LATTICE_SHIFT)
+-#define SAMPLE_FACTOR   (1 << SAMPLE_SHIFT)
+-
+-#define BASE_QUANT      0.6
+-#define RATE_VARIATION  3.0
+-
+-static inline int shift(int a,int b)
+-{
+-    return (a+(1<<(b-1))) >> b;
+-}
+-
+-static inline int shift_down(int a,int b)
+-{
+-    return (a>>b)+(a<0);
+-}
+-
+-#if 1
+-static inline int intlist_write(PutBitContext *pb, int *buf, int entries, int base_2_part)
+-{
+-    int i;
+-
+-    for (i = 0; i < entries; i++)
+-        set_se_golomb(pb, buf[i]);
+-
+-    return 1;
+-}
+-
+-static inline int intlist_read(GetBitContext *gb, int *buf, int entries, int base_2_part)
+-{
+-    int i;
+-
+-    for (i = 0; i < entries; i++)
+-        buf[i] = get_se_golomb(gb);
+-
+-    return 1;
+-}
+-
+-#else
+-
+-#define ADAPT_LEVEL 8
+-
+-static int bits_to_store(uint64_t x)
+-{
+-    int res = 0;
+-
+-    while(x)
+-    {
+-        res++;
+-        x >>= 1;
+-    }
+-    return res;
+-}
+-
+-static void write_uint_max(PutBitContext *pb, unsigned int value, unsigned int max)
+-{
+-    int i, bits;
+-
+-    if (!max)
+-        return;
+-
+-    bits = bits_to_store(max);
+-
+-    for (i = 0; i < bits-1; i++)
+-        put_bits(pb, 1, value & (1 << i));
+-
+-    if ( (value | (1 << (bits-1))) <= max)
+-        put_bits(pb, 1, value & (1 << (bits-1)));
+-}
+-
+-static unsigned int read_uint_max(GetBitContext *gb, int max)
+-{
+-    int i, bits, value = 0;
+-
+-    if (!max)
+-        return 0;
+-
+-    bits = bits_to_store(max);
+-
+-    for (i = 0; i < bits-1; i++)
+-        if (get_bits1(gb))
+-            value += 1 << i;
+-
+-    if ( (value | (1<<(bits-1))) <= max)
+-        if (get_bits1(gb))
+-            value += 1 << (bits-1);
+-
+-    return value;
+-}
+-
+-static int intlist_write(PutBitContext *pb, int *buf, int entries, int base_2_part)
+-{
+-    int i, j, x = 0, low_bits = 0, max = 0;
+-    int step = 256, pos = 0, dominant = 0, any = 0;
+-    int *copy, *bits;
+-
+-    copy = av_calloc(entries, sizeof(*copy));
+-    if (!copy)
+-        return AVERROR(ENOMEM);
+-
+-    if (base_2_part)
+-    {
+-        int energy = 0;
+-
+-        for (i = 0; i < entries; i++)
+-            energy += abs(buf[i]);
+-
+-        low_bits = bits_to_store(energy / (entries * 2));
+-        if (low_bits > 15)
+-            low_bits = 15;
+-
+-        put_bits(pb, 4, low_bits);
+-    }
+-
+-    for (i = 0; i < entries; i++)
+-    {
+-        put_bits(pb, low_bits, abs(buf[i]));
+-        copy[i] = abs(buf[i]) >> low_bits;
+-        if (copy[i] > max)
+-            max = abs(copy[i]);
+-    }
+-
+-    bits = av_calloc(entries*max, sizeof(*bits));
+-    if (!bits)
+-    {
+-//        av_free(copy);
+-        return AVERROR(ENOMEM);
+-    }
+-
+-    for (i = 0; i <= max; i++)
+-    {
+-        for (j = 0; j < entries; j++)
+-            if (copy[j] >= i)
+-                bits[x++] = copy[j] > i;
+-    }
+-
+-    // store bitstream
+-    while (pos < x)
+-    {
+-        int steplet = step >> 8;
+-
+-        if (pos + steplet > x)
+-            steplet = x - pos;
+-
+-        for (i = 0; i < steplet; i++)
+-            if (bits[i+pos] != dominant)
+-                any = 1;
+-
+-        put_bits(pb, 1, any);
+-
+-        if (!any)
+-        {
+-            pos += steplet;
+-            step += step / ADAPT_LEVEL;
+-        }
+-        else
+-        {
+-            int interloper = 0;
+-
+-            while (((pos + interloper) < x) && (bits[pos + interloper] == dominant))
+-                interloper++;
+-
+-            // note change
+-            write_uint_max(pb, interloper, (step >> 8) - 1);
+-
+-            pos += interloper + 1;
+-            step -= step / ADAPT_LEVEL;
+-        }
+-
+-        if (step < 256)
+-        {
+-            step = 65536 / step;
+-            dominant = !dominant;
+-        }
+-    }
+-
+-    // store signs
+-    for (i = 0; i < entries; i++)
+-        if (buf[i])
+-            put_bits(pb, 1, buf[i] < 0);
+-
+-//    av_free(bits);
+-//    av_free(copy);
+-
+-    return 0;
+-}
+-
+-static int intlist_read(GetBitContext *gb, int *buf, int entries, int base_2_part)
+-{
+-    int i, low_bits = 0, x = 0;
+-    int n_zeros = 0, step = 256, dominant = 0;
+-    int pos = 0, level = 0;
+-    int *bits = av_calloc(entries, sizeof(*bits));
+-
+-    if (!bits)
+-        return AVERROR(ENOMEM);
+-
+-    if (base_2_part)
+-    {
+-        low_bits = get_bits(gb, 4);
+-
+-        if (low_bits)
+-            for (i = 0; i < entries; i++)
+-                buf[i] = get_bits(gb, low_bits);
+-    }
+-
+-//    av_log(NULL, AV_LOG_INFO, "entries: %d, low bits: %d\n", entries, low_bits);
+-
+-    while (n_zeros < entries)
+-    {
+-        int steplet = step >> 8;
+-
+-        if (!get_bits1(gb))
+-        {
+-            for (i = 0; i < steplet; i++)
+-                bits[x++] = dominant;
+-
+-            if (!dominant)
+-                n_zeros += steplet;
+-
+-            step += step / ADAPT_LEVEL;
+-        }
+-        else
+-        {
+-            int actual_run = read_uint_max(gb, steplet-1);
+-
+-//            av_log(NULL, AV_LOG_INFO, "actual run: %d\n", actual_run);
+-
+-            for (i = 0; i < actual_run; i++)
+-                bits[x++] = dominant;
+-
+-            bits[x++] = !dominant;
+-
+-            if (!dominant)
+-                n_zeros += actual_run;
+-            else
+-                n_zeros++;
+-
+-            step -= step / ADAPT_LEVEL;
+-        }
+-
+-        if (step < 256)
+-        {
+-            step = 65536 / step;
+-            dominant = !dominant;
+-        }
+-    }
+-
+-    // reconstruct unsigned values
+-    n_zeros = 0;
+-    for (i = 0; n_zeros < entries; i++)
+-    {
+-        while(1)
+-        {
+-            if (pos >= entries)
+-            {
+-                pos = 0;
+-                level += 1 << low_bits;
+-            }
+-
+-            if (buf[pos] >= level)
+-                break;
+-
+-            pos++;
+-        }
+-
+-        if (bits[i])
+-            buf[pos] += 1 << low_bits;
+-        else
+-            n_zeros++;
+-
+-        pos++;
+-    }
+-//    av_free(bits);
+-
+-    // read signs
+-    for (i = 0; i < entries; i++)
+-        if (buf[i] && get_bits1(gb))
+-            buf[i] = -buf[i];
+-
+-//    av_log(NULL, AV_LOG_INFO, "zeros: %d pos: %d\n", n_zeros, pos);
+-
+-    return 0;
+-}
+-#endif
+-
+-static void predictor_init_state(int *k, int *state, int order)
+-{
+-    int i;
+-
+-    for (i = order-2; i >= 0; i--)
+-    {
+-        int j, p, x = state[i];
+-
+-        for (j = 0, p = i+1; p < order; j++,p++)
+-            {
+-            int tmp = x + shift_down(k[j] * state[p], LATTICE_SHIFT);
+-            state[p] += shift_down(k[j]*x, LATTICE_SHIFT);
+-            x = tmp;
+-        }
+-    }
+-}
+-
+-static int predictor_calc_error(int *k, int *state, int order, int error)
+-{
+-    int i, x = error - shift_down(k[order-1] * state[order-1], LATTICE_SHIFT);
+-
+-#if 1
+-    int *k_ptr = &(k[order-2]),
+-        *state_ptr = &(state[order-2]);
+-    for (i = order-2; i >= 0; i--, k_ptr--, state_ptr--)
+-    {
+-        int k_value = *k_ptr, state_value = *state_ptr;
+-        x -= shift_down(k_value * state_value, LATTICE_SHIFT);
+-        state_ptr[1] = state_value + shift_down(k_value * x, LATTICE_SHIFT);
+-    }
+-#else
+-    for (i = order-2; i >= 0; i--)
+-    {
+-        x -= shift_down(k[i] * state[i], LATTICE_SHIFT);
+-        state[i+1] = state[i] + shift_down(k[i] * x, LATTICE_SHIFT);
+-    }
+-#endif
+-
+-    // don't drift too far, to avoid overflows
+-    if (x >  (SAMPLE_FACTOR<<16)) x =  (SAMPLE_FACTOR<<16);
+-    if (x < -(SAMPLE_FACTOR<<16)) x = -(SAMPLE_FACTOR<<16);
+-
+-    state[0] = x;
+-
+-    return x;
+-}
+-
+-#if CONFIG_SONIC_ENCODER || CONFIG_SONIC_LS_ENCODER
+-// Heavily modified Levinson-Durbin algorithm which
+-// copes better with quantization, and calculates the
+-// actual whitened result as it goes.
+-
+-static void modified_levinson_durbin(int *window, int window_entries,
+-        int *out, int out_entries, int channels, int *tap_quant)
+-{
+-    int i;
+-    int *state = av_calloc(window_entries, sizeof(*state));
+-
+-    memcpy(state, window, 4* window_entries);
+-
+-    for (i = 0; i < out_entries; i++)
+-    {
+-        int step = (i+1)*channels, k, j;
+-        double xx = 0.0, xy = 0.0;
+-#if 1
+-        int *x_ptr = &(window[step]);
+-        int *state_ptr = &(state[0]);
+-        j = window_entries - step;
+-        for (;j>0;j--,x_ptr++,state_ptr++)
+-        {
+-            double x_value = *x_ptr;
+-            double state_value = *state_ptr;
+-            xx += state_value*state_value;
+-            xy += x_value*state_value;
+-        }
+-#else
+-        for (j = 0; j <= (window_entries - step); j++);
+-        {
+-            double stepval = window[step+j];
+-            double stateval = window[j];
+-//            xx += (double)window[j]*(double)window[j];
+-//            xy += (double)window[step+j]*(double)window[j];
+-            xx += stateval*stateval;
+-            xy += stepval*stateval;
+-        }
+-#endif
+-        if (xx == 0.0)
+-            k = 0;
+-        else
+-            k = (int)(floor(-xy/xx * (double)LATTICE_FACTOR / (double)(tap_quant[i]) + 0.5));
+-
+-        if (k > (LATTICE_FACTOR/tap_quant[i]))
+-            k = LATTICE_FACTOR/tap_quant[i];
+-        if (-k > (LATTICE_FACTOR/tap_quant[i]))
+-            k = -(LATTICE_FACTOR/tap_quant[i]);
+-
+-        out[i] = k;
+-        k *= tap_quant[i];
+-
+-#if 1
+-        x_ptr = &(window[step]);
+-        state_ptr = &(state[0]);
+-        j = window_entries - step;
+-        for (;j>0;j--,x_ptr++,state_ptr++)
+-        {
+-            int x_value = *x_ptr;
+-            int state_value = *state_ptr;
+-            *x_ptr = x_value + shift_down(k*state_value,LATTICE_SHIFT);
+-            *state_ptr = state_value + shift_down(k*x_value, LATTICE_SHIFT);
+-        }
+-#else
+-        for (j=0; j <= (window_entries - step); j++)
+-        {
+-            int stepval = window[step+j];
+-            int stateval=state[j];
+-            window[step+j] += shift_down(k * stateval, LATTICE_SHIFT);
+-            state[j] += shift_down(k * stepval, LATTICE_SHIFT);
+-        }
+-#endif
+-    }
+-
+-    av_free(state);
+-}
+-
+-static inline int code_samplerate(int samplerate)
+-{
+-    switch (samplerate)
+-    {
+-        case 44100: return 0;
+-        case 22050: return 1;
+-        case 11025: return 2;
+-        case 96000: return 3;
+-        case 48000: return 4;
+-        case 32000: return 5;
+-        case 24000: return 6;
+-        case 16000: return 7;
+-        case 8000: return 8;
+-    }
+-    return AVERROR(EINVAL);
+-}
+-
+-static av_cold int sonic_encode_init(AVCodecContext *avctx)
+-{
+-    SonicContext *s = avctx->priv_data;
+-    PutBitContext pb;
+-    int i, version = 0;
+-
+-    if (avctx->channels > MAX_CHANNELS)
+-    {
+-        av_log(avctx, AV_LOG_ERROR, "Only mono and stereo streams are supported by now\n");
+-        return AVERROR(EINVAL); /* only stereo or mono for now */
+-    }
+-
+-    if (avctx->channels == 2)
+-        s->decorrelation = MID_SIDE;
+-    else
+-        s->decorrelation = 3;
+-
+-    if (avctx->codec->id == AV_CODEC_ID_SONIC_LS)
+-    {
+-        s->lossless = 1;
+-        s->num_taps = 32;
+-        s->downsampling = 1;
+-        s->quantization = 0.0;
+-    }
+-    else
+-    {
+-        s->num_taps = 128;
+-        s->downsampling = 2;
+-        s->quantization = 1.0;
+-    }
+-
+-    // max tap 2048
+-    if (s->num_taps < 32 || s->num_taps > 1024 || s->num_taps % 32) {
+-        av_log(avctx, AV_LOG_ERROR, "Invalid number of taps\n");
+-        return AVERROR_INVALIDDATA;
+-    }
+-
+-    // generate taps
+-    s->tap_quant = av_calloc(s->num_taps, sizeof(*s->tap_quant));
+-    for (i = 0; i < s->num_taps; i++)
+-        s->tap_quant[i] = ff_sqrt(i+1);
+-
+-    s->channels = avctx->channels;
+-    s->samplerate = avctx->sample_rate;
+-
+-    s->block_align = 2048LL*s->samplerate/(44100*s->downsampling);
+-    s->frame_size = s->channels*s->block_align*s->downsampling;
+-
+-    s->tail_size = s->num_taps*s->channels;
+-    s->tail = av_calloc(s->tail_size, sizeof(*s->tail));
+-    if (!s->tail)
+-        return AVERROR(ENOMEM);
+-
+-    s->predictor_k = av_calloc(s->num_taps, sizeof(*s->predictor_k) );
+-    if (!s->predictor_k)
+-        return AVERROR(ENOMEM);
+-
+-    for (i = 0; i < s->channels; i++)
+-    {
+-        s->coded_samples[i] = av_calloc(s->block_align, sizeof(**s->coded_samples));
+-        if (!s->coded_samples[i])
+-            return AVERROR(ENOMEM);
+-    }
+-
+-    s->int_samples = av_calloc(s->frame_size, sizeof(*s->int_samples));
+-
+-    s->window_size = ((2*s->tail_size)+s->frame_size);
+-    s->window = av_calloc(s->window_size, sizeof(*s->window));
+-    if (!s->window)
+-        return AVERROR(ENOMEM);
+-
+-    avctx->extradata = av_mallocz(16);
+-    if (!avctx->extradata)
+-        return AVERROR(ENOMEM);
+-    init_put_bits(&pb, avctx->extradata, 16*8);
+-
+-    put_bits(&pb, 2, version); // version
+-    if (version == 1)
+-    {
+-        put_bits(&pb, 2, s->channels);
+-        put_bits(&pb, 4, code_samplerate(s->samplerate));
+-    }
+-    put_bits(&pb, 1, s->lossless);
+-    if (!s->lossless)
+-        put_bits(&pb, 3, SAMPLE_SHIFT); // XXX FIXME: sample precision
+-    put_bits(&pb, 2, s->decorrelation);
+-    put_bits(&pb, 2, s->downsampling);
+-    put_bits(&pb, 5, (s->num_taps >> 5)-1); // 32..1024
+-    put_bits(&pb, 1, 0); // XXX FIXME: no custom tap quant table
+-
+-    flush_put_bits(&pb);
+-    avctx->extradata_size = put_bits_count(&pb)/8;
+-
+-    av_log(avctx, AV_LOG_INFO, "Sonic: ver: %d ls: %d dr: %d taps: %d block: %d frame: %d downsamp: %d\n",
+-        version, s->lossless, s->decorrelation, s->num_taps, s->block_align, s->frame_size, s->downsampling);
+-
+-    avctx->frame_size = s->block_align*s->downsampling;
+-
+-    return 0;
+-}
+-
+-static av_cold int sonic_encode_close(AVCodecContext *avctx)
+-{
+-    SonicContext *s = avctx->priv_data;
+-    int i;
+-
+-    for (i = 0; i < s->channels; i++)
+-        av_freep(&s->coded_samples[i]);
+-
+-    av_freep(&s->predictor_k);
+-    av_freep(&s->tail);
+-    av_freep(&s->tap_quant);
+-    av_freep(&s->window);
+-    av_freep(&s->int_samples);
+-
+-    return 0;
+-}
+-
+-static int sonic_encode_frame(AVCodecContext *avctx, AVPacket *avpkt,
+-                              const AVFrame *frame, int *got_packet_ptr)
+-{
+-    SonicContext *s = avctx->priv_data;
+-    PutBitContext pb;
+-    int i, j, ch, quant = 0, x = 0;
+-    int ret;
+-    const short *samples = (const int16_t*)frame->data[0];
+-
+-    if ((ret = ff_alloc_packet2(avctx, avpkt, s->frame_size * 5 + 1000)) < 0)
+-        return ret;
+-
+-    init_put_bits(&pb, avpkt->data, avpkt->size);
+-
+-    // short -> internal
+-    for (i = 0; i < s->frame_size; i++)
+-        s->int_samples[i] = samples[i];
+-
+-    if (!s->lossless)
+-        for (i = 0; i < s->frame_size; i++)
+-            s->int_samples[i] = s->int_samples[i] << SAMPLE_SHIFT;
+-
+-    switch(s->decorrelation)
+-    {
+-        case MID_SIDE:
+-            for (i = 0; i < s->frame_size; i += s->channels)
+-            {
+-                s->int_samples[i] += s->int_samples[i+1];
+-                s->int_samples[i+1] -= shift(s->int_samples[i], 1);
+-            }
+-            break;
+-        case LEFT_SIDE:
+-            for (i = 0; i < s->frame_size; i += s->channels)
+-                s->int_samples[i+1] -= s->int_samples[i];
+-            break;
+-        case RIGHT_SIDE:
+-            for (i = 0; i < s->frame_size; i += s->channels)
+-                s->int_samples[i] -= s->int_samples[i+1];
+-            break;
+-    }
+-
+-    memset(s->window, 0, 4* s->window_size);
+-
+-    for (i = 0; i < s->tail_size; i++)
+-        s->window[x++] = s->tail[i];
+-
+-    for (i = 0; i < s->frame_size; i++)
+-        s->window[x++] = s->int_samples[i];
+-
+-    for (i = 0; i < s->tail_size; i++)
+-        s->window[x++] = 0;
+-
+-    for (i = 0; i < s->tail_size; i++)
+-        s->tail[i] = s->int_samples[s->frame_size - s->tail_size + i];
+-
+-    // generate taps
+-    modified_levinson_durbin(s->window, s->window_size,
+-                s->predictor_k, s->num_taps, s->channels, s->tap_quant);
+-    if ((ret = intlist_write(&pb, s->predictor_k, s->num_taps, 0)) < 0)
+-        return ret;
+-
+-    for (ch = 0; ch < s->channels; ch++)
+-    {
+-        x = s->tail_size+ch;
+-        for (i = 0; i < s->block_align; i++)
+-        {
+-            int sum = 0;
+-            for (j = 0; j < s->downsampling; j++, x += s->channels)
+-                sum += s->window[x];
+-            s->coded_samples[ch][i] = sum;
+-        }
+-    }
+-
+-    // simple rate control code
+-    if (!s->lossless)
+-    {
+-        double energy1 = 0.0, energy2 = 0.0;
+-        for (ch = 0; ch < s->channels; ch++)
+-        {
+-            for (i = 0; i < s->block_align; i++)
+-            {
+-                double sample = s->coded_samples[ch][i];
+-                energy2 += sample*sample;
+-                energy1 += fabs(sample);
+-            }
+-        }
+-
+-        energy2 = sqrt(energy2/(s->channels*s->block_align));
+-        energy1 = sqrt(2.0)*energy1/(s->channels*s->block_align);
+-
+-        // increase bitrate when samples are like a gaussian distribution
+-        // reduce bitrate when samples are like a two-tailed exponential distribution
+-
+-        if (energy2 > energy1)
+-            energy2 += (energy2-energy1)*RATE_VARIATION;
+-
+-        quant = (int)(BASE_QUANT*s->quantization*energy2/SAMPLE_FACTOR);
+-//        av_log(avctx, AV_LOG_DEBUG, "quant: %d energy: %f / %f\n", quant, energy1, energy2);
+-
+-        quant = av_clip(quant, 1, 65534);
+-
+-        set_ue_golomb(&pb, quant);
+-
+-        quant *= SAMPLE_FACTOR;
+-    }
+-
+-    // write out coded samples
+-    for (ch = 0; ch < s->channels; ch++)
+-    {
+-        if (!s->lossless)
+-            for (i = 0; i < s->block_align; i++)
+-                s->coded_samples[ch][i] = ROUNDED_DIV(s->coded_samples[ch][i], quant);
+-
+-        if ((ret = intlist_write(&pb, s->coded_samples[ch], s->block_align, 1)) < 0)
+-            return ret;
+-    }
+-
+-//    av_log(avctx, AV_LOG_DEBUG, "used bytes: %d\n", (put_bits_count(&pb)+7)/8);
+-
+-    flush_put_bits(&pb);
+-    avpkt->size = (put_bits_count(&pb)+7)/8;
+-    *got_packet_ptr = 1;
+-    return 0;
+-}
+-#endif /* CONFIG_SONIC_ENCODER || CONFIG_SONIC_LS_ENCODER */
+-
+-#if CONFIG_SONIC_DECODER
+-static const int samplerate_table[] =
+-    { 44100, 22050, 11025, 96000, 48000, 32000, 24000, 16000, 8000 };
+-
+-static av_cold int sonic_decode_init(AVCodecContext *avctx)
+-{
+-    SonicContext *s = avctx->priv_data;
+-    GetBitContext gb;
+-    int i, version;
+-
+-    s->channels = avctx->channels;
+-    s->samplerate = avctx->sample_rate;
+-
+-    if (!avctx->extradata)
+-    {
+-        av_log(avctx, AV_LOG_ERROR, "No mandatory headers present\n");
+-        return AVERROR_INVALIDDATA;
+-    }
+-
+-    init_get_bits8(&gb, avctx->extradata, avctx->extradata_size);
+-
+-    version = get_bits(&gb, 2);
+-    if (version > 1)
+-    {
+-        av_log(avctx, AV_LOG_ERROR, "Unsupported Sonic version, please report\n");
+-        return AVERROR_INVALIDDATA;
+-    }
+-
+-    if (version == 1)
+-    {
+-        s->channels = get_bits(&gb, 2);
+-        s->samplerate = samplerate_table[get_bits(&gb, 4)];
+-        av_log(avctx, AV_LOG_INFO, "Sonicv2 chans: %d samprate: %d\n",
+-            s->channels, s->samplerate);
+-    }
+-
+-    if (s->channels > MAX_CHANNELS)
+-    {
+-        av_log(avctx, AV_LOG_ERROR, "Only mono and stereo streams are supported by now\n");
+-        return AVERROR_INVALIDDATA;
+-    }
+-
+-    s->lossless = get_bits1(&gb);
+-    if (!s->lossless)
+-        skip_bits(&gb, 3); // XXX FIXME
+-    s->decorrelation = get_bits(&gb, 2);
+-    if (s->decorrelation != 3 && s->channels != 2) {
+-        av_log(avctx, AV_LOG_ERROR, "invalid decorrelation %d\n", s->decorrelation);
+-        return AVERROR_INVALIDDATA;
+-    }
+-
+-    s->downsampling = get_bits(&gb, 2);
+-    if (!s->downsampling) {
+-        av_log(avctx, AV_LOG_ERROR, "invalid downsampling value\n");
+-        return AVERROR_INVALIDDATA;
+-    }
+-
+-    s->num_taps = (get_bits(&gb, 5)+1)<<5;
+-    if (get_bits1(&gb)) // XXX FIXME
+-        av_log(avctx, AV_LOG_INFO, "Custom quant table\n");
+-
+-    s->block_align = 2048LL*s->samplerate/(44100*s->downsampling);
+-    s->frame_size = s->channels*s->block_align*s->downsampling;
+-//    avctx->frame_size = s->block_align;
+-
+-    av_log(avctx, AV_LOG_INFO, "Sonic: ver: %d ls: %d dr: %d taps: %d block: %d frame: %d downsamp: %d\n",
+-        version, s->lossless, s->decorrelation, s->num_taps, s->block_align, s->frame_size, s->downsampling);
+-
+-    // generate taps
+-    s->tap_quant = av_calloc(s->num_taps, sizeof(*s->tap_quant));
+-    for (i = 0; i < s->num_taps; i++)
+-        s->tap_quant[i] = ff_sqrt(i+1);
+-
+-    s->predictor_k = av_calloc(s->num_taps, sizeof(*s->predictor_k));
+-
+-    for (i = 0; i < s->channels; i++)
+-    {
+-        s->predictor_state[i] = av_calloc(s->num_taps, sizeof(**s->predictor_state));
+-        if (!s->predictor_state[i])
+-            return AVERROR(ENOMEM);
+-    }
+-
+-    for (i = 0; i < s->channels; i++)
+-    {
+-        s->coded_samples[i] = av_calloc(s->block_align, sizeof(**s->coded_samples));
+-        if (!s->coded_samples[i])
+-            return AVERROR(ENOMEM);
+-    }
+-    s->int_samples = av_calloc(s->frame_size, sizeof(*s->int_samples));
+-
+-    avctx->sample_fmt = AV_SAMPLE_FMT_S16;
+-    return 0;
+-}
+-
+-static av_cold int sonic_decode_close(AVCodecContext *avctx)
+-{
+-    SonicContext *s = avctx->priv_data;
+-    int i;
+-
+-    av_freep(&s->int_samples);
+-    av_freep(&s->tap_quant);
+-    av_freep(&s->predictor_k);
+-
+-    for (i = 0; i < s->channels; i++)
+-    {
+-        av_freep(&s->predictor_state[i]);
+-        av_freep(&s->coded_samples[i]);
+-    }
+-
+-    return 0;
+-}
+-
+-static int sonic_decode_frame(AVCodecContext *avctx,
+-                            void *data, int *got_frame_ptr,
+-                            AVPacket *avpkt)
+-{
+-    const uint8_t *buf = avpkt->data;
+-    int buf_size = avpkt->size;
+-    SonicContext *s = avctx->priv_data;
+-    GetBitContext gb;
+-    int i, quant, ch, j, ret;
+-    int16_t *samples;
+-    AVFrame *frame = data;
+-
+-    if (buf_size == 0) return 0;
+-
+-    frame->nb_samples = s->frame_size / avctx->channels;
+-    if ((ret = ff_get_buffer(avctx, frame, 0)) < 0)
+-        return ret;
+-    samples = (int16_t *)frame->data[0];
+-
+-//    av_log(NULL, AV_LOG_INFO, "buf_size: %d\n", buf_size);
+-
+-    init_get_bits8(&gb, buf, buf_size);
+-
+-    intlist_read(&gb, s->predictor_k, s->num_taps, 0);
+-
+-    // dequantize
+-    for (i = 0; i < s->num_taps; i++)
+-        s->predictor_k[i] *= s->tap_quant[i];
+-
+-    if (s->lossless)
+-        quant = 1;
+-    else
+-        quant = get_ue_golomb(&gb) * SAMPLE_FACTOR;
+-
+-//    av_log(NULL, AV_LOG_INFO, "quant: %d\n", quant);
+-
+-    for (ch = 0; ch < s->channels; ch++)
+-    {
+-        int x = ch;
+-
+-        predictor_init_state(s->predictor_k, s->predictor_state[ch], s->num_taps);
+-
+-        intlist_read(&gb, s->coded_samples[ch], s->block_align, 1);
+-
+-        for (i = 0; i < s->block_align; i++)
+-        {
+-            for (j = 0; j < s->downsampling - 1; j++)
+-            {
+-                s->int_samples[x] = predictor_calc_error(s->predictor_k, s->predictor_state[ch], s->num_taps, 0);
+-                x += s->channels;
+-            }
+-
+-            s->int_samples[x] = predictor_calc_error(s->predictor_k, s->predictor_state[ch], s->num_taps, s->coded_samples[ch][i] * quant);
+-            x += s->channels;
+-        }
+-
+-        for (i = 0; i < s->num_taps; i++)
+-            s->predictor_state[ch][i] = s->int_samples[s->frame_size - s->channels + ch - i*s->channels];
+-    }
+-
+-    switch(s->decorrelation)
+-    {
+-        case MID_SIDE:
+-            for (i = 0; i < s->frame_size; i += s->channels)
+-            {
+-                s->int_samples[i+1] += shift(s->int_samples[i], 1);
+-                s->int_samples[i] -= s->int_samples[i+1];
+-            }
+-            break;
+-        case LEFT_SIDE:
+-            for (i = 0; i < s->frame_size; i += s->channels)
+-                s->int_samples[i+1] += s->int_samples[i];
+-            break;
+-        case RIGHT_SIDE:
+-            for (i = 0; i < s->frame_size; i += s->channels)
+-                s->int_samples[i] += s->int_samples[i+1];
+-            break;
+-    }
+-
+-    if (!s->lossless)
+-        for (i = 0; i < s->frame_size; i++)
+-            s->int_samples[i] = shift(s->int_samples[i], SAMPLE_SHIFT);
+-
+-    // internal -> short
+-    for (i = 0; i < s->frame_size; i++)
+-        samples[i] = av_clip_int16(s->int_samples[i]);
+-
+-    align_get_bits(&gb);
+-
+-    *got_frame_ptr = 1;
+-
+-    return (get_bits_count(&gb)+7)/8;
+-}
+-
+-AVCodec ff_sonic_decoder = {
+-    .name           = "sonic",
+-    .long_name      = NULL_IF_CONFIG_SMALL("Sonic"),
+-    .type           = AVMEDIA_TYPE_AUDIO,
+-    .id             = AV_CODEC_ID_SONIC,
+-    .priv_data_size = sizeof(SonicContext),
+-    .init           = sonic_decode_init,
+-    .close          = sonic_decode_close,
+-    .decode         = sonic_decode_frame,
+-    .capabilities   = CODEC_CAP_DR1 | CODEC_CAP_EXPERIMENTAL,
+-};
+-#endif /* CONFIG_SONIC_DECODER */
+-
+-#if CONFIG_SONIC_ENCODER
+-AVCodec ff_sonic_encoder = {
+-    .name           = "sonic",
+-    .long_name      = NULL_IF_CONFIG_SMALL("Sonic"),
+-    .type           = AVMEDIA_TYPE_AUDIO,
+-    .id             = AV_CODEC_ID_SONIC,
+-    .priv_data_size = sizeof(SonicContext),
+-    .init           = sonic_encode_init,
+-    .encode2        = sonic_encode_frame,
+-    .sample_fmts    = (const enum AVSampleFormat[]){ AV_SAMPLE_FMT_S16, AV_SAMPLE_FMT_NONE },
+-    .capabilities   = CODEC_CAP_EXPERIMENTAL,
+-    .close          = sonic_encode_close,
+-};
+-#endif
+-
+-#if CONFIG_SONIC_LS_ENCODER
+-AVCodec ff_sonic_ls_encoder = {
+-    .name           = "sonicls",
+-    .long_name      = NULL_IF_CONFIG_SMALL("Sonic lossless"),
+-    .type           = AVMEDIA_TYPE_AUDIO,
+-    .id             = AV_CODEC_ID_SONIC_LS,
+-    .priv_data_size = sizeof(SonicContext),
+-    .init           = sonic_encode_init,
+-    .encode2        = sonic_encode_frame,
+-    .sample_fmts    = (const enum AVSampleFormat[]){ AV_SAMPLE_FMT_S16, AV_SAMPLE_FMT_NONE },
+-    .capabilities   = CODEC_CAP_EXPERIMENTAL,
+-    .close          = sonic_encode_close,
+-};
+-#endif
++/*
++ * Simple free lossless/lossy audio codec
++ * Copyright (c) 2004 Alex Beregszaszi
++ *
++ * This file is part of FFmpeg.
++ *
++ * FFmpeg is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU Lesser General Public
++ * License as published by the Free Software Foundation; either
++ * version 2.1 of the License, or (at your option) any later version.
++ *
++ * FFmpeg is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * Lesser General Public License for more details.
++ *
++ * You should have received a copy of the GNU Lesser General Public
++ * License along with FFmpeg; if not, write to the Free Software
++ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
++ */
++#include "avcodec.h"
++#include "get_bits.h"
++#include "golomb.h"
++#include "internal.h"
++
++/**
++ * @file
++ * Simple free lossless/lossy audio codec
++ * Based on Paul Francis Harrison's Bonk (http://www.logarithmic.net/pfh/bonk)
++ * Written and designed by Alex Beregszaszi
++ *
++ * TODO:
++ *  - CABAC put/get_symbol
++ *  - independent quantizer for channels
++ *  - >2 channels support
++ *  - more decorrelation types
++ *  - more tap_quant tests
++ *  - selectable intlist writers/readers (bonk-style, golomb, cabac)
++ */
++
++#define MAX_CHANNELS 2
++
++#define MID_SIDE 0
++#define LEFT_SIDE 1
++#define RIGHT_SIDE 2
++
++typedef struct SonicContext {
++    int lossless, decorrelation;
++
++    int num_taps, downsampling;
++    double quantization;
++
++    int channels, samplerate, block_align, frame_size;
++
++    int *tap_quant;
++    int *int_samples;
++    int *coded_samples[MAX_CHANNELS];
++
++    // for encoding
++    int *tail;
++    int tail_size;
++    int *window;
++    int window_size;
++
++    // for decoding
++    int *predictor_k;
++    int *predictor_state[MAX_CHANNELS];
++} SonicContext;
++
++#define LATTICE_SHIFT   10
++#define SAMPLE_SHIFT    4
++#define LATTICE_FACTOR  (1 << LATTICE_SHIFT)
++#define SAMPLE_FACTOR   (1 << SAMPLE_SHIFT)
++
++#define BASE_QUANT      0.6
++#define RATE_VARIATION  3.0
++
++static inline int shift(int a,int b)
++{
++    return (a+(1<<(b-1))) >> b;
++}
++
++static inline int shift_down(int a,int b)
++{
++    return (a>>b)+(a<0);
++}
++
++#if 1
++static inline int intlist_write(PutBitContext *pb, int *buf, int entries, int base_2_part)
++{
++    int i;
++
++    for (i = 0; i < entries; i++)
++        set_se_golomb(pb, buf[i]);
++
++    return 1;
++}
++
++static inline int intlist_read(GetBitContext *gb, int *buf, int entries, int base_2_part)
++{
++    int i;
++
++    for (i = 0; i < entries; i++)
++        buf[i] = get_se_golomb(gb);
++
++    return 1;
++}
++
++#else
++
++#define ADAPT_LEVEL 8
++
++static int bits_to_store(uint64_t x)
++{
++    int res = 0;
++
++    while(x)
++    {
++        res++;
++        x >>= 1;
++    }
++    return res;
++}
++
++static void write_uint_max(PutBitContext *pb, unsigned int value, unsigned int max)
++{
++    int i, bits;
++
++    if (!max)
++        return;
++
++    bits = bits_to_store(max);
++
++    for (i = 0; i < bits-1; i++)
++        put_bits(pb, 1, value & (1 << i));
++
++    if ( (value | (1 << (bits-1))) <= max)
++        put_bits(pb, 1, value & (1 << (bits-1)));
++}
++
++static unsigned int read_uint_max(GetBitContext *gb, int max)
++{
++    int i, bits, value = 0;
++
++    if (!max)
++        return 0;
++
++    bits = bits_to_store(max);
++
++    for (i = 0; i < bits-1; i++)
++        if (get_bits1(gb))
++            value += 1 << i;
++
++    if ( (value | (1<<(bits-1))) <= max)
++        if (get_bits1(gb))
++            value += 1 << (bits-1);
++
++    return value;
++}
++
++static int intlist_write(PutBitContext *pb, int *buf, int entries, int base_2_part)
++{
++    int i, j, x = 0, low_bits = 0, max = 0;
++    int step = 256, pos = 0, dominant = 0, any = 0;
++    int *copy, *bits;
++
++    copy = av_calloc(entries, sizeof(*copy));
++    if (!copy)
++        return AVERROR(ENOMEM);
++
++    if (base_2_part)
++    {
++        int energy = 0;
++
++        for (i = 0; i < entries; i++)
++            energy += abs(buf[i]);
++
++        low_bits = bits_to_store(energy / (entries * 2));
++        if (low_bits > 15)
++            low_bits = 15;
++
++        put_bits(pb, 4, low_bits);
++    }
++
++    for (i = 0; i < entries; i++)
++    {
++        put_bits(pb, low_bits, abs(buf[i]));
++        copy[i] = abs(buf[i]) >> low_bits;
++        if (copy[i] > max)
++            max = abs(copy[i]);
++    }
++
++    bits = av_calloc(entries*max, sizeof(*bits));
++    if (!bits)
++    {
++//        av_free(copy);
++        return AVERROR(ENOMEM);
++    }
++
++    for (i = 0; i <= max; i++)
++    {
++        for (j = 0; j < entries; j++)
++            if (copy[j] >= i)
++                bits[x++] = copy[j] > i;
++    }
++
++    // store bitstream
++    while (pos < x)
++    {
++        int steplet = step >> 8;
++
++        if (pos + steplet > x)
++            steplet = x - pos;
++
++        for (i = 0; i < steplet; i++)
++            if (bits[i+pos] != dominant)
++                any = 1;
++
++        put_bits(pb, 1, any);
++
++        if (!any)
++        {
++            pos += steplet;
++            step += step / ADAPT_LEVEL;
++        }
++        else
++        {
++            int interloper = 0;
++
++            while (((pos + interloper) < x) && (bits[pos + interloper] == dominant))
++                interloper++;
++
++            // note change
++            write_uint_max(pb, interloper, (step >> 8) - 1);
++
++            pos += interloper + 1;
++            step -= step / ADAPT_LEVEL;
++        }
++
++        if (step < 256)
++        {
++            step = 65536 / step;
++            dominant = !dominant;
++        }
++    }
++
++    // store signs
++    for (i = 0; i < entries; i++)
++        if (buf[i])
++            put_bits(pb, 1, buf[i] < 0);
++
++//    av_free(bits);
++//    av_free(copy);
++
++    return 0;
++}
++
++static int intlist_read(GetBitContext *gb, int *buf, int entries, int base_2_part)
++{
++    int i, low_bits = 0, x = 0;
++    int n_zeros = 0, step = 256, dominant = 0;
++    int pos = 0, level = 0;
++    int *bits = av_calloc(entries, sizeof(*bits));
++
++    if (!bits)
++        return AVERROR(ENOMEM);
++
++    if (base_2_part)
++    {
++        low_bits = get_bits(gb, 4);
++
++        if (low_bits)
++            for (i = 0; i < entries; i++)
++                buf[i] = get_bits(gb, low_bits);
++    }
++
++//    av_log(NULL, AV_LOG_INFO, "entries: %d, low bits: %d\n", entries, low_bits);
++
++    while (n_zeros < entries)
++    {
++        int steplet = step >> 8;
++
++        if (!get_bits1(gb))
++        {
++            for (i = 0; i < steplet; i++)
++                bits[x++] = dominant;
++
++            if (!dominant)
++                n_zeros += steplet;
++
++            step += step / ADAPT_LEVEL;
++        }
++        else
++        {
++            int actual_run = read_uint_max(gb, steplet-1);
++
++//            av_log(NULL, AV_LOG_INFO, "actual run: %d\n", actual_run);
++
++            for (i = 0; i < actual_run; i++)
++                bits[x++] = dominant;
++
++            bits[x++] = !dominant;
++
++            if (!dominant)
++                n_zeros += actual_run;
++            else
++                n_zeros++;
++
++            step -= step / ADAPT_LEVEL;
++        }
++
++        if (step < 256)
++        {
++            step = 65536 / step;
++            dominant = !dominant;
++        }
++    }
++
++    // reconstruct unsigned values
++    n_zeros = 0;
++    for (i = 0; n_zeros < entries; i++)
++    {
++        while(1)
++        {
++            if (pos >= entries)
++            {
++                pos = 0;
++                level += 1 << low_bits;
++            }
++
++            if (buf[pos] >= level)
++                break;
++
++            pos++;
++        }
++
++        if (bits[i])
++            buf[pos] += 1 << low_bits;
++        else
++            n_zeros++;
++
++        pos++;
++    }
++//    av_free(bits);
++
++    // read signs
++    for (i = 0; i < entries; i++)
++        if (buf[i] && get_bits1(gb))
++            buf[i] = -buf[i];
++
++//    av_log(NULL, AV_LOG_INFO, "zeros: %d pos: %d\n", n_zeros, pos);
++
++    return 0;
++}
++#endif
++
++static void predictor_init_state(int *k, int *state, int order)
++{
++    int i;
++
++    for (i = order-2; i >= 0; i--)
++    {
++        int j, p, x = state[i];
++
++        for (j = 0, p = i+1; p < order; j++,p++)
++            {
++            int tmp = x + shift_down(k[j] * state[p], LATTICE_SHIFT);
++            state[p] += shift_down(k[j]*x, LATTICE_SHIFT);
++            x = tmp;
++        }
++    }
++}
++
++static int predictor_calc_error(int *k, int *state, int order, int error)
++{
++    int i, x = error - shift_down(k[order-1] * state[order-1], LATTICE_SHIFT);
++
++#if 1
++    int *k_ptr = &(k[order-2]),
++        *state_ptr = &(state[order-2]);
++    for (i = order-2; i >= 0; i--, k_ptr--, state_ptr--)
++    {
++        int k_value = *k_ptr, state_value = *state_ptr;
++        x -= shift_down(k_value * state_value, LATTICE_SHIFT);
++        state_ptr[1] = state_value + shift_down(k_value * x, LATTICE_SHIFT);
++    }
++#else
++    for (i = order-2; i >= 0; i--)
++    {
++        x -= shift_down(k[i] * state[i], LATTICE_SHIFT);
++        state[i+1] = state[i] + shift_down(k[i] * x, LATTICE_SHIFT);
++    }
++#endif
++
++    // don't drift too far, to avoid overflows
++    if (x >  (SAMPLE_FACTOR<<16)) x =  (SAMPLE_FACTOR<<16);
++    if (x < -(SAMPLE_FACTOR<<16)) x = -(SAMPLE_FACTOR<<16);
++
++    state[0] = x;
++
++    return x;
++}
++
++#if CONFIG_SONIC_ENCODER || CONFIG_SONIC_LS_ENCODER
++// Heavily modified Levinson-Durbin algorithm which
++// copes better with quantization, and calculates the
++// actual whitened result as it goes.
++
++static void modified_levinson_durbin(int *window, int window_entries,
++        int *out, int out_entries, int channels, int *tap_quant)
++{
++    int i;
++    int *state = av_calloc(window_entries, sizeof(*state));
++
++    memcpy(state, window, 4* window_entries);
++
++    for (i = 0; i < out_entries; i++)
++    {
++        int step = (i+1)*channels, k, j;
++        double xx = 0.0, xy = 0.0;
++#if 1
++        int *x_ptr = &(window[step]);
++        int *state_ptr = &(state[0]);
++        j = window_entries - step;
++        for (;j>0;j--,x_ptr++,state_ptr++)
++        {
++            double x_value = *x_ptr;
++            double state_value = *state_ptr;
++            xx += state_value*state_value;
++            xy += x_value*state_value;
++        }
++#else
++        for (j = 0; j <= (window_entries - step); j++);
++        {
++            double stepval = window[step+j];
++            double stateval = window[j];
++//            xx += (double)window[j]*(double)window[j];
++//            xy += (double)window[step+j]*(double)window[j];
++            xx += stateval*stateval;
++            xy += stepval*stateval;
++        }
++#endif
++        if (xx == 0.0)
++            k = 0;
++        else
++            k = (int)(floor(-xy/xx * (double)LATTICE_FACTOR / (double)(tap_quant[i]) + 0.5));
++
++        if (k > (LATTICE_FACTOR/tap_quant[i]))
++            k = LATTICE_FACTOR/tap_quant[i];
++        if (-k > (LATTICE_FACTOR/tap_quant[i]))
++            k = -(LATTICE_FACTOR/tap_quant[i]);
++
++        out[i] = k;
++        k *= tap_quant[i];
++
++#if 1
++        x_ptr = &(window[step]);
++        state_ptr = &(state[0]);
++        j = window_entries - step;
++        for (;j>0;j--,x_ptr++,state_ptr++)
++        {
++            int x_value = *x_ptr;
++            int state_value = *state_ptr;
++            *x_ptr = x_value + shift_down(k*state_value,LATTICE_SHIFT);
++            *state_ptr = state_value + shift_down(k*x_value, LATTICE_SHIFT);
++        }
++#else
++        for (j=0; j <= (window_entries - step); j++)
++        {
++            int stepval = window[step+j];
++            int stateval=state[j];
++            window[step+j] += shift_down(k * stateval, LATTICE_SHIFT);
++            state[j] += shift_down(k * stepval, LATTICE_SHIFT);
++        }
++#endif
++    }
++
++    av_free(state);
++}
++
++static inline int code_samplerate(int samplerate)
++{
++    switch (samplerate)
++    {
++        case 44100: return 0;
++        case 22050: return 1;
++        case 11025: return 2;
++        case 96000: return 3;
++        case 48000: return 4;
++        case 32000: return 5;
++        case 24000: return 6;
++        case 16000: return 7;
++        case 8000: return 8;
++    }
++    return AVERROR(EINVAL);
++}
++
++static av_cold int sonic_encode_init(AVCodecContext *avctx)
++{
++    SonicContext *s = avctx->priv_data;
++    PutBitContext pb;
++    int i, version = 0;
++
++    if (avctx->channels > MAX_CHANNELS)
++    {
++        av_log(avctx, AV_LOG_ERROR, "Only mono and stereo streams are supported by now\n");
++        return AVERROR(EINVAL); /* only stereo or mono for now */
++    }
++
++    if (avctx->channels == 2)
++        s->decorrelation = MID_SIDE;
++    else
++        s->decorrelation = 3;
++
++    if (avctx->codec->id == AV_CODEC_ID_SONIC_LS)
++    {
++        s->lossless = 1;
++        s->num_taps = 32;
++        s->downsampling = 1;
++        s->quantization = 0.0;
++    }
++    else
++    {
++        s->num_taps = 128;
++        s->downsampling = 2;
++        s->quantization = 1.0;
++    }
++
++    // max tap 2048
++    if (s->num_taps < 32 || s->num_taps > 1024 || s->num_taps % 32) {
++        av_log(avctx, AV_LOG_ERROR, "Invalid number of taps\n");
++        return AVERROR_INVALIDDATA;
++    }
++
++    // generate taps
++    s->tap_quant = av_calloc(s->num_taps, sizeof(*s->tap_quant));
++    for (i = 0; i < s->num_taps; i++)
++        s->tap_quant[i] = ff_sqrt(i+1);
++
++    s->channels = avctx->channels;
++    s->samplerate = avctx->sample_rate;
++
++    s->block_align = 2048LL*s->samplerate/(44100*s->downsampling);
++    s->frame_size = s->channels*s->block_align*s->downsampling;
++
++    s->tail_size = s->num_taps*s->channels;
++    s->tail = av_calloc(s->tail_size, sizeof(*s->tail));
++    if (!s->tail)
++        return AVERROR(ENOMEM);
++
++    s->predictor_k = av_calloc(s->num_taps, sizeof(*s->predictor_k) );
++    if (!s->predictor_k)
++        return AVERROR(ENOMEM);
++
++    for (i = 0; i < s->channels; i++)
++    {
++        s->coded_samples[i] = av_calloc(s->block_align, sizeof(**s->coded_samples));
++        if (!s->coded_samples[i])
++            return AVERROR(ENOMEM);
++    }
++
++    s->int_samples = av_calloc(s->frame_size, sizeof(*s->int_samples));
++
++    s->window_size = ((2*s->tail_size)+s->frame_size);
++    s->window = av_calloc(s->window_size, sizeof(*s->window));
++    if (!s->window)
++        return AVERROR(ENOMEM);
++
++    avctx->extradata = av_mallocz(16);
++    if (!avctx->extradata)
++        return AVERROR(ENOMEM);
++    init_put_bits(&pb, avctx->extradata, 16*8);
++
++    put_bits(&pb, 2, version); // version
++    if (version == 1)
++    {
++        put_bits(&pb, 2, s->channels);
++        put_bits(&pb, 4, code_samplerate(s->samplerate));
++    }
++    put_bits(&pb, 1, s->lossless);
++    if (!s->lossless)
++        put_bits(&pb, 3, SAMPLE_SHIFT); // XXX FIXME: sample precision
++    put_bits(&pb, 2, s->decorrelation);
++    put_bits(&pb, 2, s->downsampling);
++    put_bits(&pb, 5, (s->num_taps >> 5)-1); // 32..1024
++    put_bits(&pb, 1, 0); // XXX FIXME: no custom tap quant table
++
++    flush_put_bits(&pb);
++    avctx->extradata_size = put_bits_count(&pb)/8;
++
++    av_log(avctx, AV_LOG_INFO, "Sonic: ver: %d ls: %d dr: %d taps: %d block: %d frame: %d downsamp: %d\n",
++        version, s->lossless, s->decorrelation, s->num_taps, s->block_align, s->frame_size, s->downsampling);
++
++    avctx->frame_size = s->block_align*s->downsampling;
++
++    return 0;
++}
++
++static av_cold int sonic_encode_close(AVCodecContext *avctx)
++{
++    SonicContext *s = avctx->priv_data;
++    int i;
++
++    for (i = 0; i < s->channels; i++)
++        av_freep(&s->coded_samples[i]);
++
++    av_freep(&s->predictor_k);
++    av_freep(&s->tail);
++    av_freep(&s->tap_quant);
++    av_freep(&s->window);
++    av_freep(&s->int_samples);
++
++    return 0;
++}
++
++static int sonic_encode_frame(AVCodecContext *avctx, AVPacket *avpkt,
++                              const AVFrame *frame, int *got_packet_ptr)
++{
++    SonicContext *s = avctx->priv_data;
++    PutBitContext pb;
++    int i, j, ch, quant = 0, x = 0;
++    int ret;
++    const short *samples = (const int16_t*)frame->data[0];
++
++    if ((ret = ff_alloc_packet2(avctx, avpkt, s->frame_size * 5 + 1000)) < 0)
++        return ret;
++
++    init_put_bits(&pb, avpkt->data, avpkt->size);
++
++    // short -> internal
++    for (i = 0; i < s->frame_size; i++)
++        s->int_samples[i] = samples[i];
++
++    if (!s->lossless)
++        for (i = 0; i < s->frame_size; i++)
++            s->int_samples[i] = s->int_samples[i] << SAMPLE_SHIFT;
++
++    switch(s->decorrelation)
++    {
++        case MID_SIDE:
++            for (i = 0; i < s->frame_size; i += s->channels)
++            {
++                s->int_samples[i] += s->int_samples[i+1];
++                s->int_samples[i+1] -= shift(s->int_samples[i], 1);
++            }
++            break;
++        case LEFT_SIDE:
++            for (i = 0; i < s->frame_size; i += s->channels)
++                s->int_samples[i+1] -= s->int_samples[i];
++            break;
++        case RIGHT_SIDE:
++            for (i = 0; i < s->frame_size; i += s->channels)
++                s->int_samples[i] -= s->int_samples[i+1];
++            break;
++    }
++
++    memset(s->window, 0, 4* s->window_size);
++
++    for (i = 0; i < s->tail_size; i++)
++        s->window[x++] = s->tail[i];
++
++    for (i = 0; i < s->frame_size; i++)
++        s->window[x++] = s->int_samples[i];
++
++    for (i = 0; i < s->tail_size; i++)
++        s->window[x++] = 0;
++
++    for (i = 0; i < s->tail_size; i++)
++        s->tail[i] = s->int_samples[s->frame_size - s->tail_size + i];
++
++    // generate taps
++    modified_levinson_durbin(s->window, s->window_size,
++                s->predictor_k, s->num_taps, s->channels, s->tap_quant);
++    if ((ret = intlist_write(&pb, s->predictor_k, s->num_taps, 0)) < 0)
++        return ret;
++
++    for (ch = 0; ch < s->channels; ch++)
++    {
++        x = s->tail_size+ch;
++        for (i = 0; i < s->block_align; i++)
++        {
++            int sum = 0;
++            for (j = 0; j < s->downsampling; j++, x += s->channels)
++                sum += s->window[x];
++            s->coded_samples[ch][i] = sum;
++        }
++    }
++
++    // simple rate control code
++    if (!s->lossless)
++    {
++        double energy1 = 0.0, energy2 = 0.0;
++        for (ch = 0; ch < s->channels; ch++)
++        {
++            for (i = 0; i < s->block_align; i++)
++            {
++                double sample = s->coded_samples[ch][i];
++                energy2 += sample*sample;
++                energy1 += fabs(sample);
++            }
++        }
++
++        energy2 = sqrt(energy2/(s->channels*s->block_align));
++        energy1 = sqrt(2.0)*energy1/(s->channels*s->block_align);
++
++        // increase bitrate when samples are like a gaussian distribution
++        // reduce bitrate when samples are like a two-tailed exponential distribution
++
++        if (energy2 > energy1)
++            energy2 += (energy2-energy1)*RATE_VARIATION;
++
++        quant = (int)(BASE_QUANT*s->quantization*energy2/SAMPLE_FACTOR);
++//        av_log(avctx, AV_LOG_DEBUG, "quant: %d energy: %f / %f\n", quant, energy1, energy2);
++
++        quant = av_clip(quant, 1, 65534);
++
++        set_ue_golomb(&pb, quant);
++
++        quant *= SAMPLE_FACTOR;
++    }
++
++    // write out coded samples
++    for (ch = 0; ch < s->channels; ch++)
++    {
++        if (!s->lossless)
++            for (i = 0; i < s->block_align; i++)
++                s->coded_samples[ch][i] = ROUNDED_DIV(s->coded_samples[ch][i], quant);
++
++        if ((ret = intlist_write(&pb, s->coded_samples[ch], s->block_align, 1)) < 0)
++            return ret;
++    }
++
++//    av_log(avctx, AV_LOG_DEBUG, "used bytes: %d\n", (put_bits_count(&pb)+7)/8);
++
++    flush_put_bits(&pb);
++    avpkt->size = (put_bits_count(&pb)+7)/8;
++    *got_packet_ptr = 1;
++    return 0;
++}
++#endif /* CONFIG_SONIC_ENCODER || CONFIG_SONIC_LS_ENCODER */
++
++#if CONFIG_SONIC_DECODER
++static const int samplerate_table[] =
++    { 44100, 22050, 11025, 96000, 48000, 32000, 24000, 16000, 8000 };
++
++static av_cold int sonic_decode_init(AVCodecContext *avctx)
++{
++    SonicContext *s = avctx->priv_data;
++    GetBitContext gb;
++    int i, version;
++
++    s->channels = avctx->channels;
++    s->samplerate = avctx->sample_rate;
++
++    if (!avctx->extradata)
++    {
++        av_log(avctx, AV_LOG_ERROR, "No mandatory headers present\n");
++        return AVERROR_INVALIDDATA;
++    }
++
++    init_get_bits8(&gb, avctx->extradata, avctx->extradata_size);
++
++    version = get_bits(&gb, 2);
++    if (version > 1)
++    {
++        av_log(avctx, AV_LOG_ERROR, "Unsupported Sonic version, please report\n");
++        return AVERROR_INVALIDDATA;
++    }
++
++    if (version == 1)
++    {
++        s->channels = get_bits(&gb, 2);
++        s->samplerate = samplerate_table[get_bits(&gb, 4)];
++        av_log(avctx, AV_LOG_INFO, "Sonicv2 chans: %d samprate: %d\n",
++            s->channels, s->samplerate);
++    }
++
++    if (s->channels > MAX_CHANNELS)
++    {
++        av_log(avctx, AV_LOG_ERROR, "Only mono and stereo streams are supported by now\n");
++        return AVERROR_INVALIDDATA;
++    }
++
++    s->lossless = get_bits1(&gb);
++    if (!s->lossless)
++        skip_bits(&gb, 3); // XXX FIXME
++    s->decorrelation = get_bits(&gb, 2);
++    if (s->decorrelation != 3 && s->channels != 2) {
++        av_log(avctx, AV_LOG_ERROR, "invalid decorrelation %d\n", s->decorrelation);
++        return AVERROR_INVALIDDATA;
++    }
++
++    s->downsampling = get_bits(&gb, 2);
++    if (!s->downsampling) {
++        av_log(avctx, AV_LOG_ERROR, "invalid downsampling value\n");
++        return AVERROR_INVALIDDATA;
++    }
++
++    s->num_taps = (get_bits(&gb, 5)+1)<<5;
++    if (get_bits1(&gb)) // XXX FIXME
++        av_log(avctx, AV_LOG_INFO, "Custom quant table\n");
++
++    s->block_align = 2048LL*s->samplerate/(44100*s->downsampling);
++    s->frame_size = s->channels*s->block_align*s->downsampling;
++//    avctx->frame_size = s->block_align;
++
++    av_log(avctx, AV_LOG_INFO, "Sonic: ver: %d ls: %d dr: %d taps: %d block: %d frame: %d downsamp: %d\n",
++        version, s->lossless, s->decorrelation, s->num_taps, s->block_align, s->frame_size, s->downsampling);
++
++    // generate taps
++    s->tap_quant = av_calloc(s->num_taps, sizeof(*s->tap_quant));
++    for (i = 0; i < s->num_taps; i++)
++        s->tap_quant[i] = ff_sqrt(i+1);
++
++    s->predictor_k = av_calloc(s->num_taps, sizeof(*s->predictor_k));
++
++    for (i = 0; i < s->channels; i++)
++    {
++        s->predictor_state[i] = av_calloc(s->num_taps, sizeof(**s->predictor_state));
++        if (!s->predictor_state[i])
++            return AVERROR(ENOMEM);
++    }
++
++    for (i = 0; i < s->channels; i++)
++    {
++        s->coded_samples[i] = av_calloc(s->block_align, sizeof(**s->coded_samples));
++        if (!s->coded_samples[i])
++            return AVERROR(ENOMEM);
++    }
++    s->int_samples = av_calloc(s->frame_size, sizeof(*s->int_samples));
++
++    avctx->sample_fmt = AV_SAMPLE_FMT_S16;
++    return 0;
++}
++
++static av_cold int sonic_decode_close(AVCodecContext *avctx)
++{
++    SonicContext *s = avctx->priv_data;
++    int i;
++
++    av_freep(&s->int_samples);
++    av_freep(&s->tap_quant);
++    av_freep(&s->predictor_k);
++
++    for (i = 0; i < s->channels; i++)
++    {
++        av_freep(&s->predictor_state[i]);
++        av_freep(&s->coded_samples[i]);
++    }
++
++    return 0;
++}
++
++static int sonic_decode_frame(AVCodecContext *avctx,
++                            void *data, int *got_frame_ptr,
++                            AVPacket *avpkt)
++{
++    const uint8_t *buf = avpkt->data;
++    int buf_size = avpkt->size;
++    SonicContext *s = avctx->priv_data;
++    GetBitContext gb;
++    int i, quant, ch, j, ret;
++    int16_t *samples;
++    AVFrame *frame = data;
++
++    if (buf_size == 0) return 0;
++
++    frame->nb_samples = s->frame_size / avctx->channels;
++    if ((ret = ff_get_buffer(avctx, frame, 0)) < 0)
++        return ret;
++    samples = (int16_t *)frame->data[0];
++
++//    av_log(NULL, AV_LOG_INFO, "buf_size: %d\n", buf_size);
++
++    init_get_bits8(&gb, buf, buf_size);
++
++    intlist_read(&gb, s->predictor_k, s->num_taps, 0);
++
++    // dequantize
++    for (i = 0; i < s->num_taps; i++)
++        s->predictor_k[i] *= s->tap_quant[i];
++
++    if (s->lossless)
++        quant = 1;
++    else
++        quant = get_ue_golomb(&gb) * SAMPLE_FACTOR;
++
++//    av_log(NULL, AV_LOG_INFO, "quant: %d\n", quant);
++
++    for (ch = 0; ch < s->channels; ch++)
++    {
++        int x = ch;
++
++        predictor_init_state(s->predictor_k, s->predictor_state[ch], s->num_taps);
++
++        intlist_read(&gb, s->coded_samples[ch], s->block_align, 1);
++
++        for (i = 0; i < s->block_align; i++)
++        {
++            for (j = 0; j < s->downsampling - 1; j++)
++            {
++                s->int_samples[x] = predictor_calc_error(s->predictor_k, s->predictor_state[ch], s->num_taps, 0);
++                x += s->channels;
++            }
++
++            s->int_samples[x] = predictor_calc_error(s->predictor_k, s->predictor_state[ch], s->num_taps, s->coded_samples[ch][i] * quant);
++            x += s->channels;
++        }
++
++        for (i = 0; i < s->num_taps; i++)
++            s->predictor_state[ch][i] = s->int_samples[s->frame_size - s->channels + ch - i*s->channels];
++    }
++
++    switch(s->decorrelation)
++    {
++        case MID_SIDE:
++            for (i = 0; i < s->frame_size; i += s->channels)
++            {
++                s->int_samples[i+1] += shift(s->int_samples[i], 1);
++                s->int_samples[i] -= s->int_samples[i+1];
++            }
++            break;
++        case LEFT_SIDE:
++            for (i = 0; i < s->frame_size; i += s->channels)
++                s->int_samples[i+1] += s->int_samples[i];
++            break;
++        case RIGHT_SIDE:
++            for (i = 0; i < s->frame_size; i += s->channels)
++                s->int_samples[i] += s->int_samples[i+1];
++            break;
++    }
++
++    if (!s->lossless)
++        for (i = 0; i < s->frame_size; i++)
++            s->int_samples[i] = shift(s->int_samples[i], SAMPLE_SHIFT);
++
++    // internal -> short
++    for (i = 0; i < s->frame_size; i++)
++        samples[i] = av_clip_int16(s->int_samples[i]);
++
++    align_get_bits(&gb);
++
++    *got_frame_ptr = 1;
++
++    return (get_bits_count(&gb)+7)/8;
++}
++
++AVCodec ff_sonic_decoder = {
++    .name           = "sonic",
++    .long_name      = NULL_IF_CONFIG_SMALL("Sonic"),
++    .type           = AVMEDIA_TYPE_AUDIO,
++    .id             = AV_CODEC_ID_SONIC,
++    .priv_data_size = sizeof(SonicContext),
++    .init           = sonic_decode_init,
++    .close          = sonic_decode_close,
++    .decode         = sonic_decode_frame,
++    .capabilities   = CODEC_CAP_DR1,
++};
++#endif /* CONFIG_SONIC_DECODER */
++
++#if CONFIG_SONIC_ENCODER
++AVCodec ff_sonic_encoder = {
++    .name           = "sonic",
++    .long_name      = NULL_IF_CONFIG_SMALL("Sonic"),
++    .type           = AVMEDIA_TYPE_AUDIO,
++    .id             = AV_CODEC_ID_SONIC,
++    .priv_data_size = sizeof(SonicContext),
++    .init           = sonic_encode_init,
++    .encode2        = sonic_encode_frame,
++    .sample_fmts    = (const enum AVSampleFormat[]){ AV_SAMPLE_FMT_S16, AV_SAMPLE_FMT_NONE },
++    .close          = sonic_encode_close,
++};
++#endif
++
++#if CONFIG_SONIC_LS_ENCODER
++AVCodec ff_sonic_ls_encoder = {
++    .name           = "sonicls",
++    .long_name      = NULL_IF_CONFIG_SMALL("Sonic lossless"),
++    .type           = AVMEDIA_TYPE_AUDIO,
++    .id             = AV_CODEC_ID_SONIC_LS,
++    .priv_data_size = sizeof(SonicContext),
++    .init           = sonic_encode_init,
++    .encode2        = sonic_encode_frame,
++    .sample_fmts    = (const enum AVSampleFormat[]){ AV_SAMPLE_FMT_S16, AV_SAMPLE_FMT_NONE },
++    .close          = sonic_encode_close,
++};
++#endif
+diff --git a/libavcodec/vorbisenc.c b/libavcodec/vorbisenc.c
+index 9ef6296..2f4b78e 100644
+--- a/libavcodec/vorbisenc.c
++++ b/libavcodec/vorbisenc.c
+@@ -1199,7 +1199,7 @@ AVCodec ff_vorbis_encoder = {
+     .init           = vorbis_encode_init,
+     .encode2        = vorbis_encode_frame,
+     .close          = vorbis_encode_close,
+-    .capabilities   = CODEC_CAP_DELAY | CODEC_CAP_EXPERIMENTAL,
++    .capabilities   = CODEC_CAP_DELAY ,
+     .sample_fmts    = (const enum AVSampleFormat[]){ AV_SAMPLE_FMT_FLTP,
+                                                      AV_SAMPLE_FMT_NONE },
+ };
