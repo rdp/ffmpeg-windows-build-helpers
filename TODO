@@ -1,8 +1,8 @@
 == actual todos ==
 
-mplayer work with dvd's...come on
-
 == maybe/never do ==
+
+make sure openssl still builds, doesn't conflict, etc. [jan-E]
 
 ask the x264 guys what is a good fprofiled option out there...
 
