@@ -513,8 +513,8 @@ build_libopus() {
 }
 
 build_libdvdnav() {
-  download_and_unpack_file http://dvdnav.mplayerhq.hu/releases/libdvdnav-4.2.0.tar.bz2 libdvdnav-4.2.0
-  cd libdvdnav-4.2.0
+  download_and_unpack_file http://dvdnav.mplayerhq.hu/releases/libdvdnav-4.2.1.tar.xz libdvdnav-4.2.1
+  cd libdvdnav-4.2.1
   if [[ ! -f ./configure ]]; then
     ./autogen.sh
   fi
@@ -528,14 +528,14 @@ build_libdvdcss() {
 }
 
 build_libdvdread() {
-  download_and_unpack_file http://dvdnav.mplayerhq.hu/releases/libdvdread-4.2.0.tar.bz2 libdvdread-4.2.0
-  cd libdvdread-4.2.0
+  download_and_unpack_file http://dvdnav.mplayerhq.hu/releases/libdvdread-4.2.1.tar.xz libdvdread-4.2.1
+  cd libdvdread-4.2.1
   if [[ ! -f ./configure ]]; then
     ./autogen.sh
   fi
 
   generic_configure "CFLAGS=-DHAVE_DVDCSS_DVDCSS_H LDFLAGS=-ldvdcss" # vlc patch: "--enable-libdvdcss" # XXX ask how I'm *supposed* to do this to the dvdread peeps [svn?]
-  apply_patch https://raw.github.com/rdp/ffmpeg-windows-build-helpers/master/patches/dvdread-win32.patch # XXX ???
+  apply_patch https://raw.github.com/rdp/ffmpeg-windows-build-helpers/master/patches/dvdread-win32.patch # has been reported to them...
   do_make_install 
   sed -i "s/-ldvdread.*/-ldvdread -ldvdcss/" $mingw_w64_x86_64_prefix/bin/dvdread-config
   sed -i 's/-ldvdread.*/-ldvdread -ldvdcss/' "$PKG_CONFIG_PATH/dvdread.pc"
@@ -543,7 +543,7 @@ build_libdvdread() {
 }
 
 build_glew() { # opengl stuff
-  echo "still broken, wow this thing looks like junk LOL"
+  echo "still broken, wow this thing looks tough LOL"
   exit
   download_and_unpack_file https://sourceforge.net/projects/glew/files/glew/1.10.0/glew-1.10.0.tgz/download glew-1.10.0 
   cd glew-1.10.0
@@ -882,7 +882,7 @@ build_mplayer() {
   #do_git_checkout https://github.com/FFmpeg/FFmpeg # TODO some specific revision here?
 
   # TODO this doesn't use our built-in dvdnav/read [yet] so is broken for DVD's!
-  do_configure "--enable-cross-compile --host-cc=cc --cc=${cross_prefix}gcc --windres=${cross_prefix}windres --ranlib=${cross_prefix}ranlib --ar=${cross_prefix}ar --as=${cross_prefix}as --nm=${cross_prefix}nm --enable-runtime-cpudetection --extra-cflags=$CFLAGS" # --with-dvdnav-config=...
+  do_configure "--enable-cross-compile --host-cc=cc --cc=${cross_prefix}gcc --windres=${cross_prefix}windres --ranlib=${cross_prefix}ranlib --ar=${cross_prefix}ar --as=${cross_prefix}as --nm=${cross_prefix}nm --enable-runtime-cpudetection --extra-cflags=$CFLAGS" # --with-dvdnav-config=$mingw_w64_x86_64_prefix/bin/dvdnav-config --with-dvdread-config=$mingw_w64_x86_64_prefix/bin/dvdread-config
   rm already_ran_make* # try to force re-link just in case...this might not be enough tho
   rm *.exe
   do_make
@@ -1122,6 +1122,7 @@ while true; do
     --build-mplayer=* ) build_mplayer="${1#*=}"; shift ;;
     --build-libav=* ) build_libav="${1#*=}"; shift ;;
     --cflags=* ) 
+       echo "removing old .exe's, in case cflags has changed"
        for file in $(find_all_build_exes); do
          echo "deleting $file in case it isn't rebuilt with new different cflags, which could cause confusion"
          echo "also deleting $(dirname $file)/already_ran_make*"
@@ -1186,3 +1187,4 @@ fi
 for file in $(find_all_build_exes); do
   echo "built $file"
 done
+echo "done!"
