@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+set -x
 ################################################################################
 # ffmpeg windows cross compile helper/download script
 ################################################################################
@@ -276,8 +277,8 @@ do_make() {
     echo
     echo "making $cur_dir2 as $ PATH=$PATH make $extra_make_options"
     echo
-#   nice make $extra_make_options || exit 1 removed so the build process can go on
-    nice make $extra_make_options && touch $touch_name # only touch if the build was OK
+    nice make $extra_make_options || exit 1
+    touch $touch_name # only touch if the build was OK
   else
     echo "already did make $(basename "$cur_dir2")"
   fi
@@ -313,6 +314,7 @@ apply_patch() {
    echo "applying patch $patch_name"
    patch -p0 < "$patch_name" || exit 1
    touch $patch_done_name
+   rm already_ran* # if it's a new patch, reset everything too, in case it's really really really new
  else
    echo "patch $patch_name already applied"
  fi
@@ -516,8 +518,9 @@ build_libflite() {
 build_libgsm() {
   download_and_unpack_file http://www.quut.com/gsm/gsm-1.0.13.tar.gz gsm-1.0-pl13
   cd gsm-1.0-pl13
-  apply_patch https://raw.github.com/Jan-E/ffmpeg-windows-build-helpers/master/patches/libgsm.patch
-  do_make "CC=${cross_prefix}gcc AR=${cross_prefix}ar RANLIB=${cross_prefix}ranlib INSTALL_ROOT=${mingw_w64_x86_64_prefix}"
+  apply_patch https://raw.github.com/rdp/ffmpeg-windows-build-helpers/master/patches/libgsm.patch # for openssl to work with it, I think?
+  # not do_make since this actually fails [in error]
+  make "CC=${cross_prefix}gcc AR=${cross_prefix}ar RANLIB=${cross_prefix}ranlib INSTALL_ROOT=${mingw_w64_x86_64_prefix}"
   cp lib/libgsm.a $mingw_w64_x86_64_prefix/lib || exit 1
   mkdir -p $mingw_w64_x86_64_prefix/include/gsm
   cp inc/gsm.h $mingw_w64_x86_64_prefix/include/gsm || exit 1
@@ -1026,7 +1029,6 @@ build_ffmpeg() {
     do_make_install # install ffmpeg to get libavcodec libraries to be used as dependencies for other things, like vlc [XXX make this a config option?]
   fi
   echo "Done! You will find $bits_target bit $shared binaries in $(pwd)/{ffmpeg,ffprobe,ffplay,avconv,avprobe}*.exe"
-  ls -la *.exe
   cd ..
 }
 
@@ -1099,7 +1101,7 @@ build_dependencies() {
     build_faac # not included for now, too poor quality :)
     # build_libaacplus # if you use it, conflicts with other AAC encoders <sigh>, so disabled :)
   fi
-  build_openssl # hopefully do not need it anymore, since we have gnutls everywhere...
+  # build_openssl # hopefully do not need it anymore, since we have gnutls everywhere...
   build_librtmp # needs gnutls [or openssl...]
 }
 
