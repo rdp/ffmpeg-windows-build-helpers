@@ -512,21 +512,6 @@ build_libopus() {
   generic_download_and_install http://downloads.xiph.org/releases/opus/opus-1.0.1.tar.gz opus-1.0.1 
 }
 
-build_libdvdnav() {
-  download_and_unpack_file http://dvdnav.mplayerhq.hu/releases/libdvdnav-4.2.1.tar.xz libdvdnav-4.2.1
-  cd libdvdnav-4.2.1
-  if [[ ! -f ./configure ]]; then
-    ./autogen.sh
-  fi
-  generic_configure "--with-dvdread-config=$mingw_w64_x86_64_prefix/bin/dvdread-config"
-  do_make_install 
-  cd ..
-}
-
-build_libdvdcss() {
-  generic_download_and_install http://download.videolan.org/pub/videolan/libdvdcss/1.2.13/libdvdcss-1.2.13.tar.bz2 libdvdcss-1.2.13
-}
-
 build_libdvdread() {
   download_and_unpack_file http://dvdnav.mplayerhq.hu/releases/libdvdread-4.2.1.tar.xz libdvdread-4.2.1
   cd libdvdread-4.2.1
@@ -540,6 +525,21 @@ build_libdvdread() {
   sed -i "s/-ldvdread.*/-ldvdread -ldvdcss/" $mingw_w64_x86_64_prefix/bin/dvdread-config # ??? related to vlc patch, above, probably
   sed -i 's/-ldvdread.*/-ldvdread -ldvdcss/' "$PKG_CONFIG_PATH/dvdread.pc"
   cd ..
+}
+
+build_libdvdnav() {
+  download_and_unpack_file http://dvdnav.mplayerhq.hu/releases/libdvdnav-4.2.1.tar.xz libdvdnav-4.2.1
+  cd libdvdnav-4.2.1
+  if [[ ! -f ./configure ]]; then
+    ./autogen.sh
+  fi
+  generic_configure "--with-dvdread-config=$mingw_w64_x86_64_prefix/bin/dvdread-config"
+  do_make_install 
+  cd ..
+}
+
+build_libdvdcss() {
+  generic_download_and_install http://download.videolan.org/pub/videolan/libdvdcss/1.2.13/libdvdcss-1.2.13.tar.bz2 libdvdcss-1.2.13
 }
 
 build_glew() { # opengl stuff
@@ -881,14 +881,13 @@ build_mplayer() {
   #cd mplayer-svn-git
   #do_git_checkout https://github.com/FFmpeg/FFmpeg # TODO some specific revision here?
 
-  # TODO this doesn't use our built-in dvdnav/read [yet] so is broken for DVD's!
   do_configure "--enable-cross-compile --host-cc=cc --cc=${cross_prefix}gcc --windres=${cross_prefix}windres --ranlib=${cross_prefix}ranlib --ar=${cross_prefix}ar --as=${cross_prefix}as --nm=${cross_prefix}nm --enable-runtime-cpudetection --extra-cflags=$CFLAGS --with-dvdnav-config=$mingw_w64_x86_64_prefix/bin/dvdnav-config --with-dvdread-config=$mingw_w64_x86_64_prefix/bin/dvdread-config --disable-dvdread-internal --disable-libdvdcss-internal"
-  rm already_ran_make* # try to force re-link just in case...this might not be enough tho
+  # try to force re-link just in case...
   rm *.exe
+  rm already_ran_make* # try to force re-link just in case...
   do_make
   echo "built ${PWD}/{mplayer,mencoder}.exe"
   cd ..
-  exit
 }
 
 build_mp4box() { # like build_gpac
