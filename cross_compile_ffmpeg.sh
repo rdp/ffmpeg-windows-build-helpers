@@ -881,6 +881,7 @@ build_mplayer() {
   #cd mplayer-svn-git
   #do_git_checkout https://github.com/FFmpeg/FFmpeg # TODO some specific revision here?
 
+  # TODO this doesn't use our built-in dvdnav/read [yet] so is broken for DVD's!
   do_configure "--enable-cross-compile --host-cc=cc --cc=${cross_prefix}gcc --windres=${cross_prefix}windres --ranlib=${cross_prefix}ranlib --ar=${cross_prefix}ar --as=${cross_prefix}as --nm=${cross_prefix}nm --enable-runtime-cpudetection --extra-cflags=$CFLAGS" # --with-dvdnav-config=...
   rm already_ran_make* # try to force re-link just in case...this might not be enough tho
   rm *.exe
