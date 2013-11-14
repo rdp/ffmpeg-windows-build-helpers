@@ -1,6 +1,10 @@
 == actual todos ==
 
+mplayer work with dvd's...come on
+
 == maybe/never do ==
+
+real distro/installer/put it online
 
 were there any other places with suspect non march stuff?
 
@@ -25,13 +29,11 @@ use libcaca git instead, tell them it still isn't enough...
 
 test all things dvd to make sure they play anything...
 
-submit dvdread gcc_pack upstreams [?] and static linking, after checking SVN to see if they're already there?
-
 mplayer git'ify'
   blocked'ish by lack of easy access to their source
 
 vlc git'ify
-  hopefully no longer blocked :P
+  hopefully no longer blocked, but I'm not pointed at mainline yet... :P
 
 -d should auto select "both 32 and 64 bit" [XXX make it into command line param too?]
 
