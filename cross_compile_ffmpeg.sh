@@ -527,7 +527,8 @@ build_libgsm() {
 }
 
 build_libopus() {
-  generic_download_and_install http://downloads.xiph.org/releases/opus/opus-1.0.3.tar.gz opus-1.0.3 
+  # 1.0.3 and 1.1-beta doesn't build shared right, so skip ahead...
+  generic_download_and_install http://downloads.xiph.org/releases/opus/opus-1.0.1.tar.gz opus-1.0.1 
 }
 
 build_libdvdread() {
