@@ -1,6 +1,8 @@
 == actual todos ==
 
-== maybe/never do ==
+shared build seems broken [esp. with non free]
+
+== maybe/never do, more on the never ==
 
 make sure openssl still builds, doesn't conflict, etc. [jan-E]
 

@@ -149,6 +149,7 @@ install_cross_compiler() {
   chmod u+x mingw-w64-build-3.5.0.local
   unset CFLAGS # don't want these for the compiler itself since it creates executables to run on the local box
   # pthreads version to avoid having to use cvs for it
+  echo "building cross compile gcc [requires internet access]"
   nice ./mingw-w64-build-3.5.0.local --clean-build --disable-shared --default-configure  --pthreads-w32-ver=2-9-1 --cpu-count=$gcc_cpu_count --build-type=$build_choice || exit 1 # --disable-shared allows c++ to be distributed at all...which seemed necessary for some random dependency...
   export CFLAGS=$original_cflags # reset it
   if [ -d mingw-w64-x86_64 ]; then
