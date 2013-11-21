@@ -987,14 +987,15 @@ build_ffmpeg() {
 
   # can't mix and match --enable-static --enable-shared unfortunately, or the final executable seems to just use shared if the're both present
   if [[ $shared == "shared" ]]; then
-    do_git_checkout $git_url ${output_dir}_shared
-    extra_configure_opts="--enable-shared --disable-static $extra_configure_opts"
-    cd ${output_dir}_shared
+    output_dir=${output_dir}_shared
+    do_git_checkout $git_url ${output_dir}
+    final_install_dir=`pwd`/${output_dir}.installed
+    extra_configure_opts="--enable-shared --disable-static $extra_configure_opts --prefix=$final_install_dir"
   else
     do_git_checkout $git_url $output_dir
     extra_configure_opts="--enable-static --disable-shared $extra_configure_opts"
-    cd $output_dir
   fi
+  cd $output_dir
   
   if [ "$bits_target" = "32" ]; then
    local arch=x86
@@ -1024,9 +1025,7 @@ build_ffmpeg() {
   rm already_ran_make*
   echo "doing ffmpeg make $(pwd)"
   do_make
-  if [[ $shared != "shared" ]]; then
-    do_make_install # install ffmpeg to get libavcodec libraries to be used as dependencies for other things, like vlc [XXX make this a config option?]
-  fi
+  do_make_install # install ffmpeg to get libavcodec libraries to be used as dependencies for other things, like vlc [XXX make this a parameter?] or install shared to a local dir
   echo "Done! You will find $bits_target bit $shared binaries in $(pwd)/{ffmpeg,ffprobe,ffplay,avconv,avprobe}*.exe"
   cd ..
 }
