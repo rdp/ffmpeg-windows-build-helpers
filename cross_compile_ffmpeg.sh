@@ -980,7 +980,8 @@ build_ffmpeg() {
     # libav [ffmpeg fork]  has a few missing options?
     git_url="https://github.com/libav/libav.git"
     output_dir="libav_git"
-    extra_configure_opts=""
+    final_install_dir=`pwd`/${output_dir}.installed
+    extra_configure_opts="--prefix=$final_install_dir" # don't install libav to the system
   fi
 
   extra_configure_opts="$extra_configure_opts --extra-cflags=$CFLAGS" # extra-cflags is not needed, but adds it to the console output which I lke
