@@ -82,8 +82,7 @@ distribute "my own set of [I guess optimized?] binaries" that are processor opti
 
 a distro that's a VM they can just open up and hit "go" in :)
 
-VLC: more qt patches
-  make sure it can use libx264 so it benefits from march=native :P
+ask a pkg-config mailing list?
 
 make it compilable on windows native...
   release a downloadable "click here to run it" to build full libfdk-aac on windows LOL
