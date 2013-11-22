@@ -533,7 +533,7 @@ build_libopus() {
 }
 
 build_libdvdread() {
-  download_and_unpack_file http://dvdnav.mplayerhq.hu/releases/libdvdread-4.2.1.tar.xz libdvdread-4.2.1
+  download_and_unpack_file http://dvdnav.mplayerhq.hu/releases/libdvdread-4.2.1-rc1.tar.xz libdvdread-4.2.1
   cd libdvdread-4.2.1
   if [[ ! -f ./configure ]]; then
     ./autogen.sh
@@ -548,7 +548,7 @@ build_libdvdread() {
 }
 
 build_libdvdnav() {
-  download_and_unpack_file http://dvdnav.mplayerhq.hu/releases/libdvdnav-4.2.1.tar.xz libdvdnav-4.2.1
+  download_and_unpack_file http://dvdnav.mplayerhq.hu/releases/libdvdnav-4.2.1-rc1.tar.xz libdvdnav-4.2.1
   cd libdvdnav-4.2.1
   if [[ ! -f ./configure ]]; then
     ./autogen.sh
