@@ -991,7 +991,8 @@ build_ffmpeg() {
     output_dir=${output_dir}_shared
     do_git_checkout $git_url ${output_dir}
     final_install_dir=`pwd`/${output_dir}.installed
-    extra_configure_opts="--enable-shared --disable-static $extra_configure_opts --prefix=$final_install_dir"
+    extra_configure_opts="--enable-shared --disable-static $extra_configure_opts"
+    #extra_configure_opts="$extra_configure_opts --prefix=$final_install_dir"
   else
     do_git_checkout $git_url $output_dir
     extra_configure_opts="--enable-static --disable-shared $extra_configure_opts"
