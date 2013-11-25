@@ -6,8 +6,6 @@ vlc is broken with his pthreads? mine?
 == maybe/never do, more on the never ==
 defaults for the prompts...
 
-figure out how av_export workz with shared, to be able to tell so and so...
-
 "release" debug builds, full static builds [?]
 
 make sure openssl still builds, doesn't conflict, etc. [jan-E]
@@ -50,6 +48,11 @@ vlc git'ify
 command line option "don't update any git repos"
 
 libav work with nonfree? meh
+
+figure out how av_export workz with shared, to be able to tell so and so...
+  my guess is that it works with ffmpeg because the .lib files instruct it to use a dll? huhwuh?
+    ok you've got ffmpeg built static, and then .dll.lib.a files, right?  so thiiis is a different import structure than pthreads uses, and allows you to use "uni .h" files.......so maybe pthreads win32 should be generating different .lib files or something?
+  so ffmppeg maybe it creates the .lib.dll.a file different, and so *that* one can work...there may be a way to get it to work
 
 don't "always install libavcodec" [only when building VLC, maybe only ffmpeg too]
   or smaller?
