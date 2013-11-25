@@ -581,7 +581,7 @@ build_libopencore() {
 build_win32_pthreads() {
   download_and_unpack_file ftp://sourceware.org/pub/pthreads-win32/pthreads-w32-2-9-1-release.tar.gz   pthreads-w32-2-9-1-release
   cd pthreads-w32-2-9-1-release
-    do_make "clean GC-static CROSS=$cross_prefix"
+    do_make "clean GC-static CROSS=$cross_prefix" # NB no make install
     cp libpthreadGC2.a $mingw_w64_x86_64_prefix/lib/libpthread.a || exit 1
     cp pthread.h sched.h semaphore.h $mingw_w64_x86_64_prefix/include || exit 1
   cd ..
@@ -1047,7 +1047,7 @@ find_all_build_exes() {
 
 build_dependencies() {
   echo "PKG_CONFIG_PATH=$PKG_CONFIG_PATH" # debug
-#  build_win32_pthreads # vpx etc. depend on this--provided by the compiler build script now, so shouldn't have to build our own
+  #build_win32_pthreads # vpx etc. depend on this--provided by the compiler build script now, so shouldn't have to build our own
   build_libdl # ffmpeg's frei0r implentation needs this
   build_zlib # rtmp depends on it [as well as ffmpeg's optional but handy --enable-zlib]
   build_bzlib2 # in case someone wants it [ffmpeg uses it]

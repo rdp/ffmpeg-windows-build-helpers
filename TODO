@@ -1,10 +1,14 @@
 == actual todos ==
 
-figure out how av_export workz with shared
 vlc is broken with his pthreads? mine?
   I prefer his anyway if that way does work better...how can I have mine here tho?
 
 == maybe/never do, more on the never ==
+defaults for the prompts...
+
+figure out how av_export workz with shared, to be able to tell so and so...
+
+"release" debug builds, full static builds [?]
 
 make sure openssl still builds, doesn't conflict, etc. [jan-E]
 
