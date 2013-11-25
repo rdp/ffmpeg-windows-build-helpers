@@ -1,7 +1,8 @@
 == actual todos ==
 
-gpac seems broken
 figure out how av_export workz with shared
+vlc is broken with his pthreads? mine?
+  I prefer his anyway if that way does work better...how can I have mine here tho?
 
 == maybe/never do, more on the never ==
 
