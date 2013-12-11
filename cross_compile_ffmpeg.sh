@@ -889,14 +889,15 @@ build_vlc() {
     ./bootstrap
   fi 
   do_configure "--disable-libgcrypt --disable-a52 --host=$host_target --disable-lua --disable-mad --enable-qt --disable-sdl" # don't have lua mingw yet, etc. [vlc has --disable-sdl [?]]
+  for file in `find . -name *.exe`; do
+    rm $file # try to force a rebuild...though there are tons of .a files we aren't rebuilding :|
+  done
+  rm already_ran_make* # try to force re-link just in case...
   do_make
   # do some gymnastics to avoid building the mozilla plugin for now [couldn't quite get it to work]
   #sed -i 's_git://git.videolan.org/npapi-vlc.git_https://github.com/rdp/npapi-vlc.git_' Makefile # this wasn't enough...
   sed -i "s/package-win-common: package-win-install build-npapi/package-win-common: package-win-install/" Makefile
   sed -i "s/.*cp .*builddir.*npapi-vlc.*//g" Makefile
-  for file in ./*/vlc.exe; do
-    rm $file # try to force a rebuild...
-  done
   make package-win-common # not do_make, fails still at end, plus this way we get new vlc.exe's
   echo "created a file like ${PWD}/vlc-2.2.0-git/vlc.exe
 
