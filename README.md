@@ -46,7 +46,10 @@ Also NB that you can also "cross compile" {mplayer,mencoder}.exe if you pass in 
 Also NB that you can also "cross compile" vlc.exe if you pass in the appropriate command line parameter too.
 
 Also NB that you can optionally create a "somewhat more machine optimized builds" by modifying an appropriate --cflags parameter, like --cflags=-march=athlon64-sse2 or what not.  
-So if you're cross compiling it on the box you'll end up targeting it for, you could build it like --cflags=-march=native to get a slightly faster executable [NB I haven't run any benchmarks to prove this yet, but it's possible...if you run any do let me know]
+So if you're cross compiling it on the box you'll end up targeting it for, you could build it like --cflags=-march=native to get a slightly faster executable
+
+Unfortunately, after doing some benchmarking, it seems that modifying the CFLAGS (at least if you're using libx264) doesn't end up helping much (it might make a smaller executable?) since libx264 auto detects and auto uses your cpu capabilities anyway, so...until further research is done, this option may not provide significant speedup.  Ping me if you get different results than this.
+
 NB that if you have wine installed you may need to run this command first to disable it (if you are building for a different architecture than the building machine, especially), so that it doesn't auto run files like conftest.exe, etc. during the build (they will crash with an annoying popup prompt otherwise)
 $ sudo update-binfmts --disable wine
 ref: http://askubuntu.com/questions/344088/how-to-ensure-wine-does-not-auto-run-exe-files
@@ -57,7 +60,9 @@ Feedback welcome roger-projects@googlegroups.com
 Related projects:
 
 vlc has its "contribs" building (cross compiling) system: https://wiki.videolan.org/Win32Compile/
+
 mxe "m cross environment" https://github.com/mxe/mxe is for cross compiling many things.
+
 https://github.com/qyot27/mpv/blob/extra-new/DOCS/crosscompile-mingw-tedious.txt lists lots of howto's
 
 For building FFmpeg (for windows) in a more native windows environment these might help (though it might be slower as well unless):
