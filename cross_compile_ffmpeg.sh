@@ -1,32 +1,19 @@
 #!/usr/bin/env bash
-################################################################################
 # ffmpeg windows cross compile helper/download script
-################################################################################
-# Copyright (C) 2012 Roger Pack
-#
-# This program is free software: you can redistribute it and/or modify it under
-# the terms of the GNU General Public License as published by the Free Software
-# Foundation, either version 3 of the License, or (at your option) any later
-# version.
-#
-# This program is distributed in the hope that it will be useful, but WITHOUT
-# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-# FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
-# details.
-#
-# You should have received a copy of the GNU General Public License along with
-# this program.  If not, see <http://www.gnu.org/licenses/>.
-#
-# The GNU General Public License can be found in the LICENSE file.
-
+# Copyright (C) 2012 Roger Pack, the script is under the GPLv3, but output FFmpeg's aren't necessarily
 
 yes_no_sel () {
   unset user_input
   local question="$1"
   shift
+  local default_answer="$1"
   while [[ "$user_input" != [YyNn] ]]; do
     echo -n "$question"
     read user_input
+    if [[ -z "$user_input" ]]; then
+      echo "using default $default_answer"
+      user_input=$default_answer
+    fi
     if [[ "$user_input" != [YyNn] ]]; then
       clear; echo 'Your selection was not vaild, please try again.'; echo
     fi
@@ -85,7 +72,7 @@ intro() {
   You can, of course, rebuild ffmpeg from within it, etc.
 EOL
   if [[ $sandbox_ok != 'y' ]]; then
-    yes_no_sel "Is ./sandbox ok (requires ~ 5GB space) [y/n]?"
+    yes_no_sel "Is ./sandbox ok (requires ~ 5GB space) [Y/n]?" "y"
     if [[ "$user_input" = "n" ]]; then
       exit 1
     fi
@@ -99,7 +86,7 @@ EOL
       non_free="y" 
     else
       yes_no_sel "Would you like to include non-free (non GPL compatible) libraries, like many aac encoders
-The resultant binary will not be distributable, but might be useful for in-house use. Include non-free [y/n]?"
+The resultant binary will not be distributable, but might be useful for in-house use. Include non-free [y/N]?" "n"
       non_free="$user_input" # save it away
     fi
   fi
@@ -533,14 +520,14 @@ build_libopus() {
 }
 
 build_libdvdread() {
-  download_and_unpack_file http://dvdnav.mplayerhq.hu/releases/libdvdread-4.2.1-rc1.tar.xz libdvdread-4.2.1
+  download_and_unpack_file http://dvdnav.mplayerhq.hu/releases/libdvdread-4.2.1-rc2.tar.xz libdvdread-4.2.1 
   cd libdvdread-4.2.1
   if [[ ! -f ./configure ]]; then
     ./autogen.sh
   fi
 
   generic_configure "CFLAGS=-DHAVE_DVDCSS_DVDCSS_H LDFLAGS=-ldvdcss" # vlc patch: "--enable-libdvdcss" # XXX ask how I'm *supposed* to do this to the dvdread peeps [svn?]
-  apply_patch https://raw.github.com/rdp/ffmpeg-windows-build-helpers/master/patches/dvdread-win32.patch # has been reported to them...
+  #apply_patch https://raw.github.com/rdp/ffmpeg-windows-build-helpers/master/patches/dvdread-win32.patch # has been reported to them...
   do_make_install 
   sed -i "s/-ldvdread.*/-ldvdread -ldvdcss/" $mingw_w64_x86_64_prefix/bin/dvdread-config # ??? related to vlc patch, above, probably
   sed -i 's/-ldvdread.*/-ldvdread -ldvdcss/' "$PKG_CONFIG_PATH/dvdread.pc"
