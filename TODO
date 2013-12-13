@@ -8,15 +8,12 @@ vlc is broken with his pthreads? mine?
   I prefer his anyway if that way does work better...how can I have mine here tho?
   SHARED was hiding the linnnnnk error far far away...and also not even needing it...but should have failed on dll...unless I never used it!
 
-defaults for the prompts...
-
-release "debug" builds, full static linkable builds [?]
+real distro/installer/put it online
+  release "debug" builds, full static linkable builds [?]
 
 make sure openssl still builds, doesn't conflict, etc. [jan-E]
 
 ask the x264 guys what is a good fprofiled option out there...
-
-real distro/installer/put it online
 
 were there any other places with suspect non march stuff?
 
