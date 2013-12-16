@@ -34,7 +34,7 @@ If you're using a "fresh" linux distro then the following command "might" instal
 
 
 If you want to customize your FFmpeg final executable even more (remove features you don't need, etc.) then edit the script
-1. Add or remove the "--enable-xxx" settings in the build_ffmpeg method (under config_options) near the bottom
+1. Add or remove the "--enable-xxx" settings in the build_ffmpeg method (under config_options) near the bottom of the script.  This can enable or disable parts of FFmpeg that you don't need, or want more, etc.
 2. Remove or add the # to the lines you're enabling or disabling in the build_dependencies() function
 3. You can write custom functions for new features you want to integrate, make sure to add them to the build_dependencies() functions and also include the corresponding "--enable-xxx" settings to the build_ffmpeg() function under the config_options
 4. There are some helper method do_XXX etc. for checking out code, running make, etc. that may be useful.
