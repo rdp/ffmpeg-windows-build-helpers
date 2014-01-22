@@ -174,12 +174,12 @@ do_svn_checkout() {
 
 update_to_desired_git_branch_or_revision() {
   local to_dir="$1"
-  local desired_branch="$2"
+  local desired_branch="$2" # or tag or whatever...
   if [ -n "$desired_branch" ]; then
    pushd $to_dir
    cd $to_dir
       echo "git checkout $desired_branch"
-      git checkout "$desired_branch" || exit 1
+      git checkout "$desired_branch" || exit 1 # if this fails, nuke the directory first...
       git merge "$desired_branch" || exit 1 # this would be if they want to checkout a revision number, not a branch...
    popd # in case it's a cd to ., don't want to cd to .. here...since sometimes we call it with a '.'
   fi
@@ -858,7 +858,7 @@ build_frei0r() {
 }
 
 build_vidstab() {
-  do_git_checkout https://github.com/georgmartius/vid.stab.git vid.stab "f32cc"
+  do_git_checkout https://github.com/georgmartius/vid.stab.git vid.stab "430b4cffeb" # 0.9.8
   cd vid.stab
     do_cmake
     sed -i "s/SHARED/STATIC/" CMakeLists.txt # ??
