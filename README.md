@@ -6,7 +6,7 @@ including many dependency libraries they use.
 
 To run the script:
 
-In a Linux box (VM or native):
+In some type of Linux box (VM or native, or you can create a remote one temporarily, like at digitalocean, use it, then destroy it):
 
 download the script (git clone the repo, run it, or do the following in a bash window) $
 
