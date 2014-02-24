@@ -453,8 +453,8 @@ build_libopenjpeg() {
 }
 
 build_libvpx() {
-  download_and_unpack_file http://webm.googlecode.com/files/libvpx-v1.2.0.tar.bz2 libvpx-v1.2.0
-  cd libvpx-v1.2.0
+  download_and_unpack_file http://webm.googlecode.com/files/libvpx-v1.3.0.tar.bz2 libvpx-v1.3.0
+  cd libvpx-v1.3.0
 #  do_git_checkout https://git.chromium.org/git/webm/libvpx.git "libvpx_git"
 #  cd libvpx_git
   export CROSS="$cross_prefix"
