@@ -1,0 +1,432 @@
+diff -Nru libMXF-src-1.0.0.orig/libMXF/examples/writeavidmxf/main.c libMXF-src-1.0.0/libMXF/examples/writeavidmxf/main.c
+--- libMXF/examples/writeavidmxf/main.c	2011-11-10 11:27:37.000000000 +0100
++++ libMXF/examples/writeavidmxf/main.c	2014-02-28 12:26:53.771112459 +0100
+@@ -506,11 +506,11 @@
+                 fprintf(stderr, "Failed to read the wav format chunk (common part)\n");
+                 return 0;
+             }
+-            if (get_uint16_le(buffer) != WAVE_FORMAT_PCM)
+-            {
+-                fprintf(stderr, "Unexpected wav format - expecting WAVE_FORMAT_PCM (0x0001)\n");
+-                return 0;
+-            }
++            //if (get_uint16_le(buffer) != WAVE_FORMAT_PCM)
++            //{
++            //    fprintf(stderr, "Unexpected wav format - expecting WAVE_FORMAT_PCM (0x0001)\n");
++            //    return 0;
++            //}
+             input->numAudioChannels = get_uint16_le(&buffer[2]);
+             if (input->numAudioChannels == 0)
+             {
+@@ -899,6 +899,7 @@
+     fprintf(stderr, "Options: (options marked with * are required)\n");
+     fprintf(stderr, "  -h, --help                 display this usage message\n");
+     fprintf(stderr, "* --prefix <filename>        output filename prefix\n");
++    fprintf(stderr, "  --extguid <guid>           external material guid\n");
+     fprintf(stderr, "  --clip <name>              clip (MaterialPackage) name.\n");
+     fprintf(stderr, "  --project <name>           Avid project name.\n");
+     fprintf(stderr, "  --tape <name>              tape name.\n");
+@@ -967,6 +968,117 @@
+     fprintf(stderr, "\n");
+ }
+ 
++/* MobID generation code following the same algorithm as implemented in the older AAF SDK versions
++  - see revision 1.47 of AAF/ref-impl/src/impl/AAFUtils.c */
++void mxf_generate_old_aafsdk_umid_from_guid(const char *guid, mxfUMID* umid)
++{
++    uint32_t major;
++	uint32_t minor;
++	uint8_t gbytes[ 16 ];
++	uint32_t inx;
++	uint32_t cnt;
++	uint8_t nib;
++
++	major = 0;
++	minor = 0;
++
++	for (inx = 0; inx < 16; inx++) gbytes[ inx ] = 0;
++
++	for (inx = cnt = 0; guid[ inx ]; inx++)
++	{
++		nib = 255;
++
++		switch (guid[ inx ])
++		{
++			case '0' : nib =  0; break;
++			case '1' : nib =  1; break;
++			case '2' : nib =  2; break;
++			case '3' : nib =  3; break;
++			case '4' : nib =  4; break;
++			case '5' : nib =  5; break;
++			case '6' : nib =  6; break;
++			case '7' : nib =  7; break;
++			case '8' : nib =  8; break;
++			case '9' : nib =  9; break;
++			case 'a' : nib = 10; break;
++			case 'A' : nib = 10; break;
++			case 'b' : nib = 11; break;
++			case 'B' : nib = 11; break;
++			case 'c' : nib = 12; break;
++			case 'C' : nib = 12; break;
++			case 'd' : nib = 13; break;
++			case 'D' : nib = 13; break;
++			case 'e' : nib = 14; break;
++			case 'E' : nib = 14; break;
++			case 'f' : nib = 15; break;
++			case 'F' : nib = 15; break;
++		}
++
++		if ((nib < 255) && (cnt < 32))
++		{
++			if ((cnt % 2) == 0)
++			{
++				gbytes[ cnt >> 1 ] = nib << 4;
++			}
++			else
++			{
++				gbytes[ cnt >> 1 ] += nib;
++			}
++
++			cnt++;
++		}
++	}
++	
++	major 
++		= (((uint32_t) gbytes[ 3 ]) << 24)
++		+ (((uint32_t) gbytes[ 2 ]) << 16)
++		+ (((uint32_t) gbytes[ 1 ]) <<  8)
++		+ (((uint32_t) gbytes[ 0 ]) <<  0);
++	
++	minor 
++		= (((uint32_t) gbytes[ 7 ]) << 24)
++		+ (((uint32_t) gbytes[ 6 ]) << 16)
++		+ (((uint32_t) gbytes[ 5 ]) <<  8)
++		+ (((uint32_t) gbytes[ 4 ]) <<  0);
++
++    umid->octet0 = 0x06;
++    umid->octet1 = 0x0c;
++    umid->octet2 = 0x2b;
++    umid->octet3 = 0x34;
++    umid->octet4 = 0x02;         
++    umid->octet5 = 0x05;     
++    umid->octet6 = 0x11; 
++    umid->octet7 = 0x01;
++    umid->octet8 = 0x01;
++    umid->octet9 = 0x04;  /* UMIDType */
++    umid->octet10 = 0x10;
++    umid->octet11 = 0x00; /* no method specified for material and instance number generation */
++    umid->octet12 = 0x13;
++    umid->octet13 = 0x00;
++    umid->octet14 = 0x00;
++    umid->octet15 = 0x00;
++
++    umid->octet24 = 0x06;
++    umid->octet25 = 0x0e;
++    umid->octet26 = 0x2b;
++    umid->octet27 = 0x34;
++    umid->octet28 = 0x7f;
++    umid->octet29 = 0x7f;
++    umid->octet30 = (uint8_t)(42 & 0x7f); /* company specific prefix = 42 */
++    umid->octet31 = (uint8_t)((42 >> 7L) | 0x80);  /* company specific prefix = 42 */
++    
++    umid->octet16 = (uint8_t)((major >> 24) & 0xff);
++    umid->octet17 = (uint8_t)((major >> 16) & 0xff);
++    umid->octet18 = (uint8_t)((major >> 8) & 0xff);
++    umid->octet19 = (uint8_t)(major & 0xff);
++    
++    umid->octet20 = (uint8_t)(((uint16_t)(minor & 0xFFFF) >> 8) & 0xff);
++    umid->octet21 = (uint8_t)((uint16_t)(minor & 0xFFFF) & 0xff);
++    
++    umid->octet22 = (uint8_t)(((uint16_t)((minor >> 16L) & 0xFFFF) >> 8) & 0xff);
++    umid->octet23 = (uint8_t)((uint16_t)((minor >> 16L) & 0xFFFF) & 0xff);
++
++}
+ 
+ int main(int argc, const char* argv[])
+ {
+@@ -975,7 +1087,8 @@
+     const char* projectName = NULL;
+     const char* clipName = NULL;
+     const char* tapeName = NULL;
+-    int isPAL = -1;
++ 	const char* extGuid = NULL;
++   int isPAL = -1;
+     int isFilm24 = 0;
+     int isFilm23_976 = 0;                     /* Used for film 23.976 (24000/1001) DNxHD input */
+     const char* needFilmArg = NULL;
+@@ -1046,6 +1159,36 @@
+             filenamePrefix = argv[cmdlnIndex + 1];
+             cmdlnIndex += 2;
+         }
++        else if (strcmp(argv[cmdlnIndex], "--extguid") == 0)
++        {
++            if (cmdlnIndex + 1 >= argc)
++            {
++                usage(argv[0]);
++                fprintf(stderr, "Missing argument for %s\n", argv[cmdlnIndex]);
++                return 1;
++            }
++
++            extGuid = argv[cmdlnIndex + 1];
++
++			if (strlen(extGuid) != 36)
++			{
++	            usage(argv[0]);
++                fprintf(stderr, "Wrong guid length for %s\n", argv[cmdlnIndex]);
++                return 1;
++			}
++
++			if ((extGuid[  8 ] != '-') ||
++				(extGuid[ 13 ] != '-') ||
++				(extGuid[ 18 ] != '-') ||
++				(extGuid[ 23 ] != '-'))
++			{
++	            usage(argv[0]);
++                fprintf(stderr, "Invalid guid format for %s\n", argv[cmdlnIndex]);
++                return 1;
++			}
++
++            cmdlnIndex += 2;
++        }
+         else if (strcmp(argv[cmdlnIndex], "--clip") == 0)
+         {
+             if (cmdlnIndex + 1 >= argc)
+@@ -2283,17 +2426,26 @@
+     /* create the package definitions */
+ 
+     /* set the material and/or tape source package UMIDs if not already set */
+-    if (memcmp(&materialPackageUID, &g_Null_UMID, sizeof(materialPackageUID)) == 0)
+-    {
+-        if (useLegacyUMID)
+-        {
+-            mxf_generate_old_aafsdk_umid(&materialPackageUID);
+-        }
+-        else
+-        {
+-            mxf_generate_aafsdk_umid(&materialPackageUID);
+-        }
+-    }
++
++	if (extGuid == NULL)
++	{	
++		if (memcmp(&materialPackageUID, &g_Null_UMID, sizeof(materialPackageUID)) == 0)
++		{
++			if (useLegacyUMID)
++			{
++				mxf_generate_old_aafsdk_umid(&materialPackageUID);
++			}
++			else
++			{
++				mxf_generate_aafsdk_umid(&materialPackageUID);
++			}
++		}
++	}
++	else
++	{
++		mxf_generate_old_aafsdk_umid_from_guid(extGuid,&materialPackageUID);
++	}
++	
+     if (memcmp(&tapePackageUID, &g_Null_UMID, sizeof(tapePackageUID)) == 0)
+     {
+         if (useLegacyUMID)
+diff -Nru libMXF-src-1.0.0.orig/libMXF/lib/include/uuid/uuid.h libMXF-src-1.0.0/libMXF/lib/include/uuid/uuid.h
+--- libMXF/lib/include/uuid/uuid.h	1970-01-01 01:00:00.000000000 +0100
++++ libMXF/lib/include/uuid/uuid.h	2014-02-28 12:26:53.046114064 +0100
+@@ -0,0 +1,104 @@
++/*
++ * Public include file for the UUID library
++ *
++ * Copyright (C) 1996, 1997, 1998 Theodore Ts'o.
++ *
++ * %Begin-Header%
++ * Redistribution and use in source and binary forms, with or without
++ * modification, are permitted provided that the following conditions
++ * are met:
++ * 1. Redistributions of source code must retain the above copyright
++ *    notice, and the entire permission notice in its entirety,
++ *    including the disclaimer of warranties.
++ * 2. Redistributions in binary form must reproduce the above copyright
++ *    notice, this list of conditions and the following disclaimer in the
++ *    documentation and/or other materials provided with the distribution.
++ * 3. The name of the author may not be used to endorse or promote
++ *    products derived from this software without specific prior
++ *    written permission.
++ *
++ * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESS OR IMPLIED
++ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
++ * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE, ALL OF
++ * WHICH ARE HEREBY DISCLAIMED.  IN NO EVENT SHALL THE AUTHOR BE
++ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
++ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT
++ * OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR
++ * BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
++ * LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
++ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
++ * USE OF THIS SOFTWARE, EVEN IF NOT ADVISED OF THE POSSIBILITY OF SUCH
++ * DAMAGE.
++ * %End-Header%
++ */
++
++#ifndef _UUID_UUID_H
++#define _UUID_UUID_H
++
++#include <sys/types.h>
++#ifndef _WIN32
++#include <sys/time.h>
++#endif
++#include <time.h>
++
++typedef unsigned char uuid_t[16];
++
++/* UUID Variant definitions */
++#define UUID_VARIANT_NCS	0
++#define UUID_VARIANT_DCE	1
++#define UUID_VARIANT_MICROSOFT	2
++#define UUID_VARIANT_OTHER	3
++
++/* UUID Type definitions */
++#define UUID_TYPE_DCE_TIME   1
++#define UUID_TYPE_DCE_RANDOM 4
++
++/* Allow UUID constants to be defined */
++#ifdef __GNUC__
++#define UUID_DEFINE(name,u0,u1,u2,u3,u4,u5,u6,u7,u8,u9,u10,u11,u12,u13,u14,u15) \
++	static const uuid_t name __attribute__ ((unused)) = {u0,u1,u2,u3,u4,u5,u6,u7,u8,u9,u10,u11,u12,u13,u14,u15}
++#else
++#define UUID_DEFINE(name,u0,u1,u2,u3,u4,u5,u6,u7,u8,u9,u10,u11,u12,u13,u14,u15) \
++	static const uuid_t name = {u0,u1,u2,u3,u4,u5,u6,u7,u8,u9,u10,u11,u12,u13,u14,u15}
++#endif
++
++#ifdef __cplusplus
++extern "C" {
++#endif
++
++/* clear.c */
++void uuid_clear(uuid_t uu);
++
++/* compare.c */
++int uuid_compare(const uuid_t uu1, const uuid_t uu2);
++
++/* copy.c */
++void uuid_copy(uuid_t dst, const uuid_t src);
++
++/* gen_uuid.c */
++void uuid_generate(uuid_t out);
++void uuid_generate_random(uuid_t out);
++void uuid_generate_time(uuid_t out);
++int uuid_generate_time_safe(uuid_t out);
++
++/* isnull.c */
++int uuid_is_null(const uuid_t uu);
++
++/* parse.c */
++int uuid_parse(const char *in, uuid_t uu);
++
++/* unparse.c */
++void uuid_unparse(const uuid_t uu, char *out);
++void uuid_unparse_lower(const uuid_t uu, char *out);
++void uuid_unparse_upper(const uuid_t uu, char *out);
++
++/* uuid_time.c */
++time_t uuid_time(const uuid_t uu, struct timeval *ret_tv);
++int uuid_type(const uuid_t uu);
++int uuid_variant(const uuid_t uu);
++
++#ifdef __cplusplus
++}
++#endif
++
++#endif /* _UUID_UUID_H */
+diff -Nru libMXF-src-1.0.0.orig/libMXF/vars.mk libMXF-src-1.0.0/libMXF/vars.mk
+--- libMXF/vars.mk	2009-09-18 16:35:20.000000000 +0200
++++ libMXF/vars.mk	2014-02-28 12:42:59.033484245 +0100
+@@ -38,7 +38,7 @@
+ # Variables for compilation of libMXF client applications
+ CC = $(BIN_PREFIX)gcc
+ INCLUDES = -I. -I$(LIBMXF_DIR)/include
+-CFLAGS = -Wall -W -Werror -g -O2 -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE -D_LARGEFILE64_SOURCE $(INCLUDES)
++CFLAGS = -Wall -W -g -O2 -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE -D_LARGEFILE64_SOURCE $(INCLUDES)
+ AR = $(BIN_PREFIX)ar crv
+ 
+ # Get the OS name e.g. Linux, MINGW32_NT-5.0, Darwin, SunOS
+diff -Nru libMXF-src-1.0.0.orig/libMXF++/examples/ArchiveMXFReader/ArchiveMXFReader.cpp libMXF-src-1.0.0/libMXF++/examples/ArchiveMXFReader/ArchiveMXFReader.cpp
+--- libMXF++/examples/ArchiveMXFReader/ArchiveMXFReader.cpp	2009-09-29 16:33:31.000000000 +0200
++++ libMXF++/examples/ArchiveMXFReader/ArchiveMXFReader.cpp	2014-02-28 12:35:40.539708429 +0100
+@@ -22,6 +22,7 @@
+  
+ #include "ArchiveMXFReader.h"
+ #include <memory>
++#include <cstdio>
+ 
+ 
+ using namespace std;
+diff -Nru libMXF-src-1.0.0.orig/libMXF++/examples/OPAtomReader/FixedSizeEssenceParser.cpp libMXF-src-1.0.0/libMXF++/examples/OPAtomReader/FixedSizeEssenceParser.cpp
+--- libMXF++/examples/OPAtomReader/FixedSizeEssenceParser.cpp	2010-07-21 18:29:34.000000000 +0200
++++ libMXF++/examples/OPAtomReader/FixedSizeEssenceParser.cpp	2014-02-28 12:36:08.254633662 +0100
+@@ -25,6 +25,7 @@
+  */
+ 
+ #include <cstring>
++#include <cstdio>
+ 
+ #include <libMXF++/MXF.h>
+ 
+diff -Nru libMXF-src-1.0.0.orig/libMXF++/examples/OPAtomReader/OPAtomTrackReader.cpp libMXF-src-1.0.0/libMXF++/examples/OPAtomReader/OPAtomTrackReader.cpp
+--- libMXF++/examples/OPAtomReader/OPAtomTrackReader.cpp	2011-01-10 18:05:15.000000000 +0100
++++ libMXF++/examples/OPAtomReader/OPAtomTrackReader.cpp	2014-02-28 12:36:51.439516418 +0100
+@@ -25,6 +25,7 @@
+  */
+ 
+ #include <cstring>
++#include <cstdio>
+ 
+ #include <libMXF++/MXF.h>
+ #include <libMXF++/extensions/TaggedValue.h>
+diff -Nru libMXF-src-1.0.0.orig/libMXF++/examples/OPAtomReader/PCMEssenceParser.cpp libMXF-src-1.0.0/libMXF++/examples/OPAtomReader/PCMEssenceParser.cpp
+--- libMXF++/examples/OPAtomReader/PCMEssenceParser.cpp	2009-10-23 11:05:21.000000000 +0200
++++ libMXF++/examples/OPAtomReader/PCMEssenceParser.cpp	2014-02-28 12:41:15.068782069 +0100
+@@ -24,6 +24,7 @@
+  * 02110-1301, USA
+  */
+ 
++#include <cstdio>
+ #include <libMXF++/MXF.h>
+ 
+ #include "PCMEssenceParser.h"
+diff -Nru libMXF-src-1.0.0.orig/libMXF++/examples/OPAtomReader/VariableSizeEssenceParser.cpp libMXF-src-1.0.0/libMXF++/examples/OPAtomReader/VariableSizeEssenceParser.cpp
+--- libMXF++/examples/OPAtomReader/VariableSizeEssenceParser.cpp	2011-01-10 18:05:15.000000000 +0100
++++ libMXF++/examples/OPAtomReader/VariableSizeEssenceParser.cpp	2014-02-28 12:40:49.608854321 +0100
+@@ -24,6 +24,7 @@
+  * 02110-1301, USA
+  */
+ 
++#include <cstdio>
+ #include <libMXF++/MXF.h>
+ 
+ #include <mxf/mxf_labels_and_keys.h>
+diff -Nru libMXF-src-1.0.0.orig/libMXF++/libMXF++/File.cpp libMXF-src-1.0.0/libMXF++/libMXF++/File.cpp
+--- libMXF++/libMXF++/File.cpp	2010-11-02 14:18:32.000000000 +0100
++++ libMXF++/libMXF++/File.cpp	2014-02-28 12:38:48.009195551 +0100
+@@ -20,9 +20,9 @@
+  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+  */
+ 
++#include <cstdio>
+ #include <libMXF++/MXF.h>
+ 
+-
+ using namespace std;
+ using namespace mxfpp;
+ 
+diff -Nru libMXF-src-1.0.0.orig/libMXF++/vars.mk libMXF-src-1.0.0/libMXF++/vars.mk
+--- libMXF++/vars.mk	2009-09-29 16:33:31.000000000 +0200
++++ libMXF++/vars.mk	2014-02-28 12:41:59.878654246 +0100
+@@ -39,7 +39,7 @@
+ # Variables for compilation of libMXF client applications
+ CC = $(BIN_PREFIX)g++
+ INCLUDES = -I. -I$(LIBMXFPP_DIR) -I$(LIBMXF_DIR)/lib/include
+-CFLAGS = -Wall -W -Wno-unused-parameter -Werror -g -O2 -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE -D_LARGEFILE64_SOURCE $(INCLUDES)
++CFLAGS = -Wall -W -Wno-unused-parameter -g -O2 -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE -D_LARGEFILE64_SOURCE $(INCLUDES)
+ COMPILE = $(CC) $(CFLAGS)
+ AR = $(BIN_PREFIX)ar cr
+ 
