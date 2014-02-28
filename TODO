@@ -4,6 +4,9 @@ am I...losing packets in windows?  How does behave/respond in linux without circ
     add 10040 to theirs?
   submit a patch? or tell mplayer they shuck (if they ar elosing packets without circ. buffer, then they just shuck LOL)
 
+ffmpeg shared is dead...
+  after, check with updated opus [?]
+
 == maybe/never do, more on the never ==
 
 gpac is dead
