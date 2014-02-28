@@ -200,15 +200,21 @@ do_git_checkout() {
     update_to_desired_git_branch_or_revision $to_dir $desired_branch
   else
     cd $to_dir
-    echo "Updating to latest $to_dir version... $desired_branch"
     old_git_version=`git rev-parse HEAD`
 
-    # if we're on a special branch, don't even bother doing a git pull, assume we're already there...
     if [[ -z $desired_branch ]]; then
       if [[ $git_get_latest = "y" ]]; then
+        echo "Updating to latest $to_dir version... $desired_branch"
         git pull
       else
         echo "not doing git get latest pull for latest code $to_dir"
+      fi
+    else
+      if [[ $git_get_latest = "y" ]]; then
+        echo "Doing git fetch $to_dir in case it affects the desired branch [$desired_branch]"
+        git fetch
+      else
+        echo "not doing git fetch $to_dir to see if it affected desired branch [$desired_branch]"
       fi
     fi
     update_to_desired_git_branch_or_revision "." $desired_branch
