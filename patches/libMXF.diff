@@ -1,6 +1,6 @@
 diff -Nru libMXF-src-1.0.0.orig/libMXF/examples/writeavidmxf/main.c libMXF-src-1.0.0/libMXF/examples/writeavidmxf/main.c
---- libMXF-src-1.0.0.orig/libMXF/examples/writeavidmxf/main.c	2011-11-10 11:27:37.000000000 +0100
-+++ libMXF-src-1.0.0/libMXF/examples/writeavidmxf/main.c	2014-02-28 12:26:53.771112459 +0100
+--- libMXF/examples/writeavidmxf/main.c	2011-11-10 11:27:37.000000000 +0100
++++ libMXF/examples/writeavidmxf/main.c	2014-02-28 12:26:53.771112459 +0100
 @@ -506,11 +506,11 @@
                  fprintf(stderr, "Failed to read the wav format chunk (common part)\n");
                  return 0;
@@ -230,8 +230,8 @@ diff -Nru libMXF-src-1.0.0.orig/libMXF/examples/writeavidmxf/main.c libMXF-src-1
      {
          if (useLegacyUMID)
 diff -Nru libMXF-src-1.0.0.orig/libMXF/lib/include/uuid/uuid.h libMXF-src-1.0.0/libMXF/lib/include/uuid/uuid.h
---- libMXF-src-1.0.0.orig/libMXF/lib/include/uuid/uuid.h	1970-01-01 01:00:00.000000000 +0100
-+++ libMXF-src-1.0.0/libMXF/lib/include/uuid/uuid.h	2014-02-28 12:26:53.046114064 +0100
+--- libMXF/lib/include/uuid/uuid.h	1970-01-01 01:00:00.000000000 +0100
++++ libMXF/lib/include/uuid/uuid.h	2014-02-28 12:26:53.046114064 +0100
 @@ -0,0 +1,104 @@
 +/*
 + * Public include file for the UUID library
@@ -338,8 +338,8 @@ diff -Nru libMXF-src-1.0.0.orig/libMXF/lib/include/uuid/uuid.h libMXF-src-1.0.0/
 +
 +#endif /* _UUID_UUID_H */
 diff -Nru libMXF-src-1.0.0.orig/libMXF/vars.mk libMXF-src-1.0.0/libMXF/vars.mk
---- libMXF-src-1.0.0.orig/libMXF/vars.mk	2009-09-18 16:35:20.000000000 +0200
-+++ libMXF-src-1.0.0/libMXF/vars.mk	2014-02-28 12:42:59.033484245 +0100
+--- libMXF/vars.mk	2009-09-18 16:35:20.000000000 +0200
++++ libMXF/vars.mk	2014-02-28 12:42:59.033484245 +0100
 @@ -38,7 +38,7 @@
  # Variables for compilation of libMXF client applications
  CC = $(BIN_PREFIX)gcc
@@ -350,8 +350,8 @@ diff -Nru libMXF-src-1.0.0.orig/libMXF/vars.mk libMXF-src-1.0.0/libMXF/vars.mk
  
  # Get the OS name e.g. Linux, MINGW32_NT-5.0, Darwin, SunOS
 diff -Nru libMXF-src-1.0.0.orig/libMXF++/examples/ArchiveMXFReader/ArchiveMXFReader.cpp libMXF-src-1.0.0/libMXF++/examples/ArchiveMXFReader/ArchiveMXFReader.cpp
---- libMXF-src-1.0.0.orig/libMXF++/examples/ArchiveMXFReader/ArchiveMXFReader.cpp	2009-09-29 16:33:31.000000000 +0200
-+++ libMXF-src-1.0.0/libMXF++/examples/ArchiveMXFReader/ArchiveMXFReader.cpp	2014-02-28 12:35:40.539708429 +0100
+--- libMXF++/examples/ArchiveMXFReader/ArchiveMXFReader.cpp	2009-09-29 16:33:31.000000000 +0200
++++ libMXF++/examples/ArchiveMXFReader/ArchiveMXFReader.cpp	2014-02-28 12:35:40.539708429 +0100
 @@ -22,6 +22,7 @@
   
  #include "ArchiveMXFReader.h"
@@ -361,8 +361,8 @@ diff -Nru libMXF-src-1.0.0.orig/libMXF++/examples/ArchiveMXFReader/ArchiveMXFRea
  
  using namespace std;
 diff -Nru libMXF-src-1.0.0.orig/libMXF++/examples/OPAtomReader/FixedSizeEssenceParser.cpp libMXF-src-1.0.0/libMXF++/examples/OPAtomReader/FixedSizeEssenceParser.cpp
---- libMXF-src-1.0.0.orig/libMXF++/examples/OPAtomReader/FixedSizeEssenceParser.cpp	2010-07-21 18:29:34.000000000 +0200
-+++ libMXF-src-1.0.0/libMXF++/examples/OPAtomReader/FixedSizeEssenceParser.cpp	2014-02-28 12:36:08.254633662 +0100
+--- libMXF++/examples/OPAtomReader/FixedSizeEssenceParser.cpp	2010-07-21 18:29:34.000000000 +0200
++++ libMXF++/examples/OPAtomReader/FixedSizeEssenceParser.cpp	2014-02-28 12:36:08.254633662 +0100
 @@ -25,6 +25,7 @@
   */
  
@@ -372,8 +372,8 @@ diff -Nru libMXF-src-1.0.0.orig/libMXF++/examples/OPAtomReader/FixedSizeEssenceP
  #include <libMXF++/MXF.h>
  
 diff -Nru libMXF-src-1.0.0.orig/libMXF++/examples/OPAtomReader/OPAtomTrackReader.cpp libMXF-src-1.0.0/libMXF++/examples/OPAtomReader/OPAtomTrackReader.cpp
---- libMXF-src-1.0.0.orig/libMXF++/examples/OPAtomReader/OPAtomTrackReader.cpp	2011-01-10 18:05:15.000000000 +0100
-+++ libMXF-src-1.0.0/libMXF++/examples/OPAtomReader/OPAtomTrackReader.cpp	2014-02-28 12:36:51.439516418 +0100
+--- libMXF++/examples/OPAtomReader/OPAtomTrackReader.cpp	2011-01-10 18:05:15.000000000 +0100
++++ libMXF++/examples/OPAtomReader/OPAtomTrackReader.cpp	2014-02-28 12:36:51.439516418 +0100
 @@ -25,6 +25,7 @@
   */
  
@@ -383,8 +383,8 @@ diff -Nru libMXF-src-1.0.0.orig/libMXF++/examples/OPAtomReader/OPAtomTrackReader
  #include <libMXF++/MXF.h>
  #include <libMXF++/extensions/TaggedValue.h>
 diff -Nru libMXF-src-1.0.0.orig/libMXF++/examples/OPAtomReader/PCMEssenceParser.cpp libMXF-src-1.0.0/libMXF++/examples/OPAtomReader/PCMEssenceParser.cpp
---- libMXF-src-1.0.0.orig/libMXF++/examples/OPAtomReader/PCMEssenceParser.cpp	2009-10-23 11:05:21.000000000 +0200
-+++ libMXF-src-1.0.0/libMXF++/examples/OPAtomReader/PCMEssenceParser.cpp	2014-02-28 12:41:15.068782069 +0100
+--- libMXF++/examples/OPAtomReader/PCMEssenceParser.cpp	2009-10-23 11:05:21.000000000 +0200
++++ libMXF++/examples/OPAtomReader/PCMEssenceParser.cpp	2014-02-28 12:41:15.068782069 +0100
 @@ -24,6 +24,7 @@
   * 02110-1301, USA
   */
@@ -394,8 +394,8 @@ diff -Nru libMXF-src-1.0.0.orig/libMXF++/examples/OPAtomReader/PCMEssenceParser.
  
  #include "PCMEssenceParser.h"
 diff -Nru libMXF-src-1.0.0.orig/libMXF++/examples/OPAtomReader/VariableSizeEssenceParser.cpp libMXF-src-1.0.0/libMXF++/examples/OPAtomReader/VariableSizeEssenceParser.cpp
---- libMXF-src-1.0.0.orig/libMXF++/examples/OPAtomReader/VariableSizeEssenceParser.cpp	2011-01-10 18:05:15.000000000 +0100
-+++ libMXF-src-1.0.0/libMXF++/examples/OPAtomReader/VariableSizeEssenceParser.cpp	2014-02-28 12:40:49.608854321 +0100
+--- libMXF++/examples/OPAtomReader/VariableSizeEssenceParser.cpp	2011-01-10 18:05:15.000000000 +0100
++++ libMXF++/examples/OPAtomReader/VariableSizeEssenceParser.cpp	2014-02-28 12:40:49.608854321 +0100
 @@ -24,6 +24,7 @@
   * 02110-1301, USA
   */
@@ -405,8 +405,8 @@ diff -Nru libMXF-src-1.0.0.orig/libMXF++/examples/OPAtomReader/VariableSizeEssen
  
  #include <mxf/mxf_labels_and_keys.h>
 diff -Nru libMXF-src-1.0.0.orig/libMXF++/libMXF++/File.cpp libMXF-src-1.0.0/libMXF++/libMXF++/File.cpp
---- libMXF-src-1.0.0.orig/libMXF++/libMXF++/File.cpp	2010-11-02 14:18:32.000000000 +0100
-+++ libMXF-src-1.0.0/libMXF++/libMXF++/File.cpp	2014-02-28 12:38:48.009195551 +0100
+--- libMXF++/libMXF++/File.cpp	2010-11-02 14:18:32.000000000 +0100
++++ libMXF++/libMXF++/File.cpp	2014-02-28 12:38:48.009195551 +0100
 @@ -20,9 +20,9 @@
   * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
   */
@@ -419,8 +419,8 @@ diff -Nru libMXF-src-1.0.0.orig/libMXF++/libMXF++/File.cpp libMXF-src-1.0.0/libM
  using namespace mxfpp;
  
 diff -Nru libMXF-src-1.0.0.orig/libMXF++/vars.mk libMXF-src-1.0.0/libMXF++/vars.mk
---- libMXF-src-1.0.0.orig/libMXF++/vars.mk	2009-09-29 16:33:31.000000000 +0200
-+++ libMXF-src-1.0.0/libMXF++/vars.mk	2014-02-28 12:41:59.878654246 +0100
+--- libMXF++/vars.mk	2009-09-29 16:33:31.000000000 +0200
++++ libMXF++/vars.mk	2014-02-28 12:41:59.878654246 +0100
 @@ -39,7 +39,7 @@
  # Variables for compilation of libMXF client applications
  CC = $(BIN_PREFIX)g++
