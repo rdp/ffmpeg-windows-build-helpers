@@ -962,10 +962,10 @@ apply_ffmpeg_patch() {
 build_libMXF() {
   download_and_unpack_file http://sourceforge.net/projects/ingex/files/1.0.0/libMXF/libMXF-src-1.0.0.tgz "libMXF-src-1.0.0"
   cd libMXF-src-1.0.0
-  apply_patch https://raw.github.com/dezi/ffmpeg-windows-build-helpers/master/patches/libMXF.diff
+  apply_patch https://raw.github.com/rdp/ffmpeg-windows-build-helpers/master/patches/libMXF.diff
   do_make "MINGW_CC_PREFIX=$cross_prefix"
   #
-  # Manual install.
+  # Manual equivalent of make install.
   #
   cp libMXF/lib/libMXF.a $mingw_w64_x86_64_prefix/lib/libMXF.a
   cp libMXF++/libMXF++/libMXF++.a $mingw_w64_x86_64_prefix/lib/libMXF++.a
@@ -1251,6 +1251,7 @@ if [ -d "mingw-w64-x86_64" ]; then # they installed a 64-bit compiler
   cd ..
 fi
 
+echo "searching for all local exe's..."
 for file in $(find_all_build_exes); do
   echo "built $file"
 done
