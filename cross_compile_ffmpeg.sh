@@ -706,9 +706,13 @@ build_libxvid() {
   fi
   do_configure "--host=$host_target --prefix=$mingw_w64_x86_64_prefix $config_opts" # no static option...
   sed -i "s/-mno-cygwin//" platform.inc # remove old compiler flag that now apparently breaks us
+
+  cpu_count=1 # possibly can't build multi-thread http://betterlogic.com/roger/2014/02/xvid-build-woe/
   do_make_install
+  cpu_count=$original_cpu_count
   cd ../../..
-  # force a static build after the fact
+
+  # force a static build after the fact by only installing the .a file
   if [[ -f "$mingw_w64_x86_64_prefix/lib/xvidcore.dll" ]]; then
     rm $mingw_w64_x86_64_prefix/lib/xvidcore.dll || exit 1
     mv $mingw_w64_x86_64_prefix/lib/xvidcore.a $mingw_w64_x86_64_prefix/lib/libxvidcore.a || exit 1
