@@ -1,13 +1,11 @@
 == actual todos ==
 
-am I...losing packets in windows?  How does behave/respond in linux without circ. buffer? does it lose packets? what err?
-    add 10040 to theirs?
   submit a patch? or tell mplayer they shuck (if they ar elosing packets without circ. buffer, then they just shuck LOL)
 
 ffmpeg shared is dead...
   after, check with updated opus [?]
 
-mplayer is dead
+mplayer build is dead
 
 == maybe/never do, more on the never ==
 
@@ -28,6 +26,8 @@ native windows'ify it
   then some download with all of it?
 
 linux VM download with all of it
+
+add 10040 to their error message translator
 
 https://github.com/qyot27/mpv/blob/extra-new/DOCS/crosscompile-mingw-tedious.txt lists some more dependencies, some of which even work with FFmpeg.  Some might work with Mplayer.  Might as well add them, right?
 
