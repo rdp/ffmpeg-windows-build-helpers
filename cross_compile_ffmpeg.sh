@@ -366,6 +366,17 @@ build_x265() {
     cd x265
   fi    
   cd source
+
+  local old_hg_version=`hg --debug id -i`
+  hg checkout 9b0c9b # they had some breaking changes...though ffmpeg might break soon with this :(
+  local new_hg_version=`hg --debug id -i`  
+  if [[ "$old_hg_version" != "$new_hg_version" ]]; then
+    echo "got upstream hg changes, forcing rebuild...x265"
+    rm already*
+  else
+    echo "still at hg $new_hg_version x265"
+  fi
+
   # Unix Makefiles -> unix scripts for making
   do_cmake # never could figure out how to get this parameter to work, arg bash! '-G "Unix Makefiles" ' thankfully not needed
   do_make_install
