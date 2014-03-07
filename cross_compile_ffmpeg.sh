@@ -356,8 +356,8 @@ build_x265() {
   if [[ -d x265 ]]; then
     cd x265
     if [[ $git_get_latest = "y" ]]; then
-      echo "doing hg pull x265"
-      hg pull || exit 1
+      echo "doing hg pull -u x265"
+      hg pull -u || exit 1
     else
       echo "not doing hg pull x265"
     fi
