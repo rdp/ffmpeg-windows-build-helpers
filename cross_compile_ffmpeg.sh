@@ -297,7 +297,7 @@ do_cmake() {
   if [ ! -f $touch_name ]; then
     local cur_dir2=$(pwd)
     echo doing cmake in $cur_dir2 with PATH=$PATH  with extra_args=$extra_args like this:
-    echo cmake . -DENABLE_SHARED=0 -DENABLE_STATIC_RUNTIME=1 -DCMAKE_SYSTEM_NAME=Windows -DCMAKE_RANLIB=${cross_prefix}ranlib -DCMAKE_C_COMPILER=${cross_prefix}gcc -DCMAKE_CXX_COMPILER=${cross_prefix}g++ -DCMAKE_RC_COMPILER=${cross_prefix}windres -DCMAKE_INSTALL_PREFIX=$mingw_w64_x86_64_prefix $extra_args || exit 1
+    echo cmake . -DENABLE_STATIC_RUNTIME=1 -DCMAKE_SYSTEM_NAME=Windows -DCMAKE_RANLIB=${cross_prefix}ranlib -DCMAKE_C_COMPILER=${cross_prefix}gcc -DCMAKE_CXX_COMPILER=${cross_prefix}g++ -DCMAKE_RC_COMPILER=${cross_prefix}windres -DCMAKE_INSTALL_PREFIX=$mingw_w64_x86_64_prefix $extra_args || exit 1
     cmake . -DENABLE_STATIC_RUNTIME=1 -DCMAKE_SYSTEM_NAME=Windows -DCMAKE_RANLIB=${cross_prefix}ranlib -DCMAKE_C_COMPILER=${cross_prefix}gcc -DCMAKE_CXX_COMPILER=${cross_prefix}g++ -DCMAKE_RC_COMPILER=${cross_prefix}windres -DCMAKE_INSTALL_PREFIX=$mingw_w64_x86_64_prefix $extra_args || exit 1
     touch $touch_name || exit 1
   fi
@@ -370,7 +370,8 @@ build_x265() {
   fi    
   cd source
 
-  # hg checkout 9b0c9b
+  # hg checkout 9b0c9b # no longer needed...
+
   local new_hg_version=`hg --debug id -i`  
   if [[ "$old_hg_version" != "$new_hg_version" ]]; then
     echo "got upstream hg changes, forcing rebuild...x265"
@@ -379,8 +380,7 @@ build_x265() {
     echo "still at hg $new_hg_version x265"
   fi
 
-  # Unix Makefiles -> unix scripts for making
-  do_cmake # never could figure out how to get this parameter to work, arg bash! '-G "Unix Makefiles" ' thankfully not needed
+  do_cmake "-DENABLE_SHARED=OFF"
   do_make_install
   cd ../..
 }
