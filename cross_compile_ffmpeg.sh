@@ -353,10 +353,12 @@ generic_configure_make_install() {
 }
 
 build_x265() {
+  local old_hg_version
   if [[ -d x265 ]]; then
     cd x265
     if [[ $git_get_latest = "y" ]]; then
       echo "doing hg pull -u x265"
+      old_hg_version=`hg --debug id -i`
       hg pull -u || exit 1
     else
       echo "not doing hg pull x265"
@@ -364,10 +366,10 @@ build_x265() {
   else
     hg clone https://bitbucket.org/multicoreware/x265 || exit 1
     cd x265
+    old_hg_version=`hg --debug id -i`
   fi    
   cd source
 
-  local old_hg_version=`hg --debug id -i`
   # hg checkout 9b0c9b
   local new_hg_version=`hg --debug id -i`  
   if [[ "$old_hg_version" != "$new_hg_version" ]]; then
