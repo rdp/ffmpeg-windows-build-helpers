@@ -981,7 +981,7 @@ build_mp4box() { # like build_gpac
   rm already_
   do_make "CC=${cross_prefix}gcc AR=${cross_prefix}ar RANLIB=${cross_prefix}ranlib PREFIX= STRIP=${cross_prefix}strip"
   cd ..
-  rm ./bin/gcc/MP4Box # try and force a relink
+  rm ./bin/gcc/MP4Box* # try and force a relink/rebuild of the .exe
   cd applications/mp4box
   rm already_ran_make*
   do_make "CC=${cross_prefix}gcc AR=${cross_prefix}ar RANLIB=${cross_prefix}ranlib PREFIX= STRIP=${cross_prefix}strip"
