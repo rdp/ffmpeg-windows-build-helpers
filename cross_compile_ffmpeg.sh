@@ -352,7 +352,7 @@ generic_configure_make_install() {
   do_make_install
 }
 
-build_x265() {
+build_libx265() {
   local old_hg_version
   if [[ -d x265 ]]; then
     cd x265
@@ -387,7 +387,7 @@ build_x265() {
 
 #x264_profile_guided=y
 
-build_x264() {
+build_libx264() {
   do_git_checkout "http://repo.or.cz/r/x264.git" "x264" "origin/stable"
   cd x264
   local configure_flags="--host=$host_target --enable-static --cross-prefix=$cross_prefix --prefix=$mingw_w64_x86_64_prefix --extra-cflags=-DPTW32_STATIC_LIB --enable-debug" # --enable-win32thread --enable-debug shouldn't hurt us since ffmpeg strips it anyway I think
@@ -1030,7 +1030,7 @@ build_ffmpeg() {
   local output_dir="ffmpeg_git"
 
   # FFmpeg + libav compatible options
-  local extra_configure_opts="--enable-libsoxr --enable-fontconfig --enable-libass --enable-libutvideo --enable-libbluray --enable-iconv --enable-libtwolame --extra-cflags=-DLIBTWOLAME_STATIC --enable-libzvbi --enable-libcaca --enable-libmodplug --extra-libs=-lstdc++ --extra-libs=-lpng --enable-libvidstab --enable-libx265"
+  local extra_configure_opts="--enable-libsoxr --enable-fontconfig --enable-libass --enable-libutvideo --enable-libbluray --enable-iconv --enable-libtwolame --extra-cflags=-DLIBTWOLAME_STATIC --enable-libzvbi --enable-libcaca --enable-libmodplug --extra-libs=-lstdc++ --extra-libs=-lpng --enable-libvidstab" # --enable-libx265 non xp friendly
 
   if [[ $type = "libav" ]]; then
     # libav [ffmpeg fork]  has a few missing options?
@@ -1137,8 +1137,8 @@ build_dependencies() {
   build_libxvid
   build_libxavs
   build_libsoxr
-  build_x264
-  build_x265
+  build_libx264
+  #build_libx265
   build_lame
   build_twolame
   build_vidstab
