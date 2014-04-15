@@ -29,9 +29,6 @@ Run it like
 ./cross_compile_ffmpeg.sh -h 
 to see all the various options available to you.
 
-If you're using a "fresh" linux distro then the following command "might" install all the local dependencies you may need (if not, it will prompt you).
-```sudo apt-get install subversion texinfo cmake bison flex cvs yasm automake libtool git g++ curl zlib1g-dev```
-
 
 If you want to customize your FFmpeg final executable even more (remove features you don't need, etc.) then edit the script
 1. Add or remove the "--enable-xxx" settings in the build_ffmpeg method (under config_options) near the bottom of the script.  This can enable or disable parts of FFmpeg that you don't need, or want more, etc.
@@ -57,7 +54,7 @@ NB that using a -march might not significantly improve speed [YMMV], ping me if 
 
 Feedback welcome roger-projects@googlegroups.com
 
-Related projects:
+Related projects (similar to this one...):
 
 vlc has its "contribs" building (cross compiling) system: https://wiki.videolan.org/Win32Compile/
 
