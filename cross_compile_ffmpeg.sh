@@ -134,7 +134,7 @@ install_cross_compiler() {
   if [[ -z $build_choice ]]; then
     pick_compiler_flavors
   fi
-  curl https://raw.githubusercontent.com/rdp/ffmpeg-windows-build-helpers/master/patches/mingw-w64-build-3.5.8.local -O  || exit 1
+  curl https://raw.githubusercontentusercontent.com/rdp/ffmpeg-windows-build-helpers/master/patches/mingw-w64-build-3.5.8.local -O  || exit 1
   chmod u+x mingw-w64-build-3.5.8.local
   unset CFLAGS # don't want these for the compiler itself since it creates executables to run on the local box
   # pthreads version to avoid having to use cvs for it
@@ -429,8 +429,8 @@ build_qt() {
 #  download_and_unpack_file http://download.qt-project.org/archive/qt/4.8/4.8.1/qt-everywhere-opensource-src-4.8.1.tar.gz qt-everywhere-opensource-src-4.8.1
 #  cd qt-everywhere-opensource-src-4.8.1
 
-    apply_patch https://raw.github.com/rdp/ffmpeg-windows-build-helpers/master/patches/imageformats.patch
-    apply_patch https://raw.github.com/rdp/ffmpeg-windows-build-helpers/master/patches/qt-win64.patch
+    apply_patch https://raw.githubusercontent.com/rdp/ffmpeg-windows-build-helpers/master/patches/imageformats.patch
+    apply_patch https://raw.githubusercontent.com/rdp/ffmpeg-windows-build-helpers/master/patches/qt-win64.patch
     # vlc's configure options...mostly
     do_configure "-static -release -fast -no-exceptions -no-stl -no-sql-sqlite -no-qt3support -no-gif -no-libmng -qt-libjpeg -no-libtiff -no-qdbus -no-openssl -no-webkit -sse -no-script -no-multimedia -no-phonon -opensource -no-scripttools -no-opengl -no-script -no-scripttools -no-declarative -no-declarative-debug -opensource -no-s60 -host-little-endian -confirm-license -xplatform win32-g++ -device-option CROSS_COMPILE=$cross_prefix -prefix $mingw_w64_x86_64_prefix -prefix-install -nomake examples"
     make sub-src
@@ -514,7 +514,7 @@ build_libvpx() {
 build_libutvideo() {
   download_and_unpack_file https://github.com/downloads/rdp/FFmpeg/utvideo-11.1.1-src.zip utvideo-11.1.1
   cd utvideo-11.1.1
-    apply_patch https://raw.github.com/rdp/ffmpeg-windows-build-helpers/master/patches/utv.diff
+    apply_patch https://raw.githubusercontent.com/rdp/ffmpeg-windows-build-helpers/master/patches/utv.diff
     do_make_install "CROSS_PREFIX=$cross_prefix DESTDIR=$mingw_w64_x86_64_prefix prefix=" # prefix= to avoid it adding an extra /usr/local to it yikes
   cd ..
 }
@@ -533,7 +533,7 @@ build_libilbc() {
 build_libflite() {
   download_and_unpack_file http://www.speech.cs.cmu.edu/flite/packed/flite-1.4/flite-1.4-release.tar.bz2 flite-1.4-release
   cd flite-1.4-release
-   apply_patch https://raw.github.com/rdp/ffmpeg-windows-build-helpers/master/patches/flite_64.diff
+   apply_patch https://raw.githubusercontent.com/rdp/ffmpeg-windows-build-helpers/master/patches/flite_64.diff
    sed -i "s|i386-mingw32-|$cross_prefix|" configure*
    generic_configure
    do_make
@@ -549,7 +549,7 @@ build_libflite() {
 build_libgsm() {
   download_and_unpack_file http://www.quut.com/gsm/gsm-1.0.13.tar.gz gsm-1.0-pl13
   cd gsm-1.0-pl13
-  apply_patch https://raw.github.com/rdp/ffmpeg-windows-build-helpers/master/patches/libgsm.patch # for openssl to work with it, I think?
+  apply_patch https://raw.githubusercontent.com/rdp/ffmpeg-windows-build-helpers/master/patches/libgsm.patch # for openssl to work with it, I think?
   # not do_make here since this actually fails [in error]
   make CC=${cross_prefix}gcc AR=${cross_prefix}ar RANLIB=${cross_prefix}ranlib INSTALL_ROOT=${mingw_w64_x86_64_prefix}
   cp lib/libgsm.a $mingw_w64_x86_64_prefix/lib || exit 1
@@ -571,7 +571,7 @@ build_libdvdread() {
   fi
 
   generic_configure "CFLAGS=-DHAVE_DVDCSS_DVDCSS_H LDFLAGS=-ldvdcss" # vlc patch: "--enable-libdvdcss" # XXX ask how I'm *supposed* to do this to the dvdread peeps [svn?]
-  apply_patch https://raw.github.com/rdp/ffmpeg-windows-build-helpers/master/patches/dvdread-win32.patch # has been reported to them...
+  apply_patch https://raw.githubusercontent.com/rdp/ffmpeg-windows-build-helpers/master/patches/dvdread-win32.patch # has been reported to them...
   do_make_install 
   sed -i "s/-ldvdread.*/-ldvdread -ldvdcss/" $mingw_w64_x86_64_prefix/bin/dvdread-config # ??? related to vlc patch, above, probably
   sed -i 's/-ldvdread.*/-ldvdread -ldvdcss/' "$PKG_CONFIG_PATH/dvdread.pc"
@@ -654,7 +654,7 @@ build_libfribidi() {
   download_and_unpack_file http://fribidi.org/download/fribidi-0.19.4.tar.bz2 fribidi-0.19.4
   cd fribidi-0.19.4
     # make it export symbols right...
-    apply_patch https://raw.github.com/rdp/ffmpeg-windows-build-helpers/master/patches/fribidi.diff
+    apply_patch https://raw.githubusercontent.com/rdp/ffmpeg-windows-build-helpers/master/patches/fribidi.diff
     generic_configure
     do_make_install
   cd ..
@@ -722,7 +722,7 @@ build_libnettle() {
 build_bzlib2() {
   download_and_unpack_file http://www.bzip.org/1.0.6/bzip2-1.0.6.tar.gz bzip2-1.0.6
   cd bzip2-1.0.6
-    apply_patch https://raw.github.com/rdp/ffmpeg-windows-build-helpers/master/patches/bzip2_cross_compile.diff
+    apply_patch https://raw.githubusercontent.com/rdp/ffmpeg-windows-build-helpers/master/patches/bzip2_cross_compile.diff
     do_make "CC=$(echo $cross_prefix)gcc AR=$(echo $cross_prefix)ar PREFIX=$mingw_w64_x86_64_prefix RANLIB=$(echo $cross_prefix)ranlib libbz2.a bzip2 bzip2recover install"
   cd ..
 }
@@ -855,8 +855,8 @@ build_zvbi() {
   export CFLAGS=-DPTW32_STATIC_LIB # seems needed XXX
   download_and_unpack_file http://sourceforge.net/projects/zapping/files/zvbi/0.2.34/zvbi-0.2.34.tar.bz2/download zvbi-0.2.34
   cd zvbi-0.2.34
-    apply_patch https://raw.github.com/rdp/ffmpeg-windows-build-helpers/master/patches/zvbi-win32.patch
-    apply_patch https://raw.github.com/rdp/ffmpeg-windows-build-helpers/master/patches/zvbi-ioctl.patch
+    apply_patch https://raw.githubusercontent.com/rdp/ffmpeg-windows-build-helpers/master/patches/zvbi-win32.patch
+    apply_patch https://raw.githubusercontent.com/rdp/ffmpeg-windows-build-helpers/master/patches/zvbi-ioctl.patch
     export LIBS=-lpng
     generic_configure " --disable-dvb --disable-bktr --disable-nls --disable-proxy --without-doxygen" # thanks vlc!
     unset LIBS
@@ -901,7 +901,7 @@ build_frei0r() {
     #cp include/frei0r.h $mingw_w64_x86_64_prefix/include
   #cd ..
   if [[ ! -f "$mingw_w64_x86_64_prefix/include/frei0r.h" ]]; then
-    curl https://raw.github.com/rdp/frei0r/master/include/frei0r.h > $mingw_w64_x86_64_prefix/include/frei0r.h || exit 1
+    curl https://raw.githubusercontent.com/rdp/frei0r/master/include/frei0r.h > $mingw_w64_x86_64_prefix/include/frei0r.h || exit 1
   fi
 }
 
@@ -1009,7 +1009,7 @@ apply_ffmpeg_patch() {
 build_libMXF() {
   download_and_unpack_file http://sourceforge.net/projects/ingex/files/1.0.0/libMXF/libMXF-src-1.0.0.tgz "libMXF-src-1.0.0"
   cd libMXF-src-1.0.0
-  apply_patch https://raw.github.com/rdp/ffmpeg-windows-build-helpers/master/patches/libMXF.diff
+  apply_patch https://raw.githubusercontent.com/rdp/ffmpeg-windows-build-helpers/master/patches/libMXF.diff
   do_make "MINGW_CC_PREFIX=$cross_prefix"
   #
   # Manual equivalent of make install.  Enable it if desired.  We shouldn't need it in theory since we never use libMXF.a file and can just hand pluck out the *.exe files...
