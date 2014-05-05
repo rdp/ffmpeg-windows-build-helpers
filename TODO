@@ -1,15 +1,14 @@
 == actual todos ==
 
-  submit a patch? or tell mplayer they shuck (if they ar elosing packets without circ. buffer, then they just shuck LOL)
 
-ffmpeg shared is dead...
-  after, check with updated opus [?]
+ffmpeg shared check with updated opus [?]
 
 mplayer build is dead
 
-final install of ffmpeg to some folder etc. [?] yeah why not...
-
 == maybe/never do, more on the never ==
+test out mplayer with its record-size stuff...
+
+final install of ffmpeg to some folder etc. [?] yeah why not...
 
 vlc is dead with his pthreads? mine?
   I prefer his anyway if that way does work better...how can I have mine here tho?
