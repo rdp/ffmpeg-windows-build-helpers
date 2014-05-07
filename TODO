@@ -1,16 +1,14 @@
 == actual todos ==
 
-
-ffmpeg shared check with updated opus [?]
-
-mplayer build is dead
+mplayer build is dead [double check...]
 
 == maybe/never do, more on the never ==
+
 test out mplayer with its record-size stuff...
 
-final install of ffmpeg to some folder etc. [?] yeah why not...
+final install of ffmpeg static to some folder etc. [?] yeah why not...
 
-vlc is dead with his pthreads? mine?
+vlc build is dead with his pthreads? mine?
   I prefer his anyway if that way does work better...how can I have mine here tho?
   SHARED was hiding the linnnnnk error far far away...and also not even needing it...but should have failed on dll...unless I never used it!
 
