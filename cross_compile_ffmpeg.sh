@@ -467,33 +467,14 @@ build_libpng() {
 }
 
 build_libopenjpeg() {
-  download_and_unpack_file http://openjpeg.googlecode.com/files/openjpeg_v1_4_sources_r697.tgz openjpeg_v1_4_sources_r697
-  # maybe 1.5.1 would work better here? see github issue
-  cd openjpeg_v1_4_sources_r697
-  export LIBS=-lpng
-  export LDFLAGS=-L$mingw_w64_x86_64_prefix/lib
-  export CFLAGS=-I$mingw_w64_x86_64_prefix/include
-  generic_configure
-  sed -i "s/\/usr\/lib/\$\(prefix\)\/lib/" Makefile # install pkg_config to the right dir...
-  sed -i "s/\/usr\/local\/lib/\$\(prefix\)\/lib/" Makefile # pnglibs = -L/usr/local/lib -lpng15 etc
-  sed -i "s/\/usr\/local\/bin/\$\(prefix\)\/bin/" Makefile # LIBPNG_CONFIG = /usr/local/bin/libpng-config etc
-  cpu_count=1 # this one can't build multi-threaded <sigh> kludge
-  do_make_install
-  cpu_count=$original_cpu_count
-# there is no .pc for openjpeg, so we add --extra-libs=-lpng to FFmpegs configure
-# sed -i 's/-lopenjpeg *$/-lopenjpeg -lpng/' "$PKG_CONFIG_PATH/openjpeg.pc"
-  unset LIBS
-  unset LDFLAGS
-  export CFLAGS=$original_cflags # reset it
-  cd .. 
-
-  #download_and_unpack_file http://openjpeg.googlecode.com/files/openjpeg-2.0.0.tar.gz openjpeg-2.0.0
-  #cd openjpeg-2.0.0
-  # cmake .  -DCMAKE_SYSTEM_NAME=Windows -DCMAKE_RANLIB=${cross_prefix}ranlib -DCMAKE_C_COMPILER=${cross_prefix}gcc -DCMAKE_CXX_COMPILER=${cross_prefix}g++ -DCMAKE_RC_COMPILER=${cross_prefix}windres  -DCMAKE_INSTALL_PREFIX=$mingw_w64_x86_64_prefix -DBUILD_SHARED_LIBS:bool=off
-  # do_make_install
-  # cp $mingw_w64_x86_64_prefix/lib/libopenjp2.a $mingw_w64_x86_64_prefix/lib/libopenjpeg.a || exit 1
-  # cp $mingw_w64_x86_64_prefix/include/openjpeg-2.0/* $mingw_w64_x86_64_prefix/include || exit 1
-  #cd ..
+  # does openjpeg 2.0 work with ffmpeg? possibly not yet...
+  download_and_unpack_file https://openjpeg.googlecode.com/files/openjpeg-1.5.1.tar.gz openjpeg-1.5.1
+  cd openjpeg-1.5.1
+    export CFLAGS="$CFLAGS -DOPJ_STATIC" # see https://github.com/rdp/ffmpeg-windows-build-helpers/issues/37
+    generic_configure 
+    do_make_install
+    export CFLAGS=$original_cflags # reset it
+  cd ..
 }
 
 build_libvpx() {
