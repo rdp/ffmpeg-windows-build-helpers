@@ -96,7 +96,7 @@ The resultant binary will not be distributable, but might be useful for in-house
 
 pick_compiler_flavors() {
 
-  while [[ "$build_choice" != [1-3] ]]; do
+  while [[ "$build_choice" != [1-4] ]]; do
     if [[ -n "${unknown_opts[@]}" ]]; then
       echo -n 'Unknown option(s)'
       for unknown_opt in "${unknown_opts[@]}"; do
@@ -118,7 +118,7 @@ EOF
   1 ) build_choice=multi ;;
   2 ) build_choice=win32 ;;
   3 ) build_choice=win64 ;;
-  4 ) exit 0 ;;
+  4 ) echo "exiting"; exit 0 ;;
   * ) clear;  echo 'Your choice was not valid, please try again.'; echo ;;
   esac
 }
