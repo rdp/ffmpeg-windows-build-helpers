@@ -1136,10 +1136,10 @@ build_dependencies() {
   build_freetype # for libbluray
   build_libexpat # for libluray
   build_libbluray # needs libxml2, freetype
-  build_libjpeg_turbo # mplayer can use this, VLC qt might need it?
+  build_libjpeg_turbo # mplayer can use this, VLC qt might need it? [replace libjpeg-turbo]
   build_libdvdcss
-  build_libdvdread # vlc, possibly mplayer use it. needs dvdcss
-  build_libdvdnav # vlc, possibly mplayer
+  build_libdvdread # vlc, mplayer use it. needs dvdcss
+  build_libdvdnav # vlc, mplayer use this
   build_libxvid
   build_libxavs
   build_libsoxr
