@@ -574,8 +574,8 @@ build_libdvdcss() {
   generic_download_and_install http://download.videolan.org/pub/videolan/libdvdcss/1.2.13/libdvdcss-1.2.13.tar.bz2 libdvdcss-1.2.13
 }
 
-build_glew() { # opengl stuff
-  echo "still broken, wow this thing looks tough LOL"
+build_glew() { # opengl stuff, apparently [disabled...]
+  echo "still broken, wow this one looks tough LOL"
   exit
   download_and_unpack_file https://sourceforge.net/projects/glew/files/glew/1.10.0/glew-1.10.0.tgz/download glew-1.10.0 
   cd glew-1.10.0
@@ -805,7 +805,7 @@ build_iconv() {
 
 build_freetype() {
   generic_download_and_install http://download.savannah.gnu.org/releases/freetype/freetype-2.5.3.tar.gz freetype-2.5.3 "--with-png=no"
-  sed -i 's/Libs: -L${libdir} -lfreetype.*/Libs: -L${libdir} -lfreetype -lz/' "$PKG_CONFIG_PATH/freetype2.pc"
+  sed -i 's/Libs: -L${libdir} -lfreetype.*/Libs: -L${libdir} -lfreetype -lexpat -lz/' "$PKG_CONFIG_PATH/freetype2.pc" # this should not need expat, but...I think maybe people use fontconfig's wrong and that needs expat? huh wuh? or dependencies are setup wrong in some .pc file?
 }
 
 build_vo_aacenc() {
@@ -902,13 +902,15 @@ build_vidstab() {
 build_vlc() {
   build_qt # needs libjpeg [?]
   cpu_count=1 # not wig out on .rc.lo files etc.
-  #do_git_checkout https://github.com/videolan/vlc.git vlc # vlc git master seems to be unstable and break the build and not test for windows often, so specify a known working revision...
-  do_git_checkout https://github.com/rdp/vlc.git vlc_rdp # till this thing stabilizes...
-  cd vlc_rdp
+  do_git_checkout https://github.com/videolan/vlc.git vlc # vlc git master seems to be unstable and break the build and not test for windows often, so specify a known working revision...
+  cd vlc
+  #do_git_checkout https://github.com/rdp/vlc.git vlc_rdp # till this thing stabilizes...
+  #cd vlc_rdp
+  
   if [[ ! -f "configure" ]]; then
     ./bootstrap
   fi 
-  do_configure "--disable-x265 --disable-libgcrypt --disable-a52 --host=$host_target --disable-lua --disable-mad --enable-qt --disable-sdl  --disable-mod" # don't have lua mingw yet, etc. [vlc has --disable-sdl [?]] x265 disabled until we care enough... TODO reneable modplug with vlc git master if it works...
+  do_configure "--disable-x265 --disable-libgcrypt --disable-a52 --host=$host_target --disable-lua --disable-mad --enable-qt --disable-sdl" # don't have lua mingw yet, etc. [vlc has --disable-sdl [?]] x265 disabled until we care enough... TODO reneable {modplug, bluray} once I use vlc git master if it works...
   for file in `find . -name *.exe`; do
     rm $file # try to force a rebuild...though there are tons of .a files we aren't rebuilding :|
   done
