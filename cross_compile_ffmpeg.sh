@@ -805,7 +805,7 @@ build_iconv() {
 
 build_freetype() {
   generic_download_and_install http://download.savannah.gnu.org/releases/freetype/freetype-2.5.3.tar.gz freetype-2.5.3 "--with-png=no"
-  sed -i 's/Libs: -L${libdir} -lfreetype.*/Libs: -L${libdir} -lfreetype -lexpat -lz/' "$PKG_CONFIG_PATH/freetype2.pc"
+  sed -i 's/Libs: -L${libdir} -lfreetype .*/Libs: -L${libdir} -lfreetype -lz/' "$PKG_CONFIG_PATH/freetype2.pc"
 }
 
 build_vo_aacenc() {
