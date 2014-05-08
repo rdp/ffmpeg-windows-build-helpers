@@ -805,7 +805,7 @@ build_iconv() {
 
 build_freetype() {
   generic_download_and_install http://download.savannah.gnu.org/releases/freetype/freetype-2.5.3.tar.gz freetype-2.5.3 "--with-png=no"
-  sed -i 's/Libs: -L${libdir} -lfreetype.*/Libs: -L${libdir} -lfreetype -lexpat/' "$PKG_CONFIG_PATH/freetype2.pc"
+  sed -i 's/Libs: -L${libdir} -lfreetype.*/Libs: -L${libdir} -lfreetype -lexpat -lz/' "$PKG_CONFIG_PATH/freetype2.pc"
 }
 
 build_vo_aacenc() {
@@ -908,7 +908,7 @@ build_vlc() {
   if [[ ! -f "configure" ]]; then
     ./bootstrap
   fi 
-  do_configure "--disable-x265 --disable-libgcrypt --disable-a52 --host=$host_target --disable-lua --disable-mad --enable-qt --disable-sdl --disable-bluray --disable-mod" # don't have lua mingw yet, etc. [vlc has --disable-sdl [?]] x265 disabled until we care enough... TODO reneable blu-ray with vlc git master if it works... same with modplug?
+  do_configure "--disable-x265 --disable-libgcrypt --disable-a52 --host=$host_target --disable-lua --disable-mad --enable-qt --disable-sdl  --disable-mod" # don't have lua mingw yet, etc. [vlc has --disable-sdl [?]] x265 disabled until we care enough... TODO reneable modplug with vlc git master if it works...
   for file in `find . -name *.exe`; do
     rm $file # try to force a rebuild...though there are tons of .a files we aren't rebuilding :|
   done
@@ -919,7 +919,10 @@ build_vlc() {
   sed -i "s/package-win-common: package-win-install build-npapi/package-win-common: package-win-install/" Makefile
   sed -i "s/.*cp .*builddir.*npapi-vlc.*//g" Makefile
   make package-win-common # not do_make, fails still at end, plus this way we get new vlc.exe's
-  echo "created a file like ${PWD}/vlc-2.2.0-git/vlc.exe
+  echo "
+
+
+     created a file like ${PWD}/vlc-2.2.0-git/vlc.exe
 
 
 
@@ -1170,7 +1173,7 @@ build_apps() {
     build_ffmpeg libav
   fi
   if [[ $build_vlc = "y" ]]; then
-    build_vlc # NB requires ffmpeg static as well, at least once...so put it last
+    build_vlc # NB requires ffmpeg static as well, at least once...so put this last :)
   fi
 }
 
