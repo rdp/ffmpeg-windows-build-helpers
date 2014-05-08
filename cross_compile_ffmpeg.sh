@@ -908,7 +908,7 @@ build_vlc() {
   if [[ ! -f "configure" ]]; then
     ./bootstrap
   fi 
-  do_configure "--disable-x265 --disable-libgcrypt --disable-a52 --host=$host_target --disable-lua --disable-mad --enable-qt --disable-sdl" # don't have lua mingw yet, etc. [vlc has --disable-sdl [?]] x265 disabled until we care enough...
+  do_configure "--disable-x265 --disable-libgcrypt --disable-a52 --host=$host_target --disable-lua --disable-mad --enable-qt --disable-sdl --disable-bluray --disable-mod" # don't have lua mingw yet, etc. [vlc has --disable-sdl [?]] x265 disabled until we care enough... TODO reneable blu-ray with vlc git master if it works... same with modplug?
   for file in `find . -name *.exe`; do
     rm $file # try to force a rebuild...though there are tons of .a files we aren't rebuilding :|
   done
