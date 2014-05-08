@@ -1108,7 +1108,7 @@ build_dependencies() {
 
   build_frei0r
   build_libutvideo
-  #build_libflite # too big for the distro...
+  #build_libflite # too big for the ffmpeg distro...
   build_libgsm
   build_sdl # needed for ffplay to be created
   build_libopus
@@ -1120,10 +1120,11 @@ build_dependencies() {
   build_libtheora # needs libvorbis, libogg
   build_orc
   build_libschroedinger # needs orc
-  build_freetype # for libbluray
-  build_libexpat # for libluray
+  build_freetype
+  build_libexpat
+  build_libxml2
   build_libbluray # needs libxml2, freetype
-  build_libjpeg_turbo # mplayer can use this, VLC qt might need it? [replace libjpeg-turbo]
+  build_libjpeg_turbo # mplayer can use this, VLC qt might need it? [replaces libjpeg]
   build_libdvdcss
   build_libdvdread # vlc, mplayer use it. needs dvdcss
   build_libdvdnav # vlc, mplayer use this
@@ -1136,7 +1137,7 @@ build_dependencies() {
   build_twolame
   build_vidstab
   build_libcaca
-  build_libmodplug
+  build_libmodplug # ffmepg and vlc can use this
   build_zvbi
   build_libvpx
   build_vo_aacenc
