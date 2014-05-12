@@ -463,7 +463,7 @@ build_libxavs() {
 }
 
 build_libpng() {
-  generic_download_and_install http://download.sourceforge.net/libpng/libpng-1.5.14.tar.xz libpng-1.5.14
+  generic_download_and_install http://download.sourceforge.net/libpng/libpng-1.5.18.tar.xz libpng-1.5.18
 }
 
 build_libopenjpeg() {
@@ -496,10 +496,10 @@ build_libopenjpeg() {
 }
 
 build_libvpx() {
-  download_and_unpack_file http://webm.googlecode.com/files/libvpx-v1.3.0.tar.bz2 libvpx-v1.3.0
-  cd libvpx-v1.3.0
-#  do_git_checkout https://git.chromium.org/git/webm/libvpx.git "libvpx_git"
-#  cd libvpx_git
+#  download_and_unpack_file http://webm.googlecode.com/files/libvpx-v1.3.0.tar.bz2 libvpx-v1.3.0
+#  cd libvpx-v1.3.0
+  do_git_checkout https://git.chromium.org/git/webm/libvpx.git "libvpx_git"
+  cd libvpx_git
   export CROSS="$cross_prefix"
   if [[ "$bits_target" = "32" ]]; then
     do_configure "--extra-cflags=-DPTW32_STATIC_LIB --target=x86-win32-gcc --prefix=$mingw_w64_x86_64_prefix --enable-static --disable-shared"
@@ -567,27 +567,23 @@ build_libopus() {
 }
 
 build_libdvdread() {
-  download_and_unpack_file http://dvdnav.mplayerhq.hu/releases/libdvdread-4.2.1-rc2.tar.xz libdvdread-4.2.1 
-  cd libdvdread-4.2.1
-  if [[ ! -f ./configure ]]; then
-    ./autogen.sh
-  fi
-
+  download_and_unpack_file http://dvdnav.mplayerhq.hu/releases/libdvdread-4.9.9.tar.xz libdvdread-4.9.9 
+  cd libdvdread-4.9.9
   generic_configure "CFLAGS=-DHAVE_DVDCSS_DVDCSS_H LDFLAGS=-ldvdcss" # vlc patch: "--enable-libdvdcss" # XXX ask how I'm *supposed* to do this to the dvdread peeps [svn?]
-  apply_patch https://raw.githubusercontent.com/rdp/ffmpeg-windows-build-helpers/master/patches/dvdread-win32.patch # has been reported to them...
+  #apply_patch https://raw.githubusercontent.com/rdp/ffmpeg-windows-build-helpers/master/patches/dvdread-win32.patch # has been reported to them...
   do_make_install 
-  sed -i "s/-ldvdread.*/-ldvdread -ldvdcss/" $mingw_w64_x86_64_prefix/bin/dvdread-config # ??? related to vlc patch, above, probably
+  #sed -i "s/-ldvdread.*/-ldvdread -ldvdcss/" $mingw_w64_x86_64_prefix/bin/dvdread-config # ??? related to vlc patch, above, probably
   sed -i 's/-ldvdread.*/-ldvdread -ldvdcss/' "$PKG_CONFIG_PATH/dvdread.pc"
   cd ..
 }
 
 build_libdvdnav() {
-  download_and_unpack_file http://dvdnav.mplayerhq.hu/releases/libdvdnav-4.2.1-rc2.tar.xz libdvdnav-4.2.1
+  download_and_unpack_file http://dvdnav.mplayerhq.hu/releases/libdvdnav-4.2.1.tar.xz libdvdnav-4.2.1
   cd libdvdnav-4.2.1
   if [[ ! -f ./configure ]]; then
     ./autogen.sh
   fi
-  generic_configure "--with-dvdread-config=$mingw_w64_x86_64_prefix/bin/dvdread-config"
+  generic_configure
   do_make_install 
   cd ..
 }
@@ -635,11 +631,11 @@ build_libjpeg_turbo() {
 }
 
 build_libogg() {
-  generic_download_and_install http://downloads.xiph.org/releases/ogg/libogg-1.3.0.tar.gz libogg-1.3.0
+  generic_download_and_install http://downloads.xiph.org/releases/ogg/libogg-1.3.1.tar.gz libogg-1.3.1
 }
 
 build_libvorbis() {
-  generic_download_and_install http://downloads.xiph.org/releases/vorbis/libvorbis-1.3.3.tar.gz libvorbis-1.3.3
+  generic_download_and_install http://downloads.xiph.org/releases/vorbis/libvorbis-1.3.4.tar.gz libvorbis-1.3.4
 }
 
 build_libspeex() {
@@ -688,11 +684,15 @@ build_gmp() {
 }
 
 build_orc() {
-  generic_download_and_install  http://code.entropywave.com/download/orc/orc-0.4.16.tar.gz orc-0.4.16
+  generic_download_and_install  http://code.entropywave.com/download/orc/orc-0.4.18.tar.gz orc-0.4.18
+}
+
+build_libxml2() {
+  generic_download_and_install ftp://xmlsoft.org/libxml2/libxml2-2.9.0.tar.gz libxml2-2.9.0
 }
 
 build_libbluray() {
-  generic_download_and_install ftp://ftp.videolan.org/pub/videolan/libbluray/0.2.3/libbluray-0.2.3.tar.bz2 libbluray-0.2.3
+  generic_download_and_install ftp://ftp.videolan.org/pub/videolan/libbluray/0.5.0/libbluray-0.5.0.tar.bz2 libbluray-0.5.0 "--without-libxml2"
 }
 
 build_libschroedinger() {
@@ -706,8 +706,8 @@ build_libschroedinger() {
 }
 
 build_gnutls() {
-  download_and_unpack_file ftp://ftp.gnutls.org/gcrypt/gnutls/v3.2/gnutls-3.2.5.tar.xz gnutls-3.2.5
-  cd gnutls-3.2.5
+  download_and_unpack_file ftp://ftp.gnutls.org/gcrypt/gnutls/v3.2/gnutls-3.2.14.tar.xz gnutls-3.2.14
+  cd gnutls-3.2.14
     generic_configure "--disable-cxx --disable-doc" # don't need the c++ version, in an effort to cut down on size... LODO test difference...
     do_make_install
   cd ..
@@ -739,7 +739,7 @@ build_zlib() {
 }
 
 build_libxvid() {
-  download_and_unpack_file http://downloads.xvid.org/downloads/xvidcore-1.3.2.tar.gz xvidcore
+  download_and_unpack_file http://downloads.xvid.org/downloads/xvidcore-1.3.3.tar.gz xvidcore
   cd xvidcore/build/generic
   if [ "$bits_target" = "64" ]; then
     local config_opts="--build=x86_64-unknown-linux-gnu --disable-assembly" # kludgey work arounds for 64 bit
@@ -753,15 +753,15 @@ build_libxvid() {
   cd ../../..
 
   # force a static build after the fact by only installing the .a file
-  if [[ -f "$mingw_w64_x86_64_prefix/lib/xvidcore.dll" ]]; then
-    rm $mingw_w64_x86_64_prefix/lib/xvidcore.dll || exit 1
+  if [[ -f "$mingw_w64_x86_64_prefix/lib/xvidcore.dll.a" ]]; then
+    rm $mingw_w64_x86_64_prefix/lib/xvidcore.dll.a || exit 1
     mv $mingw_w64_x86_64_prefix/lib/xvidcore.a $mingw_w64_x86_64_prefix/lib/libxvidcore.a || exit 1
   fi
 }
 
 build_fontconfig() {
-  download_and_unpack_file http://www.freedesktop.org/software/fontconfig/release/fontconfig-2.10.95.tar.gz fontconfig-2.10.95
-  cd fontconfig-2.10.95
+  download_and_unpack_file http://www.freedesktop.org/software/fontconfig/release/fontconfig-2.11.1.tar.gz fontconfig-2.11.1
+  cd fontconfig-2.11.1
     generic_configure --disable-docs
     do_make_install
   cd .. 
@@ -779,8 +779,8 @@ build_libaacplus() {
 }
 
 build_openssl() {
-  download_and_unpack_file http://www.openssl.org/source/openssl-1.0.1e.tar.gz openssl-1.0.1e
-  cd openssl-1.0.1e
+  download_and_unpack_file http://www.openssl.org/source/openssl-1.0.1g.tar.gz openssl-1.0.1g
+  cd openssl-1.0.1g
   export cross="$cross_prefix"
   export CC="${cross}gcc"
   export AR="${cross}ar"
@@ -822,12 +822,12 @@ build_iconv() {
 }
 
 build_freetype() {
-  generic_download_and_install http://download.savannah.gnu.org/releases/freetype/freetype-2.4.10.tar.gz freetype-2.4.10
+  generic_download_and_install http://download.savannah.gnu.org/releases/freetype/freetype-2.5.3.tar.gz freetype-2.5.3 "--with-png=no"
   sed -i 's/Libs: -L${libdir} -lfreetype.*/Libs: -L${libdir} -lfreetype -lexpat/' "$PKG_CONFIG_PATH/freetype2.pc"
 }
 
 build_vo_aacenc() {
-  generic_download_and_install http://sourceforge.net/projects/opencore-amr/files/vo-aacenc/vo-aacenc-0.1.2.tar.gz/download vo-aacenc-0.1.2
+  generic_download_and_install http://sourceforge.net/projects/opencore-amr/files/vo-aacenc/vo-aacenc-0.1.3.tar.gz/download vo-aacenc-0.1.3
 }
 
 build_sdl() {
@@ -873,7 +873,7 @@ build_zvbi() {
 }
 
 build_libmodplug() {
-  generic_download_and_install http://sourceforge.net/projects/modplug-xmms/files/libmodplug/0.8.8.4/libmodplug-0.8.8.4.tar.gz/download libmodplug-0.8.8.4
+  generic_download_and_install http://sourceforge.net/projects/modplug-xmms/files/libmodplug/0.8.8.5/libmodplug-0.8.8.5.tar.gz/download libmodplug-0.8.8.5
   # unfortunately this sed isn't enough, though I think it should be [so we add --extra-libs=-lstdc++ to FFmpegs configure] http://trac.ffmpeg.org/ticket/1539
   sed -i 's/-lmodplug.*/-lmodplug -lstdc++/' "$PKG_CONFIG_PATH/libmodplug.pc" # huh ?? c++?
 }
@@ -1033,7 +1033,7 @@ build_ffmpeg() {
   local output_dir="ffmpeg_git"
 
   # FFmpeg + libav compatible options
-  local extra_configure_opts="--enable-libsoxr --enable-fontconfig --enable-libass --enable-libutvideo --enable-libbluray --enable-iconv --enable-libtwolame --extra-cflags=-DLIBTWOLAME_STATIC --enable-libzvbi --enable-libcaca --enable-libmodplug --extra-libs=-lstdc++ --extra-libs=-lpng --enable-libvidstab" # --enable-libx265 non xp friendly
+  local extra_configure_opts="--enable-libsoxr --enable-fontconfig --enable-libass --enable-libutvideo --enable-libbluray --enable-iconv --enable-libtwolame --extra-cflags=-DLIBTWOLAME_STATIC --enable-libzvbi --enable-libcaca --enable-libmodplug --extra-libs=-lstdc++ --extra-libs=-lpng --enable-libvidstab --enable-libx265"
 
   if [[ $type = "libav" ]]; then
     # libav [ffmpeg fork]  has a few missing options?
@@ -1132,7 +1132,9 @@ build_dependencies() {
   build_libtheora # needs libvorbis, libogg
   build_orc
   build_libschroedinger # needs orc
-  build_libbluray
+  build_freetype # for libbluray
+  build_libexpat # for libluray
+  build_libbluray # needs libxml2, freetype
   build_libjpeg_turbo # mplayer can use this, VLC qt might need it?
   build_libdvdcss
   build_libdvdread # vlc, possibly mplayer use it. needs dvdcss
@@ -1141,7 +1143,7 @@ build_dependencies() {
   build_libxavs
   build_libsoxr
   build_libx264
-  #build_libx265
+  build_libx265
   build_lame
   build_twolame
   build_vidstab
@@ -1150,8 +1152,7 @@ build_dependencies() {
   build_zvbi
   build_libvpx
   build_vo_aacenc
-  build_freetype
-  build_libexpat
+
   build_libilbc
   build_fontconfig # needs expat, might need freetype, can use iconv, but I believe doesn't currently
   build_libfribidi
