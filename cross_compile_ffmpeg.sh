@@ -903,15 +903,15 @@ build_vidstab() {
 build_vlc() {
   build_qt # needs libjpeg [?]
   cpu_count=1 # not wig out on .rc.lo files etc.
-  do_git_checkout https://github.com/videolan/vlc.git vlc # vlc git master seems to be unstable and break the build and not test for windows often, so specify a known working revision...
-  cd vlc
-  #do_git_checkout https://github.com/rdp/vlc.git vlc_rdp # till this thing stabilizes...
-  #cd vlc_rdp
+  #do_git_checkout https://github.com/videolan/vlc.git vlc # vlc git master seems to be unstable and break the build and not test for windows often, so specify a known working revision...
+  #cd vlc
+  do_git_checkout https://github.com/rdp/vlc.git vlc_rdp # till this thing stabilizes...
+  cd vlc_rdp
   
   if [[ ! -f "configure" ]]; then
     ./bootstrap
   fi 
-  do_configure "--disable-x265 --disable-libgcrypt --disable-a52 --host=$host_target --disable-lua --disable-mad --enable-qt --disable-sdl" # don't have lua mingw yet, etc. [vlc has --disable-sdl [?]] x265 disabled until we care enough... TODO reneable {modplug, bluray} once I use vlc git master if it works...
+  do_configure "--disable-x265 --disable-libgcrypt --disable-a52 --host=$host_target --disable-lua --disable-mad --enable-qt --disable-sdl --disable-mod" # don't have lua mingw yet, etc. [vlc has --disable-sdl [?]] x265 disabled until we care enough... TODO reneable bluray once I use vlc git master if it works... [not sure what's wrong with libmod]
   for file in `find . -name *.exe`; do
     rm $file # try to force a rebuild...though there are tons of .a files we aren't rebuilding :|
   done
@@ -1076,6 +1076,8 @@ build_ffmpeg() {
   echo "doing ffmpeg make $(pwd)"
   do_make
   do_make_install # install ffmpeg to get libavcodec libraries to be used as dependencies for other things, like vlc [XXX make this a parameter?] or install shared to a local dir
+  sed -i 's/-lavutil -lm.*/-lavutil -lm -lpthread/' "$PKG_CONFIG_PATH/libavutil.pc" # unreported as yet...
+  exit 1
   echo "Done! You will find $bits_target bit $shared binaries in $(pwd)/{ffmpeg,ffprobe,ffplay,avconv,avprobe}*.exe"
   cd ..
 }

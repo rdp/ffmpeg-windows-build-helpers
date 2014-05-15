@@ -2,6 +2,10 @@
 
 == maybe/never do, more on the never ==
 
+vlc tell them they don't do make parallel right for doze...
+
+windows batch file?
+
 mplayer use svn trunk?
 
 vlc use git master?
@@ -16,8 +20,6 @@ vlc build is dead with his pthreads? mine?
 
 real distro/installer/put it online
   release "debug" builds, full static linkable builds [?]
-
-make sure openssl still builds, doesn't conflict, etc. [jan-E]
 
 ask the x264 guys what is a good fprofiled option out there...
 
