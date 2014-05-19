@@ -190,6 +190,10 @@ update_to_desired_git_branch_or_revision() {
 do_git_checkout() {
   local repo_url="$1"
   local to_dir="$2"
+  if [[ -z $to_dir ]]; then
+    echo "got empty to dir for git checkout?"
+    exit 1
+  fi
   local desired_branch="$3"
   if [ ! -d $to_dir ]; then
     echo "Downloading (via git clone) $to_dir"
@@ -906,10 +910,10 @@ build_vidstab() {
 build_vlc() {
   build_qt # needs libjpeg [?]
   cpu_count=1 # not wig out on .rc.lo files etc.
-  #do_git_checkout https://github.com/videolan/vlc.git vlc # vlc git master seems to be unstable and break the build and not test for windows often, so specify a known working revision...
-  #cd vlc
-  do_git_checkout https://github.com/rdp/vlc.git vlc_rdp # till this thing stabilizes...
-  cd vlc_rdp
+  do_git_checkout https://github.com/videolan/vlc.git vlc # vlc git master seems to be unstable and break the build and not test for windows often, so specify a known working revision...
+  cd vlc
+  #do_git_checkout https://github.com/rdp/vlc.git vlc_rdp # till this thing stabilizes...
+  #cd vlc_rdp
   
   if [[ ! -f "configure" ]]; then
     ./bootstrap
@@ -938,16 +942,14 @@ build_vlc() {
 }
 
 build_mplayer() {
-  download_and_unpack_file http://sourceforge.net/projects/mplayer-edl/files/mplayer-checkout-snapshot.tar.bz2/download mplayer-checkout-2013-09-11 # my own snapshot since mplayer seems to delete old file :\
-  cd mplayer-checkout-2013-09-11
-  do_git_checkout https://github.com/FFmpeg/FFmpeg ffmpeg bbcaf25d4 # random, known to work revision with 2013-09-11
+  #download_and_unpack_file http://sourceforge.net/projects/mplayer-edl/files/mplayer-checkout-snapshot.tar.bz2/download mplayer-checkout-2013-09-11 # my own snapshot since mplayer seems to delete old file :\
+  #cd mplayer-checkout-2013-09-11
+  #do_git_checkout https://github.com/FFmpeg/FFmpeg ffmpeg bbcaf25d4 # random, known to work revision with 2013-09-11
+  download_and_unpack_file http://www.mplayerhq.hu/MPlayer/releases/mplayer-export-snapshot.tar.bz2 mplayer-export-2014-05-19
+  cd mplayer-export-2014-05-19
+  do_git_checkout https://github.com/FFmpeg/FFmpeg ffmpeg # TODO some specific revision here?
 
-  # XXX retry this with a slightly even more updated mplayer than one from 7/18
-  #do_git_checkout https://github.com/pigoz/mplayer-svn.git mplayer-svn-git # lacks submodules for dvdnav unfortunately, for now...
-  #cd mplayer-svn-git
-  #do_git_checkout https://github.com/FFmpeg/FFmpeg # TODO some specific revision here?
-
-  do_configure "--enable-cross-compile --host-cc=cc --cc=${cross_prefix}gcc --windres=${cross_prefix}windres --ranlib=${cross_prefix}ranlib --ar=${cross_prefix}ar --as=${cross_prefix}as --nm=${cross_prefix}nm --enable-runtime-cpudetection --extra-cflags=$CFLAGS --with-dvdnav-config=$mingw_w64_x86_64_prefix/bin/dvdnav-config --with-dvdread-config=$mingw_w64_x86_64_prefix/bin/dvdread-config --disable-dvdread-internal --disable-libdvdcss-internal --disable-w32threads --enable-pthreads --extra-libs=-lpthread --enable-debug"
+  do_configure "--enable-cross-compile --host-cc=cc --cc=${cross_prefix}gcc --windres=${cross_prefix}windres --ranlib=${cross_prefix}ranlib --ar=${cross_prefix}ar --as=${cross_prefix}as --nm=${cross_prefix}nm --enable-runtime-cpudetection --extra-cflags=$CFLAGS --with-dvdnav-config=$mingw_w64_x86_64_prefix/bin/dvdnav-config --disable-dvdread-internal --disable-libdvdcss-internal --disable-w32threads --enable-pthreads '--extra-libs=-lpthread' --enable-debug" # haven't reported the ldvdcss thing, think it's to do with possibly it not using dvdread.pc [?] XXX check with trunk
   sed -i "s/HAVE_PTHREAD_CANCEL 0/HAVE_PTHREAD_CANCEL 1/g" config.h # mplayer doesn't set this up right?
   # try to force re-link just in case...
   rm *.exe
