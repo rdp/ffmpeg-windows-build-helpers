@@ -813,7 +813,7 @@ build_iconv() {
 
 build_freetype() {
   generic_download_and_install http://download.savannah.gnu.org/releases/freetype/freetype-2.5.3.tar.gz freetype-2.5.3 "--with-png=no"
-  sed -i 's/Libs: -L${libdir} -lfreetype.*/Libs: -L${libdir} -lfreetype -lexpat -lz/' "$PKG_CONFIG_PATH/freetype2.pc" # this should not need expat, but...I think maybe people use fontconfig's wrong and that needs expat? huh wuh? or dependencies are setup wrong in some .pc file?
+  sed -i 's/Libs: -L${libdir} -lfreetype.*/Libs: -L${libdir} -lfreetype -lexpat -lz -lbz2/' "$PKG_CONFIG_PATH/freetype2.pc" # this should not need expat, but...I think maybe people use fontconfig's wrong and that needs expat? huh wuh? or dependencies are setup wrong in some .pc file?
 }
 
 build_vo_aacenc() {
@@ -910,10 +910,11 @@ build_vidstab() {
 build_vlc() {
   build_qt # needs libjpeg [?]
   cpu_count=1 # not wig out on .rc.lo files etc.
-  do_git_checkout https://github.com/videolan/vlc.git vlc # vlc git master seems to be unstable and break the build and not test for windows often, so specify a known working revision...
-  cd vlc
-  #do_git_checkout https://github.com/rdp/vlc.git vlc_rdp # till this thing stabilizes...
-  #cd vlc_rdp
+  #do_git_checkout https://github.com/videolan/vlc.git vlc_git # vlc git master seems to be unstable and break the build and not test for windows often, so specify a known working revision...
+  #cd vlc_git
+
+  do_git_checkout https://github.com/rdp/vlc.git vlc_rdp # till this thing stabilizes...
+  cd vlc_rdp
   
   if [[ ! -f "configure" ]]; then
     ./bootstrap
@@ -942,12 +943,9 @@ build_vlc() {
 }
 
 build_mplayer() {
-  download_and_unpack_file http://sourceforge.net/projects/mplayer-edl/files/mplayer-checkout-snapshot.tar.bz2/download mplayer-checkout-2013-09-11 # my own snapshot since mplayer seems to delete old file :\
-  cd mplayer-checkout-2013-09-11
-  do_git_checkout https://github.com/FFmpeg/FFmpeg ffmpeg bbcaf25d4 # random, known to work revision with 2013-09-11
-  # download_and_unpack_file http://www.mplayerhq.hu/MPlayer/releases/mplayer-export-snapshot.tar.bz2 mplayer-export-2014-05-19
-  # cd mplayer-export-2014-05-19
-  # do_git_checkout https://github.com/FFmpeg/FFmpeg ffmpeg # TODO some specific revision here?
+  download_and_unpack_file http://sourceforge.net/projects/mplayer-edl/files/mplayer-export-snapshot.2014-05-19.tar.bz2/download mplayer-export-2014-05-19
+  cd mplayer-export-2014-05-19
+  do_git_checkout https://github.com/FFmpeg/FFmpeg ffmpeg d43c303038e9bd
   export LDFLAGS='-lpthread -ldvdread -ldvdcss' # not compat with newer dvdread possibly? huh wuh?
   export CFLAGS=-DHAVE_DVDCSS_DVDCSS_H
   do_configure "--enable-cross-compile --host-cc=cc --cc=${cross_prefix}gcc --windres=${cross_prefix}windres --ranlib=${cross_prefix}ranlib --ar=${cross_prefix}ar --as=${cross_prefix}as --nm=${cross_prefix}nm --enable-runtime-cpudetection --extra-cflags=$CFLAGS --with-dvdnav-config=$mingw_w64_x86_64_prefix/bin/dvdnav-config --disable-dvdread-internal --disable-libdvdcss-internal --disable-w32threads --enable-pthreads --extra-libs=-lpthread --enable-debug" # haven't reported the ldvdcss thing, think it's to do with possibly it not using dvdread.pc [?] XXX check with trunk
@@ -1130,7 +1128,7 @@ build_dependencies() {
   build_libtheora # needs libvorbis, libogg
   build_orc
   build_libschroedinger # needs orc
-  build_freetype
+  build_freetype # uses bz2/zlib seemingly
   build_libexpat
   build_libxml2
   build_libbluray # needs libxml2, freetype
