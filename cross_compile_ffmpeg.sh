@@ -364,17 +364,19 @@ build_libx265() {
       echo "doing hg pull -u x265"
       old_hg_version=`hg --debug id -i`
       hg pull -u || exit 1
+      hg update || exit 1 # guess you need this too
     else
       echo "not doing hg pull x265"
+      old_hg_version=`hg --debug id -i`
     fi
   else
     hg clone https://bitbucket.org/multicoreware/x265 || exit 1
     cd x265
-    old_hg_version=`hg --debug id -i`
+    old_hg_version=none-yet
   fi    
   cd source
 
-  # hg checkout 9b0c9b # no longer needed...
+  # hg checkout 9b0c9b # no longer needed, but once was...
 
   local new_hg_version=`hg --debug id -i`  
   if [[ "$old_hg_version" != "$new_hg_version" ]]; then
@@ -384,9 +386,10 @@ build_libx265() {
     echo "still at hg $new_hg_version x265"
   fi
 
-  do_cmake "-DENABLE_SHARED=OFF"
+  do_cmake "-DENABLE_SHARED=OFF" 
   do_make_install
   cd ../..
+ exit 1
 }
 
 #x264_profile_guided=y
