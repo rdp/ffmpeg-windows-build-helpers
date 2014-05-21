@@ -364,7 +364,7 @@ build_libx265() {
       echo "doing hg pull -u x265"
       old_hg_version=`hg --debug id -i`
       hg pull -u || exit 1
-      hg update || exit 1 # guess you need this too
+      hg update || exit 1 # guess you need this too if no new changes are brought down [what the...]
     else
       echo "not doing hg pull x265"
       old_hg_version=`hg --debug id -i`
