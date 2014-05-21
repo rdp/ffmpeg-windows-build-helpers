@@ -389,7 +389,6 @@ build_libx265() {
   do_cmake "-DENABLE_SHARED=OFF" 
   do_make_install
   cd ../..
- exit 1
 }
 
 #x264_profile_guided=y
