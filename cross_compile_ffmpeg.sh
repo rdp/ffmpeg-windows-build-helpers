@@ -920,8 +920,7 @@ build_vlc() {
   if [[ ! -f "configure" ]]; then
     ./bootstrap
   fi 
-  export BLURAY_LIBS='-lbluray -lfreetype -lexpat -lz -lbz2' # possible temporary bug in this version of vlc
-  do_configure "--disable-x265 --disable-libgcrypt --disable-a52 --host=$host_target --disable-lua --disable-mad --enable-qt --disable-sdl --disable-mod" # don't have lua mingw yet, etc. [vlc has --disable-sdl [?]] x265 disabled until we care enough... TODO reneable bluray once I use vlc git master if it works... [not sure what's wrong with libmod]
+  do_configure "--disable-x265 --disable-libgcrypt --disable-a52 --host=$host_target --disable-lua --disable-mad --enable-qt --disable-sdl --disable-mod --disable-bluray" # don't have lua mingw yet, etc. [vlc has --disable-sdl [?]] x265 disabled until we care enough... TODO reneable bluray once I use vlc git master if it works... [not sure what's wrong with libmod]
   for file in `find . -name *.exe`; do
     rm $file # try to force a rebuild...though there are tons of .a files we aren't rebuilding :|
   done
