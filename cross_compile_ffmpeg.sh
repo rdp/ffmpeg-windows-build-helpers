@@ -673,7 +673,7 @@ build_gmp() {
 }
 
 build_orc() {
-  generic_download_and_install  http://code.entropywave.com/download/orc/orc-0.4.18.tar.gz orc-0.4.18
+  generic_download_and_install http://download.videolan.org/contrib/orc-0.4.18.tar.gz orc-0.4.18
 }
 
 build_libxml2() {
@@ -686,7 +686,7 @@ build_libbluray() {
 }
 
 build_libschroedinger() {
-  download_and_unpack_file http://diracvideo.org/download/schroedinger/schroedinger-1.0.11.tar.gz schroedinger-1.0.11
+  download_and_unpack_file http://download.videolan.org/contrib/schroedinger-1.0.11.tar.gz schroedinger-1.0.11
   cd schroedinger-1.0.11
     generic_configure
     sed -i 's/testsuite//' Makefile
