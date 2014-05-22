@@ -357,33 +357,38 @@ generic_configure_make_install() {
 }
 
 build_libx265() {
-  local old_hg_version
-  if [[ -d x265 ]]; then
-    cd x265
-    if [[ $git_get_latest = "y" ]]; then
-      echo "doing hg pull -u x265"
-      old_hg_version=`hg --debug id -i`
-      hg pull -u || exit 1
-      hg update || exit 1 # guess you need this too if no new changes are brought down [what the...]
+  if [[ $prefer_stable = "n" ]]; then
+    local old_hg_version
+    if [[ -d x265 ]]; then
+      cd x265
+      if [[ $git_get_latest = "y" ]]; then
+        echo "doing hg pull -u x265"
+        old_hg_version=`hg --debug id -i`
+        hg pull -u || exit 1
+        hg update || exit 1 # guess you need this too if no new changes are brought down [what the...]
+      else
+        echo "not doing hg pull x265"
+        old_hg_version=`hg --debug id -i`
+      fi
     else
-      echo "not doing hg pull x265"
-      old_hg_version=`hg --debug id -i`
+      hg clone https://bitbucket.org/multicoreware/x265 || exit 1
+      cd x265
+      old_hg_version=none-yet
+    fi
+    cd source
+
+    # hg checkout 9b0c9b # no longer needed, but once was...
+
+    local new_hg_version=`hg --debug id -i`  
+    if [[ "$old_hg_version" != "$new_hg_version" ]]; then
+      echo "got upstream hg changes, forcing rebuild...x265"
+      rm already*
+    else
+      echo "still at hg $new_hg_version x265"
     fi
   else
-    hg clone https://bitbucket.org/multicoreware/x265 || exit 1
-    cd x265
-    old_hg_version=none-yet
-  fi    
-  cd source
-
-  # hg checkout 9b0c9b # no longer needed, but once was...
-
-  local new_hg_version=`hg --debug id -i`  
-  if [[ "$old_hg_version" != "$new_hg_version" ]]; then
-    echo "got upstream hg changes, forcing rebuild...x265"
-    rm already*
-  else
-    echo "still at hg $new_hg_version x265"
+    download_and_unpack_file "https://bitbucket.org/multicoreware/x265/get/stable.tar.gz" "x265"
+    cd x265/source
   fi
 
   do_cmake "-DENABLE_SHARED=OFF" 
@@ -487,10 +492,13 @@ build_libopenjpeg() {
 }
 
 build_libvpx() {
-#  download_and_unpack_file http://webm.googlecode.com/files/libvpx-v1.3.0.tar.bz2 libvpx-v1.3.0
-#  cd libvpx-v1.3.0
-  do_git_checkout https://git.chromium.org/git/webm/libvpx.git "libvpx_git"
-  cd libvpx_git
+  if [[ $prefer_stable = "y" ]]; then
+    download_and_unpack_file http://webm.googlecode.com/files/libvpx-v1.3.0.tar.bz2 libvpx-v1.3.0
+    cd libvpx-v1.3.0
+  else
+    do_git_checkout https://git.chromium.org/git/webm/libvpx.git "libvpx_git"
+    cd libvpx_git
+  fi
   export CROSS="$cross_prefix"
   if [[ "$bits_target" = "32" ]]; then
     do_configure "--extra-cflags=-DPTW32_STATIC_LIB --target=x86-win32-gcc --prefix=$mingw_w64_x86_64_prefix --enable-static --disable-shared"
@@ -1212,6 +1220,7 @@ build_mp4box=n
 build_mplayer=n
 build_vlc=n
 git_get_latest=y
+prefer_stable=n
 unset CFLAGS # I think this resets it...we don't want any linux CFLAGS seeping through...they can set this via --cflags=  if they want it set to anything
 original_cflags= # no export needed, this is just a local copy
 
@@ -1260,6 +1269,7 @@ while true; do
     --build-ffmpeg-static=* ) build_ffmpeg_static="${1#*=}"; shift ;;
     --build-ffmpeg-shared=* ) build_ffmpeg_shared="${1#*=}"; shift ;;
     --rebuild-compilers=* ) rebuild_compilers="${1#*=}"; shift ;;
+    --prefer-stable=* ) prefer_stable="${1#*=}"; shift ;;
     -- ) shift; break ;;
     -* ) echo "Error, unknown option: '$1'."; exit 1 ;;
     * ) break ;;
