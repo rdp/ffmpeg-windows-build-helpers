@@ -1243,6 +1243,7 @@ while true; do
       --build-libav=n [builds libav.exe, an FFmpeg fork] 
       --cflags= [default is empty, compiles for generic cpu, see README]
       --git-get-latest=y [do a git pull for latest code from repositories like FFmpeg--can force a rebuild if changes are detected]
+      --prefer-stable=y build a few libraries from releases instead of git master
        "; exit 0 ;;
     --sandbox-ok=* ) sandbox_ok="${1#*=}"; shift ;;
     --gcc-cpu-count=* ) gcc_cpu_count="${1#*=}"; shift ;;
