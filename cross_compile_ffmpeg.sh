@@ -1220,7 +1220,7 @@ build_mp4box=n
 build_mplayer=n
 build_vlc=n
 git_get_latest=y
-prefer_stable=n
+prefer_stable=y
 unset CFLAGS # I think this resets it...we don't want any linux CFLAGS seeping through...they can set this via --cflags=  if they want it set to anything
 original_cflags= # no export needed, this is just a local copy
 
