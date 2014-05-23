@@ -387,8 +387,34 @@ build_libx265() {
       echo "still at hg $new_hg_version x265"
     fi
   else
-    download_and_unpack_file "https://bitbucket.org/multicoreware/x265/get/stable.tar.gz" "x265"
-    cd x265/source
+    local old_hg_version
+    if [[ -d x265 ]]; then
+      cd x265
+      if [[ $git_get_latest = "y" ]]; then
+        echo "doing hg pull -u x265"
+        old_hg_version=`hg --debug id -i`
+        hg pull -u || exit 1
+        hg update || exit 1 # guess you need this too if no new changes are brought down [what the...]
+      else
+        echo "not doing hg pull x265"
+        old_hg_version=`hg --debug id -i`
+      fi
+    else
+      hg clone https://bitbucket.org/multicoreware/x265 -r stable || exit 1
+      cd x265
+      old_hg_version=none-yet
+    fi
+    cd source
+
+    # hg checkout 9b0c9b # no longer needed, but once was...
+
+    local new_hg_version=`hg --debug id -i`  
+    if [[ "$old_hg_version" != "$new_hg_version" ]]; then
+      echo "got upstream hg changes, forcing rebuild...x265"
+      rm already*
+    else
+      echo "still at hg $new_hg_version x265"
+    fi
   fi
 
   do_cmake "-DENABLE_SHARED=OFF" 
