@@ -416,8 +416,13 @@ build_libx265() {
       echo "still at hg $new_hg_version x265"
     fi
   fi
-
-  do_cmake "-DENABLE_SHARED=OFF" 
+  
+  local cmake_params="-DENABLE_SHARED=OFF"
+  if [[ $high_bitdepth == "y" ]]; then
+    cmake_params="$cmake_params -DHIGH_BIT_DEPTH=ON" # Enable 10 bits (main10) and 12 bits (???) per pixels profiles.
+  fi
+  
+  do_cmake "$cmake_params" 
   do_make_install
   cd ../..
 }
@@ -428,6 +433,11 @@ build_libx264() {
   do_git_checkout "http://repo.or.cz/r/x264.git" "x264" "origin/stable"
   cd x264
   local configure_flags="--host=$host_target --enable-static --cross-prefix=$cross_prefix --prefix=$mingw_w64_x86_64_prefix --extra-cflags=-DPTW32_STATIC_LIB --enable-debug" # --enable-win32thread --enable-debug shouldn't hurt us since ffmpeg strips it anyway I think
+  
+  if [[ $high_bitdepth == "y" ]]; then
+    configure_flags="$configure_flags --bit-depth=10" # Enable 10 bits (main10) per pixels profile.
+  fi
+  
   if [[ $x264_profile_guided = y ]]; then
     # TODO more march=native here?
     # TODO profile guided here option, with wine?
@@ -1270,6 +1280,7 @@ while true; do
       --cflags= [default is empty, compiles for generic cpu, see README]
       --git-get-latest=y [do a git pull for latest code from repositories like FFmpeg--can force a rebuild if changes are detected]
       --prefer-stable=y build a few libraries from releases instead of git master
+      --high-bitdepth=y Enable high bit depth for x264 (10 bits) and x265 (10 and 12 bits, x64 build. Not officially supported on x86 (win32), but can be enabled by editing x265/source/CMakeLists.txt. See line 155).
        "; exit 0 ;;
     --sandbox-ok=* ) sandbox_ok="${1#*=}"; shift ;;
     --gcc-cpu-count=* ) gcc_cpu_count="${1#*=}"; shift ;;
@@ -1297,6 +1308,7 @@ while true; do
     --build-ffmpeg-shared=* ) build_ffmpeg_shared="${1#*=}"; shift ;;
     --rebuild-compilers=* ) rebuild_compilers="${1#*=}"; shift ;;
     --prefer-stable=* ) prefer_stable="${1#*=}"; shift ;;
+    --high-bitdepth=* ) high_bitdepth="${1#*=}"; shift ;;
     -- ) shift; break ;;
     -* ) echo "Error, unknown option: '$1'."; exit 1 ;;
     * ) break ;;
