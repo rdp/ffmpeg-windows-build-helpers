@@ -1,0 +1,37 @@
+#Add support for 'hev1' and 'hvc1' FOURCCs.
+--- src/misc/fourcc.c
++++ src/misc/fourcc.c
+@@ -266,6 +266,8 @@
+         A("h265"),
+         A("H265"),
+         A("x265"),
++        A("hev1"),
++        A("hvc1"),
+ 
+     /* h264 */
+     B(VLC_CODEC_H264, "H264 - MPEG-4 AVC (part 10)"),
+
+#Rebind mp4, m4a, mov and moov to avformat (ffmpeg).
+--- src/input/demux.c
++++ src/input/demux.c
+@@ -125,7 +125,7 @@
+             { "m3u",  "m3u" },
+             { "m3u8", "m3u8" },
+             { "mkv",  "mkv" }, { "mka",  "mkv" }, { "mks",  "mkv" },
+-            { "mp4",  "mp4" }, { "m4a",  "mp4" }, { "mov",  "mp4" }, { "moov", "mp4" },
++            { "mp4",  "avformat" }, { "m4a",  "avformat" }, { "mov",  "avformat" }, { "moov", "avformat" },
+             { "nsv",  "nsv" },
+             { "ogg",  "ogg" }, { "ogm",  "ogg" }, /* legacy Ogg */
+             { "oga",  "ogg" }, { "spx",  "ogg" }, { "ogv", "ogg" },
+
+#Bump avcodec score to make it win for all supported codecs.
+--- modules/codec/avcodec/avcodec.c
++++ modules/codec/avcodec/avcodec.c
+@@ -93,7 +93,7 @@
+     /* decoder main module */
+     set_description( N_("FFmpeg audio/video decoder") )
+     set_help( MODULE_DESCRIPTION )
+-    set_capability( "decoder", 70 )
++    set_capability( "decoder", 999 )
+     set_section( N_("Decoding") , NULL )
+     set_callbacks( OpenDecoder, CloseDecoder )
