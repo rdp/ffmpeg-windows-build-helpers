@@ -930,9 +930,9 @@ build_libmodplug() {
 }
 
 build_libcaca() {
-  local cur_dir2=$(pwd)/libcaca-0.99.beta18
-  download_and_unpack_file http://caca.zoy.org/files/libcaca/libcaca-0.99.beta18.tar.gz libcaca-0.99.beta18
-  cd libcaca-0.99.beta18
+  local cur_dir2=$(pwd)/libcaca-0.99.beta19
+  download_and_unpack_file http://caca.zoy.org/files/libcaca/libcaca-0.99.beta19.tar.gz libcaca-0.99.beta19
+  cd libcaca-0.99.beta19
   cd caca
     sed -i "s/__declspec(dllexport)//g" *.h # get rid of the declspec lines otherwise the build will fail for undefined symbols
     sed -i "s/__declspec(dllimport)//g" *.h 
