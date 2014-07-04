@@ -1147,8 +1147,14 @@ build_ffmpeg() {
   echo "doing ffmpeg make $(pwd)"
   do_make
   do_make_install # install ffmpeg to get libavcodec libraries to be used as dependencies for other things, like vlc [XXX make this a parameter?] or install shared to a local dir
-  sed -i 's/-lavutil -lm.*/-lavutil -lm -lpthread/' "$PKG_CONFIG_PATH/libavutil.pc" # unreported as yet...
-  sed -i 's/-lswresample -lm.*/-lswresample -lm -lsoxr/' "$PKG_CONFIG_PATH/libswresample.pc" # unreported as yet...
+
+  # ismindex.exe, for fun [XXXX this is ugly, do we even need all of these?]:
+  cd tools
+    ${cross_prefix}gcc  -I./.. -L../libavformat -lavformat -L../libavcodec -lavcodec -L../libavdevice -lavdevice -L../libavfilter -lavfilter -L../libavutil -lavutil -L/global32/lib -lrtmp -lgnutls -lopenjpeg -lfontconfig -lfreetype -L/local32/lib -lbluray -lmodplug -lgsm -lcaca  -lass -lopencore-amrnb -lopencore-amrwb -lvo-amrwbenc -lschroedinger-1.0 -lsoxr -ltwolame -lutvideo -lspeex -ltheora -lvorbis -lvo-aacenc -lopus -lvidstab -lvpx -lxavs -lx264 -lxvidcore -lzvbi -lvorbisenc -lorc-0.4 -logg -L/mingw32/ -lxml2 -lbz2 -lstdc++ -lpng -lm -lpthread -lwsock32 -lhogweed -lnettle -lgmp  -lws2_32 -lwinmm -lgdi32 -lcrypt32 -lz -liconv -lmp3lame -L/global32/lib -lfreetype -o ismindex.exe 
+  cd ..
+
+  sed -i 's/-lavutil -lm.*/-lavutil -lm -lpthread/' "$PKG_CONFIG_PATH/libavutil.pc" # XXX patch ffmpeg
+  sed -i 's/-lswresample -lm.*/-lswresample -lm -lsoxr/' "$PKG_CONFIG_PATH/libswresample.pc" # XXX patch ffmpeg
   echo "Done! You will find $bits_target bit $shared binaries in $(pwd)/{ffmpeg,ffprobe,ffplay,avconv,avprobe}*.exe"
   cd ..
 }
