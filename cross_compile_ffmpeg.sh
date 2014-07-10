@@ -737,7 +737,7 @@ build_orc() {
 }
 
 build_libxml2() {
-  generic_download_and_install ftp://xmlsoft.org/libxml2/libxml2-2.9.0.tar.gz libxml2-2.9.0
+  generic_download_and_install ftp://xmlsoft.org/libxml2/libxml2-2.9.0.tar.gz libxml2-2.9.0 "--without-python"
 }
 
 build_libbluray() {
