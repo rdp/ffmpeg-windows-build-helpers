@@ -34,6 +34,7 @@ check_missing_packages () {
     echo "Could not find the following execs (svn is actually package subversion, makeinfo is actually package texinfo if you're missing them): ${missing_packages[@]}"
     echo 'Install the missing packages before running this script.'
     echo "for ubuntu: $ sudo apt-get install subversion texinfo g++ bison flex cvs yasm automake libtool autoconf gcc cmake git make pkg-config zlib1g-dev mercurial" 
+    echo "for gentoo (a non ubuntu distro): same, but no g++, git is dev-vcs/git, zlib1g-dev is zlib, pkg-config is dev-util/pkgconfig, AFAICT"
     exit 1
   fi
 
