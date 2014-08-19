@@ -44,8 +44,9 @@ Also NB that you can also "cross compile" vlc.exe if you pass in the appropriate
 
 Also NB that you can optionally create a "somewhat more machine optimized builds" by modifying an appropriate --cflags parameter, like --cflags=-march=athlon64-sse2 or what not.  
 So if you're cross compiling it on the box you'll end up targeting it for, you could build it like --cflags=-march=native to get a slightly faster executable
-
 Unfortunately, after doing some benchmarking, it seems that modifying the CFLAGS (at least if you're using libx264) doesn't end up helping much (it might make a smaller executable?) since libx264 auto detects and auto uses your cpu capabilities anyway, so...until further research is done, this option may not provide significant speedup.  Ping me if you get different results than this.
+
+NB that this may contain slightly older/out of date dependency versions, so there may be a chance of security risk, though FFmpeg itself will be built from git master by default, with all the latest and greatest.
 
 NB that if you have wine installed you may need to run this command first to disable it (if you are building for a different architecture than the building machine, especially), so that it doesn't auto run files like conftest.exe, etc. during the build (they will crash with an annoying popup prompt otherwise)
 $ sudo update-binfmts --disable wine
