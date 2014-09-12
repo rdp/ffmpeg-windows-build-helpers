@@ -536,7 +536,7 @@ if ! check_pkg_touch_success 'binutils' "$binutils_ver" 'configure' "$mingw_w64_
   rm -rf "$mingw_w64_target" || exit 1
   mkdir "$mingw_w64_target"
   cd "$mingw_w64_target" || exit 1
-  CC=gcc "../../source/binutils-$binutils_ver/configure" --build="$system_type" --target="$mingw_w64_target" "${static_build[@]}" "${disable_nls[@]}" --disable-multilib --with-sysroot="$mingw_w64_prefix" --prefix="$mingw_w64_prefix"  || exit 1
+  CC=gcc "../../source/binutils-$binutils_ver/configure" --disable-werror --build="$system_type" --target="$mingw_w64_target" "${static_build[@]}" "${disable_nls[@]}" --disable-multilib --with-sysroot="$mingw_w64_prefix" --prefix="$mingw_w64_prefix"  || exit 1
 fi
 pkg_touch_success 'binutils' "$binutils_ver" 'configure' "$mingw_w64_target"
 if ! check_pkg_touch_success 'binutils' "$binutils_ver" 'compile' "$mingw_w64_target"; then
