@@ -7,7 +7,9 @@ windows cygwin batch file to build the whole thing?
 
 == maybe/never do, more on the never ==
 
-vlc tell them they don't do make parallel right for doze...
+auto detect new release versions of dependencies [that are active LOL]
+
+vlc tell them they don't do make parallel right for doze...if I can ever repro it...
 
 libav build broken [do I care enough though?]
 
