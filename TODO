@@ -9,6 +9,8 @@ windows cygwin batch file to build the whole thing?
 
 fix mplayer build :|
 
+also can it skip rebuilding ffmpeg every time, huh wuh? reconfigure too, if the ffmpeg build failed?
+
 auto detect new release versions of dependencies [that are active LOL]
 
 vlc tell them they don't do make parallel right for doze...if I can ever repro it...
