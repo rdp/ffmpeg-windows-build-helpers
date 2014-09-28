@@ -88,8 +88,8 @@ EOL
     if  [[ $disable_nonfree = "n" ]]; then
       non_free="y" 
     else
-      yes_no_sel "Would you like to include non-free (non GPL compatible) libraries, like many aac encoders
-The resultant binary will not be distributable, but might be useful for in-house use. Include non-free [y/N]?" "n"
+      yes_no_sel "Would you like to include non-free (non GPL compatible) libraries, like many high quality aac encoders [libfdk_aac]
+The resultant binary may not be distributable, but can be useful for in-house use. Include these non-free-license libraries [y/N]?" "n"
       non_free="$user_input" # save it away
     fi
   fi
@@ -1267,6 +1267,7 @@ build_apps() {
 
 # set some parameters initial values
 cur_dir="$(pwd)/sandbox"
+unset CFLAGS # I think this resets it...we don't want any linux CFLAGS seeping through...they can set this via --cflags=  if they want it set to anything
 cpu_count="$(grep -c processor /proc/cpuinfo)" # linux
 if [ -z "$cpu_count" ]; then
   cpu_count=`sysctl -n hw.ncpu | tr -d '\n'` # OS X
@@ -1276,6 +1277,7 @@ if [ -z "$cpu_count" ]; then
   fi
 fi
 original_cpu_count=$cpu_count # save it away for some that revert it temporarily
+
 gcc_cpu_count=1 # allow them to specify more than 1, but default to the one that's most compatible...
 build_ffmpeg_static=y
 build_ffmpeg_shared=n
@@ -1286,7 +1288,7 @@ build_mplayer=n
 build_vlc=n
 git_get_latest=y
 prefer_stable=y
-unset CFLAGS # I think this resets it...we don't want any linux CFLAGS seeping through...they can set this via --cflags=  if they want it set to anything
+disable_nonfree=y
 original_cflags= # no export needed, this is just a local copy
 
 # parse command line parameters, if any
