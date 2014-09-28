@@ -1233,7 +1233,7 @@ build_dependencies() {
   build_libopenjpeg
   if [[ "$non_free" = "y" ]]; then
     build_fdk_aac
-    build_faac # not included for now, too poor quality :)
+    # build_faac # not included for now, too poor quality output :)
     # build_libaacplus # if you use it, conflicts with other AAC encoders <sigh>, so disabled :)
   fi
   # build_openssl # hopefully do not need it anymore, since we use gnutls everywhere, so just don't even build it...
