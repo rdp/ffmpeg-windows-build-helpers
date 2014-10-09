@@ -671,9 +671,8 @@ build_win32_pthreads() {
   cd ..
 }
 
-build_libdl() {
-  #download_and_unpack_file http://dlfcn-win32.googlecode.com/files/dlfcn-win32-r19.tar.bz2 dlfcn-win32-r19
-  do_svn_checkout http://dlfcn-win32.googlecode.com/svn/trunk/ dlfcn-win32
+build_libdlfcn() {
+  do_git_checkout https://github.com/dlfcn-win32/dlfcn-win32.git dlfcn-win32 
   cd dlfcn-win32
     ./configure --disable-shared --enable-static --cross-prefix=$cross_prefix --prefix=$mingw_w64_x86_64_prefix
     do_make_install
@@ -1158,7 +1157,7 @@ build_ffmpeg() {
   # build ismindex.exe, too, just for fun 
   make tools/ismindex.exe
 
-  sed -i 's/-lavutil -lm.*/-lavutil -lm -lpthread/' "$PKG_CONFIG_PATH/libavutil.pc" # XXX patch ffmpeg
+  sed -i 's/-lavutil -lm.*/-lavutil -lm -lpthread/' "$PKG_CONFIG_PATH/libavutil.pc" # XXX patch ffmpeg itself...
   sed -i 's/-lswresample -lm.*/-lswresample -lm -lsoxr/' "$PKG_CONFIG_PATH/libswresample.pc" # XXX patch ffmpeg
   echo "Done! You will find $bits_target bit $shared binaries in $(pwd)/{ffmpeg,ffprobe,ffplay,avconv,avprobe}*.exe"
   cd ..
@@ -1181,7 +1180,7 @@ find_all_build_exes() {
 build_dependencies() {
   echo "PKG_CONFIG_PATH=$PKG_CONFIG_PATH" # debug
   #build_win32_pthreads # vpx etc. depend on this--provided by the compiler build script now, so shouldn't have to build our own
-  build_libdl # ffmpeg's frei0r implentation needs this
+  build_libdlfcn # ffmpeg's frei0r implentation needs this <sigh>
   build_zlib # rtmp depends on it [as well as ffmpeg's optional but handy --enable-zlib]
   build_bzlib2 # in case someone wants it [ffmpeg uses it]
   build_libpng # for openjpeg, needs zlib
