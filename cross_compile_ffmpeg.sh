@@ -33,8 +33,8 @@ check_missing_packages () {
     clear
     echo "Could not find the following execs (svn is actually package subversion, makeinfo is actually package texinfo if you're missing them): ${missing_packages[@]}"
     echo 'Install the missing packages before running this script.'
-    echo "for ubuntu: $ sudo apt-get install subversion texinfo g++ bison flex cvs yasm automake libtool autoconf gcc cmake git make pkg-config zlib1g-dev mercurial" 
-    echo "for gentoo (a non ubuntu distro): same, but no g++, no gcc, git is dev-vcs/git, zlib1g-dev is zlib, pkg-config is dev-util/pkgconfig, add ed, AFAICT"
+    echo "for ubuntu: $ sudo apt-get install subversion curl texinfo g++ bison flex cvs yasm automake libtool autoconf gcc cmake git make pkg-config zlib1g-dev mercurial" 
+    echo "for gentoo (a non ubuntu distro): same as above, but no g++, no gcc, git is dev-vcs/git, zlib1g-dev is zlib, pkg-config is dev-util/pkgconfig, add ed..."
     exit 1
   fi
 
@@ -88,8 +88,8 @@ EOL
     if  [[ $disable_nonfree = "n" ]]; then
       non_free="y" 
     else
-      yes_no_sel "Would you like to include non-free (non GPL compatible) libraries, like many aac encoders
-The resultant binary will not be distributable, but might be useful for in-house use. Include non-free [y/N]?" "n"
+      yes_no_sel "Would you like to include non-free (non GPL compatible) libraries, like many high quality aac encoders [libfdk_aac]
+The resultant binary may not be distributable, but can be useful for in-house use. Include these non-free-license libraries [y/N]?" "n"
       non_free="$user_input" # save it away
     fi
   fi
@@ -474,7 +474,7 @@ build_librtmp() {
   #  download_and_unpack_file http://rtmpdump.mplayerhq.hu/download/rtmpdump-2.3.tgz rtmpdump-2.3 # has some odd configure failure
   #  cd rtmpdump-2.3/librtmp
 
-  do_git_checkout "http://repo.or.cz/r/rtmpdump.git" rtmpdump_git 883c33489403ed360a01d1a47ec76d476525b49e # trunk didn't build once...this one i sstable
+  do_git_checkout "http://repo.or.cz/r/rtmpdump.git" rtmpdump_git 
   cd rtmpdump_git/librtmp
   do_make_install "CRYPTO=GNUTLS OPT=-O2 CROSS_COMPILE=$cross_prefix SHARED=no prefix=$mingw_w64_x86_64_prefix"
   #make install CRYPTO=GNUTLS OPT='-O2 -g' "CROSS_COMPILE=$cross_prefix" SHARED=no "prefix=$mingw_w64_x86_64_prefix" || exit 1
@@ -566,9 +566,12 @@ build_libvpx() {
 }
 
 build_libutvideo() {
-  download_and_unpack_file https://github.com/downloads/rdp/FFmpeg/utvideo-11.1.1-src.zip utvideo-11.1.1
-  cd utvideo-11.1.1
+  #download_and_unpack_file http://umezawa.dyndns.info/archive/utvideo/utvideo-14.2.1-src.zip utvideo-14.2.1 # local copy since the originating site http://umezawa.dyndns.info/archive/utvideo is sometimes inaccessible
+  #do_git_checkout https://github.com/qyot27/libutvideo.git libutvideo_git_qyot27
+  download_and_unpack_file http://umezawa.dyndns.info/archive/utvideo/utvideo-12.2.1-src.zip utvideo-12.2.1
+  cd utvideo-12.2.1
     apply_patch https://raw.githubusercontent.com/rdp/ffmpeg-windows-build-helpers/master/patches/utv.diff
+    sed -i "s|Format.o|DummyCodec.o|" GNUmakefile
     do_make_install "CROSS_PREFIX=$cross_prefix DESTDIR=$mingw_w64_x86_64_prefix prefix=" # prefix= to avoid it adding an extra /usr/local to it yikes
   cd ..
 }
@@ -671,9 +674,8 @@ build_win32_pthreads() {
   cd ..
 }
 
-build_libdl() {
-  #download_and_unpack_file http://dlfcn-win32.googlecode.com/files/dlfcn-win32-r19.tar.bz2 dlfcn-win32-r19
-  do_svn_checkout http://dlfcn-win32.googlecode.com/svn/trunk/ dlfcn-win32
+build_libdlfcn() {
+  do_git_checkout https://github.com/dlfcn-win32/dlfcn-win32.git dlfcn-win32 
   cd dlfcn-win32
     ./configure --disable-shared --enable-static --cross-prefix=$cross_prefix --prefix=$mingw_w64_x86_64_prefix
     do_make_install
@@ -761,8 +763,8 @@ build_libschroedinger() {
 }
 
 build_gnutls() {
-  download_and_unpack_file ftp://ftp.gnutls.org/gcrypt/gnutls/v3.2/gnutls-3.2.14.tar.xz gnutls-3.2.14
-  cd gnutls-3.2.14
+  download_and_unpack_file ftp://ftp.gnutls.org/gcrypt/gnutls/v3.3/gnutls-3.3.9.tar.xz gnutls-3.3.9
+  cd gnutls-3.3.9
     generic_configure "--disable-cxx --disable-doc" # don't need the c++ version, in an effort to cut down on size... LODO test difference...
     do_make_install
   cd ..
@@ -1154,7 +1156,7 @@ build_ffmpeg() {
   # build ismindex.exe, too, just for fun 
   make tools/ismindex.exe
 
-  sed -i 's/-lavutil -lm.*/-lavutil -lm -lpthread/' "$PKG_CONFIG_PATH/libavutil.pc" # XXX patch ffmpeg
+  sed -i 's/-lavutil -lm.*/-lavutil -lm -lpthread/' "$PKG_CONFIG_PATH/libavutil.pc" # XXX patch ffmpeg itself...
   sed -i 's/-lswresample -lm.*/-lswresample -lm -lsoxr/' "$PKG_CONFIG_PATH/libswresample.pc" # XXX patch ffmpeg
   echo "Done! You will find $bits_target bit $shared binaries in $(pwd)/{ffmpeg,ffprobe,ffplay,avconv,avprobe}*.exe"
   cd ..
@@ -1177,7 +1179,7 @@ find_all_build_exes() {
 build_dependencies() {
   echo "PKG_CONFIG_PATH=$PKG_CONFIG_PATH" # debug
   #build_win32_pthreads # vpx etc. depend on this--provided by the compiler build script now, so shouldn't have to build our own
-  build_libdl # ffmpeg's frei0r implentation needs this
+  build_libdlfcn # ffmpeg's frei0r implentation needs this <sigh>
   build_zlib # rtmp depends on it [as well as ffmpeg's optional but handy --enable-zlib]
   build_bzlib2 # in case someone wants it [ffmpeg uses it]
   build_libpng # for openjpeg, needs zlib
@@ -1229,7 +1231,7 @@ build_dependencies() {
   build_libopenjpeg
   if [[ "$non_free" = "y" ]]; then
     build_fdk_aac
-    build_faac # not included for now, too poor quality :)
+    # build_faac # not included for now, too poor quality output :)
     # build_libaacplus # if you use it, conflicts with other AAC encoders <sigh>, so disabled :)
   fi
   # build_openssl # hopefully do not need it anymore, since we use gnutls everywhere, so just don't even build it...
@@ -1263,6 +1265,7 @@ build_apps() {
 
 # set some parameters initial values
 cur_dir="$(pwd)/sandbox"
+unset CFLAGS # I think this resets it...we don't want any linux CFLAGS seeping through...they can set this via --cflags=  if they want it set to anything
 cpu_count="$(grep -c processor /proc/cpuinfo)" # linux
 if [ -z "$cpu_count" ]; then
   cpu_count=`sysctl -n hw.ncpu | tr -d '\n'` # OS X
@@ -1272,6 +1275,7 @@ if [ -z "$cpu_count" ]; then
   fi
 fi
 original_cpu_count=$cpu_count # save it away for some that revert it temporarily
+
 gcc_cpu_count=1 # allow them to specify more than 1, but default to the one that's most compatible...
 build_ffmpeg_static=y
 build_ffmpeg_shared=n
@@ -1282,7 +1286,7 @@ build_mplayer=n
 build_vlc=n
 git_get_latest=y
 prefer_stable=y
-unset CFLAGS # I think this resets it...we don't want any linux CFLAGS seeping through...they can set this via --cflags=  if they want it set to anything
+disable_nonfree=y
 original_cflags= # no export needed, this is just a local copy
 
 # parse command line parameters, if any
