@@ -74,7 +74,7 @@ intro() {
   the sandbox directory, since it will have some hard coded paths in there.
   You can, of course, rebuild ffmpeg from within it, etc.
 EOL
-  if [[ $sandbox_ok != 'y' ]]; then
+  if [[ $sandbox_ok != 'y' && ! -d sandbox ]]; then
     yes_no_sel "Is ./sandbox ok (requires ~ 5GB space) [Y/n]?" "y"
     if [[ "$user_input" = "n" ]]; then
       exit 1
@@ -183,8 +183,7 @@ update_to_desired_git_branch_or_revision() {
   local desired_branch="$2" # or tag or whatever...
   if [ -n "$desired_branch" ]; then
    pushd $to_dir
-   cd $to_dir
-      echo "git checkout $desired_branch"
+      echo "git checkout'ing $desired_branch"
       git checkout "$desired_branch" || exit 1 # if this fails, nuke the directory first...
       git merge "$desired_branch" || exit 1 # this would be if they want to checkout a revision number, not a branch...
    popd # in case it's a cd to ., don't want to cd to .. here...since sometimes we call it with a '.'
