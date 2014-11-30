@@ -135,6 +135,7 @@ install_cross_compiler() {
   if [[ -z $build_choice ]]; then
     pick_compiler_flavors
   fi
+  rm mingw-w64-build-3.6.4.local
   curl https://raw.githubusercontent.com/rdp/ffmpeg-windows-build-helpers/master/patches/mingw-w64-build-3.6.4.local -O  || exit 1
   chmod u+x mingw-w64-build-3.6.4.local
   unset CFLAGS # don't want these for the compiler itself since it creates executables to run on the local box
@@ -313,6 +314,7 @@ apply_patch() {
  local patch_name=$(basename $url)
  local patch_done_name="$patch_name.done"
  if [[ ! -e $patch_done_name ]]; then
+   rm $patch_name
    curl $url -O || exit 1
    echo "applying patch $patch_name"
    patch -p0 < "$patch_name" || exit 1
@@ -329,8 +331,9 @@ download_and_unpack_file() {
   output_dir="$2"
   if [ ! -f "$output_dir/unpacked.successfully" ]; then
     echo "downloading $url"
+    rm $output_name
     curl "$url" -O -L || exit 1
-    tar -xf "$output_name" || unzip $output_name || exit 1
+    tar -xf "$output_name" || unzip "$output_name" || exit 1
     touch "$output_dir/unpacked.successfully" || exit 1
     rm "$output_name"
   fi
@@ -910,7 +913,7 @@ build_faac() {
 build_lame() {
   download_and_unpack_file http://sourceforge.net/projects/lame/files/lame/3.99/lame-3.99.5.tar.gz/download lame-3.99.5
   cd lame-3.99.5
-    apply_patch https://raw.githubusercontent.com/rdp/ffmpeg-windows-build-helpers/master/patches/lame_msse.patch
+    #apply_patch https://raw.githubusercontent.com/rdp/ffmpeg-windows-build-helpers/master/patches/lame_msse.patch # not enough
     generic_configure_make_install
   cd ..
 }
