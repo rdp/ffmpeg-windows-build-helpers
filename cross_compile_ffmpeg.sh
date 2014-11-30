@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-set -x
-# ffmpeg windows cross compile helper/download script
-# Copyright (C) 2012 Roger Pack, the script is under the GPLv3, but output FFmpeg's aren't necessarily
+# ffmpeg windows cross compile helper/download script, see github repo
+# Copyright (C) 2012 Roger Pack, the script is under the GPLv3, but output FFmpeg's executables aren't
+#set -x # enable debug info
 
 yes_no_sel () {
   unset user_input
@@ -135,7 +135,9 @@ install_cross_compiler() {
   if [[ -z $build_choice ]]; then
     pick_compiler_flavors
   fi
-  rm mingw-w64-build-3.6.4.local
+  if [[ -f mingw-w64-build-3.6.4.local ]]; then
+    rm mingw-w64-build-3.6.4.local || exit 1
+  fi
   curl https://raw.githubusercontent.com/rdp/ffmpeg-windows-build-helpers/master/patches/mingw-w64-build-3.6.4.local -O  || exit 1
   chmod u+x mingw-w64-build-3.6.4.local
   unset CFLAGS # don't want these for the compiler itself since it creates executables to run on the local box
@@ -199,7 +201,7 @@ do_git_checkout() {
   local desired_branch="$3"
   if [ ! -d $to_dir ]; then
     echo "Downloading (via git clone) $to_dir"
-    rm -rf $to_dir # just in case it was interrupted previously...
+    rm -rf $to_dir.tmp # just in case it was interrupted previously...
     # prevent partial checkouts by renaming it only after success
     git clone $repo_url $to_dir.tmp || exit 1
     mv $to_dir.tmp $to_dir
@@ -314,7 +316,9 @@ apply_patch() {
  local patch_name=$(basename $url)
  local patch_done_name="$patch_name.done"
  if [[ ! -e $patch_done_name ]]; then
-   rm $patch_name
+   if [[ -f $patch_name ]]; then
+     rm $patch_name || exit 1 # remove old version in case it has been since updated
+   fi
    curl $url -O || exit 1
    echo "applying patch $patch_name"
    patch -p0 < "$patch_name" || exit 1
@@ -331,11 +335,13 @@ download_and_unpack_file() {
   output_dir="$2"
   if [ ! -f "$output_dir/unpacked.successfully" ]; then
     echo "downloading $url"
-    rm $output_name
+    if [[ -f $output_name ]]; then
+      rm $output_name || exit 1
+    fi
     curl "$url" -O -L || exit 1
     tar -xf "$output_name" || unzip "$output_name" || exit 1
     touch "$output_dir/unpacked.successfully" || exit 1
-    rm "$output_name"
+    rm "$output_name" || exit 1
   fi
 }
 
