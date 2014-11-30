@@ -1,29 +1,29 @@
---- configure.original	2014-11-30 04:06:10.575051597 -0700
-+++ configure	2014-11-30 04:05:02.175911709 -0700
-@@ -11913,17 +11913,6 @@
+--- configure.orig	2012-02-28 11:54:37.000000000 -0700
++++ configure	2014-11-30 04:12:35.018218435 -0700
+@@ -11913,6 +11913,17 @@
  
  fi
  
--
--case $host_cpu in
--i686*)
--    check_xmmintrin=
--    ;;
--*)
--    check_xmmintrin="xmmintrin.h"
--    ;;
--esac
--
--
++
++case $host_cpu in
++i686*)
++    check_xmmintrin=
++    ;;
++*)
++    check_xmmintrin="xmmintrin.h"
++    ;;
++esac
++
++
  for ac_header in \
  		 errno.h \
  		 fcntl.h \
-@@ -11933,7 +11922,7 @@
+@@ -11922,7 +11933,7 @@
  		 sys/soundcard.h \
  		 sys/time.h \
  		 unistd.h \
--		 $check_xmmintrin \
-+		 xmmintrin.h \
+-		 xmmintrin.h \
++		 $check_xmmintrin \
  		 linux/soundcard.h
  do :
    as_ac_Header=`$as_echo "ac_cv_header_$ac_header" | $as_tr_sh`
