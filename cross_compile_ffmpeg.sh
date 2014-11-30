@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# set -x
+set -x
 # ffmpeg windows cross compile helper/download script
 # Copyright (C) 2012 Roger Pack, the script is under the GPLv3, but output FFmpeg's aren't necessarily
 
@@ -24,7 +24,7 @@ yes_no_sel () {
 }
 
 check_missing_packages () {
-  local check_packages=('curl' 'pkg-config' 'make' 'git' 'svn' 'cmake' 'gcc' 'autoconf' 'libtool' 'automake' 'yasm' 'cvs' 'flex' 'bison' 'makeinfo' 'g++' 'ed' 'hg')
+  local check_packages=('curl' 'pkg-config' 'make' 'git' 'svn' 'cmake' 'gcc' 'autoconf' 'libtool' 'automake' 'yasm' 'cvs' 'flex' 'bison' 'makeinfo' 'g++' 'ed' 'hg' 'pax')
   for package in "${check_packages[@]}"; do
     type -P "$package" >/dev/null || missing_packages=("$package" "${missing_packages[@]}")
   done
@@ -135,12 +135,12 @@ install_cross_compiler() {
   if [[ -z $build_choice ]]; then
     pick_compiler_flavors
   fi
-  curl https://raw.githubusercontent.com/rdp/ffmpeg-windows-build-helpers/master/patches/mingw-w64-build-3.5.8.local -O  || exit 1
-  chmod u+x mingw-w64-build-3.5.8.local
+  curl https://raw.githubusercontent.com/rdp/ffmpeg-windows-build-helpers/master/patches/mingw-w64-build-3.6.4.local -O  || exit 1
+  chmod u+x mingw-w64-build-3.6.4.local
   unset CFLAGS # don't want these for the compiler itself since it creates executables to run on the local box
   # pthreads version to avoid having to use cvs for it
   echo "building cross compile gcc [requires internet access]"
-  nice ./mingw-w64-build-3.5.8.local --clean-build --disable-shared --default-configure  --pthreads-w32-ver=2-9-1 --cpu-count=$gcc_cpu_count --build-type=$build_choice || exit 1 # --disable-shared allows c++ to be distributed at all...which seemed necessary for some random dependency...
+  nice ./mingw-w64-build-3.6.4.local --clean-build --disable-shared --default-configure  --pthreads-w32-ver=2-9-1 --cpu-count=$gcc_cpu_count --build-type=$build_choice || exit 1 # --disable-shared allows c++ to be distributed at all...which seemed necessary for some random dependency...
   export CFLAGS=$original_cflags # reset it
   if [ -d mingw-w64-x86_64 ]; then
     touch mingw-w64-x86_64/compiler.done
@@ -278,7 +278,7 @@ do_make() {
     echo "making $cur_dir2 as $ PATH=$PATH make $extra_make_options"
     echo
     nice make $extra_make_options || exit 1
-    touch $touch_name # only touch if the build was OK
+    touch $touch_name || exit 1 # only touch if the build was OK
   else
     echo "already did make $(basename "$cur_dir2")"
   fi
@@ -291,7 +291,7 @@ do_make_install() {
   if [ ! -f $touch_name ]; then
     echo "make installing $cur_dir2 as $ PATH=$PATH make install $extra_make_options"
     nice make install $extra_make_options || exit 1
-    touch $touch_name
+    touch $touch_name || exit 1
   fi
 }
 
@@ -316,7 +316,7 @@ apply_patch() {
    curl $url -O || exit 1
    echo "applying patch $patch_name"
    patch -p0 < "$patch_name" || exit 1
-   touch $patch_done_name
+   touch $patch_done_name || exit 1
    rm already_ran* # if it's a new patch, reset everything too, in case it's really really really new
  else
    echo "patch $patch_name already applied"
@@ -566,16 +566,15 @@ build_libvpx() {
 }
 
 build_libutvideo() {
-  #download_and_unpack_file http://umezawa.dyndns.info/archive/utvideo/utvideo-14.2.1-src.zip utvideo-14.2.1 # local copy since the originating site http://umezawa.dyndns.info/archive/utvideo is sometimes inaccessible
-  #do_git_checkout https://github.com/qyot27/libutvideo.git libutvideo_git_qyot27
-  download_and_unpack_file http://umezawa.dyndns.info/archive/utvideo/utvideo-12.2.1-src.zip utvideo-12.2.1
+  # if ending in .zip from sourceforge needs to not have /download on it? huh wuh?
+  download_and_unpack_file http://sourceforge.net/projects/ffmpegwindowsbi/files/utvideo-12.2.1-src.zip utvideo-12.2.1 # local copy since the originating site http://umezawa.dyndns.info/archive/utvideo is sometimes inaccessible from draconian proxies
+  #do_git_checkout https://github.com/qyot27/libutvideo.git libutvideo_git_qyot27 # todo this would be even newer version [?]
   cd utvideo-12.2.1
     apply_patch https://raw.githubusercontent.com/rdp/ffmpeg-windows-build-helpers/master/patches/utv.diff
     sed -i "s|Format.o|DummyCodec.o|" GNUmakefile
     do_make_install "CROSS_PREFIX=$cross_prefix DESTDIR=$mingw_w64_x86_64_prefix prefix=" # prefix= to avoid it adding an extra /usr/local to it yikes
   cd ..
 }
-
 
 build_libilbc() {
   do_git_checkout https://github.com/dekkers/libilbc.git libilbc_git
@@ -1061,20 +1060,6 @@ build_mp4box() { # like build_gpac
   cp ./bin/gcc/MP4Box ./bin/gcc/MP4Box.exe # it doesn't name it .exe? That feels broken somehow...
   echo "built $(readlink -f ./bin/gcc/MP4Box.exe)"
   cd ..
-}
-
-apply_ffmpeg_patch() {
- local url=$1
- local patch_name=$(basename $url)
- local patch_done_name="$patch_name.my_patch"
- if [[ ! -e $patch_done_name ]]; then
-   curl $url -O || exit 1
-   echo "applying patch $patch_name"
-   patch -p1 < "$patch_name" && touch $patch_done_name
-   git commit -a -m applied
- else
-   echo "patch $patch_name already applied"
- fi
 }
 
 build_libMXF() {
