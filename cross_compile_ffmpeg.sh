@@ -908,7 +908,11 @@ build_faac() {
 }
 
 build_lame() {
-  generic_download_and_install http://sourceforge.net/projects/lame/files/lame/3.99/lame-3.99.5.tar.gz/download lame-3.99.5
+  download_and_unpack_file http://sourceforge.net/projects/lame/files/lame/3.99/lame-3.99.5.tar.gz/download lame-3.99.5
+  cd lame-3.99.5
+    apply_patch https://raw.githubusercontent.com/rdp/ffmpeg-windows-build-helpers/master/patches/lame_msse.patch
+    generic_configure_make_install
+  cd ..
 }
 
 build_zvbi() {
