@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# set -x
-# ffmpeg windows cross compile helper/download script
-# Copyright (C) 2012 Roger Pack, the script is under the GPLv3, but output FFmpeg's aren't necessarily
+# ffmpeg windows cross compile helper/download script, see github repo
+# Copyright (C) 2012 Roger Pack, the script is under the GPLv3, but output FFmpeg's executables aren't
+#set -x # enable debug info
 
 yes_no_sel () {
   unset user_input
@@ -24,7 +24,7 @@ yes_no_sel () {
 }
 
 check_missing_packages () {
-  local check_packages=('curl' 'pkg-config' 'make' 'git' 'svn' 'cmake' 'gcc' 'autoconf' 'libtool' 'automake' 'yasm' 'cvs' 'flex' 'bison' 'makeinfo' 'g++' 'ed' 'hg')
+  local check_packages=('curl' 'pkg-config' 'make' 'git' 'svn' 'cmake' 'gcc' 'autoconf' 'libtool' 'automake' 'yasm' 'cvs' 'flex' 'bison' 'makeinfo' 'g++' 'ed' 'hg' 'pax')
   for package in "${check_packages[@]}"; do
     type -P "$package" >/dev/null || missing_packages=("$package" "${missing_packages[@]}")
   done
@@ -74,7 +74,7 @@ intro() {
   the sandbox directory, since it will have some hard coded paths in there.
   You can, of course, rebuild ffmpeg from within it, etc.
 EOL
-  if [[ $sandbox_ok != 'y' ]]; then
+  if [[ $sandbox_ok != 'y' && ! -d sandbox ]]; then
     yes_no_sel "Is ./sandbox ok (requires ~ 5GB space) [Y/n]?" "y"
     if [[ "$user_input" = "n" ]]; then
       exit 1
@@ -135,12 +135,15 @@ install_cross_compiler() {
   if [[ -z $build_choice ]]; then
     pick_compiler_flavors
   fi
-  curl https://raw.githubusercontent.com/rdp/ffmpeg-windows-build-helpers/master/patches/mingw-w64-build-3.5.8.local -O  || exit 1
-  chmod u+x mingw-w64-build-3.5.8.local
+  if [[ -f mingw-w64-build-3.6.4.local ]]; then
+    rm mingw-w64-build-3.6.4.local || exit 1
+  fi
+  curl https://raw.githubusercontent.com/rdp/ffmpeg-windows-build-helpers/master/patches/mingw-w64-build-3.6.4.local -O  || exit 1
+  chmod u+x mingw-w64-build-3.6.4.local
   unset CFLAGS # don't want these for the compiler itself since it creates executables to run on the local box
   # pthreads version to avoid having to use cvs for it
   echo "building cross compile gcc [requires internet access]"
-  nice ./mingw-w64-build-3.5.8.local --clean-build --disable-shared --default-configure  --pthreads-w32-ver=2-9-1 --cpu-count=$gcc_cpu_count --build-type=$build_choice || exit 1 # --disable-shared allows c++ to be distributed at all...which seemed necessary for some random dependency...
+  nice ./mingw-w64-build-3.6.4.local --clean-build --disable-shared --default-configure  --pthreads-w32-ver=2-9-1 --cpu-count=$gcc_cpu_count --build-type=$build_choice || exit 1 # --disable-shared allows c++ to be distributed at all...which seemed necessary for some random dependency...
   export CFLAGS=$original_cflags # reset it
   if [ -d mingw-w64-x86_64 ]; then
     touch mingw-w64-x86_64/compiler.done
@@ -180,8 +183,7 @@ update_to_desired_git_branch_or_revision() {
   local desired_branch="$2" # or tag or whatever...
   if [ -n "$desired_branch" ]; then
    pushd $to_dir
-   cd $to_dir
-      echo "git checkout $desired_branch"
+      echo "git checkout'ing $desired_branch"
       git checkout "$desired_branch" || exit 1 # if this fails, nuke the directory first...
       git merge "$desired_branch" || exit 1 # this would be if they want to checkout a revision number, not a branch...
    popd # in case it's a cd to ., don't want to cd to .. here...since sometimes we call it with a '.'
@@ -198,7 +200,7 @@ do_git_checkout() {
   local desired_branch="$3"
   if [ ! -d $to_dir ]; then
     echo "Downloading (via git clone) $to_dir"
-    rm -rf $to_dir # just in case it was interrupted previously...
+    rm -rf $to_dir.tmp # just in case it was interrupted previously...
     # prevent partial checkouts by renaming it only after success
     git clone $repo_url $to_dir.tmp || exit 1
     mv $to_dir.tmp $to_dir
@@ -278,7 +280,7 @@ do_make() {
     echo "making $cur_dir2 as $ PATH=$PATH make $extra_make_options"
     echo
     nice make $extra_make_options || exit 1
-    touch $touch_name # only touch if the build was OK
+    touch $touch_name || exit 1 # only touch if the build was OK
   else
     echo "already did make $(basename "$cur_dir2")"
   fi
@@ -291,7 +293,7 @@ do_make_install() {
   if [ ! -f $touch_name ]; then
     echo "make installing $cur_dir2 as $ PATH=$PATH make install $extra_make_options"
     nice make install $extra_make_options || exit 1
-    touch $touch_name
+    touch $touch_name || exit 1
   fi
 }
 
@@ -313,10 +315,13 @@ apply_patch() {
  local patch_name=$(basename $url)
  local patch_done_name="$patch_name.done"
  if [[ ! -e $patch_done_name ]]; then
+   if [[ -f $patch_name ]]; then
+     rm $patch_name || exit 1 # remove old version in case it has been since updated
+   fi
    curl $url -O || exit 1
    echo "applying patch $patch_name"
    patch -p0 < "$patch_name" || exit 1
-   touch $patch_done_name
+   touch $patch_done_name || exit 1
    rm already_ran* # if it's a new patch, reset everything too, in case it's really really really new
  else
    echo "patch $patch_name already applied"
@@ -329,10 +334,13 @@ download_and_unpack_file() {
   output_dir="$2"
   if [ ! -f "$output_dir/unpacked.successfully" ]; then
     echo "downloading $url"
+    if [[ -f $output_name ]]; then
+      rm $output_name || exit 1
+    fi
     curl "$url" -O -L || exit 1
-    tar -xf "$output_name" || unzip $output_name || exit 1
+    tar -xf "$output_name" || unzip "$output_name" || exit 1
     touch "$output_dir/unpacked.successfully" || exit 1
-    rm "$output_name"
+    rm "$output_name" || exit 1
   fi
 }
 
@@ -474,7 +482,7 @@ build_librtmp() {
   #  download_and_unpack_file http://rtmpdump.mplayerhq.hu/download/rtmpdump-2.3.tgz rtmpdump-2.3 # has some odd configure failure
   #  cd rtmpdump-2.3/librtmp
 
-  do_git_checkout "http://repo.or.cz/r/rtmpdump.git" rtmpdump_git 
+  do_git_checkout "http://repo.or.cz/r/rtmpdump.git" rtmpdump_git 883c33489403ed360a01d1a47ec76d476525b49e # trunk didn't build once...this one i sstable
   cd rtmpdump_git/librtmp
   do_make_install "CRYPTO=GNUTLS OPT=-O2 CROSS_COMPILE=$cross_prefix SHARED=no prefix=$mingw_w64_x86_64_prefix"
   #make install CRYPTO=GNUTLS OPT='-O2 -g' "CROSS_COMPILE=$cross_prefix" SHARED=no "prefix=$mingw_w64_x86_64_prefix" || exit 1
@@ -490,7 +498,7 @@ build_qt() {
   unset CFLAGS # it makes something of its own first, which runs locally, so can't use a foreign arch, or maybe it can, but not important enough: http://stackoverflow.com/a/18775859/32453
   # download_and_unpack_file http://download.qt-project.org/official_releases/qt/5.1/5.1.1/submodules/qtbase-opensource-src-5.1.1.tar.xz qtbase-opensource-src-5.1.1 # not officially supported seems...so didn't try it
 
-  download_and_unpack_file http://download.qt-project.org/official_releases/qt/4.8/4.8.5/qt-everywhere-opensource-src-4.8.5.tar.gz qt-everywhere-opensource-src-4.8.5
+  download_and_unpack_file http://pkgs.fedoraproject.org/repo/pkgs/qt/qt-everywhere-opensource-src-4.8.5.tar.gz/1864987bdbb2f58f8ae8b350dfdbe133/qt-everywhere-opensource-src-4.8.5.tar.gz qt-everywhere-opensource-src-4.8.5
   cd qt-everywhere-opensource-src-4.8.5
 #  download_and_unpack_file http://download.qt-project.org/archive/qt/4.8/4.8.1/qt-everywhere-opensource-src-4.8.1.tar.gz qt-everywhere-opensource-src-4.8.1
 #  cd qt-everywhere-opensource-src-4.8.1
@@ -566,16 +574,15 @@ build_libvpx() {
 }
 
 build_libutvideo() {
-  #download_and_unpack_file http://umezawa.dyndns.info/archive/utvideo/utvideo-14.2.1-src.zip utvideo-14.2.1 # local copy since the originating site http://umezawa.dyndns.info/archive/utvideo is sometimes inaccessible
-  #do_git_checkout https://github.com/qyot27/libutvideo.git libutvideo_git_qyot27
-  download_and_unpack_file http://umezawa.dyndns.info/archive/utvideo/utvideo-12.2.1-src.zip utvideo-12.2.1
+  # if ending in .zip from sourceforge needs to not have /download on it? huh wuh?
+  download_and_unpack_file http://sourceforge.net/projects/ffmpegwindowsbi/files/utvideo-12.2.1-src.zip utvideo-12.2.1 # local copy since the originating site http://umezawa.dyndns.info/archive/utvideo is sometimes inaccessible from draconian proxies
+  #do_git_checkout https://github.com/qyot27/libutvideo.git libutvideo_git_qyot27 # todo this would be even newer version [?]
   cd utvideo-12.2.1
     apply_patch https://raw.githubusercontent.com/rdp/ffmpeg-windows-build-helpers/master/patches/utv.diff
     sed -i "s|Format.o|DummyCodec.o|" GNUmakefile
     do_make_install "CROSS_PREFIX=$cross_prefix DESTDIR=$mingw_w64_x86_64_prefix prefix=" # prefix= to avoid it adding an extra /usr/local to it yikes
   cd ..
 }
-
 
 build_libilbc() {
   do_git_checkout https://github.com/dekkers/libilbc.git libilbc_git
@@ -763,8 +770,8 @@ build_libschroedinger() {
 }
 
 build_gnutls() {
-  download_and_unpack_file ftp://ftp.gnutls.org/gcrypt/gnutls/v3.3/gnutls-3.3.9.tar.xz gnutls-3.3.9
-  cd gnutls-3.3.9
+  download_and_unpack_file ftp://ftp.gnutls.org/gcrypt/gnutls/v3.2/gnutls-3.2.14.tar.xz gnutls-3.2.14
+  cd gnutls-3.2.14
     generic_configure "--disable-cxx --disable-doc" # don't need the c++ version, in an effort to cut down on size... LODO test difference...
     do_make_install
   cd ..
@@ -909,7 +916,12 @@ build_faac() {
 }
 
 build_lame() {
-  generic_download_and_install http://sourceforge.net/projects/lame/files/lame/3.99/lame-3.99.5.tar.gz/download lame-3.99.5
+  download_and_unpack_file http://sourceforge.net/projects/lame/files/lame/3.99/lame-3.99.5.tar.gz/download lame-3.99.5
+  cd lame-3.99.5
+    #apply_patch https://raw.githubusercontent.com/rdp/ffmpeg-windows-build-helpers/master/patches/lame_msse.patch # not enough
+    apply_patch https://raw.githubusercontent.com/rdp/ffmpeg-windows-build-helpers/master/patches/lame3.patch
+    generic_configure_make_install
+  cd ..
 }
 
 build_zvbi() {
@@ -1057,20 +1069,6 @@ build_mp4box() { # like build_gpac
   cp ./bin/gcc/MP4Box ./bin/gcc/MP4Box.exe # it doesn't name it .exe? That feels broken somehow...
   echo "built $(readlink -f ./bin/gcc/MP4Box.exe)"
   cd ..
-}
-
-apply_ffmpeg_patch() {
- local url=$1
- local patch_name=$(basename $url)
- local patch_done_name="$patch_name.my_patch"
- if [[ ! -e $patch_done_name ]]; then
-   curl $url -O || exit 1
-   echo "applying patch $patch_name"
-   patch -p1 < "$patch_name" && touch $patch_done_name
-   git commit -a -m applied
- else
-   echo "patch $patch_name already applied"
- fi
 }
 
 build_libMXF() {
