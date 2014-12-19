@@ -64,7 +64,8 @@ mxe "m cross environment" https://github.com/mxe/mxe is for cross compiling many
 https://github.com/qyot27/mpv/blob/extra-new/DOCS/crosscompile-mingw-tedious.txt lists lots of howto's
 
 For building FFmpeg (for windows) in a more native windows environment these might help (though it might be slower as well unless):
+
 https://github.com/jb-alvarado/media-autobuild_suite
-https://github.com/svnpenn/a/blob/master/install-ffmpeg.sh (cygwin) http://ffmpeg.zeranoe.com/forum/viewtopic.php?f=19&t=1193&p=5006&hilit=svnpenn#p5006
-ping me if you want this script ported to MSYS et al.
+
+ping me if you want this script ported to native as well :)
 
