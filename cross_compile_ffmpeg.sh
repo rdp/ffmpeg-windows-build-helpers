@@ -1273,7 +1273,7 @@ if [ -z "$cpu_count" ]; then
   cpu_count=`sysctl -n hw.ncpu | tr -d '\n'` # OS X
   if [ -z "$cpu_count" ]; then
     echo "warning, unable to determine cpu count, defaulting to 1"
-    cpu_count=1 # boxes where we don't know how to determine cpu count [OS X for instance], default to just 1, instead of blank, which means infinite 
+    cpu_count=1 # else default to just 1, instead of blank, which means infinite 
   fi
 fi
 original_cpu_count=$cpu_count # save it away for some that revert it temporarily
