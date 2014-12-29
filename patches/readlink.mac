@@ -1,7 +1,7 @@
 #!/bin/sh
 #http://stackoverflow.com/questions/1055671/how-can-i-get-the-behavior-of-gnus-readlink-f-on-a-mac
 
-TARGET_FILE=$1
+TARGET_FILE=$2
 
 cd `dirname $TARGET_FILE`
 TARGET_FILE=`basename $TARGET_FILE`
