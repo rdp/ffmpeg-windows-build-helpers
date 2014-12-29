@@ -4,6 +4,8 @@ decklink?
 
 == maybe/never do, more on the never ==
 
+libav.pc is missing myriad things [patches to core?]
+
 windows cygwin batch file to build the whole thing?
   can I do this all with that zeranoe .bat file and cygwin deps? LOL
 
@@ -13,13 +15,9 @@ not use the "default lib" directory I guess, if that enables us to build version
 
 fix mplayer build :|
 
-also can it skip rebuilding ffmpeg every time, huh wuh? reconfigure too, if the ffmpeg build failed?
-
 auto detect new release versions of dependencies [that are active LOL]
 
 vlc tell them they don't do make parallel right for doze...if I can ever repro it...
-
-libav build broken [do I care enough though?]
 
 mplayer use svn trunk?
 
