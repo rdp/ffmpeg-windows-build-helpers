@@ -1354,11 +1354,15 @@ export PKG_CONFIG_LIBDIR= # disable pkg-config from reverting back to and findin
 
 if [[ $OSTYPE == darwin* ]]; then 
   # mac add some helper scripts
-  mkdir mac_bin
+  if [[ ! -d mac_bin ]]; then
+    mkdir mac_bin
+  fi
   cd mac_bin
-    curl https://raw.githubusercontent.com/rdp/ffmpeg-windows-build-helpers/master/patches/md5sum.mac -O md5sum  || exit 1
+    curl https://raw.githubusercontent.com/rdp/ffmpeg-windows-build-helpers/master/patches/md5sum.mac > md5sum  || exit 1
+    chmod u+x ./md5sum
     export PATH=$PATH:`pwd`
   cd ..
+  echo $PATH
 fi
 
 original_path="$PATH"
