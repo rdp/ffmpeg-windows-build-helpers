@@ -633,6 +633,7 @@ build_libopus() {
 }
 
 build_libdvdread() {
+  build_libdvdcss
   download_and_unpack_file http://dvdnav.mplayerhq.hu/releases/libdvdread-4.9.9.tar.xz libdvdread-4.9.9 
   cd libdvdread-4.9.9
   generic_configure "CFLAGS=-DHAVE_DVDCSS_DVDCSS_H LDFLAGS=-ldvdcss" # vlc patch: "--enable-libdvdcss" # XXX ask how I'm *supposed* to do this to the dvdread peeps [svn?]
@@ -993,6 +994,7 @@ build_vidstab() {
 
 build_vlc() {
   build_qt # needs libjpeg [?]
+  build_libdvdread
   build_libdvdnav
   cpu_count=1 # not wig out on .rc.lo files etc.
   #do_git_checkout https://github.com/videolan/vlc.git vlc_git # vlc git master seems to be unstable and break the build and not test for windows often, so specify a known working revision...
@@ -1032,6 +1034,7 @@ build_vlc() {
 }
 
 build_mplayer() {
+  build_libdvdread
   build_libdvdnav
   download_and_unpack_file http://sourceforge.net/projects/mplayer-edl/files/mplayer-export-snapshot.2014-05-19.tar.bz2/download mplayer-export-2014-05-19
   cd mplayer-export-2014-05-19
@@ -1211,10 +1214,8 @@ build_dependencies() {
   build_freetype # uses bz2/zlib seemingly
   build_libexpat
   build_libxml2
-  build_libbluray # needs libxml2, freetype
+  build_libbluray # needs libxml2, freetype [FFmpeg, VLC use this, at least]
   build_libjpeg_turbo # mplayer can use this, VLC qt might need it? [replaces libjpeg]
-  build_libdvdcss
-  build_libdvdread # vlc, mplayer use it. needs dvdcss
   build_libxvid
   build_libxavs
   build_libsoxr
