@@ -799,7 +799,8 @@ build_zlib() {
   download_and_unpack_file http://zlib.net/zlib-1.2.8.tar.gz zlib-1.2.8
   cd zlib-1.2.8
     do_configure "--static --prefix=$mingw_w64_x86_64_prefix"
-    do_make_install "CC=$(echo $cross_prefix)gcc AR=$(echo $cross_prefix)ar RANLIB=$(echo $cross_prefix)ranlib"
+    cpu_count=1
+    do_make_install "CC=$(echo $cross_prefix)gcc AR=$(echo $cross_prefix)ar RANLIB=$(echo $cross_prefix)ranlib ARFLAGS=rcs"
   cd ..
 }
 
@@ -1359,8 +1360,10 @@ if [[ $OSTYPE == darwin* ]]; then
     mkdir mac_bin
   fi
   cd mac_bin
-    curl https://raw.githubusercontent.com/rdp/ffmpeg-windows-build-helpers/master/patches/md5sum.mac > md5sum  || exit 1
-    chmod u+x ./md5sum
+    if [[ ! -f md5sum ]]; then
+      curl https://raw.githubusercontent.com/rdp/ffmpeg-windows-build-helpers/master/patches/md5sum.mac > md5sum  || exit 1
+      chmod u+x ./md5sum
+    fi
     export PATH=$PATH:`pwd`
   cd ..
   echo $PATH
