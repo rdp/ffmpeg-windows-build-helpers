@@ -35,7 +35,7 @@ check_missing_packages () {
     echo 'Install the missing packages before running this script.'
     echo "for ubuntu: $ sudo apt-get install subversion curl texinfo g++ bison flex cvs yasm automake libtool autoconf gcc cmake git make pkg-config zlib1g-dev mercurial unzip pax -y" 
     echo "for gentoo (a non ubuntu distro): same as above, but no g++, no gcc, git is dev-vcs/git, zlib1g-dev is zlib, pkg-config is dev-util/pkgconfig, add ed..."
-    echo "for OS X (homebrew): brew install cvs hg yasm automake autoconf cmake hg"
+    echo "for OS X (homebrew): brew install cvs hg yasm automake autoconf cmake hg libtool"
     exit 1
   fi
 
@@ -590,7 +590,7 @@ build_libilbc() {
   do_git_checkout https://github.com/dekkers/libilbc.git libilbc_git
   cd libilbc_git
   if [[ ! -f "configure" ]]; then
-    autoreconf -fiv
+    autoreconf -fiv || exit 1 # failure here, OS X means "you need libtoolize" perhaps? http://betterlogic.com/roger/2014/12/ilbc-cross-compile-os-x-mac-woe/
   fi
   generic_configure_make_install
   cd ..
@@ -872,7 +872,7 @@ build_fdk_aac() {
   do_git_checkout https://github.com/mstorsjo/fdk-aac.git fdk-aac_git
   cd fdk-aac_git
     if [[ ! -f "configure" ]]; then
-      autoreconf -fiv
+      autoreconf -fiv || exit 1
     fi
     generic_configure_make_install
   cd ..
