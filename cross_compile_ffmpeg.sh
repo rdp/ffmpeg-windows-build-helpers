@@ -470,7 +470,7 @@ build_libx264() {
     rm example.y4m # in case it exists already...
     bunzip2 example.y4m.bz2 || exit 1
     # XXX does this kill git updates? maybe a more general fix, since vid.stab does also?
-    sed -i "s_\\, ./x264_, wine ./x264_" Makefile # in case they have wine auto-run disabled http://askubuntu.com/questions/344088/how-to-ensure-wine-does-not-auto-run-exe-files
+    sed -i.bak "s_\\, ./x264_, wine ./x264_" Makefile # in case they have wine auto-run disabled http://askubuntu.com/questions/344088/how-to-ensure-wine-does-not-auto-run-exe-files
     do_make_install "fprofiled VIDS=example.y4m" # guess it has its own make fprofiled, so we don't need to manually add -fprofile-generate here...
   else 
     do_configure "$configure_flags"
@@ -487,7 +487,7 @@ build_librtmp() {
   cd rtmpdump_git/librtmp
   do_make_install "CRYPTO=GNUTLS OPT=-O2 CROSS_COMPILE=$cross_prefix SHARED=no prefix=$mingw_w64_x86_64_prefix"
   #make install CRYPTO=GNUTLS OPT='-O2 -g' "CROSS_COMPILE=$cross_prefix" SHARED=no "prefix=$mingw_w64_x86_64_prefix" || exit 1
-  sed -i 's/-lrtmp -lz/-lrtmp -lwinmm -lz/' "$PKG_CONFIG_PATH/librtmp.pc"
+  sed -i.bak 's/-lrtmp -lz/-lrtmp -lwinmm -lz/' "$PKG_CONFIG_PATH/librtmp.pc"
   cd ..
    # TODO do_make here instead...
    make SYS=mingw CRYPTO=GNUTLS OPT=-O2 CROSS_COMPILE=$cross_prefix SHARED=no LIB_GNUTLS="`pkg-config --libs gnutls` -lz" || exit 1
@@ -517,7 +517,7 @@ build_qt() {
       touch 'already_qt_maked_k'
     fi
     # vlc needs an adjust .pc file? huh wuh?
-    sed -i 's/Libs: -L${libdir} -lQtGui/Libs: -L${libdir} -lcomctl32 -lqjpeg -lqtaccessiblewidgets -lQtGui/' "$PKG_CONFIG_PATH/QtGui.pc" # sniff
+    sed -i.bak 's/Libs: -L${libdir} -lQtGui/Libs: -L${libdir} -lcomctl32 -lqjpeg -lqtaccessiblewidgets -lQtGui/' "$PKG_CONFIG_PATH/QtGui.pc" # sniff
   cd ..
   export CFLAGS=$original_cflags
 }
@@ -580,7 +580,7 @@ build_libutvideo() {
   #do_git_checkout https://github.com/qyot27/libutvideo.git libutvideo_git_qyot27 # todo this would be even newer version [?]
   cd utvideo-12.2.1
     apply_patch https://raw.githubusercontent.com/rdp/ffmpeg-windows-build-helpers/master/patches/utv.diff
-    sed -i "s|Format.o|DummyCodec.o|" GNUmakefile
+    sed -i.bak "s|Format.o|DummyCodec.o|" GNUmakefile
     do_make_install "CROSS_PREFIX=$cross_prefix DESTDIR=$mingw_w64_x86_64_prefix prefix=" # prefix= to avoid it adding an extra /usr/local to it yikes
   cd ..
 }
@@ -599,7 +599,7 @@ build_libflite() {
   download_and_unpack_file http://www.speech.cs.cmu.edu/flite/packed/flite-1.4/flite-1.4-release.tar.bz2 flite-1.4-release
   cd flite-1.4-release
    apply_patch https://raw.githubusercontent.com/rdp/ffmpeg-windows-build-helpers/master/patches/flite_64.diff
-   sed -i "s|i386-mingw32-|$cross_prefix|" configure*
+   sed -i.bak "s|i386-mingw32-|$cross_prefix|" configure*
    generic_configure
    do_make
    make install # it fails in error...
@@ -637,8 +637,8 @@ build_libdvdread() {
   generic_configure "CFLAGS=-DHAVE_DVDCSS_DVDCSS_H LDFLAGS=-ldvdcss" # vlc patch: "--enable-libdvdcss" # XXX ask how I'm *supposed* to do this to the dvdread peeps [svn?]
   #apply_patch https://raw.githubusercontent.com/rdp/ffmpeg-windows-build-helpers/master/patches/dvdread-win32.patch # has been reported to them...
   do_make_install 
-  #sed -i "s/-ldvdread.*/-ldvdread -ldvdcss/" $mingw_w64_x86_64_prefix/bin/dvdread-config # ??? related to vlc patch, above, probably
-  sed -i 's/-ldvdread.*/-ldvdread -ldvdcss/' "$PKG_CONFIG_PATH/dvdread.pc"
+  #sed -i.bak "s/-ldvdread.*/-ldvdread -ldvdcss/" $mingw_w64_x86_64_prefix/bin/dvdread-config # ??? related to vlc patch, above, probably
+  sed -i.bak 's/-ldvdread.*/-ldvdread -ldvdcss/' "$PKG_CONFIG_PATH/dvdread.pc"
   cd ..
 }
 
@@ -732,7 +732,7 @@ build_libfribidi() {
 
 build_libass() {
   generic_download_and_install http://libass.googlecode.com/files/libass-0.10.2.tar.gz libass-0.10.2
-  sed -i 's/-lass -lm/-lass -lfribidi -lm/' "$PKG_CONFIG_PATH/libass.pc"
+  sed -i.bak 's/-lass -lm/-lass -lfribidi -lm/' "$PKG_CONFIG_PATH/libass.pc"
 }
 
 build_gmp() {
@@ -757,16 +757,16 @@ build_libxml2() {
 
 build_libbluray() {
   generic_download_and_install ftp://ftp.videolan.org/pub/videolan/libbluray/0.5.0/libbluray-0.5.0.tar.bz2 libbluray-0.5.0 "--without-libxml2"
-  sed -i 's/-lbluray.*$/-lbluray -lfreetype -lexpat -lz -lbz2/' "$PKG_CONFIG_PATH/libbluray.pc" # not sure...is this a blu-ray bug, or VLC's problem in not pulling freetype's .pc file? or our problem with not using pkg-config --static ...
+  sed -i.bak 's/-lbluray.*$/-lbluray -lfreetype -lexpat -lz -lbz2/' "$PKG_CONFIG_PATH/libbluray.pc" # not sure...is this a blu-ray bug, or VLC's problem in not pulling freetype's .pc file? or our problem with not using pkg-config --static ...
 }
 
 build_libschroedinger() {
   download_and_unpack_file http://download.videolan.org/contrib/schroedinger-1.0.11.tar.gz schroedinger-1.0.11
   cd schroedinger-1.0.11
     generic_configure
-    sed -i 's/testsuite//' Makefile
+    sed -i.bak 's/testsuite//' Makefile
     do_make_install
-    sed -i 's/-lschroedinger-1.0$/-lschroedinger-1.0 -lorc-0.4/' "$PKG_CONFIG_PATH/schroedinger-1.0.pc" # yikes!
+    sed -i.bak 's/-lschroedinger-1.0$/-lschroedinger-1.0 -lorc-0.4/' "$PKG_CONFIG_PATH/schroedinger-1.0.pc" # yikes!
   cd ..
 }
 
@@ -776,7 +776,7 @@ build_gnutls() {
     generic_configure "--disable-cxx --disable-doc" # don't need the c++ version, in an effort to cut down on size... XXXX test difference...
     do_make_install
   cd ..
-  sed -i 's/-lgnutls *$/-lgnutls -lnettle -lhogweed -lgmp -lcrypt32 -lws2_32 -liconv/' "$PKG_CONFIG_PATH/gnutls.pc"
+  sed -i.bak 's/-lgnutls *$/-lgnutls -lnettle -lhogweed -lgmp -lcrypt32 -lws2_32 -liconv/' "$PKG_CONFIG_PATH/gnutls.pc"
 }
 
 build_libnettle() {
@@ -810,7 +810,7 @@ build_libxvid() {
     local config_opts="--build=x86_64-unknown-linux-gnu --disable-assembly" # kludgey work arounds for 64 bit
   fi
   do_configure "--host=$host_target --prefix=$mingw_w64_x86_64_prefix $config_opts" # no static option...
-  sed -i "s/-mno-cygwin//" platform.inc # remove old compiler flag that now apparently breaks us
+  sed -i.bak "s/-mno-cygwin//" platform.inc # remove old compiler flag that now apparently breaks us
 
   cpu_count=1 # possibly can't build this multi-thread ? http://betterlogic.com/roger/2014/02/xvid-build-woe/
   do_make_install
@@ -830,7 +830,7 @@ build_fontconfig() {
     generic_configure --disable-docs
     do_make_install
   cd .. 
-  sed -i 's/-L${libdir} -lfontconfig[^l]*$/-L${libdir} -lfontconfig -lfreetype -lexpat/' "$PKG_CONFIG_PATH/fontconfig.pc"
+  sed -i.bak 's/-L${libdir} -lfontconfig[^l]*$/-L${libdir} -lfontconfig -lfreetype -lexpat/' "$PKG_CONFIG_PATH/fontconfig.pc"
 }
 
 build_libaacplus() {
@@ -888,7 +888,7 @@ build_iconv() {
 
 build_freetype() {
   generic_download_and_install http://download.savannah.gnu.org/releases/freetype/freetype-2.5.3.tar.gz freetype-2.5.3 "--with-png=no"
-  sed -i 's/Libs: -L${libdir} -lfreetype.*/Libs: -L${libdir} -lfreetype -lexpat -lz -lbz2/' "$PKG_CONFIG_PATH/freetype2.pc" # this should not need expat, but...I think maybe people use fontconfig's wrong and that needs expat? huh wuh? or dependencies are setup wrong in some .pc file?
+  sed -i.bak 's/Libs: -L${libdir} -lfreetype.*/Libs: -L${libdir} -lfreetype -lexpat -lz -lbz2/' "$PKG_CONFIG_PATH/freetype2.pc" # this should not need expat, but...I think maybe people use fontconfig's wrong and that needs expat? huh wuh? or dependencies are setup wrong in some .pc file?
   # possibly don't need the bz2 in there [bluray adds its own]...
 }
 
@@ -905,8 +905,8 @@ build_sdl() {
   cd temp # so paths will work out right
   local prefix=$(basename $cross_prefix)
   local bin_dir=$(dirname $cross_prefix)
-  sed -i "s/-mwindows//" "$PKG_CONFIG_PATH/sdl.pc" # allow ffmpeg to output anything to console :|
-  sed -i "s/-mwindows//" "$mingw_w64_x86_64_prefix/bin/sdl-config" # update this one too for good measure, FFmpeg can use either, not sure which one it defaults to...
+  sed -i.bak "s/-mwindows//" "$PKG_CONFIG_PATH/sdl.pc" # allow ffmpeg to output anything to console :|
+  sed -i.bak "s/-mwindows//" "$mingw_w64_x86_64_prefix/bin/sdl-config" # update this one too for good measure, FFmpeg can use either, not sure which one it defaults to...
   cp "$mingw_w64_x86_64_prefix/bin/sdl-config" "$bin_dir/${prefix}sdl-config" # this is the only mingw dir in the PATH so use it for now [though FFmpeg doesn't use it?]
   cd ..
   rmdir temp
@@ -938,7 +938,7 @@ build_zvbi() {
       do_make_install 
     cd ..
 #   there is no .pc for zvbi, so we add --extra-libs=-lpng to FFmpegs configure
-#   sed -i 's/-lzvbi *$/-lzvbi -lpng/' "$PKG_CONFIG_PATH/zvbi.pc"
+#   sed -i.bak 's/-lzvbi *$/-lzvbi -lpng/' "$PKG_CONFIG_PATH/zvbi.pc"
   cd ..
   export CFLAGS=$original_cflags # it was set to the win32-pthreads ones, so revert it
 }
@@ -946,9 +946,9 @@ build_zvbi() {
 build_libmodplug() {
   generic_download_and_install http://sourceforge.net/projects/modplug-xmms/files/libmodplug/0.8.8.5/libmodplug-0.8.8.5.tar.gz/download libmodplug-0.8.8.5
   # unfortunately this sed isn't enough, though I think it should be [so we add --extra-libs=-lstdc++ to FFmpegs configure] http://trac.ffmpeg.org/ticket/1539
-  sed -i 's/-lmodplug.*/-lmodplug -lstdc++/' "$PKG_CONFIG_PATH/libmodplug.pc" # huh ?? c++?
-  sed -i 's/__declspec(dllexport)//' "$mingw_w64_x86_64_prefix/include/libmodplug/modplug.h" #strip DLL import/export directives
-  sed -i 's/__declspec(dllimport)//' "$mingw_w64_x86_64_prefix/include/libmodplug/modplug.h"
+  sed -i.bak 's/-lmodplug.*/-lmodplug -lstdc++/' "$PKG_CONFIG_PATH/libmodplug.pc" # huh ?? c++?
+  sed -i.bak 's/__declspec(dllexport)//' "$mingw_w64_x86_64_prefix/include/libmodplug/modplug.h" #strip DLL import/export directives
+  sed -i.bak 's/__declspec(dllimport)//' "$mingw_w64_x86_64_prefix/include/libmodplug/modplug.h"
 }
 
 build_libcaca() {
@@ -956,8 +956,8 @@ build_libcaca() {
   download_and_unpack_file http://caca.zoy.org/files/libcaca/libcaca-0.99.beta18.tar.gz libcaca-0.99.beta18
   cd libcaca-0.99.beta18
   cd caca
-    sed -i "s/__declspec(dllexport)//g" *.h # get rid of the declspec lines otherwise the build will fail for undefined symbols
-    sed -i "s/__declspec(dllimport)//g" *.h 
+    sed -i.bak "s/__declspec(dllexport)//g" *.h # get rid of the declspec lines otherwise the build will fail for undefined symbols
+    sed -i.bak "s/__declspec(dllimport)//g" *.h 
   cd ..
   generic_configure_make_install "--libdir=$mingw_w64_x86_64_prefix/lib --disable-cxx --disable-csharp --disable-java --disable-python --disable-ruby --disable-imlib2 --disable-doc"
   cd ..
@@ -985,7 +985,7 @@ build_vidstab() {
   do_git_checkout https://github.com/georgmartius/vid.stab.git vid.stab "430b4cffeb" # 0.9.8
   cd vid.stab
     do_cmake
-    sed -i "s/SHARED/STATIC/" CMakeLists.txt # ??
+    sed -i.bak "s/SHARED/STATIC/" CMakeLists.txt # ??
     do_make_install 
   cd ..
 }
@@ -1013,9 +1013,9 @@ build_vlc() {
   rm already_ran_make* # try to force re-link just in case...
   do_make
   # do some gymnastics to avoid building the mozilla plugin for now [couldn't quite get it to work]
-  #sed -i 's_git://git.videolan.org/npapi-vlc.git_https://github.com/rdp/npapi-vlc.git_' Makefile # this wasn't enough...
-  sed -i "s/package-win-common: package-win-install build-npapi/package-win-common: package-win-install/" Makefile
-  sed -i "s/.*cp .*builddir.*npapi-vlc.*//g" Makefile
+  #sed -i.bak 's_git://git.videolan.org/npapi-vlc.git_https://github.com/rdp/npapi-vlc.git_' Makefile # this wasn't enough...
+  sed -i.bak "s/package-win-common: package-win-install build-npapi/package-win-common: package-win-install/" Makefile
+  sed -i.bak "s/.*cp .*builddir.*npapi-vlc.*//g" Makefile
   make package-win-common # not do_make, fails still at end, plus this way we get new vlc.exe's
   echo "
 
@@ -1038,7 +1038,7 @@ build_mplayer() {
   do_configure "--enable-cross-compile --host-cc=cc --cc=${cross_prefix}gcc --windres=${cross_prefix}windres --ranlib=${cross_prefix}ranlib --ar=${cross_prefix}ar --as=${cross_prefix}as --nm=${cross_prefix}nm --enable-runtime-cpudetection --extra-cflags=$CFLAGS --with-dvdnav-config=$mingw_w64_x86_64_prefix/bin/dvdnav-config --disable-dvdread-internal --disable-libdvdcss-internal --disable-w32threads --enable-pthreads --extra-libs=-lpthread --enable-debug" # haven't reported the ldvdcss thing, think it's to do with possibly it not using dvdread.pc [?] XXX check with trunk
   unset LDFLAGS
   export CFLAGS=$original_cflags
-  sed -i "s/HAVE_PTHREAD_CANCEL 0/HAVE_PTHREAD_CANCEL 1/g" config.h # mplayer doesn't set this up right?
+  sed -i.bak "s/HAVE_PTHREAD_CANCEL 0/HAVE_PTHREAD_CANCEL 1/g" config.h # mplayer doesn't set this up right?
   # try to force re-link just in case...
   rm *.exe
   rm already_ran_make* # try to force re-link just in case...
@@ -1055,12 +1055,12 @@ build_mp4box() { # like build_gpac
   do_svn_checkout https://svn.code.sf.net/p/gpac/code/trunk/gpac mp4box_gpac
   cd mp4box_gpac
   # are these tweaks needed? If so then complain to the mp4box people about it?
-  sed -i "s/has_dvb4linux=\"yes\"/has_dvb4linux=\"no\"/g" configure
-  sed -i "s/`uname -s`/MINGW32/g" configure
+  sed -i.bak "s/has_dvb4linux=\"yes\"/has_dvb4linux=\"no\"/g" configure
+  sed -i.bak "s/`uname -s`/MINGW32/g" configure
   # XXX do I want to disable more things here?
   generic_configure "--static-mp4box --enable-static-bin"
   # I seem unable to pass 3 libs into the same config line so do it with sed...
-  sed -i "s/EXTRALIBS=.*/EXTRALIBS=-lws2_32 -lwinmm -lz/g" config.mak
+  sed -i.bak "s/EXTRALIBS=.*/EXTRALIBS=-lws2_32 -lwinmm -lz/g" config.mak
   cd src
   rm already_
   do_make "CC=${cross_prefix}gcc AR=${cross_prefix}ar RANLIB=${cross_prefix}ranlib PREFIX= STRIP=${cross_prefix}strip"
@@ -1159,8 +1159,8 @@ build_ffmpeg() {
   # build ismindex.exe, too, just for fun 
   make tools/ismindex.exe
 
-  sed -i 's/-lavutil -lm.*/-lavutil -lm -lpthread/' "$PKG_CONFIG_PATH/libavutil.pc" # XXX patch ffmpeg itself...
-  sed -i 's/-lswresample -lm.*/-lswresample -lm -lsoxr/' "$PKG_CONFIG_PATH/libswresample.pc" # XXX patch ffmpeg
+  sed -i.bak 's/-lavutil -lm.*/-lavutil -lm -lpthread/' "$PKG_CONFIG_PATH/libavutil.pc" # XXX patch ffmpeg itself...
+  sed -i.bak 's/-lswresample -lm.*/-lswresample -lm -lsoxr/' "$PKG_CONFIG_PATH/libswresample.pc" # XXX patch ffmpeg
   echo "Done! You will find $bits_target bit $shared binaries in $(pwd)/{ffmpeg,ffprobe,ffplay,avconv,avprobe}*.exe"
   cd ..
 }
