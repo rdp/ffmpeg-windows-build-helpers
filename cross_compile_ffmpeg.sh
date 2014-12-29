@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # ffmpeg windows cross compile helper/download script, see github repo
 # Copyright (C) 2012 Roger Pack, the script is under the GPLv3, but output FFmpeg's executables aren't
-#set -x # enable debug info
+# set -x # uncomment to enable debug info
 
 yes_no_sel () {
   unset user_input
@@ -28,6 +28,11 @@ check_missing_packages () {
   for package in "${check_packages[@]}"; do
     type -P "$package" >/dev/null || missing_packages=("$package" "${missing_packages[@]}")
   done
+  if [[ $OSTYPE == darwin* ]]; then 
+    package=glibtoolize
+    type -P "$package" >/dev/null || missing_packages=("$package" "${missing_packages[@]}")
+  fi
+  
 
   if [[ -n "${missing_packages[@]}" ]]; then
     clear
@@ -511,7 +516,7 @@ build_qt() {
     # vlc's configure options...mostly
     do_configure "-static -release -fast -no-exceptions -no-stl -no-sql-sqlite -no-qt3support -no-gif -no-libmng -qt-libjpeg -no-libtiff -no-qdbus -no-openssl -no-webkit -sse -no-script -no-multimedia -no-phonon -opensource -no-scripttools -no-opengl -no-script -no-scripttools -no-declarative -no-declarative-debug -opensource -no-s60 -host-little-endian -confirm-license -xplatform win32-g++ -device-option CROSS_COMPILE=$cross_prefix -prefix $mingw_w64_x86_64_prefix -prefix-install -nomake examples"
     if [ ! -f 'already_qt_maked_k' ]; then
-      make sub-src
+      make sub-src -j $cpu_count
       make install sub-src # let it fail, baby, it still installs a lot of good stuff before dying on mng...? huh wuh?
       cp ./plugins/imageformats/libqjpeg.a $mingw_w64_x86_64_prefix/lib || exit 1 # I think vlc's install is just broken to need this [?]
       cp ./plugins/accessible/libqtaccessiblewidgets.a  $mingw_w64_x86_64_prefix/lib || exit 1 # this feels wrong...
@@ -739,7 +744,8 @@ build_libfribidi() {
 
 build_libass() {
   generic_download_and_install http://libass.googlecode.com/files/libass-0.10.2.tar.gz libass-0.10.2
-  sed -i.bak 's/-lass -lm/-lass -lfribidi -lm/' "$PKG_CONFIG_PATH/libass.pc"
+  # fribidi, fontconfig, freetype throw them all in there for good measure, trying to help mplayer once though it didn't help [FFmpeg needed a change for fribidi here though I believe]
+  sed -i.bak 's/-lass -lm/-lass -lfribidi -lfontconfig -lfreetype -lexpat -lm/' "$PKG_CONFIG_PATH/libass.pc"
 }
 
 build_gmp() {
@@ -1039,6 +1045,7 @@ build_vlc() {
 }
 
 build_mplayer() {
+  # pre requisites
   build_libdvdread
   build_libdvdnav
   download_and_unpack_file http://sourceforge.net/projects/mplayer-edl/files/mplayer-export-snapshot.2014-05-19.tar.bz2/download mplayer-export-2014-05-19
@@ -1046,10 +1053,11 @@ build_mplayer() {
   do_git_checkout https://github.com/FFmpeg/FFmpeg ffmpeg d43c303038e9bd
   export LDFLAGS='-lpthread -ldvdread -ldvdcss' # not compat with newer dvdread possibly? huh wuh?
   export CFLAGS=-DHAVE_DVDCSS_DVDCSS_H
-  do_configure "--enable-cross-compile --host-cc=cc --cc=${cross_prefix}gcc --windres=${cross_prefix}windres --ranlib=${cross_prefix}ranlib --ar=${cross_prefix}ar --as=${cross_prefix}as --nm=${cross_prefix}nm --enable-runtime-cpudetection --extra-cflags=$CFLAGS --with-dvdnav-config=$mingw_w64_x86_64_prefix/bin/dvdnav-config --disable-dvdread-internal --disable-libdvdcss-internal --disable-w32threads --enable-pthreads --extra-libs=-lpthread --enable-debug" # haven't reported the ldvdcss thing, think it's to do with possibly it not using dvdread.pc [?] XXX check with trunk
+  do_configure "--enable-cross-compile --host-cc=cc --cc=${cross_prefix}gcc --windres=${cross_prefix}windres --ranlib=${cross_prefix}ranlib --ar=${cross_prefix}ar --as=${cross_prefix}as --nm=${cross_prefix}nm --enable-runtime-cpudetection --extra-cflags=$CFLAGS --with-dvdnav-config=$mingw_w64_x86_64_prefix/bin/dvdnav-config --disable-dvdread-internal --disable-libdvdcss-internal --disable-w32threads --enable-pthreads --extra-libs=-lpthread --enable-debug --enable-ass-internal" # haven't reported the ldvdcss thing, think it's to do with possibly it not using dvdread.pc [?] XXX check with trunk
   unset LDFLAGS
   export CFLAGS=$original_cflags
   sed -i.bak "s/HAVE_PTHREAD_CANCEL 0/HAVE_PTHREAD_CANCEL 1/g" config.h # mplayer doesn't set this up right?
+  touch -t 201203101513 config.h # the above line change the modify time for config.h--forcing a full rebuild *every time* yikes!
   # try to force re-link just in case...
   rm *.exe
   rm already_ran_make* # try to force re-link just in case...
@@ -1236,7 +1244,7 @@ build_dependencies() {
   build_vo_aacenc
 
   build_libilbc
-  build_fontconfig # needs expat, might need freetype, can use iconv, but I believe doesn't currently
+  build_fontconfig # needs expat, needs freetype (at least uses it if available), can use iconv, but I believe doesn't currently
   build_libfribidi
   build_libass # needs freetype, needs fribidi, needs fontconfig
   build_libopenjpeg
@@ -1245,7 +1253,7 @@ build_dependencies() {
     # build_faac # not included for now, too poor quality output :)
     # build_libaacplus # if you use it, conflicts with other AAC encoders <sigh>, so disabled :)
   fi
-  # build_openssl # hopefully do not need it anymore, since we use gnutls everywhere, so just don't even build it...
+  # build_openssl # hopefully do not need it anymore, since we use gnutls everywhere, so just don't even build it anymore...
   build_librtmp # needs gnutls [or openssl...]
 }
 

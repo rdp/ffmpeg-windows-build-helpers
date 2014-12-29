@@ -5,6 +5,7 @@ decklink?
 == maybe/never do, more on the never ==
 
 libav.pc is missing myriad things [patches to core?]
+vlc build broken :|
 
 windows cygwin batch file to build the whole thing?
   can I do this all with that zeranoe .bat file and cygwin deps? LOL
@@ -26,6 +27,7 @@ vlc use git master?
 test out mplayer with its record-size stuff...
 
 final install of ffmpeg static to some folder etc. [?] yeah why not...
+  and .exe distro LOL
 
 vlc build is dead with his pthreads? mine?
   I prefer his anyway if that way does work better...how can I have mine here tho?
