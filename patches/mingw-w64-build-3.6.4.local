@@ -1,5 +1,4 @@
 #!/bin/bash
-
 script_ver='3.6.4'
 ################################################################################
 # MingGW-w64 Build Script
@@ -745,7 +744,7 @@ build_progress 'mingw-w64 crt' 'Configuring'
 build_progress 'done'
 
 build_progress 'mingw-w64 crt' 'Building'
-make -j "$cpu_count" > >(build_log) 2>&1 || print_error
+make > >(build_log) 2>&1 || print_error
 build_progress 'done'
 
 build_progress 'mingw-w64 crt' 'Installing'
