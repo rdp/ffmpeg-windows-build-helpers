@@ -773,7 +773,7 @@ build_libschroedinger() {
 build_gnutls() {
   download_and_unpack_file ftp://ftp.gnutls.org/gcrypt/gnutls/v3.2/gnutls-3.2.14.tar.xz gnutls-3.2.14
   cd gnutls-3.2.14
-    generic_configure "--disable-cxx --disable-doc" # don't need the c++ version, in an effort to cut down on size... LODO test difference...
+    generic_configure "--disable-cxx --disable-doc" # don't need the c++ version, in an effort to cut down on size... XXXX test difference...
     do_make_install
   cd ..
   sed -i 's/-lgnutls *$/-lgnutls -lnettle -lhogweed -lgmp -lcrypt32 -lws2_32 -liconv/' "$PKG_CONFIG_PATH/gnutls.pc"
@@ -799,7 +799,6 @@ build_zlib() {
   download_and_unpack_file http://zlib.net/zlib-1.2.8.tar.gz zlib-1.2.8
   cd zlib-1.2.8
     do_configure "--static --prefix=$mingw_w64_x86_64_prefix"
-    cpu_count=1
     do_make_install "CC=$(echo $cross_prefix)gcc AR=$(echo $cross_prefix)ar RANLIB=$(echo $cross_prefix)ranlib ARFLAGS=rcs"
   cd ..
 }
