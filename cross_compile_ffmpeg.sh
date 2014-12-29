@@ -464,6 +464,7 @@ build_libx264() {
   fi
   
   if [[ $x264_profile_guided = y ]]; then
+    # I wasn't able to figure out how/if this gave any speedup...
     # TODO more march=native here?
     # TODO profile guided here option, with wine?
     do_configure "$configure_flags"
@@ -1366,13 +1367,15 @@ if [[ $OSTYPE == darwin* ]]; then
     mkdir mac_bin
   fi
   cd mac_bin
-    if [[ ! -f md5sum ]]; then
+    if [[ ! -x readlink ]]; then
+      # make some behave like linux...
       curl https://raw.githubusercontent.com/rdp/ffmpeg-windows-build-helpers/master/patches/md5sum.mac > md5sum  || exit 1
       chmod u+x ./md5sum
+      curl https://raw.githubusercontent.com/rdp/ffmpeg-windows-build-helpers/master/patches/readlink.mac > readlink  || exit 1
+      chmod u+x ./readlink
     fi
-    export PATH=$PATH:`pwd`
+    export PATH=`pwd`:$PATH
   cd ..
-  echo $PATH
 fi
 
 original_path="$PATH"
