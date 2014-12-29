@@ -693,7 +693,11 @@ build_libdlfcn() {
 }
 
 build_libjpeg_turbo() {
-  generic_download_and_install http://sourceforge.net/projects/libjpeg-turbo/files/1.3.1/libjpeg-turbo-1.3.1.tar.gz/download libjpeg-turbo-1.3.1
+  download_and_unpack_file http://sourceforge.net/projects/libjpeg-turbo/files/1.3.1/libjpeg-turbo-1.3.1.tar.gz/download libjpeg-turbo-1.3.1
+  cd libjpeg-turbo-1.3.1
+    sed -i.bak 's/nasm nasmw yasm/yasm nasm nasmw/' configure # tell it to prefer yasm, since nasm on OS X is old and broken for 64 bit builds
+    generic_configure_make_install
+  cd ..
 }
 
 build_libogg() {
