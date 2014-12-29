@@ -693,7 +693,7 @@ build_libdlfcn() {
 }
 
 build_libjpeg_turbo() {
-  generic_download_and_install http://sourceforge.net/projects/libjpeg-turbo/files/1.3.0/libjpeg-turbo-1.3.0.tar.gz/download libjpeg-turbo-1.3.0
+  generic_download_and_install http://sourceforge.net/projects/libjpeg-turbo/files/1.3.1/libjpeg-turbo-1.3.1.tar.gz/download libjpeg-turbo-1.3.1
 }
 
 build_libogg() {
