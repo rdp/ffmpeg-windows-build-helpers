@@ -35,6 +35,7 @@ check_missing_packages () {
     echo 'Install the missing packages before running this script.'
     echo "for ubuntu: $ sudo apt-get install subversion curl texinfo g++ bison flex cvs yasm automake libtool autoconf gcc cmake git make pkg-config zlib1g-dev mercurial unzip pax -y" 
     echo "for gentoo (a non ubuntu distro): same as above, but no g++, no gcc, git is dev-vcs/git, zlib1g-dev is zlib, pkg-config is dev-util/pkgconfig, add ed..."
+    echo "for OS X (homebrew): brew install cvs hg yasm automake autoconf cmake hg"
     exit 1
   fi
 
@@ -992,6 +993,7 @@ build_vidstab() {
 
 build_vlc() {
   build_qt # needs libjpeg [?]
+  build_libdvdnav
   cpu_count=1 # not wig out on .rc.lo files etc.
   #do_git_checkout https://github.com/videolan/vlc.git vlc_git # vlc git master seems to be unstable and break the build and not test for windows often, so specify a known working revision...
   #cd vlc_git
@@ -1030,6 +1032,7 @@ build_vlc() {
 }
 
 build_mplayer() {
+  build_libdvdnav
   download_and_unpack_file http://sourceforge.net/projects/mplayer-edl/files/mplayer-export-snapshot.2014-05-19.tar.bz2/download mplayer-export-2014-05-19
   cd mplayer-export-2014-05-19
   do_git_checkout https://github.com/FFmpeg/FFmpeg ffmpeg d43c303038e9bd
@@ -1212,7 +1215,6 @@ build_dependencies() {
   build_libjpeg_turbo # mplayer can use this, VLC qt might need it? [replaces libjpeg]
   build_libdvdcss
   build_libdvdread # vlc, mplayer use it. needs dvdcss
-  build_libdvdnav # vlc, mplayer use this
   build_libxvid
   build_libxavs
   build_libsoxr
