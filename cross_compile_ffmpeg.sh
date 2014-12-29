@@ -1352,8 +1352,17 @@ install_cross_compiler
 
 export PKG_CONFIG_LIBDIR= # disable pkg-config from reverting back to and finding system installed packages [yikes]
 
+if [[ $OSTYPE == darwin* ]]; then 
+  # mac add some helper scripts
+  mkdir mac_bin
+  cd mac_bin
+    curl https://raw.githubusercontent.com/rdp/ffmpeg-windows-build-helpers/master/patches/md5sum.mac -O md5sum  || exit 1
+    export PATH=$PATH:`pwd`
+  cd ..
+fi
+
 original_path="$PATH"
-if [ -d "mingw-w64-i686" ]; then # they installed a 32-bit compiler
+if [ -d "mingw-w64-i686" ]; then # they installed a 32-bit compiler, build 32-bit everything
   echo "Building 32-bit ffmpeg..."
   host_target='i686-w64-mingw32'
   mingw_w64_x86_64_prefix="$cur_dir/mingw-w64-i686/$host_target"
@@ -1368,7 +1377,7 @@ if [ -d "mingw-w64-i686" ]; then # they installed a 32-bit compiler
   cd ..
 fi
 
-if [ -d "mingw-w64-x86_64" ]; then # they installed a 64-bit compiler
+if [ -d "mingw-w64-x86_64" ]; then # they installed a 64-bit compiler, build 64-bit everything
   echo "Building 64-bit ffmpeg..."
   host_target='x86_64-w64-mingw32'
   mingw_w64_x86_64_prefix="$cur_dir/mingw-w64-x86_64/$host_target"
