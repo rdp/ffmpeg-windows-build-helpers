@@ -4,7 +4,11 @@ decklink?
 
 == maybe/never do, more on the never ==
 
+bump gnutls [meh it works]
+
 libav.pc is missing myriad things [patches to core?]
+  then use it in x264 LOL wait isn't that circular...ok maybe this is low prio
+
 vlc build broken :|
 
 windows cygwin batch file to build the whole thing?
@@ -13,8 +17,6 @@ windows cygwin batch file to build the whole thing?
 add more executables like the jb-alvarado one has [?]
 
 not use the "default lib" directory I guess, if that enables us to build versions for linux instead, easily, and as well [except nobody has even once requested that...?]?
-
-fix mplayer build :|
 
 auto detect new release versions of dependencies [that are active LOL]
 
