@@ -997,8 +997,8 @@ build_frei0r() {
 build_vidstab() {
   do_git_checkout https://github.com/georgmartius/vid.stab.git vid.stab "430b4cffeb" # 0.9.8
   cd vid.stab
+    sed -i.bak "s/SHARED/STATIC/g" CMakeLists.txt # static build-ify
     do_cmake
-    sed -i.bak "s/SHARED/STATIC/" CMakeLists.txt # ??
     do_make_install 
   cd ..
 }
