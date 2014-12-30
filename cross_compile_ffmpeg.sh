@@ -801,7 +801,7 @@ build_libnettle() {
 }
 
 build_bzlib2() {
-  download_and_unpack_file http://www.bzip.org/1.0.6/bzip2-1.0.6.tar.gz bzip2-1.0.6
+  download_and_unpack_file http://fossies.org/linux/misc/bzip2-1.0.6.tar.gz
   cd bzip2-1.0.6
     apply_patch https://raw.githubusercontent.com/rdp/ffmpeg-windows-build-helpers/master/patches/bzip2_cross_compile.diff
     do_make "CC=$(echo $cross_prefix)gcc AR=$(echo $cross_prefix)ar PREFIX=$mingw_w64_x86_64_prefix RANLIB=$(echo $cross_prefix)ranlib libbz2.a bzip2 bzip2recover install"
