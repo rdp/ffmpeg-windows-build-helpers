@@ -1309,7 +1309,7 @@ build_mplayer=n
 build_vlc=n
 git_get_latest=y
 prefer_stable=y
-disable_nonfree=y
+#disable_nonfree=n # have no value to force prompt
 original_cflags= # no export needed, this is just a local copy
 
 # parse command line parameters, if any
