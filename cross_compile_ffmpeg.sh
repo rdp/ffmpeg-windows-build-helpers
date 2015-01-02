@@ -490,7 +490,7 @@ build_librtmp() {
   #  download_and_unpack_file http://rtmpdump.mplayerhq.hu/download/rtmpdump-2.3.tgz rtmpdump-2.3 # has some odd configure failure
   #  cd rtmpdump-2.3/librtmp
 
-  do_git_checkout "http://repo.or.cz/r/rtmpdump.git" rtmpdump_git 883c33489403ed360a01d1a47ec76d476525b49e # trunk didn't build once...this one i sstable
+  do_git_checkout "http://repo.or.cz/r/rtmpdump.git" rtmpdump_git
   cd rtmpdump_git/librtmp
   do_make_install "CRYPTO=GNUTLS OPT=-O2 CROSS_COMPILE=$cross_prefix SHARED=no prefix=$mingw_w64_x86_64_prefix"
   #make install CRYPTO=GNUTLS OPT='-O2 -g' "CROSS_COMPILE=$cross_prefix" SHARED=no "prefix=$mingw_w64_x86_64_prefix" || exit 1
@@ -981,16 +981,12 @@ build_twolame() {
 }
 
 build_frei0r() {
-  #download_and_unpack_file http://www.piksel.no/frei0r/releases/frei0r-plugins-1.3.tar.gz frei0r-1.3
-  #cd frei0r-1.3
-    #do_configure " --build=mingw32  --host=$host_target --prefix=$mingw_w64_x86_64_prefix --disable-static --enable-shared" # see http://ffmpeg.zeranoe.com/forum/viewtopic.php?f=5&t=312
-    #do_make_install
-    # we rely on external dll's for this one, so only need the header to enable it, for now
-    #cp include/frei0r.h $mingw_w64_x86_64_prefix/include
-  #cd ..
-  if [[ ! -f "$mingw_w64_x86_64_prefix/include/frei0r.h" ]]; then
-    curl https://raw.githubusercontent.com/rdp/frei0r/master/include/frei0r.h > $mingw_w64_x86_64_prefix/include/frei0r.h || exit 1
-  fi
+  download_and_unpack_file https://files.dyne.org/.xsend.php?file=frei0r/releases/frei0r-plugins-1.4.tar.gz frei0r-plugins-1.4
+  cd frei0r-plugins-1.4
+    do_cmake
+    do_make_install
+  cd ..
+
 }
 
 build_vidstab() {
