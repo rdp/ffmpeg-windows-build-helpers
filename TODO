@@ -1,10 +1,8 @@
 == actual todos ==
 
-decklink?
-
 == maybe/never do, more on the never ==
 
-bump gnutls [meh it works]
+cmake multiple core
 
 libav.pc is missing myriad things [patches to core?]
   then use it in x264 LOL wait isn't that circular...ok maybe this is low prio
