@@ -65,7 +65,8 @@ https://github.com/qyot27/mpv/blob/extra-new/DOCS/crosscompile-mingw-tedious.txt
 
 For building FFmpeg (for windows) in a more native windows environment these might help (though it might be slower as well unless):
 
-https://github.com/jb-alvarado/media-autobuild_suite
+https://github.com/jb-alvarado/media-autobuild_suite(msys2)
+https://github.com/Warblefly/multimediaWin64 (cygwin)
 
-ping me if you want this script ported to native as well :)
+ping me if you want this script ported to more native as well :)
 
