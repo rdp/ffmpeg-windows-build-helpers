@@ -118,7 +118,7 @@ What version of MinGW-w64 would you like to build or update?
   3. Win64 (64-bit only)
   4. Exit
 EOF
-    echo -n 'Input your choice [1-5]: '
+    echo -n 'Input your choice [1-4]: '
     read build_choice
   done
   case "$build_choice" in
