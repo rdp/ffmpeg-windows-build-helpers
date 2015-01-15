@@ -345,7 +345,14 @@ download_and_unpack_file() {
     if [[ -f $output_name ]]; then
       rm $output_name || exit 1
     fi
-    curl "$url" -O -L || exit 1
+
+    #  From man curl
+    #  -4, --ipv4
+    #  If curl is capable of resolving an address to multiple IP versions (which it is if it is  IPv6-capable),
+    #  this option tells curl to resolve names to IPv4 addresses only.
+    #  avoid a "network unreachable" error in certain configurations
+
+    curl -4 "$url" -O -L || exit 1
     tar -xf "$output_name" || unzip "$output_name" || exit 1
     touch "$output_dir/unpacked.successfully" || exit 1
     rm "$output_name" || exit 1
