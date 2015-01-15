@@ -1,10 +1,11 @@
 == actual todos ==
 
-decklink?
+test out mplayer with its record-size stuff...
+
+figure out real static linkable builds [tell zeranoe to put them on his site?]
+  linkable against them with mingw, msvc...
 
 == maybe/never do, more on the never ==
-
-bump gnutls [meh it works]
 
 libav.pc is missing myriad things [patches to core?]
   then use it in x264 LOL wait isn't that circular...ok maybe this is low prio
@@ -26,7 +27,6 @@ mplayer use svn trunk?
 
 vlc use git master?
 
-test out mplayer with its record-size stuff...
 
 final install of ffmpeg static to some folder etc. [?] yeah why not...
   and .exe distro LOL
