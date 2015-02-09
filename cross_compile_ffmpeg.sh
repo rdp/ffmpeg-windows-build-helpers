@@ -561,8 +561,8 @@ build_libpng() {
 
 build_libopenjpeg() {
   # does openjpeg 2.0 work with ffmpeg? possibly not yet...
-  download_and_unpack_file https://openjpeg.googlecode.com/files/openjpeg-1.5.1.tar.gz openjpeg-1.5.1
-  cd openjpeg-1.5.1
+  download_and_unpack_file http://sourceforge.net/projects/openjpeg.mirror/files/1.5.2/openjpeg-1.5.2.tar.gz/download openjpeg-1.5.2
+  cd openjpeg-1.5.2
     export CFLAGS="$CFLAGS -DOPJ_STATIC" # see https://github.com/rdp/ffmpeg-windows-build-helpers/issues/37
     generic_configure 
     do_make_install
