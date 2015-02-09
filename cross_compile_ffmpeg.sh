@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # ffmpeg windows cross compile helper/download script, see github repo
 # Copyright (C) 2012 Roger Pack, the script is under the GPLv3, but output FFmpeg's executables aren't
-#set -x # uncomment to enable debug info
+set -x # uncomment to enable debug info
 
 yes_no_sel () {
   unset user_input
@@ -991,7 +991,7 @@ build_twolame() {
 
 build_frei0r() {
   # theoretically we could get by with just copying a .h file in, but why not build them here anyway, just for fun? :)
-  download_and_unpack_file https://files.dyne.org/.xsend.php?file=frei0r/releases/frei0r-plugins-1.4.tar.gz frei0r-plugins-1.4
+  download_and_unpack_file https://files.dyne.org/frei0r/releases/frei0r-plugins-1.4.tar.gz frei0r-plugins-1.4
   cd frei0r-plugins-1.4
     do_cmake
     do_make_install
