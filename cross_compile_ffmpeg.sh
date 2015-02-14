@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # ffmpeg windows cross compile helper/download script, see github repo
 # Copyright (C) 2012 Roger Pack, the script is under the GPLv3, but output FFmpeg's executables aren't
-#set -x # uncomment to enable debug info
+# set -x # uncomment to enable debug info
 
 yes_no_sel () {
   unset user_input
@@ -561,8 +561,8 @@ build_libpng() {
 
 build_libopenjpeg() {
   # does openjpeg 2.0 work with ffmpeg? possibly not yet...
-  download_and_unpack_file https://openjpeg.googlecode.com/files/openjpeg-1.5.1.tar.gz openjpeg-1.5.1
-  cd openjpeg-1.5.1
+  download_and_unpack_file http://sourceforge.net/projects/openjpeg.mirror/files/1.5.2/openjpeg-1.5.2.tar.gz/download openjpeg-1.5.2
+  cd openjpeg-1.5.2
     export CFLAGS="$CFLAGS -DOPJ_STATIC" # see https://github.com/rdp/ffmpeg-windows-build-helpers/issues/37
     generic_configure 
     do_make_install
@@ -1017,7 +1017,7 @@ build_twolame() {
 
 build_frei0r() {
   # theoretically we could get by with just copying a .h file in, but why not build them here anyway, just for fun? :)
-download_and_unpack_file https://files.dyne.org/frei0r/releases/frei0r-plugins-1.4.tar.gz frei0r-plugins-1.4
+  download_and_unpack_file https://files.dyne.org/frei0r/releases/frei0r-plugins-1.4.tar.gz frei0r-plugins-1.4
   cd frei0r-plugins-1.4
     do_cmake
     do_make_install
