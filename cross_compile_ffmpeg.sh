@@ -299,7 +299,7 @@ do_make_install() {
   do_make "$extra_make_options"
   local touch_name=$(get_small_touchfile_name already_ran_make_install "$extra_make_options")
   if [ ! -f $touch_name ]; then
-    echo "make installing $cur_dir2 as $ PATH=$PATH make install $extra_make_options"
+    echo "make installing $(pwd) as $ PATH=$PATH make install $extra_make_options"
     nice make install $extra_make_options || exit 1
     touch $touch_name || exit 1
   fi
@@ -984,6 +984,32 @@ build_libcaca() {
   cd ..
 }
 
+build_libproxy() {
+  download_and_unpack_file https://libproxy.googlecode.com/files/libproxy-0.4.11.tar.gz libproxy-0.4.11
+  cd libproxy-0.4.11/libproxy
+    do_cmake # TODO more deps?
+  cd ../..
+}
+
+build_lua() {
+  download_and_unpack_file http://www.lua.org/ftp/lua-5.1.tar.gz lua-5.1
+  cd lua-5.1
+    export AR="${cross_prefix}ar rcu" # needs a parameter :|
+    do_make "CC=${cross_prefix}gcc RANLIB=${cross_prefix}ranlib generic" # generic == static :)
+    unset AR
+    do_make_install "INSTALL_TOP=$mingw_w64_x86_64_prefix"
+    cp etc/lua.pc $PKG_CONFIG_PATH
+  cd ..
+}
+
+build_libquvi() {
+  download_and_Unpack_file http://sourceforge.net/projects/quvi/files/0.9/libquvi/libquvi-0.9.4.tar.xz/download libquvi-0.9.4
+  cd libquvi-0.9.4
+    generic_configure "--disable-libproxy"
+    do_make
+    do_make_install
+  cd ..
+}
 
 build_twolame() {
   generic_download_and_install http://sourceforge.net/projects/twolame/files/twolame/0.3.13/twolame-0.3.13.tar.gz/download twolame-0.3.13 "CPPFLAGS=-DLIBTWOLAME_STATIC"
@@ -1131,7 +1157,7 @@ build_ffmpeg() {
   local output_dir="ffmpeg_git"
 
   # FFmpeg + libav compatible options
-  local extra_configure_opts="--enable-libsoxr --enable-fontconfig --enable-libass --enable-libutvideo --enable-libbluray --enable-iconv --enable-libtwolame --extra-cflags=-DLIBTWOLAME_STATIC --enable-libzvbi --enable-libcaca --enable-libmodplug --extra-libs=-lstdc++ --extra-libs=-lpng --enable-libvidstab --enable-libx265 --enable-decklink --extra-libs=-loleaut32"
+  local extra_configure_opts="--enable-libsoxr --enable-fontconfig --enable-libass --enable-libutvideo --enable-libbluray --enable-iconv --enable-libtwolame --extra-cflags=-DLIBTWOLAME_STATIC --enable-libzvbi --enable-libcaca --enable-libmodplug --extra-libs=-lstdc++ --extra-libs=-lpng --enable-libvidstab --enable-libx265 --enable-decklink --extra-libs=-loleaut32 --enable-libquvi"
 
   if [[ $type = "libav" ]]; then
     # libav [ffmpeg fork]  has a few missing options?
@@ -1248,6 +1274,9 @@ build_dependencies() {
   build_libx265
   build_lame
   build_twolame
+  #build_lua only used by libquvi
+  #build_libproxy # broken
+  #build_libquvi # needs libproxy, lua
   build_vidstab
   build_libcaca
   build_libmodplug # ffmepg and vlc can use this
