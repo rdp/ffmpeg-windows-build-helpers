@@ -986,9 +986,11 @@ build_libcaca() {
 
 build_libproxy() {
   download_and_unpack_file https://libproxy.googlecode.com/files/libproxy-0.4.11.tar.gz libproxy-0.4.11
-  cd libproxy-0.4.11/libproxy
-    do_cmake # TODO more deps?
-  cd ../..
+  cd libproxy-0.4.11
+    sed -i.bak "s/= recv/= (void *) recv/" libmodman/test/main.cpp # some compile failure
+    do_cmake
+    do_make_install # this one requires both...
+  cd ..
 }
 
 build_lua() {
@@ -1005,7 +1007,7 @@ build_lua() {
 build_libquvi() {
   download_and_Unpack_file http://sourceforge.net/projects/quvi/files/0.9/libquvi/libquvi-0.9.4.tar.xz/download libquvi-0.9.4
   cd libquvi-0.9.4
-    generic_configure "--disable-libproxy"
+    generic_configure
     do_make
     do_make_install
   cd ..
@@ -1275,7 +1277,7 @@ build_dependencies() {
   build_lame
   build_twolame
   #build_lua only used by libquvi
-  #build_libproxy # broken
+  #build_libproxy  # needs a .pc file still...
   #build_libquvi # needs libproxy, lua
   build_vidstab
   build_libcaca
