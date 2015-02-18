@@ -985,6 +985,7 @@ build_libcaca() {
 }
 
 build_libproxy() {
+  # NB this lacks a .pc file still
   download_and_unpack_file https://libproxy.googlecode.com/files/libproxy-0.4.11.tar.gz libproxy-0.4.11
   cd libproxy-0.4.11
     sed -i.bak "s/= recv/= (void *) recv/" libmodman/test/main.cpp # some compile failure
@@ -1277,8 +1278,8 @@ build_dependencies() {
   build_lame
   build_twolame
   #build_lua only used by libquvi
-  #build_libproxy  # needs a .pc file still...
-  #build_libquvi # needs libproxy, lua
+  #build_libproxy  # broken, needs a .pc file still... only used by libquvi
+  #build_libquvi # needs libproxy, lua, apparently not useful...
   build_vidstab
   build_libcaca
   build_libmodplug # ffmepg and vlc can use this
