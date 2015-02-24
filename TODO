@@ -1,11 +1,13 @@
 == actual todos ==
 
-test out mplayer with its record-size stuff...
+test out mplayer with its record-size whatever...
+
+nvenc support?
+
+== maybe/never do, more on the never ==
 
 figure out real static linkable builds [tell zeranoe to put them on his site?]
   linkable against them with mingw, msvc...
-
-== maybe/never do, more on the never ==
 
 libav.pc is missing myriad things [patches to core?]
   then use it in x264 LOL wait isn't that circular...ok maybe this is low prio
@@ -26,7 +28,6 @@ vlc tell them they don't do make parallel right for doze...if I can ever repro i
 mplayer use svn trunk?
 
 vlc use git master?
-
 
 final install of ffmpeg static to some folder etc. [?] yeah why not...
   and .exe distro LOL
