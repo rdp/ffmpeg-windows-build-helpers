@@ -70,4 +70,4 @@ https://github.com/Warblefly/multimediaWin64 (cygwin)
 
 ping me if you want this script ported to more native as well :)
 
-[1] if you use a 512MB RAM droplet, make sure to add some extra swap space: https://www.digitalocean.com/community/tutorials/how-to-add-swap-on-ubuntu-14-04 before starting.
+[1] if you use a 512MB RAM droplet, make sure to add some extra swap space: https://www.digitalocean.com/community/tutorials/how-to-add-swap-on-ubuntu-14-04 before starting.  Here's my digitalocean referral link in case you want it [$10 credit] https://www.digitalocean.com/?refcode=b3030b559d17
