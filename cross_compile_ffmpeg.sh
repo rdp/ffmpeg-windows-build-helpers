@@ -795,7 +795,7 @@ build_gnutls() {
   download_and_unpack_file ftp://ftp.gnutls.org/gcrypt/gnutls/v3.3/gnutls-3.3.9.tar.xz gnutls-3.3.9
   cd gnutls-3.3.9
     sed -i.bak 's/mkstemp(tmpfile)/ -1 /g' src/danetool.c # fix x86_64 absent? but danetool is just an exe AFAICT so this should be ok
-    generic_configure "--disable-cxx --disable-doc" # don't need the c++ version, in an effort to cut down on size... XXXX test difference...
+    generic_configure "--disable-cxx --disable-doc --enable-local-libopts" # don't need the c++ version, in an effort to cut down on size... XXXX test size difference... libopts to allow building with local autogen installed
     do_make_install
   cd ..
   sed -i.bak 's/-lgnutls *$/-lgnutls -lnettle -lhogweed -lgmp -lcrypt32 -lws2_32 -liconv/' "$PKG_CONFIG_PATH/gnutls.pc"
