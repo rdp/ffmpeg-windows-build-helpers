@@ -1,32 +1,35 @@
 == actual todos ==
 
-test out mplayer with its record-size stuff...
+test out mplayer with its record-size whatever...
+
+nvenc support?
+
+zeranoe has a few other deps that could link in?
+
+== maybe/never do, more on the never... ==
 
 figure out real static linkable builds [tell zeranoe to put them on his site?]
   linkable against them with mingw, msvc...
 
-== maybe/never do, more on the never ==
-
-libav.pc is missing myriad things [patches to core?]
+libav.pc is missing myriad things [patches to ffmpeg-core?]
   then use it in x264 LOL wait isn't that circular...ok maybe this is low prio
 
-vlc build broken :|
+vlc build currently broken :|
 
 windows cygwin batch file to build the whole thing?
   can I do this all with that zeranoe .bat file and cygwin deps? LOL
 
-add more executables like the jb-alvarado one has [?]
+add more executables like the jb-alvarado one [?] meh
 
-not use the "default lib" directory I guess, if that enables us to build versions for linux instead, easily, and as well [except nobody has even once requested that...?]?
+not use the "default lib" directory I guess, if that enables us to build versions for linux instead, easily, and as well...except shouldn't they use their own dep system? I guess it might still be convenient...awaiting more demand...
 
 auto detect new release versions of dependencies [that are active LOL]
 
-vlc tell them they don't do make parallel right for doze...if I can ever repro it...
+vlc tell them they don't do make parallel right for doze...if I can ever repro it failing...
 
 mplayer use svn trunk?
 
 vlc use git master?
-
 
 final install of ffmpeg static to some folder etc. [?] yeah why not...
   and .exe distro LOL
