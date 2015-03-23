@@ -554,6 +554,13 @@ build_libbs2b() {
   unset ac_cv_func_malloc_0_nonnull
 }
 
+build_libgame-music-emu() {
+  download_and_unpack_file  https://bitbucket.org/mpyne/game-music-emu/downloads/game-music-emu-0.6.0.tar.bz2 game-music-emu-0.6.0
+  cd game-music-emu-0.6.0
+    do_cmake_and_install
+  cd ..
+}
+
 build_wavpack() {
   generic_download_and_install http://wavpack.com/wavpack-4.70.0.tar.bz2 wavpack-4.70.0
 }
@@ -1202,7 +1209,7 @@ build_ffmpeg() {
    local arch=x86_64
   fi
 
-  config_options="--arch=$arch --target-os=mingw32 --cross-prefix=$cross_prefix --pkg-config=pkg-config --enable-gpl --enable-libsoxr --enable-fontconfig --enable-libass --enable-libutvideo --enable-libbluray --enable-iconv --enable-libtwolame --extra-cflags=-DLIBTWOLAME_STATIC --enable-libzvbi --enable-libcaca --enable-libmodplug --extra-libs=-lstdc++ --extra-libs=-lpng --enable-libvidstab --enable-libx265 --enable-decklink --extra-libs=-loleaut32 --enable-libx264 --enable-avisynth --enable-libxvid --enable-libmp3lame --enable-version3 --enable-zlib --enable-librtmp --enable-libvorbis --enable-libtheora --enable-libspeex --enable-libopenjpeg --enable-gnutls --enable-libgsm --enable-libfreetype --enable-libopus --disable-w32threads --enable-frei0r --enable-filter=frei0r --enable-libvo-aacenc --enable-bzlib --enable-libxavs --extra-cflags=-DPTW32_STATIC_LIB --enable-libopencore-amrnb --enable-libopencore-amrwb --enable-libvo-amrwbenc --enable-libschroedinger --enable-libvpx --enable-libilbc --enable-libwavpack --enable-libwebp --enable-dxva2 $extra_configure_opts" # other possibilities: --enable-w32threads [worse udp than pthreads] --enable-libflite [too big]
+  config_options="--arch=$arch --target-os=mingw32 --cross-prefix=$cross_prefix --pkg-config=pkg-config --enable-gpl --enable-libsoxr --enable-fontconfig --enable-libass --enable-libutvideo --enable-libbluray --enable-iconv --enable-libtwolame --extra-cflags=-DLIBTWOLAME_STATIC --enable-libzvbi --enable-libcaca --enable-libmodplug --extra-libs=-lstdc++ --extra-libs=-lpng --enable-libvidstab --enable-libx265 --enable-decklink --extra-libs=-loleaut32 --enable-libx264 --enable-avisynth --enable-libxvid --enable-libmp3lame --enable-version3 --enable-zlib --enable-librtmp --enable-libvorbis --enable-libtheora --enable-libspeex --enable-libopenjpeg --enable-gnutls --enable-libgsm --enable-libfreetype --enable-libopus --disable-w32threads --enable-frei0r --enable-filter=frei0r --enable-libvo-aacenc --enable-bzlib --enable-libxavs --extra-cflags=-DPTW32_STATIC_LIB --enable-libopencore-amrnb --enable-libopencore-amrwb --enable-libvo-amrwbenc --enable-libschroedinger --enable-libvpx --enable-libilbc --enable-libwavpack --enable-libwebp --enable-libgme --enable-dxva2 $extra_configure_opts" # other possibilities: --enable-w32threads [worse udp than pthreads] --enable-libflite [too big]
   if [[ "$non_free" = "y" ]]; then
     config_options="$config_options --enable-nonfree --enable-libfdk-aac --disable-libfaac --disable-decoder=aac --enable-nvenc" # To use fdk-aac in VLC, we need to change FFMPEG's default (faac), but I haven't found how to do that... So I disabled it. This could be an new option for the script? -- faac deemed too poor quality and becomes the default -- add it in and uncomment the build_faac line to include it 
     # other possible options: --enable-openssl [unneeded since we use gnutls] --enable-libaacplus [just use fdk-aac to avoid collision]
@@ -1261,6 +1268,7 @@ build_dependencies() {
   build_libsndfile
   build_libbs2b # needs libsndfile
   build_wavpack
+  build_libgame-music-emu
   build_libwebp
   build_libutvideo
   #build_libflite # too big for the ffmpeg distro...
