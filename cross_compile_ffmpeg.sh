@@ -544,6 +544,16 @@ build_libxavs() {
   cd ..
 }
 
+build_libsndfile() {
+  generic_download_and_install http://www.mega-nerd.com/libsndfile/files/libsndfile-1.0.25.tar.gz libsndfile-1.0.25
+}
+
+build_libbs2b() {
+  export ac_cv_func_malloc_0_nonnull=yes
+  generic_download_and_install http://downloads.sourceforge.net/project/bs2b/libbs2b/3.1.0/libbs2b-3.1.0.tar.lzma libbs2b-3.1.0
+  unset ac_cv_func_malloc_0_nonnull
+}
+
 build_libpng() {
   generic_download_and_install http://download.sourceforge.net/libpng/libpng-1.5.18.tar.xz libpng-1.5.18
 }
@@ -1253,6 +1263,8 @@ build_dependencies() {
   build_gnutls # needs libnettle, can use iconv it appears
 
   build_frei0r
+  build_libsndfile
+  build_libbs2b # needs libsndfile
   build_libutvideo
   #build_libflite # too big for the ffmpeg distro...
   build_libgsm
