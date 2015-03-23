@@ -2,11 +2,9 @@
 
 test out mplayer with its record-size whatever...
 
-nvenc support?
-
-zeranoe has a few other deps that could link in?
-
 == maybe/never do, more on the never... ==
+
+opencl support [copy in headers?] https://www.khronos.org/registry/cl/
 
 figure out real static linkable builds [tell zeranoe to put them on his site?]
   linkable against them with mingw, msvc...
