@@ -352,7 +352,7 @@ download_and_unpack_file() {
     #  -4, --ipv4
     #  If curl is capable of resolving an address to multiple IP versions (which it is if it is  IPv6-capable),
     #  this option tells curl to resolve names to IPv4 addresses only.
-    #  avoid a "network unreachable" error in certain configurations
+    #  avoid a "network unreachable" error in certain [broken Ubuntu] configurations
 
     curl -4 "$url" -O -L || exit 1
     tar -xf "$output_name" || unzip "$output_name" || exit 1
@@ -877,6 +877,21 @@ build_openssl() {
   cd ..
 }
 
+build_libnvenc() {
+  mkdir nvenc
+  cd nvenc
+    if [[ ! -f $mingw_w64_x86_64_prefix/include/nvEncodeAPI.h ]]; then
+      echo "installing nvenc [nvidia gpu assisted encoder]"
+      rm -rf * # TODO better recovery here?
+      curl -4 http://developer.download.nvidia.com/compute/nvenc/v5.0/nvenc_5.0.1_sdk.zip -O -L || exit 1
+      unzip nvenc_5.0.1_sdk.zip
+      cp nvenc_5.0.1_sdk/Samples/common/inc/* $mingw_w64_x86_64_prefix/include
+    else
+      echo "already installed nvenc"
+    fi
+  cd ..
+}
+
 build_fdk_aac() {
   #generic_download_and_install http://sourceforge.net/projects/opencore-amr/files/fdk-aac/fdk-aac-0.1.0.tar.gz/download fdk-aac-0.1.0
   do_git_checkout https://github.com/mstorsjo/fdk-aac.git fdk-aac_git
@@ -1182,7 +1197,7 @@ build_ffmpeg() {
 
   config_options="--arch=$arch --target-os=mingw32 --cross-prefix=$cross_prefix --pkg-config=pkg-config --enable-gpl --enable-libx264 --enable-avisynth --enable-libxvid --enable-libmp3lame --enable-version3 --enable-zlib --enable-librtmp --enable-libvorbis --enable-libtheora --enable-libspeex --enable-libopenjpeg --enable-gnutls --enable-libgsm --enable-libfreetype --enable-libopus --disable-w32threads --enable-frei0r --enable-filter=frei0r --enable-libvo-aacenc --enable-bzlib --enable-libxavs --extra-cflags=-DPTW32_STATIC_LIB --enable-libopencore-amrnb --enable-libopencore-amrwb --enable-libvo-amrwbenc --enable-libschroedinger --enable-libvpx --enable-libilbc --prefix=$mingw_w64_x86_64_prefix $extra_configure_opts --extra-cflags=$CFLAGS" # other possibilities: --enable-w32threads --enable-libflite
   if [[ "$non_free" = "y" ]]; then
-    config_options="$config_options --enable-nonfree --enable-libfdk-aac --disable-libfaac --disable-decoder=aac" # To use fdk-aac in VLC, we need to change FFMPEG's default (faac), but I haven't found how to do that... So I disabled it. This could be an new option for the script? -- faac deemed too poor quality and becomes the default -- add it in and uncomment the build_faac line to include it 
+    config_options="$config_options --enable-nonfree --enable-libfdk-aac --disable-libfaac --disable-decoder=aac --enable-nvenc" # To use fdk-aac in VLC, we need to change FFMPEG's default (faac), but I haven't found how to do that... So I disabled it. This could be an new option for the script? -- faac deemed too poor quality and becomes the default -- add it in and uncomment the build_faac line to include it 
     # other possible options: --enable-openssl --enable-libaacplus
   else
     config_options="$config_options"
@@ -1282,6 +1297,7 @@ build_dependencies() {
     build_fdk_aac
     # build_faac # not included for now, too poor quality output :)
     # build_libaacplus # if you use it, conflicts with other AAC encoders <sigh>, so disabled :)
+    build_libnvenc
   fi
   # build_openssl # hopefully do not need it anymore, since we use gnutls everywhere, so just don't even build it anymore...
   build_librtmp # needs gnutls [or openssl...]
