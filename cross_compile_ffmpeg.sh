@@ -458,7 +458,7 @@ build_libx265() {
   cd ../..
 }
 
-#x264_profile_guided=y
+x264_profile_guided=n # or y -- haven't gotten this working yet...
 
 build_libx264() {
   do_git_checkout "http://repo.or.cz/r/x264.git" "x264" "origin/stable"
@@ -467,13 +467,6 @@ build_libx264() {
   
   if [[ $high_bitdepth == "y" ]]; then
     configure_flags="$configure_flags --bit-depth=10" # Enable 10 bits (main10) per pixels profile.
-    if grep -q "HIGH_BIT_DEPTH 0" config.h; then
-      rm already_configured_* #Last build was not high bitdepth. Forcing reconfigure.
-    fi
-  else
-    if grep -q "HIGH_BIT_DEPTH 1" config.h; then
-      rm already_configured_* #Last build was high bitdepth. Forcing reconfigure.
-    fi
   fi
   
   if [[ $x264_profile_guided = y ]]; then
