@@ -878,18 +878,18 @@ build_openssl() {
 }
 
 build_libnvenc() {
-  mkdir nvenc
-  cd nvenc
-    if [[ ! -f $mingw_w64_x86_64_prefix/include/nvEncodeAPI.h ]]; then
+  if [[ ! -f $mingw_w64_x86_64_prefix/include/nvEncodeAPI.h ]]; then
+    rm -rf nvenc # TODO better recoveries here?
+    mkdir nvenc
+    cd nvenc
       echo "installing nvenc [nvidia gpu assisted encoder]"
-      rm -rf * # TODO better recovery here?
       curl -4 http://developer.download.nvidia.com/compute/nvenc/v5.0/nvenc_5.0.1_sdk.zip -O -L || exit 1
       unzip nvenc_5.0.1_sdk.zip
       cp nvenc_5.0.1_sdk/Samples/common/inc/* $mingw_w64_x86_64_prefix/include
-    else
-      echo "already installed nvenc"
-    fi
-  cd ..
+    cd ..
+  else
+    echo "already installed nvenc"
+  fi
 }
 
 build_fdk_aac() {
