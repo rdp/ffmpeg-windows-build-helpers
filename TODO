@@ -4,6 +4,8 @@ test out mplayer with its record-size whatever...
 
 == maybe/never do, more on the never... ==
 
+default to more gcc cpu's?  hrm...
+
 opencl support [copy in headers?] https://www.khronos.org/registry/cl/ it needs something to link against too...ai ai
 
 figure out real static linkable builds [tell zeranoe to put them on his site?]
