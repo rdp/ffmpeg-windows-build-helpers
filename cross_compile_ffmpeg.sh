@@ -494,7 +494,7 @@ build_librtmp() {
   cd ..
    if [[ ! -f rtmpsuck.exe ]]; then # hacky not do it twice
      # TODO do_make here instead...not easy since it doesn't seem to accept env. variable for LIB_GNUTLS...
-     make SYS=mingw CRYPTO=GNUTLS OPT=-O2 CROSS_COMPILE=$cross_prefix SHARED=no LIB_GNUTLS="`pkg-config --libs gnutls` -lz" || exit 1
+     make SYS=mingw CRYPTO=GNUTLS OPT=-O2 CROSS_COMPILE=$cross_prefix SHARED=no LIB_GNUTLS="`pkg-config --libs gnutls` -lz" || exit 1 # NB not multi process here so we can ensure existence of rtmpsuck.exe means "we made it all the way to the end"
    fi
   cd ..
 
