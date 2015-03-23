@@ -1174,31 +1174,22 @@ build_ffmpeg() {
   local git_url="https://github.com/FFmpeg/FFmpeg.git"
   local output_dir="ffmpeg_git"
 
-  # FFmpeg + libav compatible options
-  local extra_configure_opts="--enable-libsoxr --enable-fontconfig --enable-libass --enable-libutvideo --enable-libbluray --enable-iconv --enable-libtwolame --extra-cflags=-DLIBTWOLAME_STATIC --enable-libzvbi --enable-libcaca --enable-libmodplug --extra-libs=-lstdc++ --extra-libs=-lpng --enable-libvidstab --enable-libx265 --enable-decklink --extra-libs=-loleaut32 "
+  local extra_configure_opts=""
 
-  if [[ $type = "libav" ]]; then
-    # libav [ffmpeg fork]  has a few missing options?
-    git_url="https://github.com/libav/libav.git"
-    output_dir="libav_git"
-    final_install_dir=`pwd`/${output_dir}.installed
-    extra_configure_opts="--prefix=$final_install_dir" # don't install libav to the system
-  fi
-
-  extra_configure_opts="$extra_configure_opts --extra-cflags=$CFLAGS" # extra-cflags is not needed, but adds it to the console output which I lke
+  extra_configure_opts="$extra_configure_opts --extra-cflags=$CFLAGS" # --extra-cflags is not needed here, but adds it to the console output which I like for debugging purposes
 
   # can't mix and match --enable-static --enable-shared unfortunately, or the final executable seems to just use shared if the're both present
   if [[ $shared == "shared" ]]; then
     output_dir=${output_dir}_shared
-    do_git_checkout $git_url ${output_dir}
     final_install_dir=`pwd`/${output_dir}.installed
     extra_configure_opts="--enable-shared --disable-static $extra_configure_opts"
     # avoid installing this to system?
     extra_configure_opts="$extra_configure_opts --prefix=$final_install_dir"
   else
-    do_git_checkout $git_url $output_dir
     extra_configure_opts="--enable-static --disable-shared $extra_configure_opts"
   fi
+
+  do_git_checkout $git_url ${output_dir}
   cd $output_dir
   
   if [ "$bits_target" = "32" ]; then
@@ -1207,14 +1198,10 @@ build_ffmpeg() {
    local arch=x86_64
   fi
 
-# add --extra-cflags=$CFLAGS, though redundant, just so that FFmpeg lists what it used in its "info" output
-
-  config_options="--arch=$arch --target-os=mingw32 --cross-prefix=$cross_prefix --pkg-config=pkg-config --enable-gpl --enable-libx264 --enable-avisynth --enable-libxvid --enable-libmp3lame --enable-version3 --enable-zlib --enable-librtmp --enable-libvorbis --enable-libtheora --enable-libspeex --enable-libopenjpeg --enable-gnutls --enable-libgsm --enable-libfreetype --enable-libopus --disable-w32threads --enable-frei0r --enable-filter=frei0r --enable-libvo-aacenc --enable-bzlib --enable-libxavs --extra-cflags=-DPTW32_STATIC_LIB --enable-libopencore-amrnb --enable-libopencore-amrwb --enable-libvo-amrwbenc --enable-libschroedinger --enable-libvpx --enable-libilbc --enable-libwavpack --prefix=$mingw_w64_x86_64_prefix $extra_configure_opts --extra-cflags=$CFLAGS" # other possibilities: --enable-w32threads --enable-libflite
+  config_options="--arch=$arch --target-os=mingw32 --cross-prefix=$cross_prefix --pkg-config=pkg-config --enable-gpl --enable-libsoxr --enable-fontconfig --enable-libass --enable-libutvideo --enable-libbluray --enable-iconv --enable-libtwolame --extra-cflags=-DLIBTWOLAME_STATIC --enable-libzvbi --enable-libcaca --enable-libmodplug --extra-libs=-lstdc++ --extra-libs=-lpng --enable-libvidstab --enable-libx265 --enable-decklink --extra-libs=-loleaut32 --enable-libx264 --enable-avisynth --enable-libxvid --enable-libmp3lame --enable-version3 --enable-zlib --enable-librtmp --enable-libvorbis --enable-libtheora --enable-libspeex --enable-libopenjpeg --enable-gnutls --enable-libgsm --enable-libfreetype --enable-libopus --disable-w32threads --enable-frei0r --enable-filter=frei0r --enable-libvo-aacenc --enable-bzlib --enable-libxavs --extra-cflags=-DPTW32_STATIC_LIB --enable-libopencore-amrnb --enable-libopencore-amrwb --enable-libvo-amrwbenc --enable-libschroedinger --enable-libvpx --enable-libilbc --enable-libwavpack --prefix=$mingw_w64_x86_64_prefix $extra_configure_opts" # other possibilities: --enable-w32threads [worse udp than pthreads] --enable-libflite [too big]
   if [[ "$non_free" = "y" ]]; then
     config_options="$config_options --enable-nonfree --enable-libfdk-aac --disable-libfaac --disable-decoder=aac --enable-nvenc" # To use fdk-aac in VLC, we need to change FFMPEG's default (faac), but I haven't found how to do that... So I disabled it. This could be an new option for the script? -- faac deemed too poor quality and becomes the default -- add it in and uncomment the build_faac line to include it 
-    # other possible options: --enable-openssl --enable-libaacplus
-  else
-    config_options="$config_options"
+    # other possible options: --enable-openssl [unneeded since we use gnutls] --enable-libaacplus [just use fdk-aac to avoid collision]
   fi
 
   if [[ "$native_build" = "y" ]]; then
@@ -1337,9 +1324,6 @@ build_apps() {
   if [[ $build_ffmpeg_static = "y" ]]; then
     build_ffmpeg ffmpeg
   fi
-  if [[ $build_libav = "y" ]]; then
-    build_ffmpeg libav
-  fi
   if [[ $build_vlc = "y" ]]; then
     build_vlc # NB requires ffmpeg static as well, at least once...so put this last :)
   fi
@@ -1361,7 +1345,6 @@ original_cpu_count=$cpu_count # save it away for some that revert it temporarily
 gcc_cpu_count=1 # allow them to specify more than 1, but default to the one that's most compatible...
 build_ffmpeg_static=y
 build_ffmpeg_shared=n
-build_libav=n
 build_libmxf=n
 build_mp4box=n
 build_mplayer=n
@@ -1387,7 +1370,6 @@ while true; do
       --build-mplayer=n [builds mplayer.exe and mencoder.exe] 
       --build-vlc=n [builds a [rather bloated] vlc.exe] 
       --build-choice=[multi,win32,win64] [default prompt, or skip if you already have one built, multi is both win32 and win64]
-      --build-libav=n [builds libav.exe, an FFmpeg fork] 
       --cflags= [default is empty, compiles for generic cpu, see README]
       --git-get-latest=y [do a git pull for latest code from repositories like FFmpeg--can force a rebuild if changes are detected]
       --prefer-stable=y build a few libraries from releases instead of git master
@@ -1399,7 +1381,6 @@ while true; do
     --build-mp4box=* ) build_mp4box="${1#*=}"; shift ;;
     --git-get-latest=* ) git_get_latest="${1#*=}"; shift ;;
     --build-mplayer=* ) build_mplayer="${1#*=}"; shift ;;
-    --build-libav=* ) build_libav="${1#*=}"; shift ;;
     --cflags=* ) 
        echo "removing old .exe's, in case cflags has changed"
        for file in $(find_all_build_exes); do
