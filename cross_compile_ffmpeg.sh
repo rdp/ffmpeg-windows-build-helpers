@@ -1196,7 +1196,7 @@ build_ffmpeg() {
     final_install_dir=`pwd`/${output_dir}.installed
     extra_configure_opts="--enable-shared --disable-static $extra_configure_opts"
     # avoid installing this to system?
-    extra_configure_opts="$extra_configure_opts --prefix=$final_install_dir"
+    extra_configure_opts="$extra_configure_opts --prefix=$final_install_dir --disable-libgme" # gme broken for shared as of yet...
   else
     extra_configure_opts="--enable-static --disable-shared $extra_configure_opts --prefix=$mingw_w64_x86_64_prefix"
   fi
