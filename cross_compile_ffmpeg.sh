@@ -557,6 +557,7 @@ build_libbs2b() {
 build_libgame-music-emu() {
   download_and_unpack_file  https://bitbucket.org/mpyne/game-music-emu/downloads/game-music-emu-0.6.0.tar.bz2 game-music-emu-0.6.0
   cd game-music-emu-0.6.0
+    sed -i.bak "s|SHARED|STATIC|" gme/CMakeLists.txt
     do_cmake_and_install
   cd ..
 }
