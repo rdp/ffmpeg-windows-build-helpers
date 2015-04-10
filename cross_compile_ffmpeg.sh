@@ -263,8 +263,6 @@ do_configure() {
   local english_name=$(basename $cur_dir2)
   local touch_name=$(get_small_touchfile_name already_configured "$configure_options $configure_name $LDFLAGS $CFLAGS")
   if [ ! -f "$touch_name" ]; then
-    make clean # just in case
-    #make uninstall # does weird things when run under ffmpeg src
     if [ -f bootstrap.sh ]; then
       ./bootstrap.sh
     fi
@@ -287,6 +285,8 @@ do_make() {
     echo
     echo "making $cur_dir2 as $ PATH=$PATH make $extra_make_options"
     echo
+    make clean # just in case helpful if old junk left around and this is a 're make'
+    # make uninstall # does weird things when run under ffmpeg src so disabled
     nice make $extra_make_options || exit 1
     touch $touch_name || exit 1 # only touch if the build was OK
   else
