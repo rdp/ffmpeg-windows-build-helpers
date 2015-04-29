@@ -1282,8 +1282,7 @@ find_all_build_exes() {
 }
 
 build_dependencies() {
-  echo "PKG_CONFIG_PATH=$PKG_CONFIG_PATH" # debug
-  #build_win32_pthreads # vpx etc. depend on this--provided by the compiler build script now, so shouldn't have to build our own
+  #build_win32_pthreads # vpx etc. depend on this--provided by the compiler build script now, so shouldn't have to build our own anymore...it does it better anyway :)
   build_libdlfcn # ffmpeg's frei0r implentation needs this <sigh>
   build_zlib # rtmp depends on it [as well as ffmpeg's optional but handy --enable-zlib]
   build_bzlib2 # in case someone wants it [ffmpeg uses it]
