@@ -1,4 +1,4 @@
-diff --git a/compat/localtime_r.c b/compat/localtime_r.c
+diff --git compat/localtime_r.c compat/localtime_r.c
 index 67da422..dfaa986 100644
 --- a/compat/localtime_r.c
 +++ b/compat/localtime_r.c
