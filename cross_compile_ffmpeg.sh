@@ -675,24 +675,24 @@ build_libopus() {
 
 build_libdvdread() {
   build_libdvdcss
-  download_and_unpack_file http://dvdnav.mplayerhq.hu/releases/libdvdread-4.9.9.tar.xz libdvdread-4.9.9 
+  download_and_unpack_file http://dvdnav.mplayerhq.hu/releases/libdvdread-4.9.9.tar.xz libdvdread-4.9.9  # last revision before 5.X series so still works with MPlayer
   cd libdvdread-4.9.9
-  generic_configure "CFLAGS=-DHAVE_DVDCSS_DVDCSS_H LDFLAGS=-ldvdcss" # vlc patch: "--enable-libdvdcss" # XXX ask how I'm *supposed* to do this to the dvdread peeps [svn?]
+  generic_configure "CFLAGS=-DHAVE_DVDCSS_DVDCSS_H LDFLAGS=-ldvdcss --enable-dlfcn" # vlc patch: "--enable-libdvdcss" # XXX ask how I'm *supposed* to do this to the dvdread peeps [svn?]
   #apply_patch https://raw.githubusercontent.com/rdp/ffmpeg-windows-build-helpers/master/patches/dvdread-win32.patch # has been reported to them...
   do_make_and_make_install 
-  #sed -i.bak "s/-ldvdread.*/-ldvdread -ldvdcss/" $mingw_w64_x86_64_prefix/bin/dvdread-config # ??? related to vlc patch, above, probably
   sed -i.bak 's/-ldvdread.*/-ldvdread -ldvdcss/' "$PKG_CONFIG_PATH/dvdread.pc"
   cd ..
 }
 
 build_libdvdnav() {
-  download_and_unpack_file http://dvdnav.mplayerhq.hu/releases/libdvdnav-4.2.1.tar.xz libdvdnav-4.2.1
+  download_and_unpack_file http://dvdnav.mplayerhq.hu/releases/libdvdnav-4.2.1.tar.xz libdvdnav-4.2.1 # 4.2.1. latest revision before 5.x series [?]
   cd libdvdnav-4.2.1
   if [[ ! -f ./configure ]]; then
     ./autogen.sh
   fi
   generic_configure
   do_make_and_make_install 
+  sed -i.bak 's/-ldvdnav.*/-ldvdnav -ldvdread -ldvdcss -lpsapi/' "$PKG_CONFIG_PATH/dvdnav.pc" # psapi for dlfcn ... [hrm?]
   cd ..
 }
 
@@ -1101,19 +1101,21 @@ build_vlc() {
   cd vlc_git
   apply_patch https://raw.githubusercontent.com/rdp/ffmpeg-windows-build-helpers/master/patches/vlc_localtime_s.patch # git revision needs it...
 
-  if [[ "$non_free" = "y" ]]; then
-    apply_patch https://raw.githubusercontent.com/gcsx/ffmpeg-windows-build-helpers/patch-5/patches/priorize_avcodec.patch
-  fi
+  # outdated
+  #if [[ "$non_free" = "y" ]]; then
+  #  apply_patch https://raw.githubusercontent.com/gcsx/ffmpeg-windows-build-helpers/patch-5/patches/priorize_avcodec.patch
+  #fi
 
   if [[ ! -f "configure" ]]; then
     ./bootstrap
   fi 
+  export DVDREAD_LIBS='-ldvdread -ldvdcss -lpsapi'
   do_configure "--disable-libgcrypt --disable-a52 --host=$host_target --disable-lua --disable-mad --enable-qt --disable-sdl --disable-mod" # don't have lua mingw yet, etc. [vlc has --disable-sdl [?]] x265 disabled until we care enough... Looks like the bluray problem was related to the BLURAY_LIBS definition. [not sure what's wrong with libmod]
   for file in `find . -name *.exe`; do
     rm $file # try to force a rebuild...though there are tons of .a files we aren't rebuilding :|
   done
   rm already_ran_make* # try to force re-link just in case...
-  #cpu_count=1 # not wig out on .rc.lo files etc.
+  #cpu_count=1 # not wig out on .rc.lo files etc. too slow
   do_make
   # do some gymnastics to avoid building the mozilla plugin for now [couldn't quite get it to work]
   #sed -i.bak 's_git://git.videolan.org/npapi-vlc.git_https://github.com/rdp/npapi-vlc.git_' Makefile # this wasn't enough...
@@ -1139,9 +1141,9 @@ build_mplayer() {
   download_and_unpack_file http://sourceforge.net/projects/mplayer-edl/files/mplayer-export-snapshot.2014-05-19.tar.bz2/download mplayer-export-2014-05-19
   cd mplayer-export-2014-05-19
   do_git_checkout https://github.com/FFmpeg/FFmpeg ffmpeg d43c303038e9bd
-  export LDFLAGS='-lpthread -ldvdread -ldvdcss' # not compat with newer dvdread possibly? huh wuh?
+  export LDFLAGS='-lpthread -ldvdnav -ldvdread -ldvdcss' # not compat with newer dvdread possibly? huh wuh?
   export CFLAGS=-DHAVE_DVDCSS_DVDCSS_H
-  do_configure "--enable-cross-compile --host-cc=cc --cc=${cross_prefix}gcc --windres=${cross_prefix}windres --ranlib=${cross_prefix}ranlib --ar=${cross_prefix}ar --as=${cross_prefix}as --nm=${cross_prefix}nm --enable-runtime-cpudetection --extra-cflags=$CFLAGS --with-dvdnav-config=$mingw_w64_x86_64_prefix/bin/dvdnav-config --disable-dvdread-internal --disable-libdvdcss-internal --disable-w32threads --enable-pthreads --extra-libs=-lpthread --enable-debug --enable-ass-internal" # haven't reported the ldvdcss thing, think it's to do with possibly it not using dvdread.pc [?] XXX check with trunk
+  do_configure "--enable-cross-compile --host-cc=cc --cc=${cross_prefix}gcc --windres=${cross_prefix}windres --ranlib=${cross_prefix}ranlib --ar=${cross_prefix}ar --as=${cross_prefix}as --nm=${cross_prefix}nm --enable-runtime-cpudetection --extra-cflags=$CFLAGS --with-dvdnav-config=$mingw_w64_x86_64_prefix/bin/dvdnav-config --disable-dvdread-internal --disable-libdvdcss-internal --disable-w32threads --enable-pthreads --extra-libs=-lpthread --enable-debug --enable-ass-internal --enable-dvdread --enable-dvdnav" # haven't reported the ldvdcss thing, think it's to do with possibly it not using dvdread.pc [?] XXX check with trunk
   unset LDFLAGS
   export CFLAGS=$original_cflags
   sed -i.bak "s/HAVE_PTHREAD_CANCEL 0/HAVE_PTHREAD_CANCEL 1/g" config.h # mplayer doesn't set this up right?
