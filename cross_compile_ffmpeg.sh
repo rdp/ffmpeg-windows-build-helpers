@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # ffmpeg windows cross compile helper/download script, see github repo
 # Copyright (C) 2012 Roger Pack, the script is under the GPLv3, but output FFmpeg's executables aren't
-# set -x # uncomment to enable debug info
+# set -x # uncomment to enable script debug output
 
 yes_no_sel () {
   unset user_input
@@ -263,6 +263,8 @@ do_configure() {
   local english_name=$(basename $cur_dir2)
   local touch_name=$(get_small_touchfile_name already_configured "$configure_options $configure_name $LDFLAGS $CFLAGS")
   if [ ! -f "$touch_name" ]; then
+    make clean # just in case useful...try and cleanup stuff...possibly not useful
+    # make uninstall # does weird things when run under ffmpeg src so disabled
     if [ -f bootstrap.sh ]; then
       ./bootstrap.sh
     fi
@@ -270,7 +272,7 @@ do_configure() {
     echo "configuring $english_name ($PWD) as $ PATH=$PATH $configure_name $configure_options"
     nice "$configure_name" $configure_options || exit 1
     touch -- "$touch_name"
-    make clean # just in case
+    make clean # just in case, but sometimes useful when files change, etc.
   else
     echo "already configured $(basename $cur_dir2)" 
   fi
@@ -285,8 +287,9 @@ do_make() {
     echo
     echo "making $cur_dir2 as $ PATH=$PATH make $extra_make_options"
     echo
-    make clean # just in case helpful if old junk left around and this is a 're make'
-    # make uninstall # does weird things when run under ffmpeg src so disabled
+    if [ ! -f configure ]; then
+      make clean # just in case helpful if old junk left around and this is a 're make' and wasn't cleaned at reconfigure time
+    fi
     nice make $extra_make_options || exit 1
     touch $touch_name || exit 1 # only touch if the build was OK
   else
@@ -1245,7 +1248,6 @@ build_ffmpeg() {
   rm -f */*.a */*.dll *.exe # just in case some dependency library has changed, force it to re-link even if the ffmpeg source hasn't changed...
   rm already_ran_make*
   echo "doing ffmpeg make $(pwd)"
-  do_make
   do_make_and_make_install # install ffmpeg to get libavcodec libraries to be used as dependencies for other things, like vlc [XXX make this a parameter?] or install shared to a local dir
 
   # build ismindex.exe, too, just for fun 
