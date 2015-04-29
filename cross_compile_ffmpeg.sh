@@ -172,7 +172,7 @@ do_svn_checkout() {
   if [ ! -d $to_dir ]; then
     echo "svn checking out to $to_dir"
     if [[ -z "$desired_revision" ]]; then
-      svn checkout $repo_url $to_dir.tmp || exit 1
+      svn checkout $repo_url $to_dir.tmp  --non-interactive --trust-server-cert || exit 1
     else
       svn checkout -r $desired_revision $repo_url $to_dir.tmp || exit 1
     fi
