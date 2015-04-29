@@ -1,0 +1,13 @@
+diff --git a/compat/localtime_r.c b/compat/localtime_r.c
+index 67da422..dfaa986 100644
+--- a/compat/localtime_r.c
++++ b/compat/localtime_r.c
+@@ -34,7 +34,7 @@ struct tm *localtime_r (const time_t *timep, struct tm *result)
+ {
+ #if (__STDC_VERSION__ >= 201112L)
+     return localtime_s(timep, result);
+-#elif defined (_WIN32)
++#elif defined (_WIN32NON)
+     return ((errno = localtime_s(result, timep)) == 0) ? result : NULL;
+ #else
+ # warning localtime_r() not implemented!

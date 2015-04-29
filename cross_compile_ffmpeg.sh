@@ -504,6 +504,8 @@ build_librtmp() {
 }
 
 build_qt() {
+  build_libjpeg_turbo # dependency [?]
+
   unset CFLAGS # it makes something of its own first, which runs locally, so can't use a foreign arch, or maybe it can, but not important enough: http://stackoverflow.com/a/18775859/32453
   # download_and_unpack_file http://download.qt-project.org/official_releases/qt/5.1/5.1.1/submodules/qtbase-opensource-src-5.1.1.tar.xz qtbase-opensource-src-5.1.1 # not officially supported seems...so didn't try it
 
@@ -732,10 +734,12 @@ build_libdlfcn() {
 }
 
 build_libjpeg_turbo() {
-  download_and_unpack_file http://sourceforge.net/projects/libjpeg-turbo/files/1.3.1/libjpeg-turbo-1.3.1.tar.gz/download libjpeg-turbo-1.3.1
-  cd libjpeg-turbo-1.3.1
+  download_and_unpack_file http://sourceforge.net/projects/libjpeg-turbo/files/1.4.0/libjpeg-turbo-1.4.0.tar.gz/download libjpeg-turbo-1.4.0
+  cd libjpeg-turbo-1.4.0
+    #do_cmake_and_install # couldn't figure out a static only build...nor working win64 with existing nasm...
     generic_configure "NASM=yasm"
     do_make_and_make_install
+    sed -i.bak 's/typedef long INT32/typedef long XXINT32/' "$mingw_w64_x86_64_prefix/include/jmorecfg.h" # breaks VLC build without this...freak-o...
   cd ..
 }
 
@@ -1084,28 +1088,30 @@ build_vidstab() {
 }
 
 build_vlc() {
-  build_qt # needs libjpeg [?]
+  # call out dependencies here since it's a lot, plus hierarchical!
+  build_ffmpeg ffmpeg # static
   build_libdvdread
   build_libdvdnav
-  cpu_count=1 # not wig out on .rc.lo files etc.
-  #do_git_checkout https://github.com/videolan/vlc.git vlc_git # vlc git master seems to be unstable and break the build and not test for windows often, so specify a known working revision...
-  #cd vlc_git
+  build_libx265
+  build_qt
 
-  do_git_checkout https://github.com/rdp/vlc.git vlc_rdp # till this thing stabilizes...
-  cd vlc_rdp
-  
+  do_git_checkout https://github.com/videolan/vlc.git vlc_git "f5c300bfc9eea01956e5df123af24b28db5beba3"
+  cd vlc_git
+  apply_patch https://raw.githubusercontent.com/rdp/ffmpeg-windows-build-helpers/patches/vlc_localtime_s.patch # above git needs it...
+
   if [[ "$non_free" = "y" ]]; then
-  apply_patch https://raw.githubusercontent.com/gcsx/ffmpeg-windows-build-helpers/patch-5/patches/priorize_avcodec.patch
+    apply_patch https://raw.githubusercontent.com/gcsx/ffmpeg-windows-build-helpers/patch-5/patches/priorize_avcodec.patch
   fi
 
   if [[ ! -f "configure" ]]; then
     ./bootstrap
   fi 
-  do_configure "--disable-x265 --disable-libgcrypt --disable-a52 --host=$host_target --disable-lua --disable-mad --enable-qt --disable-sdl --disable-mod" # don't have lua mingw yet, etc. [vlc has --disable-sdl [?]] x265 disabled until we care enough... Looks like the bluray problem was related to the BLURAY_LIBS definition. [not sure what's wrong with libmod]
+  do_configure "--disable-libgcrypt --disable-a52 --host=$host_target --disable-lua --disable-mad --enable-qt --disable-sdl --disable-mod" # don't have lua mingw yet, etc. [vlc has --disable-sdl [?]] x265 disabled until we care enough... Looks like the bluray problem was related to the BLURAY_LIBS definition. [not sure what's wrong with libmod]
   for file in `find . -name *.exe`; do
     rm $file # try to force a rebuild...though there are tons of .a files we aren't rebuilding :|
   done
   rm already_ran_make* # try to force re-link just in case...
+  cpu_count=1 # not wig out on .rc.lo files etc.
   do_make
   # do some gymnastics to avoid building the mozilla plugin for now [couldn't quite get it to work]
   #sed -i.bak 's_git://git.videolan.org/npapi-vlc.git_https://github.com/rdp/npapi-vlc.git_' Makefile # this wasn't enough...
@@ -1361,7 +1367,7 @@ build_apps() {
     build_ffmpeg ffmpeg shared
   fi
   if [[ $build_vlc = "y" ]]; then
-    build_vlc # NB requires ffmpeg static as well, at least once...so put this last :)
+    build_vlc
   fi
 }
 
