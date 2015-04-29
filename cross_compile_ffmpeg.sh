@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# ffmpeg windows cross compile helper/download script, see github repo
+# ffmpeg windows cross compile helper/download script, see github repo README
 # Copyright (C) 2012 Roger Pack, the script is under the GPLv3, but output FFmpeg's executables aren't
 # set -x # uncomment to enable script debug output
 
@@ -460,7 +460,7 @@ x264_profile_guided=n # or y -- haven't gotten this working yet...
 build_libx264() {
   do_git_checkout "http://repo.or.cz/r/x264.git" "x264" "origin/stable"
   cd x264
-  local configure_flags="--host=$host_target --enable-static --cross-prefix=$cross_prefix --prefix=$mingw_w64_x86_64_prefix --extra-cflags=-DPTW32_STATIC_LIB --enable-debug --disable-lavf" # --enable-win32thread --enable-debug shouldn't hurt us since ffmpeg strips it anyway I think
+  local configure_flags="--host=$host_target --enable-static --cross-prefix=$cross_prefix --prefix=$mingw_w64_x86_64_prefix --enable-debug --disable-lavf" # --enable-win32thread --enable-debug shouldn't hurt us since ffmpeg strips it anyway I think
   
   if [[ $high_bitdepth == "y" ]]; then
     configure_flags="$configure_flags --bit-depth=10" # Enable 10 bits (main10) per pixels profile.
@@ -607,9 +607,9 @@ build_libvpx() {
   fi
   export CROSS="$cross_prefix"
   if [[ "$bits_target" = "32" ]]; then
-    do_configure "--extra-cflags=-DPTW32_STATIC_LIB --target=x86-win32-gcc --prefix=$mingw_w64_x86_64_prefix --enable-static --disable-shared"
+    do_configure "--target=x86-win32-gcc --prefix=$mingw_w64_x86_64_prefix --enable-static --disable-shared"
   else
-    do_configure "--extra-cflags=-DPTW32_STATIC_LIB --target=x86_64-win64-gcc --prefix=$mingw_w64_x86_64_prefix --enable-static --disable-shared "
+    do_configure "--target=x86_64-win64-gcc --prefix=$mingw_w64_x86_64_prefix --enable-static --disable-shared "
   fi
   do_make_and_make_install
   unset CROSS
@@ -713,16 +713,6 @@ build_glew() { # opengl stuff, apparently [disabled...]
 build_libopencore() {
   generic_download_and_install http://sourceforge.net/projects/opencore-amr/files/opencore-amr/opencore-amr-0.1.3.tar.gz/download opencore-amr-0.1.3
   generic_download_and_install http://sourceforge.net/projects/opencore-amr/files/vo-amrwbenc/vo-amrwbenc-0.1.2.tar.gz/download vo-amrwbenc-0.1.2
-}
-
-# NB this is kind of worse than just using the one that comes from the zeranoe script, since this one requires the -DPTHREAD_STATIC everywhere...
-build_win32_pthreads() {
-  download_and_unpack_file ftp://sourceware.org/pub/pthreads-win32/pthreads-w32-2-9-1-release.tar.gz   pthreads-w32-2-9-1-release
-  cd pthreads-w32-2-9-1-release
-    do_make "clean GC-static CROSS=$cross_prefix" # NB no make install
-    cp libpthreadGC2.a $mingw_w64_x86_64_prefix/lib/libpthread.a || exit 1
-    cp pthread.h sched.h semaphore.h $mingw_w64_x86_64_prefix/include || exit 1
-  cd ..
 }
 
 build_libdlfcn() {
@@ -1001,7 +991,6 @@ build_lame() {
 }
 
 build_zvbi() {
-  export CFLAGS=-DPTW32_STATIC_LIB # seems needed XXX
   download_and_unpack_file http://sourceforge.net/projects/zapping/files/zvbi/0.2.34/zvbi-0.2.34.tar.bz2/download zvbi-0.2.34
   cd zvbi-0.2.34
     apply_patch https://raw.githubusercontent.com/rdp/ffmpeg-windows-build-helpers/master/patches/zvbi-win32.patch
@@ -1240,7 +1229,7 @@ build_ffmpeg() {
    local arch=x86_64
   fi
 
-  config_options="--arch=$arch --target-os=mingw32 --cross-prefix=$cross_prefix --pkg-config=pkg-config --enable-gpl --enable-libsoxr --enable-fontconfig --enable-libass --enable-libutvideo --enable-libbluray --enable-iconv --enable-libtwolame --extra-cflags=-DLIBTWOLAME_STATIC --enable-libzvbi --enable-libcaca --enable-libmodplug --extra-libs=-lstdc++ --extra-libs=-lpng --enable-libvidstab --enable-libx265 --enable-decklink --extra-libs=-loleaut32 --enable-libx264 --enable-libxvid --enable-libmp3lame --enable-version3 --enable-zlib --enable-librtmp --enable-libvorbis --enable-libtheora --enable-libspeex --enable-libopenjpeg --enable-gnutls --enable-libgsm --enable-libfreetype --enable-libopus --disable-w32threads --enable-frei0r --enable-filter=frei0r --enable-libvo-aacenc --enable-bzlib --enable-libxavs --extra-cflags=-DPTW32_STATIC_LIB --enable-libopencore-amrnb --enable-libopencore-amrwb --enable-libvo-amrwbenc --enable-libschroedinger --enable-libvpx --enable-libilbc --enable-libwavpack --enable-libwebp --enable-libgme --enable-dxva2 --enable-libdcadec --enable-avisynth --enable-libmfx $extra_configure_opts" # other possibilities: --enable-w32threads [worse UDP than pthreads] --enable-libflite [too big]
+  config_options="--arch=$arch --target-os=mingw32 --cross-prefix=$cross_prefix --pkg-config=pkg-config --enable-gpl --enable-libsoxr --enable-fontconfig --enable-libass --enable-libutvideo --enable-libbluray --enable-iconv --enable-libtwolame --extra-cflags=-DLIBTWOLAME_STATIC --enable-libzvbi --enable-libcaca --enable-libmodplug --extra-libs=-lstdc++ --extra-libs=-lpng --enable-libvidstab --enable-libx265 --enable-decklink --extra-libs=-loleaut32 --enable-libx264 --enable-libxvid --enable-libmp3lame --enable-version3 --enable-zlib --enable-librtmp --enable-libvorbis --enable-libtheora --enable-libspeex --enable-libopenjpeg --enable-gnutls --enable-libgsm --enable-libfreetype --enable-libopus --disable-w32threads --enable-frei0r --enable-filter=frei0r --enable-libvo-aacenc --enable-bzlib --enable-libxavs --enable-libopencore-amrnb --enable-libopencore-amrwb --enable-libvo-amrwbenc --enable-libschroedinger --enable-libvpx --enable-libilbc --enable-libwavpack --enable-libwebp --enable-libgme --enable-dxva2 --enable-libdcadec --enable-avisynth --enable-libmfx $extra_configure_opts" # other possibilities: --enable-w32threads [worse UDP than pthreads] --enable-libflite [too big]
   config_options="$config_options --extra-libs=-lpsapi" # dlfcn requires this, has no .pc file...
   if [[ "$non_free" = "y" ]]; then
     config_options="$config_options --enable-nonfree --enable-libfdk-aac --disable-libfaac --disable-decoder=aac --enable-nvenc " # To use fdk-aac in VLC, we need to change FFMPEG's default (faac), but I haven't found how to do that... So I disabled it. This could be an new option for the script? -- faac deemed too poor quality and becomes the default -- add it in and uncomment the build_faac line to include it 
@@ -1284,7 +1273,6 @@ find_all_build_exes() {
 }
 
 build_dependencies() {
-  #build_win32_pthreads # vpx etc. depend on this--provided by the compiler build script now, so shouldn't have to build our own anymore...it does it better anyway :)
   build_libdlfcn # ffmpeg's frei0r implentation needs this <sigh>
   build_zlib # rtmp depends on it [as well as ffmpeg's optional but handy --enable-zlib]
   build_bzlib2 # in case someone wants it [ffmpeg uses it]
@@ -1302,7 +1290,7 @@ build_dependencies() {
   build_libgame-music-emu
   build_libwebp
   build_libutvideo
-  #build_libflite # too big for the ffmpeg distro...
+  #build_libflite # too big for distro...though may still be useful
   build_libgsm
   build_sdl # needed for ffplay to be created
   build_libopus
@@ -1326,9 +1314,9 @@ build_dependencies() {
   build_libx265
   build_lame
   build_twolame
-  #build_lua only used by libquvi
+  #build_lua was only used by libquvi
   #build_libproxy  # broken, needs a .pc file still... only used by libquvi
-  #build_libquvi # needs libproxy, lua, apparently not useful anyway...
+  #build_libquvi # needs libproxy, lua, apparently not useful anyway...so don't build it
   build_vidstab
   build_libcaca
   build_libmodplug # ffmepg and vlc can use this

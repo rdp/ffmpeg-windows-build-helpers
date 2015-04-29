@@ -2,11 +2,9 @@
 
 test out mplayer with its record-size whatever...
 
-fix shared ffmpeg build with whatever
-
-mplayer build broken [out of date?]
-
 == maybe/never do, more on the never... ==
+
+fix gsm shared is broken
 
 default to more gcc cpu's?  hrm...
 
