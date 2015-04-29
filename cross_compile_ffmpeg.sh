@@ -1089,7 +1089,9 @@ build_vidstab() {
 
 build_vlc() {
   # call out dependencies here since it's a lot, plus hierarchical!
-  build_ffmpeg ffmpeg # static
+  if [ ! -f $mingw_w64_x86_64_prefix/lib/libavutil.a ]; then # takes too long...
+    build_ffmpeg ffmpeg # static
+  fi
   build_libdvdread
   build_libdvdnav
   build_libx265
@@ -1097,7 +1099,7 @@ build_vlc() {
 
   do_git_checkout https://github.com/videolan/vlc.git vlc_git "f5c300bfc9eea01956e5df123af24b28db5beba3"
   cd vlc_git
-  apply_patch https://raw.githubusercontent.com/rdp/ffmpeg-windows-build-helpers/patches/vlc_localtime_s.patch # above git needs it...
+  apply_patch https://raw.githubusercontent.com/rdp/ffmpeg-windows-build-helpers/master/patches/vlc_localtime_s.patch # git revision needs it...
 
   if [[ "$non_free" = "y" ]]; then
     apply_patch https://raw.githubusercontent.com/gcsx/ffmpeg-windows-build-helpers/patch-5/patches/priorize_avcodec.patch
@@ -1111,7 +1113,7 @@ build_vlc() {
     rm $file # try to force a rebuild...though there are tons of .a files we aren't rebuilding :|
   done
   rm already_ran_make* # try to force re-link just in case...
-  cpu_count=1 # not wig out on .rc.lo files etc.
+  #cpu_count=1 # not wig out on .rc.lo files etc.
   do_make
   # do some gymnastics to avoid building the mozilla plugin for now [couldn't quite get it to work]
   #sed -i.bak 's_git://git.videolan.org/npapi-vlc.git_https://github.com/rdp/npapi-vlc.git_' Makefile # this wasn't enough...
