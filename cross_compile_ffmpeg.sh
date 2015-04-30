@@ -449,7 +449,11 @@ build_libx265() {
   local cmake_params="-DENABLE_SHARED=OFF"
   if [[ $high_bitdepth == "y" ]]; then
     cmake_params="$cmake_params -DHIGH_BIT_DEPTH=ON" # Enable 10 bits (main10) and 12 bits (???) per pixels profiles.
+    if [ "$bits_target" = "32" ]; then
+      cmake_params="$cmake_params -DENABLE_ASSEMBLY=OFF" # apparently required or build will fail
+    fi
   fi
+
   
   do_cmake_and_install "$cmake_params" 
   cd ../..
@@ -1406,7 +1410,7 @@ while true; do
       --cflags= [default is empty, compiles for generic cpu, see README]
       --git-get-latest=y [do a git pull for latest code from repositories like FFmpeg--can force a rebuild if changes are detected]
       --prefer-stable=y build a few libraries from releases instead of git master
-      --high-bitdepth=y Enable high bit depth for x264 (10 bits) and x265 (10 and 12 bits, x64 build. Not officially supported on x86 (win32), but can be enabled by editing x265/source/CMakeLists.txt. See line 155).
+      --high-bitdepth=y Enable high bit depth for x264 (10 bits) and x265 (10 and 12 bits, x64 build. Not officially supported on x86 (win32), but enabled by disabling its assembly).
        "; exit 0 ;;
     --sandbox-ok=* ) sandbox_ok="${1#*=}"; shift ;;
     --gcc-cpu-count=* ) gcc_cpu_count="${1#*=}"; shift ;;
