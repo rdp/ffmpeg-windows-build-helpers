@@ -23,6 +23,17 @@ yes_no_sel () {
   user_input=$(echo $user_input | tr '[A-Z]' '[a-z]')
 }
 
+set_box_memory_size_bytes() {
+  if [[ $OSTYPE == darwin* ]]; then 
+    box_memory_size_bytes=20000000000 # 2G fake it out for now :|
+  else
+    local ram_kilobytes=`grep MemTotal /proc/meminfo | awk '{print $2}'` 
+    local swap_kilobytes=`grep SwapTotal /proc/meminfo | awk '{print $2}'` 
+    box_memory_size_bytes=$[ram_kilobytes * 1024 + swap_kilobytes * 1024]
+  fi
+  echo "detected system memory as $box_memory_size_bytes" 
+}
+
 check_missing_packages () {
   local check_packages=('curl' 'pkg-config' 'make' 'git' 'svn' 'cmake' 'gcc' 'autoconf' 'automake' 'yasm' 'cvs' 'flex' 'bison' 'makeinfo' 'g++' 'ed' 'hg' 'pax' 'unzip')
   # libtool check is wonky...
@@ -69,6 +80,11 @@ check_missing_packages () {
     exit 1
   fi
 
+  set_box_memory_size_bytes
+  if [[ $box_memory_size_bytes < 600000000 ]]; then
+    echo "your box only has $box_memory_size_bytes which is not enough to build gcc, please add some swap"
+    exit 1
+  fi
 }
 
 
