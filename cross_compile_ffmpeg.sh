@@ -24,14 +24,17 @@ yes_no_sel () {
 }
 
 check_missing_packages () {
-  local check_packages=('curl' 'pkg-config' 'make' 'git' 'svn' 'cmake' 'gcc' 'autoconf' 'libtool' 'automake' 'yasm' 'cvs' 'flex' 'bison' 'makeinfo' 'g++' 'ed' 'hg' 'pax' 'unzip')
+  local check_packages=('curl' 'pkg-config' 'make' 'git' 'svn' 'cmake' 'gcc' 'autoconf' 'automake' 'yasm' 'cvs' 'flex' 'bison' 'makeinfo' 'g++' 'ed' 'hg' 'pax' 'unzip')
+  # libtool check is wonky...
+  if [[ $OSTYPE == darwin* ]]; then 
+    check_packages+=(glibtoolize)
+  else
+    check_packages+=(libtoolize)
+  fi
+
   for package in "${check_packages[@]}"; do
     type -P "$package" >/dev/null || missing_packages=("$package" "${missing_packages[@]}")
   done
-  if [[ $OSTYPE == darwin* ]]; then 
-    package=glibtoolize
-    type -P "$package" >/dev/null || missing_packages=("$package" "${missing_packages[@]}")
-  fi
   
 
   if [[ -n "${missing_packages[@]}" ]]; then
@@ -1444,8 +1447,8 @@ while true; do
   esac
 done
 
+check_missing_packages # do this first since it's annoying to go through prompts then be rejected
 intro # remember to always run the intro, since it adjust pwd
-check_missing_packages
 install_cross_compiler 
 
 export PKG_CONFIG_LIBDIR= # disable pkg-config from reverting back to and finding system installed packages [yikes]
