@@ -81,9 +81,9 @@ check_missing_packages () {
   fi
 
   set_box_memory_size_bytes
-  if [[ $box_memory_size_bytes < 600000000 ]]; then
-    echo "your box only has $box_memory_size_bytes which is not enough to build gcc, please add some swap"
-    exit 1
+  if [[ $box_memory_size_bytes -lt 600000000 ]]; then
+    echo "your box only has $box_memory_size_bytes which is not enough for my gcc, please add some swap"
+  #  exit 1
   fi
 }
 
