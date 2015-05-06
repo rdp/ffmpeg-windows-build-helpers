@@ -80,7 +80,6 @@ check_missing_packages () {
     exit 1
   fi
 
-  set_box_memory_size_bytes
   if [[ $box_memory_size_bytes -lt 600000000 ]]; then
     echo "your box only has $box_memory_size_bytes, 512MB boxes crash building gcc, please add some swap" # 1G is OK...
     exit 1
@@ -1407,7 +1406,8 @@ if [[ $box_memory_size_bytes -gt 2000000000 ]]; then
   gcc_cpu_count=$cpu_count # they can handle it seemingly...
 else
   gcc_cpu_count=1 # compatible low RAM...
-end
+fi
+
 build_ffmpeg_static=y
 build_ffmpeg_shared=n
 build_libmxf=n
