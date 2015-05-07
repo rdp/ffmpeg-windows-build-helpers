@@ -25,7 +25,7 @@ yes_no_sel () {
 
 set_box_memory_size_bytes() {
   if [[ $OSTYPE == darwin* ]]; then 
-    box_memory_size_bytes=20000000000 # 2G fake it out for now :|
+    box_memory_size_bytes=20000000000 # 20G fake it out for now :|
   else
     local ram_kilobytes=`grep MemTotal /proc/meminfo | awk '{print $2}'` 
     local swap_kilobytes=`grep SwapTotal /proc/meminfo | awk '{print $2}'` 
@@ -80,10 +80,6 @@ check_missing_packages () {
     exit 1
   fi
 
-  if [[ $box_memory_size_bytes -lt 600000000 ]]; then
-    echo "your box only has $box_memory_size_bytes, 512MB boxes crash building gcc, please add some swap" # 1G is OK...
-    exit 1
-  fi
 }
 
 
@@ -1402,6 +1398,11 @@ fi
 original_cpu_count=$cpu_count # save it away for some that revert it temporarily
 
 set_box_memory_size_bytes
+if [[ $box_memory_size_bytes -lt 600000000 ]]; then
+  echo "your box only has $box_memory_size_bytes, 512MB (only) boxes crash when building cross compiler gcc, please add some swap" # 1G worked OK however...
+  exit 1
+fi
+echo "comparing $box_memory_size_bytes 2000000000"
 if [[ $box_memory_size_bytes -gt 2000000000 ]]; then
   gcc_cpu_count=$cpu_count # they can handle it seemingly...
 else
