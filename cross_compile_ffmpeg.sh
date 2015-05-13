@@ -31,7 +31,6 @@ set_box_memory_size_bytes() {
     local swap_kilobytes=`grep SwapTotal /proc/meminfo | awk '{print $2}'` 
     box_memory_size_bytes=$[ram_kilobytes * 1024 + swap_kilobytes * 1024]
   fi
-  echo "detected system memory as $box_memory_size_bytes" 
 }
 
 check_missing_packages () {
@@ -749,9 +748,9 @@ build_libjpeg_turbo() {
   download_and_unpack_file http://sourceforge.net/projects/libjpeg-turbo/files/1.4.0/libjpeg-turbo-1.4.0.tar.gz/download libjpeg-turbo-1.4.0
   cd libjpeg-turbo-1.4.0
     #do_cmake_and_install # couldn't figure out a static only build...nor working win64 with existing nasm...
-    generic_configure "NASM=yasm"
-    do_make_and_make_install
-    sed -i.bak 's/typedef long INT32/typedef long XXINT32/' "$mingw_w64_x86_64_prefix/include/jmorecfg.h" # breaks VLC build without this...freak-o...
+    #generic_configure "NASM=yasm"
+    #do_make_and_make_install
+    #sed -i.bak 's/typedef long INT32/typedef long XXINT32/' "$mingw_w64_x86_64_prefix/include/jmorecfg.h" # breaks VLC build without this...freaky...theoretically using cmake instead would be enough
   cd ..
 }
 
@@ -1402,10 +1401,11 @@ if [[ $box_memory_size_bytes -lt 600000000 ]]; then
   echo "your box only has $box_memory_size_bytes, 512MB (only) boxes crash when building cross compiler gcc, please add some swap" # 1G worked OK however...
   exit 1
 fi
-echo "comparing $box_memory_size_bytes 2000000000"
+
 if [[ $box_memory_size_bytes -gt 2000000000 ]]; then
   gcc_cpu_count=$cpu_count # they can handle it seemingly...
 else
+  echo "low RAM detected so using only one cpu for gcc compilation"
   gcc_cpu_count=1 # compatible low RAM...
 fi
 
