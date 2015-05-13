@@ -525,7 +525,7 @@ build_librtmp() {
 }
 
 build_qt() {
-  build_libjpeg_turbo # dependency [?]
+  build_libjpeg_turbo # libjpeg a dependency [?]
 
   unset CFLAGS # it makes something of its own first, which runs locally, so can't use a foreign arch, or maybe it can, but not important enough: http://stackoverflow.com/a/18775859/32453
   # download_and_unpack_file http://download.qt-project.org/official_releases/qt/5.1/5.1.1/submodules/qtbase-opensource-src-5.1.1.tar.xz qtbase-opensource-src-5.1.1 # not officially supported seems...so didn't try it
@@ -747,10 +747,10 @@ build_libdlfcn() {
 build_libjpeg_turbo() {
   download_and_unpack_file http://sourceforge.net/projects/libjpeg-turbo/files/1.4.0/libjpeg-turbo-1.4.0.tar.gz/download libjpeg-turbo-1.4.0
   cd libjpeg-turbo-1.4.0
-    #do_cmake_and_install # couldn't figure out a static only build...nor working win64 with existing nasm...
-    #generic_configure "NASM=yasm"
-    #do_make_and_make_install
-    #sed -i.bak 's/typedef long INT32/typedef long XXINT32/' "$mingw_w64_x86_64_prefix/include/jmorecfg.h" # breaks VLC build without this...freaky...theoretically using cmake instead would be enough
+    #do_cmake_and_install "-DNASM=yasm" # couldn't figure out a static only build...
+    generic_configure "NASM=yasm"
+    do_make_and_make_install
+    sed -i.bak 's/typedef long INT32/typedef long XXINT32/' "$mingw_w64_x86_64_prefix/include/jmorecfg.h" # breaks VLC build without this...freaky...theoretically using cmake instead would be enough, but that installs .dll.a file...
   cd ..
 }
 
