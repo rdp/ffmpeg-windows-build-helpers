@@ -403,6 +403,7 @@ generic_configure_make_install() {
 }
 
 build_libx265() {
+  # the only one that uses mercurial, so there's some extra initial junk here...
   if [[ $prefer_stable = "n" ]]; then
     local old_hg_version
     if [[ -d x265 ]]; then
@@ -471,7 +472,10 @@ build_libx265() {
     fi
   fi
 
-  
+  if [ "$bits_target" = "32" ]; then
+    cmake_params="$cmake_params -DWINXP_SUPPORT:BOOL=TRUE" # enable windows xp support apparently
+  fi
+
   do_cmake_and_install "$cmake_params" 
   cd ../..
 }
