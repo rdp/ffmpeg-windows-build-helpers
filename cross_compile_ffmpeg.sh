@@ -468,13 +468,13 @@ build_libx265() {
   if [[ $high_bitdepth == "y" ]]; then
     cmake_params="$cmake_params -DHIGH_BIT_DEPTH=ON" # Enable 10 bits (main10) and 12 bits (???) per pixels profiles.
     if [ "$bits_target" = "32" ]; then
-      cmake_params="$cmake_params -DENABLE_ASSEMBLY=OFF" # apparently required or build will fail
+      cmake_params="$cmake_params -DENABLE_ASSEMBLY=OFF" # apparently required or build fails
     fi
   fi
 
-  if [ "$bits_target" = "32" ]; then
+  #if [ "$bits_target" = "32" ]; then
     cmake_params="$cmake_params -DWINXP_SUPPORT:BOOL=TRUE" # enable windows xp support apparently
-  fi
+  #fi
 
   do_cmake_and_install "$cmake_params" 
   cd ../..
