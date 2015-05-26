@@ -872,9 +872,6 @@ build_zlib() {
 build_libxvid() {
   download_and_unpack_file http://downloads.xvid.org/downloads/xvidcore-1.3.3.tar.gz xvidcore
   cd xvidcore/build/generic
-  if [ "$bits_target" = "64" ]; then
-    local config_opts="--build=x86_64-unknown-linux-gnu --disable-assembly" # kludgey work arounds for 64 bit
-  fi
   do_configure "--host=$host_target --prefix=$mingw_w64_x86_64_prefix $config_opts" # no static option...
   sed -i.bak "s/-mno-cygwin//" platform.inc # remove old compiler flag that now apparently breaks us
 
@@ -883,7 +880,7 @@ build_libxvid() {
   cpu_count=$original_cpu_count
   cd ../../..
 
-  # force a static build after the fact by only installing the .a file
+  # force a static build after the fact by only leaving the .a file, not the .dll.a file
   if [[ -f "$mingw_w64_x86_64_prefix/lib/xvidcore.dll.a" ]]; then
     rm $mingw_w64_x86_64_prefix/lib/xvidcore.dll.a || exit 1
     mv $mingw_w64_x86_64_prefix/lib/xvidcore.a $mingw_w64_x86_64_prefix/lib/libxvidcore.a || exit 1
