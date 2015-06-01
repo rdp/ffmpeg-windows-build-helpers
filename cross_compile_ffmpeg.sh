@@ -624,8 +624,8 @@ build_libopenjpeg() {
 
 build_libvpx() {
   if [[ $prefer_stable = "y" ]]; then
-    download_and_unpack_file http://webm.googlecode.com/files/libvpx-v1.3.0.tar.bz2 libvpx-v1.3.0
-    cd libvpx-v1.3.0
+    download_and_unpack_file http://storage.googleapis.com/downloads.webmproject.org/releases/webm/libvpx-1.4.0.tar.bz2 libvpx-1.4.0
+    cd libvpx-1.4.0
   else
     do_git_checkout https://git.chromium.org/git/webm/libvpx.git "libvpx_git"
     cd libvpx_git
