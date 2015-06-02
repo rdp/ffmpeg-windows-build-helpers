@@ -749,12 +749,12 @@ build_libdlfcn() {
 }
 
 build_libjpeg_turbo() {
-  download_and_unpack_file http://sourceforge.net/projects/libjpeg-turbo/files/1.4.0/libjpeg-turbo-1.4.0.tar.gz/download libjpeg-turbo-1.4.0
-  cd libjpeg-turbo-1.4.0
-    #do_cmake_and_install "-DNASM=yasm" # couldn't figure out a static only build...
-    generic_configure "NASM=yasm"
-    do_make_and_make_install
-    sed -i.bak 's/typedef long INT32/typedef long XXINT32/' "$mingw_w64_x86_64_prefix/include/jmorecfg.h" # breaks VLC build without this...freaky...theoretically using cmake instead would be enough, but that installs .dll.a file...
+  download_and_unpack_file http://libjpeg-turbo.sourceforge.net/ljt.nightly/libjpeg-turbo-1.4.1.tar.gz libjpeg-turbo-1.4.1
+  cd libjpeg-turbo-1.4.1
+    do_cmake_and_install "-DNASM=yasm -DENABLE_SHARED=0"
+    #generic_configure "NASM=yasm"
+    #do_make_and_make_install
+    #sed -i.bak 's/typedef long INT32/typedef long XXINT32/' "$mingw_w64_x86_64_prefix/include/jmorecfg.h" # breaks VLC build without this...freaky...theoretically using cmake instead would be enough, but that installs .dll.a file...
   cd ..
 }
 
