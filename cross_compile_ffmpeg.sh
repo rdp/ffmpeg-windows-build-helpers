@@ -1112,7 +1112,7 @@ build_vlc() {
   cd vlc_git
   apply_patch https://raw.githubusercontent.com/rdp/ffmpeg-windows-build-helpers/master/patches/vlc_localtime_s.patch # git revision needs it...
 
-  # outdated
+  # outdated apparently...
   #if [[ "$non_free" = "y" ]]; then
   #  apply_patch https://raw.githubusercontent.com/gcsx/ffmpeg-windows-build-helpers/patch-5/patches/priorize_avcodec.patch
   #fi
@@ -1126,7 +1126,6 @@ build_vlc() {
     rm $file # try to force a rebuild...though there are tons of .a files we aren't rebuilding :|
   done
   rm already_ran_make* # try to force re-link just in case...
-  #cpu_count=1 # not wig out on .rc.lo files etc. too slow
   do_make
   # do some gymnastics to avoid building the mozilla plugin for now [couldn't quite get it to work]
   #sed -i.bak 's_git://git.videolan.org/npapi-vlc.git_https://github.com/rdp/npapi-vlc.git_' Makefile # this wasn't enough...
@@ -1141,7 +1140,6 @@ build_vlc() {
 
 
 "
-  cpu_count=$original_cpu_count
   cd ..
 }
 
