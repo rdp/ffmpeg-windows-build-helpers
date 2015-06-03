@@ -1387,7 +1387,7 @@ build_apps() {
 # set some parameters initial values
 cur_dir="$(pwd)/sandbox"
 unset CFLAGS # I think this resets it...we don't want any linux CFLAGS seeping through...they can set this via --cflags=  if they want it set to anything
-cpu_count="$(grep -c processor /proc/cpuinfo)" # linux
+cpu_count="$(grep -c processor /proc/cpuinfo 2>/dev/null)" # linux cpu count
 if [ -z "$cpu_count" ]; then
   cpu_count=`sysctl -n hw.ncpu | tr -d '\n'` # OS X
   if [ -z "$cpu_count" ]; then
