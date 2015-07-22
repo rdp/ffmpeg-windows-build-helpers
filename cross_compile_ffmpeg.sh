@@ -627,7 +627,7 @@ build_libvpx() {
     download_and_unpack_file http://storage.googleapis.com/downloads.webmproject.org/releases/webm/libvpx-1.4.0.tar.bz2 libvpx-1.4.0
     cd libvpx-1.4.0
   else
-    do_git_checkout https://git.chromium.org/git/webm/libvpx.git "libvpx_git"
+    do_git_checkout https://chromium.googlesource.com/webm/libvpx "libvpx_git"
     cd libvpx_git
   fi
   export CROSS="$cross_prefix"
