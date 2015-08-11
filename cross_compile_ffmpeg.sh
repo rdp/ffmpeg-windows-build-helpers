@@ -772,7 +772,11 @@ build_libspeex() {
 
 build_libtheora() {
   cpu_count=1 # can't handle it
-  generic_download_and_install http://downloads.xiph.org/releases/theora/libtheora-1.1.1.tar.bz2 libtheora-1.1.1
+  download_and_unpack_file http://downloads.xiph.org/releases/theora/libtheora-1.2.0alpha1.tar.gz libtheora-1.2.0alpha1
+  cd libtheora-1.2.0alpha1
+    sed -i.bak 's/double rint/double rint_disabled/' examples/encoder_example.c # double define issue [?]
+    generic_configure_make_install 
+  cd ..
   cpu_count=$original_cpu_count
 }
 
