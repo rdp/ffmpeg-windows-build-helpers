@@ -154,7 +154,7 @@ install_cross_compiler() {
   if [[ -z $build_choice ]]; then
     pick_compiler_flavors
   fi
-  local zeranoe_script_name=mingw-w64-build-3.6.7
+  local zeranoe_script_name=mingw-w64-build-3.6.7.local
   if [[ -f $zeranoe_script_name ]]; then
     rm $zeranoe_script_name || exit 1
   fi
