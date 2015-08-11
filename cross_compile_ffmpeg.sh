@@ -174,7 +174,7 @@ install_cross_compiler() {
   fi
   clear
   if [[ ! -f mingw-w64-i686/bin/i686-w64-mingw32-gcc && ! -f mingw-w64-x86_64/bin/x86_64-w64-mingw32-gcc ]]; then
-    echo "no gcc cross compiler(s) built [?] build failure [?] recommend nuke sandbox dir, start over"
+    echo "no gcc cross compiler(s) seem built [?] (build failure [?]) recommend nuke sandbox dir (rm -rf sandbox) and try again!"
     exit 1
   fi
   echo "Ok, done building MinGW-w64 cross-compiler(s)..."
