@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # ffmpeg windows cross compile helper/download script, see github repo README
 # Copyright (C) 2012 Roger Pack, the script is under the GPLv3, but output FFmpeg's executables aren't
-# set -x # uncomment to enable script debug output
+set -x # uncomment to enable script debug output
 
 yes_no_sel () {
   unset user_input
@@ -154,7 +154,7 @@ install_cross_compiler() {
   if [[ -z $build_choice ]]; then
     pick_compiler_flavors
   fi
-  local zeranoe_script_name=mingw-w64-build-3.6.7.local
+  local zeranoe_script_name=mingw-w64-build-3.6.7
   if [[ -f $zeranoe_script_name ]]; then
     rm $zeranoe_script_name || exit 1
   fi
@@ -166,6 +166,10 @@ install_cross_compiler() {
   echo ""
   nice ./$zeranoe_script_name --clean-build --disable-shared --default-configure  --pthreads-w32-ver=2-9-1 --cpu-count=$gcc_cpu_count --build-type=$build_choice || exit 1 # --disable-shared allows c++ to be distributed at all...which seemed necessary for some random dependency...
   export CFLAGS=$original_cflags # reset it
+  if [[ ! -f mingw-w64-i686/bin/i686-w64-mingw32-gcc && ! -f mingw-w64-x86_64/bin/x86_64-w64-mingw32-gcc ]]; then
+    echo "no gcc cross compiler(s) seem built [?] (build failure [?]) recommend nuke sandbox dir (rm -rf sandbox) and try again!"
+    exit 1
+  fi
   if [ -d mingw-w64-x86_64 ]; then
     touch mingw-w64-x86_64/compiler.done
   fi
@@ -173,11 +177,7 @@ install_cross_compiler() {
     touch mingw-w64-i686/compiler.done
   fi
   clear
-  if [[ ! -f mingw-w64-i686/bin/i686-w64-mingw32-gcc && ! -f mingw-w64-x86_64/bin/x86_64-w64-mingw32-gcc ]]; then
-    echo "no gcc cross compiler(s) seem built [?] (build failure [?]) recommend nuke sandbox dir (rm -rf sandbox) and try again!"
-    exit 1
-  fi
-  echo "Ok, done building MinGW-w64 cross-compiler(s)..."
+  echo "Ok, done building MinGW-w64 cross-compiler(s) successfully..."
 }
 
 # helper methods for downloading and building projects that can take generic input
