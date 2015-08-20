@@ -70,3 +70,9 @@ https://github.com/qyot27/mpv/blob/extra-new/DOCS/crosscompile-mingw-tedious.txt
 
 [1] if you use a 512MB RAM droplet, make sure to add some extra swap space: https://www.digitalocean.com/community/tutorials/how-to-add-swap-on-ubuntu-14-04 before starting.  
 Here's my digitalocean referral link in case you want it [$10 credit] https://www.digitalocean.com/?refcode=b3030b559d17
+
+to enable Intel QSV (vista+ only)
+Modify the script so this line isn't commented out:
+#build_intel_quicksync_mfx
+and also this line uncomment :
+# --enable-libmfx #[not windows xp friendly]
