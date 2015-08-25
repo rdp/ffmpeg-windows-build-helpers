@@ -1274,6 +1274,12 @@ build_ffmpeg() {
   else
     config_options="$config_options --enable-runtime-cpudetect"
   fi
+
+  do_debug_build=n # if you need one for gdb.exe ...
+  if [[ "$do_debug_build" = "y" ]]; then
+    # not sure how many of these are needed...
+    config_options="$config_options --disable-optimizations --extra-cflags=-O0 --extra-cflags=-fno-omit-frame-pointer --enable-debug=3 --extra-cflags=-fno-inline"
+  fi
   
   do_configure "$config_options"
   rm -f */*.a */*.dll *.exe # just in case some dependency library has changed, force it to re-link even if the ffmpeg source hasn't changed...
