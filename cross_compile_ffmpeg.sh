@@ -683,7 +683,7 @@ build_libgsm() {
   download_and_unpack_file http://www.quut.com/gsm/gsm-1.0.13.tar.gz gsm-1.0-pl13
   cd gsm-1.0-pl13
   apply_patch https://raw.githubusercontent.com/rdp/ffmpeg-windows-build-helpers/master/patches/libgsm.patch # for openssl to work with it, I think?
-  # not do_make here since this actually fails [in error]
+  # not do_make here since this actually fails [wrongly]
   make CC=${cross_prefix}gcc AR=${cross_prefix}ar RANLIB=${cross_prefix}ranlib INSTALL_ROOT=${mingw_w64_x86_64_prefix}
   cp lib/libgsm.a $mingw_w64_x86_64_prefix/lib || exit 1
   mkdir -p $mingw_w64_x86_64_prefix/include/gsm
@@ -1238,19 +1238,18 @@ build_ffmpeg() {
   local git_url="https://github.com/FFmpeg/FFmpeg.git"
   local output_dir="ffmpeg_git"
 
-  local extra_configure_opts=""
+  local postpend_configure_opts=""
 
-  extra_configure_opts="$extra_configure_opts --extra-cflags=$CFLAGS" # --extra-cflags is not needed here, but adds it to the console output which I like for debugging purposes
 
   # can't mix and match --enable-static --enable-shared unfortunately, or the final executable seems to just use shared if the're both present
   if [[ $shared == "shared" ]]; then
     output_dir=${output_dir}_shared
     final_install_dir=`pwd`/${output_dir}.installed
-    extra_configure_opts="--enable-shared --disable-static $extra_configure_opts"
+    postpend_configure_opts="--enable-shared --disable-static $postpend_configure_opts"
     # avoid installing this to system?
-    extra_configure_opts="$extra_configure_opts --prefix=$final_install_dir --disable-libgme" # gme broken for shared as of yet TODO...
+    postpend_configure_opts="$postpend_configure_opts --prefix=$final_install_dir --disable-libgme" # gme broken for shared as of yet TODO...
   else
-    extra_configure_opts="--enable-static --disable-shared $extra_configure_opts --prefix=$mingw_w64_x86_64_prefix"
+    postpend_configure_opts="--enable-static --disable-shared $postpend_configure_opts --prefix=$mingw_w64_x86_64_prefix"
   fi
 
   do_git_checkout $git_url ${output_dir}
@@ -1262,13 +1261,17 @@ build_ffmpeg() {
    local arch=x86_64
   fi
 
-  init_options="--arch=$arch --target-os=mingw32 --cross-prefix=$cross_prefix --pkg-config=pkg-config --disable-w32threads $extra_configure_opts"
+  init_options="--arch=$arch --target-os=mingw32 --cross-prefix=$cross_prefix --pkg-config=pkg-config --disable-w32threads"
   config_options="$init_options --enable-gpl --enable-libsoxr --enable-fontconfig --enable-libass --enable-libutvideo --enable-libbluray --enable-iconv --enable-libtwolame --extra-cflags=-DLIBTWOLAME_STATIC --enable-libzvbi --enable-libcaca --enable-libmodplug --extra-libs=-lstdc++ --extra-libs=-lpng --enable-libvidstab --enable-libx265 --enable-decklink --extra-libs=-loleaut32 --enable-libx264 --enable-libxvid --enable-libmp3lame --enable-version3 --enable-zlib --enable-librtmp --enable-libvorbis --enable-libtheora --enable-libspeex --enable-libopenjpeg --enable-gnutls --enable-libgsm --enable-libfreetype --enable-libopus --enable-frei0r --enable-filter=frei0r --enable-libvo-aacenc --enable-bzlib --enable-libxavs --enable-libopencore-amrnb --enable-libopencore-amrwb --enable-libvo-amrwbenc --enable-libschroedinger --enable-libvpx --enable-libilbc --enable-libwavpack --enable-libwebp --enable-libgme --enable-dxva2 --enable-libdcadec --enable-avisynth --enable-gray" 
   # other possibilities (you'd need to also uncomment the call to their build method): 
   # --enable-w32threads # [worse UDP than pthreads, so not using that] 
   # --enable-libflite # [too big]
   # --enable-libmfx # [not windows xp friendly]
   config_options="$config_options --extra-libs=-lpsapi" # dlfcn [frei0r?] requires this, has no .pc file XXX put in frei0r.pc? ...
+  config_options="$config_options --extra-cflags=$CFLAGS" # --extra-cflags is not needed here, but adds it to the console output which I like for debugging purposes
+
+  config_options="$config_options $postpend_configure_opts"
+
   if [[ "$non_free" = "y" ]]; then
     config_options="$config_options --enable-nonfree --enable-libfdk-aac --disable-libfaac --enable-nvenc " 
     # faac deemed too poor quality and becomes the default -- add it in and uncomment the build_faac line to include it, if anybody ever does... 
@@ -1283,10 +1286,12 @@ build_ffmpeg() {
     config_options="$config_options --enable-runtime-cpudetect"
   fi
 
-  do_debug_build=y # if you need one for gdb.exe ...
+  do_debug_build=n # if you need one for gdb.exe ...
   if [[ "$do_debug_build" = "y" ]]; then
-    # not sure how many of these are actually needed/useful...
-    config_options="$init_options --enable-gpl --enable-libsoxr --enable-fontconfig --enable-libass --enable-libutvideo --enable-libbluray --enable-iconv --enable-libtwolame --extra-cflags=-DLIBTWOLAME_STATIC --enable-libzvbi --enable-libcaca --enable-libmodplug --extra-libs=-lstdc++ --extra-libs=-lpng --disable-optimizations --extra-cflags=-O0 --extra-cflags=-fno-omit-frame-pointer --enable-debug=3 --extra-cflags=-fno-inline"
+    # not sure how many of these are actually needed/useful...possibly none LOL
+    config_options="$config_options --disable-optimizations --extra-cflags=-Og --extra-cflags=-fno-omit-frame-pointer --enable-debug=3 --extra-cflags=-fno-inline $postpend_configure_opts"
+    # this one kills gdb for static what? ai ai [?]
+    config_options="$config_options --disable-libgme"
   fi
   
   do_configure "$config_options"
