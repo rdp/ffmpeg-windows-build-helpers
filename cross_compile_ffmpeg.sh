@@ -164,7 +164,8 @@ install_cross_compiler() {
   # pthreads version to avoid having to use cvs for it
   echo "starting to download and build cross compile version of gcc [requires working internet access] with thread count $gcc_cpu_count..."
   echo ""
-  nice ./$zeranoe_script_name --clean-build --disable-shared --default-configure  --pthreads-w32-ver=2-9-1 --cpu-count=$gcc_cpu_count --build-type=$build_choice || exit 1 # --disable-shared allows c++ to be distributed at all...which seemed necessary for some random dependency...
+  # --disable-shared allows c++ to be distributed at all...which seemed necessary for some random dependency...
+  nice ./$zeranoe_script_name --clean-build --disable-shared --default-configure  --pthreads-w32-ver=2-9-1 --cpu-count=$gcc_cpu_count --build-type=$build_choice --gcc-ver=5.2.0 || exit 1 
   export CFLAGS=$original_cflags # reset it
   if [[ ! -f mingw-w64-i686/bin/i686-w64-mingw32-gcc && ! -f mingw-w64-x86_64/bin/x86_64-w64-mingw32-gcc ]]; then
     echo "no gcc cross compiler(s) seem built [?] (build failure [?]) recommend nuke sandbox dir (rm -rf sandbox) and try again!"
@@ -975,7 +976,13 @@ build_libexpat() {
 }
 
 build_iconv() {
-  generic_download_and_install http://ftp.gnu.org/pub/gnu/libiconv/libiconv-1.14.tar.gz libiconv-1.14
+  download_and_unpack_file http://ftp.gnu.org/pub/gnu/libiconv/libiconv-1.14.tar.gz libiconv-1.14
+  cd libiconv-1.14
+    export CFLAGS=-O2 
+    generic_configure
+    do_make_and_make_install
+    unset CFLAGS
+  cd ..
 }
 
 build_freetype() {
@@ -1277,8 +1284,8 @@ build_ffmpeg() {
 
   do_debug_build=n # if you need one for gdb.exe ...
   if [[ "$do_debug_build" = "y" ]]; then
-    # not sure how many of these are needed...
-    config_options="$config_options --disable-optimizations --extra-cflags=-O0 --extra-cflags=-fno-omit-frame-pointer --enable-debug=3 --extra-cflags=-fno-inline"
+    # not sure how many of these are actually needed/useful...
+    config_options="$config_options --disable-optimizations --extra-cflags=-O0 --extra-cflags=-fno-omit-frame-pointer --enable-debug=gdb --extra-cflags=-fno-inline"
   fi
   
   do_configure "$config_options"
