@@ -1,10 +1,10 @@
-ECHO running cygwin install
-mkdir %cd%\cygwin_install
+ECHO running cygwin install...
+mkdir %cd%\cygwin_local_install
 @rem cd to it so that cygwin install logs etc. go there
-cd %cd%\cygwin_install
+cd %cd%\cygwin_local_install
 
-ECHO downloading cygwin setup exe...
-wscript ..\download.vbs
+ECHO downloading cygwin setup executable...
+@powershell -command "$clnt = new-object System.Net.WebClient; $clnt.DownloadFile(\"https://cygwin.com/setup-x86.exe\", \"setup-x86.exe\")"
 
 @rem forced to hard select a mirror here apparently...
 setup-x86.exe ^
@@ -26,18 +26,17 @@ echo "done installing cygwin"
 cd .. 
 
 setlocal
-@rem want wget etc. so override path. Probably need this anyway...
-set PATH=%cd%\cygwin_install\bin;%PATH%
+@rem want wget etc. so override path. Probably need this regardless...
+set PATH=%cd%\cygwin_local_install\bin;%PATH%
 
-mkdir ffmpeg_build
-cd ffmpeg_build
+mkdir ffmpeg_local_builds
+cd ffmpeg_local_builds
 
-..\cygwin_install\bin\bash.exe -c "wget https://raw.github.com/rdp/ffmpeg-windows-build-helpers/master/cross_compile_ffmpeg.sh -O cross_compile_ffmpeg.sh"
-..\cygwin_install\bin\bash.exe -c "chmod u+x ./cross_compile_ffmpeg.sh"
-..\cygwin_install\bin\bash.exe -c "./cross_compile_ffmpeg.sh"
+..\cygwin_local_install\bin\bash.exe -c "wget https://raw.github.com/rdp/ffmpeg-windows-build-helpers/master/cross_compile_ffmpeg.sh -O cross_compile_ffmpeg.sh"
+..\cygwin_local_install\bin\bash.exe -c "chmod u+x ./cross_compile_ffmpeg.sh"
+..\cygwin_local_install\bin\bash.exe -c "./cross_compile_ffmpeg.sh"
 
 cd ..
 
-ECHO "done with local build..."
-
+ECHO "done with local build...check logs above to see if success"
 pause
