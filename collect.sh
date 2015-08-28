@@ -1,3 +1,5 @@
+#This basically packages up all your FFmpeg static/shared builds into .7z files
+
 cd sandbox/win32/ffmpeg_git
 git_version=`git rev-parse HEAD`
 cd ../../..
