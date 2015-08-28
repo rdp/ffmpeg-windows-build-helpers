@@ -4,10 +4,10 @@ mkdir %cd%\cygwin_install
 cd %cd%\cygwin_install
 
 ECHO downloading cygwin setup exe...
-wscript download.vbs
+wscript ..\download.vbs
 
-@rem forced to hard select a mirror apparently...
-..\setup-x86.exe ^
+@rem forced to hard select a mirror here apparently...
+setup-x86.exe ^
 --quiet-mode ^
 --no-admin ^
 --no-startmenu ^
