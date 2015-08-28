@@ -1,3 +1,7 @@
+ECHO "this process will first install a local copy of cygwin [to compile the cross compiler]"
+ECHO "then it will prompt you for some questions like 32 bit vs. 64 bit, free vs. non free build"
+pause
+
 ECHO running cygwin install...
 mkdir %cd%\cygwin_local_install
 @rem cd to it so that cygwin install logs etc. go there
@@ -17,11 +21,9 @@ setup-x86.exe ^
 --root %cd% ^
 --packages ^
 ed,wget,subversion,texinfo,gcc-g++,bison,flex,cvs,yasm,automake,libtool,autoconf,gcc-core,cmake,git,make,pkg-config,zlib1g-dev,mercurial,unzip,pax
-@rem todo just use curl, remove wget here [and in main readme] :)
+@rem XXXX just use curl, could remove wget here [and in main readme] :)
 
 echo "done installing cygwin"
-
-@rem TODO run the script LOL
 
 cd .. 
 
