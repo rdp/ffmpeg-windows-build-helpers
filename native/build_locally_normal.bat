@@ -1,4 +1,4 @@
-@rem call build_cygwin.bat
+call build_cygwin.bat
 
 setlocal
 @rem want wget etc. so override path. Probably need this anyway...

@@ -94,7 +94,7 @@ intro() {
   You can, of course, rebuild ffmpeg from within it, etc.
 EOL
   if [[ $sandbox_ok != 'y' && ! -d sandbox ]]; then
-    yes_no_sel "Is ./sandbox ok (requires ~ 5GB space) [Y/n]?" "y"
+    yes_no_sel "Is $PWD/sandbox ok (requires ~ 5GB space) [Y/n]?" "y"
     if [[ "$user_input" = "n" ]]; then
       exit 1
     fi
