@@ -1,10 +1,12 @@
 call build_cygwin.bat
+setlocal
+@rem want wget etc...
+set PATH=..\cygwin_install\bin;%PATH%
+mkdir ffmpeg_build
+cd ffmpeg_build
 
-mkdir cygwin_ffmpeg_build
-cd cygwin_ffmpeg_build
+..\cygwin_install\bin\bash.exe -c "wget https://raw.github.com/rdp/ffmpeg-windows-build-helpers/master/cross_compile_ffmpeg.sh -O cross_compile_ffmpeg.sh"
+..\cygwin_install\bin\bash.exe -c "chmod u+x ./cross_compile_ffmpeg.sh"
+..\cygwin_install\bin\bash.exe -c "./cross_compile_ffmpeg.sh"
 
-..\cygwin_install\bin\bash.exe -c "curl https://raw.github.com/rdp/ffmpeg-windows-build-helpers/master/cross_compile_ffmpeg.sh -O"
-
-
-
-@rem cd ..
+cd ..
