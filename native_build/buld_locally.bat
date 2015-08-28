@@ -1,5 +1,11 @@
-ECHO "this process will first install a local copy of cygwin [to compile the cross compiler]"
-ECHO "then it will prompt you for some questions like 32 bit vs. 64 bit, free vs. non free build"
+@ECHO OFF
+ECHO "this process will first install a local copy of cygwin"
+ECHO "then it will prompt you for some options like 32 bit vs. 64 bit, free vs. non free dependencies"
+ECHO "and then it will build the cross compiler and finally FFmpeg."
+ECHO "if you want more advanced options, after the first pass, "
+ECHO "add to beginning of PATH like PATH=%cd%\cygwin_local_install\bin;%%PATH%% "
+ECHO "then run bash.exe, and cd to %cd%\ffmpeg_local_builds and run the script manually yourself."
+ECHO "continuing with a normal FFmpeg build..."
 pause
 
 ECHO running cygwin install...
