@@ -1,7 +1,9 @@
-call build_cygwin.bat
+@rem call build_cygwin.bat
+
 setlocal
-@rem want wget etc...
-set PATH=..\cygwin_install\bin;%PATH%
+@rem want wget etc. so override path. Probably need this anyway...
+set PATH=%cd%\cygwin_install\bin;%PATH%
+
 mkdir ffmpeg_build
 cd ffmpeg_build
 
