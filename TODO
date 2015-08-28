@@ -1,11 +1,12 @@
 == actual todos ==
 
 test out mplayer with its record-size whatever...
-add a command line option for qsv [?]
+fix gsm shared is broken...that was painful...
+
 
 == maybe/never do, more on the never... ==
 
-fix gsm shared is broken
+add a command line option for qsv [?]
 
 default to more gcc cpu's?  hrm...
 
@@ -16,9 +17,6 @@ figure out real static linkable builds [tell zeranoe to put them on his site?]
 
 libav.pc is missing myriad things [patches to ffmpeg-core?]
   then use it in x264 LOL wait isn't that circular...ok maybe this is low prio
-
-windows cygwin batch file to build the whole thing?
-  can I do this all with that zeranoe .bat file and cygwin deps? LOL
 
 add more executables like the jb-alvarado one [?] meh
 
