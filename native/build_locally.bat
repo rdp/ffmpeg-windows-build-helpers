@@ -1,4 +1,7 @@
-wscript download.vbs https://cygwin.com/setup-x86.exe
+ECHO downloading cygwin setup exe...
+wscript download.vbs
+
+ECHO running cygwin install
 
 setup-x86.exe ^
 --quiet-mode ^
@@ -11,4 +14,4 @@ curl,^
 atool,^
 autoconf,^
 automake,^
-autossh,^
+autossh
