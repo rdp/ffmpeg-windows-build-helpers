@@ -16,14 +16,10 @@ setup-x86.exe ^
 --site http://mirrors.xmission.com/cygwin/ ^
 --root %cd% ^
 --packages ^
-curl,^
-atool,^
-autoconf,^
-automake,^
-autossh
-
-@rem TODO more packages
+subversion,texinfo,g++,bison,flex,cvs,yasm,automake,libtool,autoconf,gcc,cmake,git,make,pkg-config,zlib1g-dev,mercurial,unzip,pax
 
 echo "done installing cygwin"
 
 @rem TODO run the script LOL
+
+cd .. 
