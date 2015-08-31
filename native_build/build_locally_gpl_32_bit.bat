@@ -1,0 +1,1 @@
+@build_locally_with_fdk_aac_etc -d --build-choice=win32
