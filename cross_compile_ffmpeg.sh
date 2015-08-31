@@ -1249,8 +1249,11 @@ build_ffmpeg() {
   local git_url="https://github.com/FFmpeg/FFmpeg.git"
   local output_dir="ffmpeg_git"
 
-  local postpend_configure_opts=""
+  if [[ "$non_free" = "y" ]]; then
+    output_dir="${output_dir}_with_aac"
+  fi
 
+  local postpend_configure_opts=""
 
   # can't mix and match --enable-static --enable-shared unfortunately, or the final executable seems to just use shared if the're both present
   if [[ $shared == "shared" ]]; then
