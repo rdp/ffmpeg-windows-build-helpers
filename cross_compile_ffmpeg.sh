@@ -267,7 +267,7 @@ get_small_touchfile_name() { # have to call with assignment like a=$(get_small..
   local beginning="$1"
   local extra_stuff="$2"
   local touch_name="${beginning}_$(echo -- $extra_stuff $CFLAGS | /usr/bin/env md5sum)" # make it smaller
-  touch_name=$(echo $touch_name | sed "s/ //g") # md5sum introduces spaces, remove them
+  touch_name=$(echo "$touch_name" | sed s/ //g") # md5sum introduces spaces, remove them
   echo $touch_name # bash cruddy return system LOL
 } 
 
