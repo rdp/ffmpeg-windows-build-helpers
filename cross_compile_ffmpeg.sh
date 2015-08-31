@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # ffmpeg windows cross compile helper/download script, see github repo README
 # Copyright (C) 2012 Roger Pack, the script is under the GPLv3, but output FFmpeg's executables aren't
-# set -x # uncomment to enable script debug output
+set -x # uncomment to enable script debug output
 
 yes_no_sel () {
   unset user_input
@@ -844,9 +844,9 @@ build_libschroedinger() {
 }
 
 build_gnutls() {
-  download_and_unpack_file ftp://ftp.gnutls.org/gcrypt/gnutls/v3.3/gnutls-3.3.9.tar.xz gnutls-3.3.9
-  cd gnutls-3.3.9
-    sed -i.bak 's/mkstemp(tmpfile)/ -1 /g' src/danetool.c # fix x86_64 absent? but danetool is just an exe AFAICT so this should be ok
+  download_and_unpack_file ftp://ftp.gnutls.org/gcrypt/gnutls/v3.3/gnutls-3.3.17.1.tar.xz gnutls-3.3.17.1
+  cd gnutls-3.3.17.1
+    sed -i.bak 's/mkstemp(tmpfile)/ -1 /g' src/danetool.c # fix x86_64 absent? but danetool is just an exe AFAICT so this hack should be ok...
     generic_configure "--disable-cxx --disable-doc --enable-local-libopts  --disable-guile" # don't need the c++ version, in an effort to cut down on size... XXXX test size difference... libopts to allow building with local autogen installed, guile is so that if it finds guile installed (cygwin did/does) it won't try and link/build to it and fail...
     do_make_and_make_install
   cd ..
