@@ -177,6 +177,7 @@ install_cross_compiler() {
   if [ -d mingw-w64-i686 ]; then
     touch mingw-w64-i686/compiler.done
   fi
+    echo "looking for build.log in $(pwd)"
   if [[ -f build.log ]]; then
     rm build.log
   fi
