@@ -4,30 +4,30 @@ ffmpeg-windows-build-helpers
 This helper script lets you cross compile a windows 32 or 64 bit version of ffmpeg/mplayer/mp4box.exe, etc.
 including many dependency libraries they use.
 
-To run the script:
+To run the script...
 
-To build in windows (no VM needed, cross compiling from cygwin): (update: the cygwin way is a bit unstable, may want to go the VM way for now...)
-  download repository: https://github.com/rdp/ffmpeg-windows-build-helpers/archive/master.zip
-  unzip and run "native_build/build_locally.bat" file.
-  There are also some other projects that do a more "native" build see "related projects" section.  these might build faster than what you have
-    here since they use built-in mingw* packages instead of rebuilding the compiler (which we do here currently).
+To build in windows (no VM needed, uses the native'ish cygwin):
+  download repository: 
+    zip file: https://github.com/rdp/ffmpeg-windows-build-helpers/archive/master.zip and unzip
+    or clone the repository: c:\> git clone https://github.com/rdp/ffmpeg-windows-build-helpers.git
+  Next run one of the "native_build/build_locally_XXX.bat" file.
   
-To build it from a linux box (cross compiling):
+Or build it from a linux box (cross compiler):
 
   In some type of Linux box (VM or native, or you could even create a VM temporarily, ex: digitalocean [1], [use it, then destroy your droplet]):
 
   download the script (git clone the repo, cd into it, run script, or do the following in a bash window) $
 
-```bash
-wget https://raw.github.com/rdp/ffmpeg-windows-build-helpers/master/cross_compile_ffmpeg.sh -O cross_compile_ffmpeg.sh
-chmod u+x cross_compile_ffmpeg.sh
-./cross_compile_ffmpeg.sh
-```
+    ```bash
+    wget https://raw.github.com/rdp/ffmpeg-windows-build-helpers/master/cross_compile_ffmpeg.sh -O cross_compile_ffmpeg.sh
+    chmod u+x cross_compile_ffmpeg.sh
+    ./cross_compile_ffmpeg.sh
+    ```
 
-And for both, follow the prompts.  
-It should end up with a working static ffmpeg.exe within the "sandbox" directory.
+And for both, answer the prompts.  
+It should end up with a working static ffmpeg.exe within the "sandbox/*/ffmpeg_git" director(ies).
 
-OS X users, follow instructions for linux above (it should "just work" no VM needed).
+OS X users, follow instructions for linux above (it should "just work" no VM needed, cross compiling).
 
 Also NB that it has some command line parameters you can pass it, for instance to speed
 up the building speed of gcc, building a shared build (.dll style outputs) of FFmpeg, etc. 
@@ -36,6 +36,8 @@ Run it like
 ./cross_compile_ffmpeg.sh -h 
 to see all the various options available to you.
 
+There are also some other projects that do a more "native" build see "related projects" section.  these might build faster than what you have
+  here since they use built-in mingw* packages instead of rebuilding the compiler (which we do here currently).
 
 If you want to customize your FFmpeg final executable even more (remove features you don't need, etc.) then edit the script
 1. Add or remove the "--enable-xxx" settings in the build_ffmpeg method (under config_options) near the bottom of the script.  This can enable or disable parts of FFmpeg that you don't need, or want more, etc.
