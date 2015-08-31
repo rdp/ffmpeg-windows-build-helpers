@@ -271,7 +271,7 @@ get_small_touchfile_name() { # have to call with assignment like a=$(get_small..
   local extra_stuff="$2"
   local touch_name="${beginning}_$(echo -- $extra_stuff $CFLAGS | /usr/bin/env md5sum)" # make it smaller
   touch_name=$(echo "$touch_name" | sed "s/ //g") # md5sum introduces spaces, remove them
-  echo $touch_name # bash cruddy return system LOL
+  echo "$touch_name" # bash cruddy return system LOL
 } 
 
 do_configure() {
@@ -304,7 +304,7 @@ do_make() {
   local cur_dir2=$(pwd)
   local touch_name=$(get_small_touchfile_name already_ran_make "$extra_make_options")
 
-  if [[ ! -f $touch_name ]]; then
+  if [ ! -f $touch_name ]; then
     echo
     echo "making $cur_dir2 as $ PATH=$PATH make $extra_make_options"
     echo
