@@ -1280,7 +1280,7 @@ build_ffmpeg() {
   # other possibilities (you'd need to also uncomment the call to their build method): 
   # --enable-w32threads # [worse UDP than pthreads, so not using that] 
   # --enable-libflite # [too big]
-  # --enable-libmfx # [not windows xp friendly]
+  # config_options="$config_options --enable-libmfx" # [not windows xp friendly]
   config_options="$config_options --extra-libs=-lpsapi" # dlfcn [frei0r?] requires this, has no .pc file XXX put in frei0r.pc? ...
   config_options="$config_options --extra-cflags=$CFLAGS" # --extra-cflags is not needed here, but adds it to the console output which I like for debugging purposes
 

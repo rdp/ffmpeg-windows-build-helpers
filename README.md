@@ -78,6 +78,6 @@ Here's my digitalocean referral link in case you want it [$10 credit] https://ww
 
 to enable Intel QSV (vista+ compatible only)
 Modify the script so the following two lines aren't commented out:
- #build_intel_quicksync_mfx
+ # build_intel_quicksync_mfx
   and this one:
- # --enable-libmfx #[not windows xp friendly]
+ # config_options="$config_options --enable-libmfx"
