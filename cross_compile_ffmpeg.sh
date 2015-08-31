@@ -177,9 +177,7 @@ install_cross_compiler() {
   if [ -d mingw-w64-i686 ]; then
     touch mingw-w64-i686/compiler.done
   fi
-  if [[ -f build.log ]]; then
-    rm build.log
-  fi
+  rm -f build.log
   clear
   echo "Ok, done building MinGW-w64 cross-compiler(s) successfully..."
 }
@@ -258,7 +256,7 @@ do_git_checkout() {
     new_git_version=`git rev-parse HEAD`
     if [[ "$old_git_version" != "$new_git_version" ]]; then
      echo "got upstream changes, forcing re-configure."
-     rm already*
+     rm -f already*
     else
      echo "this pull got no new upstream changes, not forcing re-configure..."
     fi 
@@ -356,7 +354,7 @@ apply_patch() {
    echo "applying patch $patch_name"
    patch -p0 < "$patch_name" || exit 1
    touch $patch_done_name || exit 1
-   rm already_ran* # if it's a new patch, reset everything too, in case it's really really really new
+   rm -f already_ran* # if it's a new patch, reset everything too, in case it's really really really new
  else
    echo "patch $patch_name already applied"
  fi
@@ -433,7 +431,7 @@ build_libx265() {
     local new_hg_version=`hg --debug id -i`  
     if [[ "$old_hg_version" != "$new_hg_version" ]]; then
       echo "got upstream hg changes, forcing rebuild...x265"
-      rm already*
+      rm -f already*
     else
       echo "still at hg $new_hg_version x265"
     fi
@@ -462,7 +460,7 @@ build_libx265() {
     local new_hg_version=`hg --debug id -i`  
     if [[ "$old_hg_version" != "$new_hg_version" ]]; then
       echo "got upstream hg changes, forcing rebuild...x265"
-      rm already*
+      rm -f already*
     else
       echo "still at hg $new_hg_version x265"
     fi
@@ -501,7 +499,7 @@ build_libx264() {
     # TODO profile guided here option, with wine?
     do_configure "$configure_flags"
     curl -4 http://samples.mplayerhq.hu/yuv4mpeg2/example.y4m.bz2 -O || exit 1
-    rm example.y4m # in case it exists already...
+    rm -f example.y4m # in case it exists already...
     bunzip2 example.y4m.bz2 || exit 1
     # XXX does this kill git updates? maybe a more general fix, since vid.stab does also?
     sed -i.bak "s_\\, ./x264_, wine ./x264_" Makefile # in case they have wine auto-run disabled http://askubuntu.com/questions/344088/how-to-ensure-wine-does-not-auto-run-exe-files
@@ -939,7 +937,7 @@ build_openssl() {
 
 build_libnvenc() {
   if [[ ! -f $mingw_w64_x86_64_prefix/include/nvEncodeAPI.h ]]; then
-    rm -rf nvenc # TODO better recoveries here?
+    rm -rf nvenc # just in case :)
     mkdir nvenc
     cd nvenc
       echo "installing nvenc [nvidia gpu assisted encoder]"
@@ -1144,10 +1142,8 @@ build_vlc() {
   fi 
   export DVDREAD_LIBS='-ldvdread -ldvdcss -lpsapi'
   do_configure "--disable-libgcrypt --disable-a52 --host=$host_target --disable-lua --disable-mad --enable-qt --disable-sdl --disable-mod" # don't have lua mingw yet, etc. [vlc has --disable-sdl [?]] x265 disabled until we care enough... Looks like the bluray problem was related to the BLURAY_LIBS definition. [not sure what's wrong with libmod]
-  for file in `find . -name *.exe`; do
-    rm $file # try to force a rebuild...though there are tons of .a files we aren't rebuilding :|
-  done
-  rm already_ran_make* # try to force re-link just in case...
+  rm -f `find . -name *.exe` # try to force a rebuild...though there are tons of .a files we aren't rebuilding as well FWIW...:|
+  rm -f already_ran_make* # try to force re-link just in case...
   do_make
   # do some gymnastics to avoid building the mozilla plugin for now [couldn't quite get it to work]
   #sed -i.bak 's_git://git.videolan.org/npapi-vlc.git_https://github.com/rdp/npapi-vlc.git_' Makefile # this wasn't enough...
@@ -1180,8 +1176,8 @@ build_mplayer() {
   sed -i.bak "s/HAVE_PTHREAD_CANCEL 0/HAVE_PTHREAD_CANCEL 1/g" config.h # mplayer doesn't set this up right?
   touch -t 201203101513 config.h # the above line change the modify time for config.h--forcing a full rebuild *every time* yikes!
   # try to force re-link just in case...
-  rm *.exe
-  rm already_ran_make* # try to force re-link just in case...
+  rm -f *.exe
+  rm -f already_ran_make* # try to force re-link just in case...
   do_make
   cp mplayer.exe mplayer_debug.exe
   ${cross_prefix}strip mplayer.exe
@@ -1202,12 +1198,11 @@ build_mp4box() { # like build_gpac
   # I seem unable to pass 3 libs into the same config line so do it with sed...
   sed -i.bak "s/EXTRALIBS=.*/EXTRALIBS=-lws2_32 -lwinmm -lz/g" config.mak
   cd src
-  rm already_
   do_make "CC=${cross_prefix}gcc AR=${cross_prefix}ar RANLIB=${cross_prefix}ranlib PREFIX= STRIP=${cross_prefix}strip"
   cd ..
-  rm ./bin/gcc/MP4Box* # try and force a relink/rebuild of the .exe
+  rm -f ./bin/gcc/MP4Box* # try and force a relink/rebuild of the .exe
   cd applications/mp4box
-  rm already_ran_make*
+  rm -f already_ran_make* # ?? 
   do_make "CC=${cross_prefix}gcc AR=${cross_prefix}ar RANLIB=${cross_prefix}ranlib PREFIX= STRIP=${cross_prefix}strip"
   cd ../..
   # copy it every time just in case it was rebuilt...
@@ -1310,7 +1305,7 @@ build_ffmpeg() {
   
   do_configure "$config_options"
   rm -f */*.a */*.dll *.exe # just in case some dependency library has changed, force it to re-link even if the ffmpeg source hasn't changed...
-  rm already_ran_make*
+  rm -f already_ran_make*
   echo "doing ffmpeg make $(pwd)"
   do_make_and_make_install # install ffmpeg to get libavcodec libraries to be used as dependencies for other things, like vlc [XXX make this a parameter?] or install shared to a local dir
 
