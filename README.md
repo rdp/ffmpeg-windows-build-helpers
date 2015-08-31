@@ -77,7 +77,7 @@ Related projects (that do cross compiling with dependency libraries):
 Here's my digitalocean referral link in case you want it [$10 credit] https://www.digitalocean.com/?refcode=b3030b559d17
 
 to enable Intel QSV (vista+ compatible only)
-Modify the script so this line isn't commented out:
+Modify the script so the following two lines aren't commented out:
  #build_intel_quicksync_mfx
-and also this line uncomment it: 
+  and this one:
  # --enable-libmfx #[not windows xp friendly]
