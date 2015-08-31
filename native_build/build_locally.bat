@@ -1,12 +1,9 @@
 @ECHO OFF
-ECHO "this process will first install a local copy of cygwin"
-ECHO "then it will prompt you for some options like 32 bit vs. 64 bit, free vs. non free dependencies"
-ECHO "and then it will build the cross compiler and finally FFmpeg."
-ECHO "if you want more advanced options, after the first pass, "
-ECHO add to beginning of PATH like
-ECHO set PATH=%cd%\cygwin_local_install\bin;%%PATH%%
-ECHO "then run bash.exe, and cd to %cd%\ffmpeg_local_builds and run the script manually yourself."
-ECHO "continuing with a normal FFmpeg build..."
+ECHO this process will first install a local copy of cygwin
+ECHO then it will prompt you for some options like 32 bit vs. 64 bit, free vs. non free dependencies
+ECHO and then it will build the cross compiler and finally FFmpeg.
+ECHO if you want more advanced options, after the first pass, it will give you more instructions when done.
+ECHO continuing with a normal FFmpeg build...
 pause
 
 ECHO running cygwin install...
@@ -48,4 +45,8 @@ cd ffmpeg_local_builds
 cd ..
 
 ECHO "done with local build...check logs above to see if success"
+ECHO if you want more advanced configuration (like building mplayer or mp4box) 
+ECHO open cmd, add cygwin bin to to beginning of PATH env. variable like
+ECHO set PATH=%cd%\cygwin_local_install\bin;%%PATH%%
+ECHO "then run bash.exe, and cd to %cd%\ffmpeg_local_builds and run the script manually yourself."
 pause
