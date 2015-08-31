@@ -304,7 +304,7 @@ do_make() {
   local cur_dir2=$(pwd)
   local touch_name=$(get_small_touchfile_name already_ran_make "$extra_make_options")
 
-  if [ ! -f $touch_name ]; then
+  if [[ ! -f $touch_name ]]; then
     echo
     echo "making $cur_dir2 as $ PATH=$PATH make $extra_make_options"
     echo
