@@ -177,10 +177,10 @@ install_cross_compiler() {
   if [ -d mingw-w64-i686 ]; then
     touch mingw-w64-i686/compiler.done
   fi
-  clear
   if [[ -f build.log ]]; then
     rm build.log
   fi
+  clear
   echo "Ok, done building MinGW-w64 cross-compiler(s) successfully..."
 }
 
