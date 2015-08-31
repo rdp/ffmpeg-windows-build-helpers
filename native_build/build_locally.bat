@@ -1,4 +1,5 @@
-@rem ECHO OFF
+@ECHO OFF
+ECHO Welcome to this FFmpeg compile script.
 ECHO this process will first install a local copy of cygwin
 ECHO then it will prompt you for some options like 32 bit vs. 64 bit, free vs. non free dependencies
 ECHO and then it will build the cross compiler and finally FFmpeg.
@@ -9,7 +10,6 @@ ECHO running cygwin install...
 mkdir ffmpeg_local_builds\cygwin_local_install
 @rem cd to it so that cygwin install logs etc. go there
 cd ffmpeg_local_builds\cygwin_local_install
-pause
 ECHO downloading cygwin setup executable...
 @powershell -command "$clnt = new-object System.Net.WebClient; $clnt.DownloadFile(\"https://cygwin.com/setup-x86.exe\", \"setup-x86.exe\")"
 
