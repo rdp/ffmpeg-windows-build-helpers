@@ -989,9 +989,17 @@ build_iconv() {
 }
 
 build_freetype() {
-  generic_download_and_install http://download.savannah.gnu.org/releases/freetype/freetype-2.5.5.tar.gz freetype-2.5.5 "--with-png=no"
-  sed -i.bak 's/Libs: -L${libdir} -lfreetype.*/Libs: -L${libdir} -lfreetype -lexpat -lz -lbz2/' "$PKG_CONFIG_PATH/freetype2.pc" # this should not need expat, but...I think maybe people use fontconfig's wrong and that needs expat? huh wuh? or dependencies are setup wrong in some .pc file?
-  # possibly don't need the bz2 in there [bluray adds its own]...
+  download_and_unpack_file http://download.savannah.gnu.org/releases/freetype/freetype-2.5.5.tar.gz freetype-2.5.5
+  cd freetype-2.5.5
+    if [ `uname -s` == CYGWIN* ]; then
+      generic_configure "--build=i686-pc-cygwin --with-png=no"  
+    else
+      generic_configure "--with-png=no"
+    fi
+    do_make_and_make_install
+    sed -i.bak 's/Libs: -L${libdir} -lfreetype.*/Libs: -L${libdir} -lfreetype -lexpat -lz -lbz2/' "$PKG_CONFIG_PATH/freetype2.pc" # this should not need expat, but...I think maybe people use fontconfig's wrong and that needs expat? huh wuh? or dependencies are setup wrong in some .pc file?
+    # possibly don't need the bz2 in there [bluray adds its own]...
+  cd ..
 }
 
 build_vo_aacenc() {
