@@ -1,16 +1,15 @@
-@ECHO OFF
+@rem ECHO OFF
 ECHO this process will first install a local copy of cygwin
 ECHO then it will prompt you for some options like 32 bit vs. 64 bit, free vs. non free dependencies
 ECHO and then it will build the cross compiler and finally FFmpeg.
 ECHO if you want more advanced options, after the first pass, it will give you more instructions when done.
-ECHO continuing with a normal FFmpeg build...
 pause
 
 ECHO running cygwin install...
-mkdir %cd%\cygwin_local_install
+mkdir ffmpeg_local_builds\cygwin_local_install
 @rem cd to it so that cygwin install logs etc. go there
-cd %cd%\cygwin_local_install
-
+cd ffmpeg_local_builds\cygwin_local_install
+pause
 ECHO downloading cygwin setup executable...
 @powershell -command "$clnt = new-object System.Net.WebClient; $clnt.DownloadFile(\"https://cygwin.com/setup-x86.exe\", \"setup-x86.exe\")"
 
@@ -29,24 +28,25 @@ ed,wget,subversion,texinfo,gcc-g++,bison,flex,cvs,yasm,automake,libtool,autoconf
 
 echo "done installing cygwin"
 
-cd .. 
+cd ..\..
 
+@rem want wget etc. so override path here by prepending. Probably need/want to do this anyway...
+@rem since we're messing with the PATH
 setlocal
-@rem want wget etc. so override path. Probably need this regardless...
-set PATH=%cd%\cygwin_local_install\bin;%PATH%
+set PATH=%cd%\ffmpeg_local_builds\cygwin_local_install\bin;%PATH%
 
-mkdir ffmpeg_local_builds
 cd ffmpeg_local_builds
 
-..\cygwin_local_install\bin\bash.exe -c "wget https://raw.github.com/rdp/ffmpeg-windows-build-helpers/master/cross_compile_ffmpeg.sh -O cross_compile_ffmpeg.sh"
-..\cygwin_local_install\bin\bash.exe -c "chmod u+x ./cross_compile_ffmpeg.sh"
-..\cygwin_local_install\bin\bash.exe -c "./cross_compile_ffmpeg.sh"
+.\cygwin_local_install\bin\bash.exe -c "wget https://raw.github.com/rdp/ffmpeg-windows-build-helpers/master/cross_compile_ffmpeg.sh -O cross_compile_ffmpeg.sh"
+.\cygwin_local_install\bin\bash.exe -c "chmod u+x ./cross_compile_ffmpeg.sh"
+.\cygwin_local_install\bin\bash.exe -c "./cross_compile_ffmpeg.sh"
 
 cd ..
 
-ECHO "done with local build...check logs above to see if success"
+ECHO done with local build...check logs above to see if success
 ECHO if you want more advanced configuration (like building mplayer or mp4box) 
 ECHO open cmd, add cygwin bin to to beginning of PATH env. variable like
-ECHO set PATH=%cd%\cygwin_local_install\bin;%%PATH%%
-ECHO "then run bash.exe, and cd to %cd%\ffmpeg_local_builds and run the script manually yourself."
+ECHO set PATH=%cd%\ffmpeg_local_builds\cygwin_local_install\bin;%%PATH%%
+ECHO then run bash.exe, next cd to %cd%\ffmpeg_local_builds and run the script manually yourself.
+echo like $ ./cross_compile_ffmpeg.sh
 pause
