@@ -6,7 +6,7 @@ including many dependency libraries they use.
 
 To run the script:
 
-To build in windows (no VM needed, cross compiling from cygwin):
+To build in windows (no VM needed, cross compiling from cygwin): (update: the cygwin way is a bit unstable, may want to go the VM way for now...)
   download repository: https://github.com/rdp/ffmpeg-windows-build-helpers/archive/master.zip
   unzip and run "native_build/build_locally.bat" file.
   There are also some other projects that do a more "native" build see "related projects" section.  these might build faster than what you have
