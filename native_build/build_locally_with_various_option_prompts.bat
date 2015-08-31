@@ -3,9 +3,10 @@ ECHO Welcome to this FFmpeg compile script.
 ECHO this process will first install a local copy of cygwin
 ECHO then it will prompt you for some options like 32 bit vs. 64 bit, free vs. non free dependencies
 ECHO and then it will build the cross compiler and finally FFmpeg.
+ECHO there are also even *more* option available than what you'll be prompted for.
 ECHO if you want more advanced options, after the first pass, it will give you more instructions when done.
-
-ECHO running cygwin install...
+ECHO
+ECHO Starting cygwin install/update...
 mkdir ffmpeg_local_builds\cygwin_local_install
 @rem cd to it so that cygwin install logs etc. go there
 cd ffmpeg_local_builds\cygwin_local_install
