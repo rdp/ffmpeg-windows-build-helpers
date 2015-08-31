@@ -4,7 +4,6 @@ ECHO this process will first install a local copy of cygwin
 ECHO then it will prompt you for some options like 32 bit vs. 64 bit, free vs. non free dependencies
 ECHO and then it will build the cross compiler and finally FFmpeg.
 ECHO if you want more advanced options, after the first pass, it will give you more instructions when done.
-pause
 
 ECHO running cygwin install...
 mkdir ffmpeg_local_builds\cygwin_local_install
@@ -40,7 +39,7 @@ cd ffmpeg_local_builds
 
 .\cygwin_local_install\bin\bash.exe -c "wget https://raw.github.com/rdp/ffmpeg-windows-build-helpers/master/cross_compile_ffmpeg.sh -O cross_compile_ffmpeg.sh"
 .\cygwin_local_install\bin\bash.exe -c "chmod u+x ./cross_compile_ffmpeg.sh"
-.\cygwin_local_install\bin\bash.exe -c "./cross_compile_ffmpeg.sh"
+.\cygwin_local_install\bin\bash.exe -c "./cross_compile_ffmpeg.sh -d %1 %2 %3"
 
 cd ..
 
