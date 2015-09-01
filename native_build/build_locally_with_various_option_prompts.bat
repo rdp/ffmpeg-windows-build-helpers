@@ -14,7 +14,7 @@ ECHO downloading cygwin setup executable...
 @powershell -command "$clnt = new-object System.Net.WebClient; $clnt.DownloadFile(\"https://cygwin.com/setup-x86.exe\", \"setup-x86.exe\")"
 
 @rem forced to hard select a mirror here apparently...
-setup-x86.exe ^
+start /min /wait setup-x86.exe ^
 --quiet-mode ^
 --no-admin ^
 --no-startmenu ^
