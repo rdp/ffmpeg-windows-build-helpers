@@ -24,8 +24,8 @@ start /min /wait setup-x86.exe ^
 --root %cd% ^
 --packages ^
 ed,wget,subversion,texinfo,gcc-g++,bison,flex,cvs,yasm,automake,libtool,autoconf,gcc-core,cmake,git,make,pkg-config,zlib1g-dev,mercurial,unzip,pax,ncurses,patch
-@rem XXXX just use curl, could remove wget here [and in main readme] :)
-@ncurses for the "clear" command yikes!
+@rem wget is here just for initial script download XXXX just use curl, could remove wget here [and in main readme ...] :)
+@rem ncurses for the "clear" command yikes!
 
 echo "done installing cygwin"
 
