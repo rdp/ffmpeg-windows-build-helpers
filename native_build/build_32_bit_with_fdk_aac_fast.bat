@@ -31,6 +31,10 @@ set PATH=%cd%\ffmpeg_local_builds\cygwin_local_install\bin;%PATH%
 
 cd ffmpeg_local_builds
 
+.\cygwin_local_install\bin\bash.exe -c "wget https://raw.github.com/rdp/ffmpeg-windows-build-helpers/master/cross_compile_ffmpeg.sh -O cross_compile_ffmpeg.sh"
+.\cygwin_local_install\bin\bash.exe -c "chmod u+x ./cross_compile_ffmpeg.sh"
+.\cygwin_local_install\bin\bash.exe -c "./cross_compile_ffmpeg.sh %1 %2 %3"
+
 
 
 
