@@ -44,8 +44,9 @@ cd ffmpeg_local_builds
 
 cd ..
 
-ECHO done with local build...check logs above to see if success
-ECHO if you want more advanced configuration (like building mplayer or mp4box) 
+ECHO done with local build...check output above to see if successfull..
+ECHO.
+ECHO if you want more advanced configuration (like building mplayer or mp4box, 10-bit, etc) 
 ECHO open cmd, add cygwin bin to to beginning of PATH env. variable like
 ECHO set PATH=%cd%\ffmpeg_local_builds\cygwin_local_install\bin;%%PATH%%
 ECHO then run bash.exe, next cd to %cd%\ffmpeg_local_builds and run the script manually yourself.

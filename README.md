@@ -31,7 +31,7 @@ OS X users, follow instructions for linux above (it should "just work" no VM nee
 
 Also NB that it has some command line parameters you can pass it, for instance to speed
 up the building speed of gcc, building a shared build (.dll style outputs) of FFmpeg, etc. 
-building mp4box/mplayer/vlc, etc.
+building mp4box/mplayer/vlc, 10 bit libx264, etc.
 Run it like 
 ./cross_compile_ffmpeg.sh -h 
 to see all the various options available to you.
