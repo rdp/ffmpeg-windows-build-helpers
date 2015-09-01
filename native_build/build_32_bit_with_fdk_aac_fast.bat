@@ -20,7 +20,7 @@ start /min /wait setup-x86.exe ^
 --site http://mirrors.xmission.com/cygwin/ ^
 --root %cd% ^
 --packages ^
-yasm,automake,gcc-core,git,make,pkg-config,mingw64-i686-gcc-g++,mingw64-i686-gcc-core
+yasm,gcc-core,git,make,pkg-config,mingw64-i686-gcc-g++,mingw64-i686-gcc-core,libtool
 
 echo "done installing cygwin"
 
@@ -31,11 +31,9 @@ set PATH=%cd%\ffmpeg_local_builds\cygwin_local_install\bin;%PATH%
 
 cd ffmpeg_local_builds
 
-.\cygwin_local_install\bin\bash.exe -c "wget https://raw.github.com/rdp/ffmpeg-windows-build-helpers/master/cross_compile_ffmpeg.sh -O cross_compile_ffmpeg.sh"
-.\cygwin_local_install\bin\bash.exe -c "chmod u+x ./cross_compile_ffmpeg.sh"
-.\cygwin_local_install\bin\bash.exe -c "./cross_compile_ffmpeg.sh %1 %2 %3"
-
-
-
+.\cygwin_local_install\bin\bash.exe -c "wget https://raw.github.com/rdp/ffmpeg-windows-build-helpers/master/patches/quick_install_fdk_aac.sh -O quick_install_fdk_aac.sh"
+.\cygwin_local_install\bin\bash.exe -c "chmod u+x ./quick_install_fdk_aac.sh"
+.\cygwin_local_install\bin\bash.exe -c "./quick_install_fdk_aac.sh"
 
 ECHO done with local build...check output above to see if successfull..
+pause
