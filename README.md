@@ -11,6 +11,8 @@ To build in windows (no VM needed, uses the native'ish cygwin):
     zip file: https://github.com/rdp/ffmpeg-windows-build-helpers/archive/master.zip and unzip
     or clone the repository: c:\> git clone https://github.com/rdp/ffmpeg-windows-build-helpers.git
   Next run one of the "native_build/build_locally_XXX.bat" file.
+    because of something "cygwin" you won't be able to delete the folders from windows explorer, you'll
+    have to use cygwin to delete them or it will have weird prompts for "permission denied" and "invalid ms dos function" 
   
 Or build it from a linux box (cross compiler):
 

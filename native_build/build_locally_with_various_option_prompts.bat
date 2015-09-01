@@ -47,8 +47,8 @@ cd ..
 ECHO done with local build...check output above to see if successfull..
 ECHO.
 ECHO if you want more advanced configuration (like building mplayer or mp4box, 10-bit, etc) 
-ECHO open cmd, add cygwin bin to to beginning of PATH env. variable like
-ECHO set PATH=%cd%\ffmpeg_local_builds\cygwin_local_install\bin;%%PATH%%
-ECHO then run bash.exe, next cd to %cd%\ffmpeg_local_builds and run the script manually yourself.
-echo like $ ./cross_compile_ffmpeg.sh
+ECHO open %cd%\ffmpeg_local_builds\cygwin_local_install\cygwin.bat
+ECHO (which sets up the path for you)
+ECHO then cd to %cd%\ffmpeg_local_builds and run the script manually yourself with -h
+echo like $ cd /cygdrive/c/.../ffmpeg_local_builds $ ./cross_compile_ffmpeg.sh -h
 pause
