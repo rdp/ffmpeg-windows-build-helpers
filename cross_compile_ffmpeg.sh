@@ -116,7 +116,7 @@ The resultant binary may not be distributable, but can be useful for in-house us
 
 pick_compiler_flavors() {
 
-  while [[ "$build_choice" != [1-4] ]]; do
+  while [[ "$compiler_flavors" != [1-4] ]]; do
     if [[ -n "${unknown_opts[@]}" ]]; then
       echo -n 'Unknown option(s)'
       for unknown_opt in "${unknown_opts[@]}"; do
@@ -132,28 +132,39 @@ What version of MinGW-w64 would you like to build or update?
   4. Exit
 EOF
     echo -n 'Input your choice [1-4]: '
-    read build_choice
+    read compiler_flavors
   done
-  case "$build_choice" in
-  1 ) build_choice=multi ;;
-  2 ) build_choice=win32 ;;
-  3 ) build_choice=win64 ;;
+  case "$compiler_flavors" in
+  1 ) compiler_flavors=multi ;;
+  2 ) compiler_flavors=win32 ;;
+  3 ) compiler_flavors=win64 ;;
   4 ) echo "exiting"; exit 0 ;;
   * ) clear;  echo 'Your choice was not valid, please try again.'; echo ;;
   esac
 }
 
 install_cross_compiler() {
-  if [[ -f "mingw-w64-i686/compiler.done" || -f "mingw-w64-x86_64/compiler.done" ]]; then
-   echo "MinGW-w64 compiler of some type or other already installed, not re-installing..."
-   if [[ $rebuild_compilers != "y" ]]; then
-     return # early exit, they already have some type of cross compiler built.
-   fi
+  if [[ -f "mingw-w64-i686/compiler.done" && -f "mingw-w64-x86_64/compiler.done" ]]; then
+   echo "MinGW-w64 compilers already installed, not re-installing..."
+   return # early exit just assume they want both, don't even prompt :)
   fi
 
-  if [[ -z $build_choice ]]; then
+  if [[ -z $compiler_flavors ]]; then
     pick_compiler_flavors
   fi
+
+  if [[ $compiler_flavors == "win32" && -f "mingw-w64-i686/compiler.done" ]]; then
+    echo "win32 cross compiler already installed, not reinstalling"
+    return
+  fi
+
+  if [[ $compiler_flavors == "win64" && -f "mingw-w64-x86_64/compiler.done" ]]; then
+    echo "win64 cross compiler already installed, not reinstalling"
+    return
+  fi
+
+  # if they get this far, they want a compiler that's not installed, I think...fire away!
+
   local zeranoe_script_name=mingw-w64-build-3.6.7.local
   if [[ -f $zeranoe_script_name ]]; then
     rm $zeranoe_script_name || exit 1
@@ -165,7 +176,7 @@ install_cross_compiler() {
   echo "starting to download and build cross compile version of gcc [requires working internet access] with thread count $gcc_cpu_count..."
   echo ""
   # --disable-shared allows c++ to be distributed at all...which seemed necessary for some random dependency...
-  nice ./$zeranoe_script_name --clean-build --disable-shared --default-configure  --pthreads-w32-ver=2-9-1 --cpu-count=$gcc_cpu_count --build-type=$build_choice --gcc-ver=5.2.0 || exit 1 
+  nice ./$zeranoe_script_name --clean-build --disable-shared --default-configure  --pthreads-w32-ver=2-9-1 --cpu-count=$gcc_cpu_count --build-type=$compiler_flavors --gcc-ver=5.2.0 || exit 1 
   export CFLAGS=$original_cflags # reset it
   if [[ ! -f mingw-w64-i686/bin/i686-w64-mingw32-gcc && ! -f mingw-w64-x86_64/bin/x86_64-w64-mingw32-gcc ]]; then
     echo "no gcc cross compiler(s) seem built [?] (build failure [?]) recommend nuke sandbox dir (rm -rf sandbox) and try again!"
@@ -1499,9 +1510,9 @@ while true; do
        export CFLAGS="${1#*=}"; original_cflags="${1#*=}"; echo "setting cflags as $original_cflags"; shift ;;
     --build-vlc=* ) build_vlc="${1#*=}"; shift ;;
     --disable-nonfree=* ) disable_nonfree="${1#*=}"; shift ;;
-    -d         ) gcc_cpu_count=$cpu_count; disable_nonfree="y"; sandbox_ok="y"; build_choice="multi"; git_get_latest="n" ; shift ;;
-    --defaults ) gcc_cpu_count=$cpu_count; disable_nonfree="y"; sandbox_ok="y"; build_choice="multi"; git_get_latest="n" ; shift ;;
-    --build-choice=* ) build_choice="${1#*=}"; shift ;;
+    -d         ) gcc_cpu_count=$cpu_count; disable_nonfree="y"; sandbox_ok="y"; compiler_flavors="multi"; git_get_latest="n" ; shift ;;
+    --defaults ) gcc_cpu_count=$cpu_count; disable_nonfree="y"; sandbox_ok="y"; compiler_flavors="multi"; git_get_latest="n" ; shift ;;
+    --compiler-flavors=* ) compiler_flavors="${1#*=}"; shift ;;
     --build-ffmpeg-static=* ) build_ffmpeg_static="${1#*=}"; shift ;;
     --build-ffmpeg-shared=* ) build_ffmpeg_shared="${1#*=}"; shift ;;
     --rebuild-compilers=* ) rebuild_compilers="${1#*=}"; shift ;;
