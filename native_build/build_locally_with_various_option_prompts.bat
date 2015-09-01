@@ -23,7 +23,7 @@ setup-x86.exe ^
 --site http://mirrors.xmission.com/cygwin/ ^
 --root %cd% ^
 --packages ^
-ed,wget,subversion,texinfo,gcc-g++,bison,flex,cvs,yasm,automake,libtool,autoconf,gcc-core,cmake,git,make,pkg-config,zlib1g-dev,mercurial,unzip,pax,ncurses
+ed,wget,subversion,texinfo,gcc-g++,bison,flex,cvs,yasm,automake,libtool,autoconf,gcc-core,cmake,git,make,pkg-config,zlib1g-dev,mercurial,unzip,pax,ncurses,patch
 @rem XXXX just use curl, could remove wget here [and in main readme] :)
 @ncurses for the "clear" command yikes!
 
