@@ -32,7 +32,7 @@ cd sandbox/win32/quick_install
 # fdk-aac
 if [[ ! -f $prefix/lib/libfdk-aac.a ]]; then
   rm -rf fdk-aac
-  git clone --depth 1 git://github.com/mstorsjo/fdk-aac || exit 1
+  git clone --depth 1 https://github.com/mstorsjo/fdk-aac.git || exit 1
   cd fdk-aac
     ./autogen.sh
     ./configure --host=$host --prefix=$prefix --enable-static --disable-shared
@@ -61,8 +61,7 @@ cd ffmpeg
      echo $PKG_CONFIG_PATH "was pkg config path"
     ./configure --enable-gpl --enable-libx264 --enable-nonfree \
       --enable-libfdk-aac --arch=x86 --target-os=mingw32 \
-      --cross-prefix=$host- --extra-ldflags=-L${prefix}/lib --extra-cflags=-I${prefix}/include
-    # TODO should be able to use pkg-config not need these extra-xxx params :(
+      --cross-prefix=$host- --pkg-config=pkg-config
   fi
   make -j5 install && echo "created ffmpeg.exe in $(pwd)/ffmpeg.exe!"
   
