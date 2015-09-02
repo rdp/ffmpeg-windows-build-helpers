@@ -7,11 +7,11 @@ move collect.sh "inside it" :)
 
 == maybe/never do, more on the never... ==
 
-start setup.exe /minimized?
+add a "cygwin prompt here" .bat file when I do anything windowszy...yeah.
 
 add a command line option for qsv [?]
 
-default to more gcc cpu's?  hrm...
+default to more gcc cpu's?  hrm... (or do I do this already)
 
 opencl support [copy in headers?] https://www.khronos.org/registry/cl/ it needs something to link against too...ai ai
 
