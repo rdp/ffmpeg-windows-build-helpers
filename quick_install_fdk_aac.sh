@@ -1,12 +1,12 @@
 #!/bin/bash
-# set -x
+set -x
 # based on the script install-ffmpeg from svnpenn/a/install-ffmpeg.sh (givin' credit where it's due :)
 # uses an (assumed installed via package) cross compiler to compile ffmpeg with fdk-aac
 # TODO try under linux...
 
 check_missing_packages () {
 
-  local check_packages=('pkg-config' 'make' 'git' 'autoconf' 'automake' 'yasm' 'i686-w64-mingw32-gcc' 'i686-w64-mingw32-g++')
+  local check_packages=('pkg-config' 'make' 'git' 'autoconf' 'automake' 'yasm' 'i686-w64-mingw32-gcc' 'i686-w64-mingw32-g++' 'libtool')
 
   for package in "${check_packages[@]}"; do
     type -P "$package" >/dev/null || missing_packages=("$package" "${missing_packages[@]}")
@@ -15,7 +15,7 @@ check_missing_packages () {
   if [[ -n "${missing_packages[@]}" ]]; then
     clear
     echo "Could not find the following execs: ${missing_packages[@]}"
-    echo "on ubuntu: sudo apt-get install gcc-mingw-w64-i686 g++-mingw-w64-i686"
+    echo "on ubuntu: sudo apt-get install gcc-mingw-w64-i686 g++-mingw-w64-i686 yasm make automake autoconf git pkg-config libtool"
     echo 'Install the missing packages before running this script.'
     exit 1
   fi
