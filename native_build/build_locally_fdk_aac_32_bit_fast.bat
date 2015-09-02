@@ -31,9 +31,9 @@ set PATH=%cd%\ffmpeg_local_builds\cygwin_local_install\bin;%PATH%
 
 cd ffmpeg_local_builds
 
-.\cygwin_local_install\bin\bash.exe -c "wget https://raw.github.com/rdp/ffmpeg-windows-build-helpers/master/quick_install_fdk_aac.sh -O quick_install_fdk_aac.sh"
-.\cygwin_local_install\bin\bash.exe -c "chmod u+x ./quick_install_fdk_aac.sh"
-.\cygwin_local_install\bin\bash.exe -c ./quick_install_fdk_aac.sh
+.\cygwin_local_install\bin\bash.exe -c "wget https://raw.github.com/rdp/ffmpeg-windows-build-helpers/master/cross_compile_ffmpeg_fdk_aac_quick.sh -O cross_compile_ffmpeg_fdk_aac_quick.sh"
+.\cygwin_local_install\bin\bash.exe -c "chmod u+x ./cross_compile_ffmpeg_fdk_aac_quick.sh"
+.\cygwin_local_install\bin\bash.exe -c ./cross_compile_ffmpeg_fdk_aac_quick.sh
 
 ECHO done with local build...check output above to see if successfull...
 pause
