@@ -65,6 +65,6 @@ cd ffmpeg
     --cross-prefix=$host- --extra-ldflags=-L${prefix}/lib --extra-cflags=-I${prefix}/include
     # TODO should be able to use pkg-config not need these extra-xxx params :(
   fi
-  make -j5 install && echo "created ffmpeg.exe in $(pwd)!"
+  make -j5 install && echo "created ffmpeg.exe in $(pwd)/ffmpeg.exe!"
   
 cd ..
