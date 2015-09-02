@@ -4,4 +4,4 @@
 @ECHO.
 @ECHO.
 @rem this won't have any prompts :)
-@build_locally_with_various_option_prompts -d --compiler-flavors=win32
+@build_locally_with_various_option_prompts -d "--compiler-flavors=win32"
