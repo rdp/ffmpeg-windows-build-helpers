@@ -25,7 +25,7 @@ check_missing_packages
 
 host=i686-w64-mingw32
 prefix=$(pwd)/sandbox/win32/quick_install/install_root
-export PKG_CONFIG_PATH="$prefix/lib/pkgconfig" # let ffmpeg find our dependencies :)
+export PKG_CONFIG_PATH="$prefix/lib/pkgconfig" # let ffmpeg find our dependencies [currently not working :| ]
 
 mkdir -p sandbox/win32/quick_install
 cd sandbox/win32/quick_install
@@ -48,8 +48,7 @@ if [[ ! -f $prefix/lib/libx264.a ]]; then
     git pull
     # --enable-static       library is built by default but not installed
     # --enable-win32thread  avoid installing pthread
-    ./configure --enable-static --enable-win32thread --cross-prefix=$host- \
-    --prefix=$prefix
+    ./configure --host=$host --enable-static --enable-win32thread --cross-prefix=$host- --prefix=$prefix
     make -j5 install
   cd ..
 fi
