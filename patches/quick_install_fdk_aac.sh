@@ -1,8 +1,36 @@
 #!/bin/sh
 set -x
-# originally based on the script install-ffmpeg from svnpenn/a/install-ffmpeg.sh (givin' credit where it's due :)
+# based on the script install-ffmpeg from svnpenn/a/install-ffmpeg.sh (givin' credit where it's due :)
 # uses an (assumed installed via package) cross compiler to compile ffmpeg with fdk-aac
-# TODO try it under linux...
+# TODO try under linux...
+
+check_missing_packages () {
+
+  local check_packages=('pkg-config' 'make' 'git' 'autoconf' 'automake' 'yasm' 'i686-w64-mingw32-gcc' 'i686-w64-mingw32-g++')
+  # libtool check is wonky...
+  if [[ $OSTYPE == darwin* ]]; then 
+    check_packages+=(glibtoolize) # homebrew special :|
+  else
+    check_packages+=(libtoolize)
+  fi
+
+  for package in "${check_packages[@]}"; do
+    type -P "$package" >/dev/null || missing_packages=("$package" "${missing_packages[@]}")
+  done
+  
+
+  if [[ -n "${missing_packages[@]}" ]]; then
+    clear
+    echo "Could not find the following execs (svn is actually package subversion, makeinfo is actually package texinfo if you're missing them): ${missing_packages[@]}"
+    echo 'Install the missing packages before running this script.'
+    echo "for ubuntu: $ sudo apt-get install subversion curl texinfo g++ bison flex cvs yasm automake libtool autoconf gcc cmake git make pkg-config zlib1g-dev mercurial unzip pax -y" 
+    echo "for gentoo (a non ubuntu distro): same as above, but no g++, no gcc, git is dev-vcs/git, zlib1g-dev is zlib, pkg-config is dev-util/pkgconfig, add ed..."
+    echo "for OS X (homebrew): brew install cvs hg yasm automake autoconf cmake hg libtool"
+    exit 1
+  fi
+}
+
+check_missing_packages
 
 host=i686-w64-mingw32
 prefix=$(pwd)/sandbox/win32/quick_install/install_root

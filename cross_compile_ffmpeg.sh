@@ -34,6 +34,7 @@ set_box_memory_size_bytes() {
 }
 
 check_missing_packages () {
+
   local check_packages=('curl' 'pkg-config' 'make' 'git' 'svn' 'cmake' 'gcc' 'autoconf' 'automake' 'yasm' 'cvs' 'flex' 'bison' 'makeinfo' 'g++' 'ed' 'hg' 'pax' 'unzip' 'patch')
   # libtool check is wonky...
   if [[ $OSTYPE == darwin* ]]; then 
