@@ -27,17 +27,20 @@ Or to build it from linux (uses cross compiler):
 And for both, answer the prompts.  
 It should end up with a working static ffmpeg.exe within the "sandbox/*/ffmpeg_git" director(ies).
 
+Another option is to run cross_compile_ffmpeg_fdk_aac_quick.sh
+  The "quick" part being the important part here, this one attempts to /just uses your local distributions
+  mingw-w64 package for the cross compiler, thus speeding up compilation *dramatically*.
+  Ping me if you'd like to see the "main" script use more of this style as well.
+
 OS X users, follow instructions for linux above (it should "just work" no VM needed, cross compiling).
 
-Also NB that it has some command line parameters you can pass it, for instance to speed
-up the building speed of gcc, building a shared build (.dll style outputs) of FFmpeg, etc. 
+Also NB that it has some command line parameters you can pass it, for instance 
+building a shared FFmpeg build (libavcodec-56.dll style), 
 building mp4box/mplayer/vlc, 10 bit libx264, etc.
 Run it like 
 ./cross_compile_ffmpeg.sh -h 
 to see all the various options available to you.
 
-There are also some other projects that do a more "native" build see "related projects" section.  these might build faster than what you have
-  here since they use built-in mingw* packages instead of rebuilding the compiler (which we do here currently).
 
 If you want to customize your FFmpeg final executable even more (remove features you don't need, etc.) then edit the script
 1. Add or remove the "--enable-xxx" settings in the build_ffmpeg method (under config_options) near the bottom of the script.  This can enable or disable parts of FFmpeg that you don't need, or want more, etc.
