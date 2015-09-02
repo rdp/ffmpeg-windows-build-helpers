@@ -1,5 +1,5 @@
-#!/bin/sh
-set -x
+#!/bin/bash
+# set -x
 # based on the script install-ffmpeg from svnpenn/a/install-ffmpeg.sh (givin' credit where it's due :)
 # uses an (assumed installed via package) cross compiler to compile ffmpeg with fdk-aac
 # TODO try under linux...
@@ -14,7 +14,8 @@ check_missing_packages () {
 
   if [[ -n "${missing_packages[@]}" ]]; then
     clear
-    echo "Could not find the following execs (svn is actually package subversion, makeinfo is actually package texinfo if you're missing them): ${missing_packages[@]}"
+    echo "Could not find the following execs: ${missing_packages[@]}"
+    echo "on ubuntu: sudo apt-get install gcc-mingw-w64-i686 g++-mingw-w64-i686"
     echo 'Install the missing packages before running this script.'
     exit 1
   fi
