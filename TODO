@@ -3,6 +3,8 @@
 test out mplayer with its record-size whatever...
 fix gsm shared is broken...that was painful...
 
+move collect.sh "inside it" :)
+
 == maybe/never do, more on the never... ==
 
 start setup.exe /minimized?
