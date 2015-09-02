@@ -20,7 +20,7 @@ start /min /wait setup-x86.exe ^
 --site http://mirrors.xmission.com/cygwin/ ^
 --root %cd% ^
 --packages ^
-wget,yasm,git,make,pkg-config,mingw64-i686-gcc-g++,mingw64-i686-gcc-core,libtool
+wget,yasm,git,make,pkg-config,mingw64-i686-gcc-g++,mingw64-i686-gcc-core,libtool,autoconf,automake
 
 echo "done installing cygwin"
 
