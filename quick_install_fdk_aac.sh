@@ -1,8 +1,6 @@
 #!/bin/bash
-set -x
 # based on the script install-ffmpeg from svnpenn/a/install-ffmpeg.sh (givin' credit where it's due :)
 # uses an (assumed installed via package) cross compiler to compile ffmpeg with fdk-aac
-# TODO try under linux...
 
 check_missing_packages () {
 
@@ -22,6 +20,7 @@ check_missing_packages () {
 }
 
 check_missing_packages
+set -x
 
 host=i686-w64-mingw32
 prefix=$(pwd)/sandbox/win32/quick_install/install_root
