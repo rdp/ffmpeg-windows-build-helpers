@@ -31,7 +31,7 @@ set PATH=%cd%\ffmpeg_local_builds\cygwin_local_install\bin;%PATH%
 
 cd ffmpeg_local_builds
 
-.\cygwin_local_install\bin\bash.exe -c "wget https://raw.github.com/rdp/ffmpeg-windows-build-helpers/master/patches/quick_install_fdk_aac.sh -O quick_install_fdk_aac.sh"
+.\cygwin_local_install\bin\bash.exe -c "wget https://raw.github.com/rdp/ffmpeg-windows-build-helpers/master/quick_install_fdk_aac.sh -O quick_install_fdk_aac.sh"
 .\cygwin_local_install\bin\bash.exe -c "chmod u+x ./quick_install_fdk_aac.sh"
 .\cygwin_local_install\bin\bash.exe -c ./quick_install_fdk_aac.sh
 
