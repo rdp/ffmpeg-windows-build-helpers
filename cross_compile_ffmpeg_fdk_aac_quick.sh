@@ -62,12 +62,11 @@ fi
 cd ffmpeg
   # not ready for this since we don't reconfigure after changes: # git pull
   if [[ ! -f config.mak ]]; then
-     echo $PKG_CONFIG_PATH "was pkg config path"
     ./configure --enable-gpl --enable-libx264 --enable-nonfree \
       --enable-libfdk-aac --arch=x86 --target-os=mingw32 \
       --cross-prefix=$host- --pkg-config=pkg-config --prefix=$(prefix)/ffmpeg_static
   fi
   rm **/*.a # attempt force a rebuild...
-  make -j5 install && echo "created runnable ffmpeg.exe in $(prefix)/ffmpeg_static/ffmpeg.exe!"
+  make -j5 install && echo "created runnable ffmpeg.exe in ${prefix}/ffmpeg_static/ffmpeg.exe!"
   
 cd ..
