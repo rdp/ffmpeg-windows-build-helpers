@@ -638,19 +638,22 @@ build_libopenjpeg() {
 }
 
 build_libvpx() {
+  local config_options=""
   if [[ $prefer_stable = "y" ]]; then
     download_and_unpack_file http://storage.googleapis.com/downloads.webmproject.org/releases/webm/libvpx-1.4.0.tar.bz2 libvpx-1.4.0
     cd libvpx-1.4.0
   else
+    config_options="--enable-vp10 --enable-vp10-encoder --enable-vp10-decoder" #enable vp10 for experimental use
     do_git_checkout https://chromium.googlesource.com/webm/libvpx "libvpx_git"
     cd libvpx_git
   fi
   export CROSS="$cross_prefix"
   if [[ "$bits_target" = "32" ]]; then
-    do_configure "--target=x86-win32-gcc --prefix=$mingw_w64_x86_64_prefix --enable-static --disable-shared"
+    config_options="--target=x86-win32-gcc --prefix=$mingw_w64_x86_64_prefix --enable-static --disable-shared $config_options"
   else
-    do_configure "--target=x86_64-win64-gcc --prefix=$mingw_w64_x86_64_prefix --enable-static --disable-shared "
+    config_options="--target=x86_64-win64-gcc --prefix=$mingw_w64_x86_64_prefix --enable-static --disable-shared $config_options"
   fi
+  do_configure "$config_options"
   do_make_and_make_install
   unset CROSS
   cd ..
