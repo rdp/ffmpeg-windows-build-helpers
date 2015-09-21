@@ -7,6 +7,7 @@ including many dependency libraries they use.
 To run the script...
 
 To build in windows (no VM needed, uses the native'ish cygwin):
+
      download repository: 
        zip file: https://github.com/rdp/ffmpeg-windows-build-helpers/archive/master.zip and unzip
        or clone the repository: c:\> git clone https://github.com/rdp/ffmpeg-windows-build-helpers.git
