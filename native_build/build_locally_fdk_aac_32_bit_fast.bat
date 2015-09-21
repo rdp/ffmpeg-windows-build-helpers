@@ -21,6 +21,7 @@ start /min /wait setup-x86.exe ^
 --root %cd% ^
 --packages ^
 wget,yasm,git,make,pkg-config,mingw64-i686-gcc-g++,mingw64-i686-gcc-core,libtool,autoconf,automake
+@rem no curl required here seemingly, though it still might be being installed by some other dependency [?]
 
 echo "done installing cygwin"
 

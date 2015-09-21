@@ -10,7 +10,7 @@ ECHO Starting cygwin install/update...
 mkdir ffmpeg_local_builds\cygwin_local_install
 @rem cd to it so that cygwin install logs etc. go there
 cd ffmpeg_local_builds\cygwin_local_install
-ECHO Downloading cygwin setup executable...some error logs are expected...
+ECHO Downloading cygwin setup executable...some error warning messages are expected from the cygwin install...
 @powershell -command "$clnt = new-object System.Net.WebClient; $clnt.DownloadFile(\"https://cygwin.com/setup-x86.exe\", \"setup-x86.exe\")"
 
 @rem forced to hard select a mirror here apparently...
@@ -24,7 +24,7 @@ start /min /wait setup-x86.exe ^
 --root %cd% ^
 --packages ^
 ed,wget,subversion,texinfo,gcc-g++,bison,flex,cvs,yasm,automake,libtool,autoconf,gcc-core,cmake,git,make,pkg-config,zlib1g-dev,mercurial,unzip,pax,ncurses,patch
-@rem wget is here just for initial script download XXXX just use curl, could remove wget here [and in main readme ...] :)
+@rem wget for the initial script download as well as zeranoe's uses it
 @rem ncurses for the "clear" command yikes!
 
 echo "done installing cygwin"

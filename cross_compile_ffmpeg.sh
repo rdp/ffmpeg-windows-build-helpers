@@ -35,7 +35,8 @@ set_box_memory_size_bytes() {
 
 check_missing_packages () {
 
-  local check_packages=('curl' 'pkg-config' 'make' 'git' 'svn' 'cmake' 'gcc' 'autoconf' 'automake' 'yasm' 'cvs' 'flex' 'bison' 'makeinfo' 'g++' 'ed' 'hg' 'pax' 'unzip' 'patch')
+  # zeranoe's build scripts use wget, though we don't here...
+  local check_packages=('curl' 'pkg-config' 'make' 'git' 'svn' 'cmake' 'gcc' 'autoconf' 'automake' 'yasm' 'cvs' 'flex' 'bison' 'makeinfo' 'g++' 'ed' 'hg' 'pax' 'unzip' 'patch' 'wget')
   # libtool check is wonky...
   if [[ $OSTYPE == darwin* ]]; then 
     check_packages+=(glibtoolize) # homebrew special :|
