@@ -23,8 +23,9 @@ start /min /wait setup-x86.exe ^
 --site http://mirrors.xmission.com/cygwin/ ^
 --root %cd% ^
 --packages ^
-ed,wget,subversion,texinfo,gcc-g++,bison,flex,cvs,yasm,automake,libtool,autoconf,gcc-core,cmake,git,make,pkg-config,zlib1g-dev,mercurial,unzip,pax,ncurses,patch
+ed,curl,wget,subversion,texinfo,gcc-g++,bison,flex,cvs,yasm,automake,libtool,autoconf,gcc-core,cmake,git,make,pkg-config,zlib1g-dev,mercurial,unzip,pax,ncurses,patch
 @rem wget for the initial script download as well as zeranoe's uses it
+@rem curl is used in our script all over
 @rem ncurses for the "clear" command yikes!
 
 echo "done installing cygwin"
