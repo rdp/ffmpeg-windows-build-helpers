@@ -53,20 +53,20 @@ if [[ ! -f $prefix/lib/libx264.a ]]; then
 fi
 
 # and ffmpeg
-if [[ ! -d ffmpeg ]]; then
+if [[ ! -d ffmpeg_fdk_aac ]]; then
   rm -rf ffmpeg.tmp.git
   git clone --depth 1 https://github.com/FFmpeg/FFmpeg.git ffmpeg.tmp.git
-  mv ffmpeg.tmp.git ffmpeg
+  mv ffmpeg.tmp.git ffmpeg_fdk_aac
 fi
 
-cd ffmpeg
+cd ffmpeg_fdk_aac
   # not ready for this since we don't reconfigure after changes: # git pull
   if [[ ! -f config.mak ]]; then
     ./configure --enable-gpl --enable-libx264 --enable-nonfree \
       --enable-libfdk-aac --arch=x86 --target-os=mingw32 \
-      --cross-prefix=$host- --pkg-config=pkg-config --prefix=$(prefix)/ffmpeg_static
+      --cross-prefix=$host- --pkg-config=pkg-config --prefix=$prefix/ffmpeg_static_fdk_aac
   fi
   rm **/*.a # attempt force a rebuild...
-  make -j5 install && echo "created runnable ffmpeg.exe in ${prefix}/ffmpeg_static/ffmpeg.exe!"
+  make -j5 install && echo "created runnable ffmpeg.exe in $prefixs/ffmpeg_static/ffmpeg.exe!"
   
 cd ..
