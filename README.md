@@ -6,14 +6,14 @@ including many dependency libraries they use.
 
 To run the script...
 
-To build in windows (no VM needed, uses the native'ish cygwin):
+To build in windows (no VM needed, uses the native'ish cygwin, can take 6 hours or more):
 
      download repository: 
        zip file: https://github.com/rdp/ffmpeg-windows-build-helpers/archive/master.zip and unzip
        or clone the repository: c:\> git clone https://github.com/rdp/ffmpeg-windows-build-helpers.git
      Next run one of the "native_build/build_locally_XXX.bat" file.
   
-Or to build it from linux (uses cross compiler):
+Or to build it from linux (uses cross compiler, takes 2 hours or so but requires linux box):
 
   In some type of Linux box (VM or native, or you could even create a VM temporarily, ex: digitalocean [1], [use it, then destroy your droplet]):
 
