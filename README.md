@@ -11,7 +11,7 @@ To build in windows (no VM needed, uses the native'ish cygwin, can take 6 hours 
      download repository: 
        zip file: https://github.com/rdp/ffmpeg-windows-build-helpers/archive/master.zip and unzip
        or clone the repository: c:\> git clone https://github.com/rdp/ffmpeg-windows-build-helpers.git
-     Next run one of the "native_build/build_locally_XXX.bat" file.
+     Next run one of the "native_build/build_locally_XXX.bat" file.  The "fast" one is just libx264, fdk aac, and FFmpeg, and takes about 1 hour.
   
 Or to build it from linux (uses cross compiler, takes 2 hours or so but requires linux box):
 
@@ -28,7 +28,7 @@ Or to build it from linux (uses cross compiler, takes 2 hours or so but requires
 And for both, answer the prompts.  
 It should end up with a working static ffmpeg.exe within the "sandbox/*/ffmpeg_git" director(ies).
 
-Another option is to run cross_compile_ffmpeg_fdk_aac_quick.sh
+Another option is to run quick_cross_compile_ffmpeg_fdk_aac_using_packaged_mingw64.sh
   The "quick" part being the important part here, this one attempts to /just uses your local distributions
   mingw-w64 package for the cross compiler, thus speeding up compilation *dramatically*.
   Ping me if you'd like to see the "main" script use more of this style as well.

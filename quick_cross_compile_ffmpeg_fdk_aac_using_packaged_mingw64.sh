@@ -67,6 +67,6 @@ cd ffmpeg_fdk_aac
       --cross-prefix=$host- --pkg-config=pkg-config --prefix=$prefix/ffmpeg_static_fdk_aac
   fi
   rm **/*.a # attempt force a rebuild...
-  make -j5 install && echo "created runnable ffmpeg.exe in $prefixs/ffmpeg_static/ffmpeg.exe!"
+  make -j5 install && echo "created runnable ffmpeg.exe in $prefix/ffmpeg_static/ffmpeg.exe!"
   
 cd ..
