@@ -46,6 +46,7 @@ cd ffmpeg_local_builds
 cd ..
 
 ECHO done with local build...check output above to see if successfull..
+ECHO if not successful you might try re running the script, it "should" pick up where it left off.
 ECHO.
 ECHO if you want more advanced configuration (like building mplayer or mp4box, 10-bit, etc) 
 ECHO open %cd%\ffmpeg_local_builds\cygwin_local_install\cygwin.bat
