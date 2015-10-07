@@ -11,10 +11,10 @@ mkdir ffmpeg_local_builds\cygwin_local_install
 @rem cd to it so that cygwin install logs etc. go there
 cd ffmpeg_local_builds\cygwin_local_install
 ECHO Downloading cygwin setup executable...some error warning messages are expected from the cygwin install...
-@powershell -command "$clnt = new-object System.Net.WebClient; $clnt.DownloadFile(\"https://cygwin.com/setup-x86.exe\", \"setup-x86.exe\")"
+@powershell -command "$clnt = new-object System.Net.WebClient; $clnt.DownloadFile(\"https://www.cygwin.com/setup-x86_64.exe\", \"setup-x86_64.exe\")"
 
 @rem forced to hard select a mirror here apparently...
-start /min /wait setup-x86.exe ^
+start /min /wait setup-x86_64.exe ^
 --quiet-mode ^
 --no-admin ^
 --no-startmenu ^
