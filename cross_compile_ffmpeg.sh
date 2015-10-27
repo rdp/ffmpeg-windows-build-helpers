@@ -253,7 +253,8 @@ do_git_checkout() {
     if [[ -z $desired_branch ]]; then
       if [[ $git_get_latest = "y" ]]; then
         echo "Updating to latest $to_dir version... $desired_branch"
-        git pull
+        git fetch
+        git merge origin/master
       else
         echo "not doing git get latest pull for latest code $to_dir"
       fi
@@ -261,6 +262,7 @@ do_git_checkout() {
       if [[ $git_get_latest = "y" ]]; then
         echo "Doing git fetch $to_dir in case it affects the desired branch [$desired_branch]"
         git fetch
+        git merge $desired_branch
       else
         echo "not doing git fetch $to_dir to see if it affected desired branch [$desired_branch]"
       fi
@@ -1136,20 +1138,20 @@ build_vidstab() {
 }
 
 build_vlc() {
-  # call out dependencies here since it's a lot, plus hierarchical!
-  if [ ! -f $mingw_w64_x86_64_prefix/lib/libavutil.a ]; then # takes too long...
+  # call out dependencies here since it's a lot, plus hierarchical FTW!
+  #if [ ! -f $mingw_w64_x86_64_prefix/lib/libavutil.a ]; then # it takes awhile without this 
     build_ffmpeg ffmpeg # static
-  fi
+  #fi
   build_libdvdread
   build_libdvdnav
   build_libx265
   build_qt
 
-  do_git_checkout https://github.com/videolan/vlc.git vlc_git "f5c300bfc9eea01956e5df123af24b28db5beba3"
+  do_git_checkout https://github.com/videolan/vlc.git vlc_git
   cd vlc_git
-  apply_patch https://raw.githubusercontent.com/rdp/ffmpeg-windows-build-helpers/master/patches/vlc_localtime_s.patch # git revision needs it...
+  # apply_patch https://raw.githubusercontent.com/rdp/ffmpeg-windows-build-helpers/master/patches/vlc_localtime_s.patch # git revision needs it...
 
-  # outdated apparently...
+  # outdated and patch doesn't apply cleanly anymore apparently...
   #if [[ "$non_free" = "y" ]]; then
   #  apply_patch https://raw.githubusercontent.com/gcsx/ffmpeg-windows-build-helpers/patch-5/patches/priorize_avcodec.patch
   #fi
@@ -1515,7 +1517,8 @@ while true; do
        export CFLAGS="${1#*=}"; original_cflags="${1#*=}"; echo "setting cflags as $original_cflags"; shift ;;
     --build-vlc=* ) build_vlc="${1#*=}"; shift ;;
     --disable-nonfree=* ) disable_nonfree="${1#*=}"; shift ;;
-    -a         ) build_mplayer=y; build_libmxf=y; build_mp4box=y; build_vlc=y; build_ffmpeg_shared=y; high_bitdepth=y; build_ffmpeg_static=y; disable_nonfree=n; shift ;;
+    -a         ) build_mplayer=y; build_libmxf=y; build_mp4box=y; build_vlc=y; build_ffmpeg_shared=y; high_bitdepth=y; build_ffmpeg_static=y; 
+                 disable_nonfree=n; git_get_latest=y; shift ;;
     -d         ) gcc_cpu_count=$cpu_count; disable_nonfree="y"; sandbox_ok="y"; compiler_flavors="multi"; git_get_latest="n" ; shift ;;
     --compiler-flavors=* ) compiler_flavors="${1#*=}"; shift ;;
     --build-ffmpeg-static=* ) build_ffmpeg_static="${1#*=}"; shift ;;
