@@ -1,7 +1,7 @@
 #!/bin/bash
 
 script_ver='3.6.7'
-# local version: 2
+# local version: 4
 ################################################################################
 # MingGW-w64 Build Script
 ################################################################################
@@ -579,9 +579,9 @@ if ! check_pkg_touch_success 'binutils' "$binutils_ver" 'configure' "$mingw_w64_
   mkdir "$mingw_w64_target"
   cd "$mingw_w64_target" || print_error
   build_progress 'binutils' 'Configuring'
-  echo "hello"
-  echo "hello" >(build_log)
-  echo CC=gcc "../../source/binutils-$binutils_ver/configure" --build="$system_type" --target="$mingw_w64_target" "${static_build[@]}" "${disable_nls[@]}" --disable-multilib --with-sysroot="$mingw_w64_prefix" --prefix="$mingw_w64_prefix" > >(build_log) 2>&1
+  echo "hello1"
+  echo "hello2" >(build_log)
+  echo -- hello3 CC=gcc "../../source/binutils-$binutils_ver/configure" --build="$system_type" --target="$mingw_w64_target" "${static_build[@]}" "${disable_nls[@]}" --disable-multilib --with-sysroot="$mingw_w64_prefix" --prefix="$mingw_w64_prefix" > >(build_log) 2>&1
   CC=gcc "../../source/binutils-$binutils_ver/configure" --build="$system_type" --target="$mingw_w64_target" "${static_build[@]}" "${disable_nls[@]}" --disable-multilib --with-sysroot="$mingw_w64_prefix" --prefix="$mingw_w64_prefix" > >(build_log) 2>&1 || print_error
   build_progress 'done'
 fi
