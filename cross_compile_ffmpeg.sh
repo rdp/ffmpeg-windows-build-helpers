@@ -435,6 +435,7 @@ build_libx265() {
         old_hg_version=`hg --debug id -i`
       fi
     else
+      echo "doing hg clone x265"
       hg clone https://bitbucket.org/multicoreware/x265 || exit 1
       cd x265
       old_hg_version=none-yet
