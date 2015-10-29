@@ -11,6 +11,7 @@ mkdir ffmpeg_local_builds\cygwin_local_install
 @rem cd to it so that cygwin install logs etc. go there
 cd ffmpeg_local_builds\cygwin_local_install
 ECHO Downloading cygwin setup executable...some error warning messages are expected from the cygwin install...
+@rem setup exe name either setup-x86_64.exe or setup-x86.exe
 @powershell -command "$clnt = new-object System.Net.WebClient; $clnt.DownloadFile(\"https://www.cygwin.com/setup-x86_64.exe\", \"setup-x86_64.exe\")"
 
 @rem forced to hard select a mirror here apparently...
@@ -23,10 +24,11 @@ start /min /wait setup-x86_64.exe ^
 --site http://mirrors.xmission.com/cygwin/ ^
 --root %cd% ^
 --packages ^
-ed,curl,wget,subversion,texinfo,gcc-g++,bison,flex,cvs,yasm,automake,libtool,autoconf,gcc-core,cmake,git,make,pkg-config,zlib1g-dev,mercurial,unzip,pax,ncurses,patch
+ed,curl,wget,subversion,texinfo,gcc-g++,bison,flex,cvs,yasm,automake,libtool,autoconf,gcc-core,cmake,git,make,pkg-config,zlib1g-dev,mercurial,unzip,pax,ncurses,patch,gettext-devel
 @rem wget for the initial script download as well as zeranoe's uses it
 @rem curl is used in our script all over
 @rem ncurses for the "clear" command yikes!
+@rem gettext-dev is for 64 bit cygwin which doesn't install it but binutils links against it and needs it...
 
 echo "done installing cygwin"
 
