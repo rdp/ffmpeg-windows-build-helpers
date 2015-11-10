@@ -1138,6 +1138,20 @@ build_vidstab() {
   cd ..
 }
 
+build_openh264() {
+  # if the master is not working well any more one can switch to the previous versions
+  #do_git_checkout https://github.com/cisco/openh264 openh264 openh264v1.3
+  do_git_checkout https://github.com/cisco/openh264 openh264
+  cd openh264
+  if [ "$bits_target" = "32" ]; then
+   local arch=i686
+  else
+   local arch=x86_64
+  fi
+    do_make_and_make_install "OS=mingw_nt ARCH=$arch CC=$(echo $cross_prefix)gcc CXX=$(echo $cross_prefix)g++  AR=$(echo $cross_prefix)ar PREFIX=$mingw_w64_x86_64_prefix MINGW_CC_PREFIX=$cross_prefix PREFIX=$mingw_w64_x86_64_prefix"
+  cd ..
+}
+
 build_vlc() {
   # currently broken, since it got too old for libavcodec and I didn't want to build its own custom one yet to match, and now it's broken with gcc 5.2.0 seemingly
   # call out dependencies here since it's a lot, plus hierarchical FTW!
@@ -1419,6 +1433,8 @@ build_dependencies() {
   fi
   # build_openssl # hopefully do not need it anymore, since we use gnutls everywhere, so just don't even build it anymore...
   build_librtmp # needs gnutls [or openssl...]
+  
+  build_openh264
 }
 
 build_apps() {
