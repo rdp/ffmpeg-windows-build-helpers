@@ -1141,7 +1141,7 @@ build_vidstab() {
 build_openh264() {
   # if the master is not working well any more one can switch to the previous versions
   #do_git_checkout https://github.com/cisco/openh264 openh264 openh264v1.3
-  do_git_checkout https://github.com/cisco/openh264 openh264
+  do_git_checkout https://github.com/cisco/openh264 openh264 openh264v1.4
   cd openh264
   if [ "$bits_target" = "32" ]; then
    local arch=i686
