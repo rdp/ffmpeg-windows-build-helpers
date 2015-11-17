@@ -1148,6 +1148,20 @@ build_vidstab() {
   cd ..
 }
 
+build_openh264() {
+  # if the master is not working well any more one can switch to the previous versions
+  #do_git_checkout https://github.com/cisco/openh264 openh264 openh264v1.3
+  do_git_checkout https://github.com/cisco/openh264 openh264 openh264v1.4
+  cd openh264
+  if [ "$bits_target" = "32" ]; then
+   local arch=i686
+  else
+   local arch=x86_64
+  fi
+    do_make_and_make_install "OS=mingw_nt ARCH=$arch CC=$(echo $cross_prefix)gcc CXX=$(echo $cross_prefix)g++  AR=$(echo $cross_prefix)ar PREFIX=$mingw_w64_x86_64_prefix MINGW_CC_PREFIX=$cross_prefix PREFIX=$mingw_w64_x86_64_prefix"
+  cd ..
+}
+
 build_vlc() {
   # currently broken, since it got too old for libavcodec and I didn't want to build its own custom one yet to match, and now it's broken with gcc 5.2.0 seemingly
   # call out dependencies here since it's a lot, plus hierarchical FTW!
@@ -1307,6 +1321,7 @@ build_ffmpeg() {
   # --enable-w32threads # [worse UDP than pthreads, so not using that] 
   # --enable-libflite # [too big]
   # config_options="$config_options --enable-libmfx" # [not windows xp friendly]
+  # config_options="$config_options --enable-libopenh264" # Useful if openh264 is not GPL compared to x264 which is GPL and allows LGPL build of FFmpeg
   config_options="$config_options --extra-libs=-lpsapi" # dlfcn [frei0r?] requires this, has no .pc file XXX put in frei0r.pc? ...
   config_options="$config_options --extra-cflags=$CFLAGS" # --extra-cflags is not needed here, but adds it to the console output which I like for debugging purposes
 
@@ -1430,6 +1445,8 @@ build_dependencies() {
   fi
   # build_openssl # hopefully do not need it anymore, since we use gnutls everywhere, so just don't even build it anymore...
   build_librtmp # needs gnutls [or openssl...]
+  
+  build_openh264
 }
 
 build_apps() {
