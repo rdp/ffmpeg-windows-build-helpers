@@ -1305,8 +1305,10 @@ build_ffmpeg() {
   config_options="$init_options --enable-gpl --enable-libsoxr --enable-fontconfig --enable-libass --enable-libutvideo --enable-libbluray --enable-iconv --enable-libtwolame --extra-cflags=-DLIBTWOLAME_STATIC --enable-libzvbi --enable-libcaca --enable-libmodplug --extra-libs=-lstdc++ --extra-libs=-lpng --enable-libvidstab --enable-libx265 --enable-decklink --extra-libs=-loleaut32 --enable-libx264 --enable-libxvid --enable-libmp3lame --enable-version3 --enable-zlib --enable-librtmp --enable-libvorbis --enable-libtheora --enable-libspeex --enable-libopenjpeg --enable-gnutls --enable-libgsm --enable-libfreetype --enable-libopus --enable-frei0r --enable-filter=frei0r --enable-libvo-aacenc --enable-bzlib --enable-libxavs --enable-libopencore-amrnb --enable-libopencore-amrwb --enable-libvo-amrwbenc --enable-libschroedinger --enable-libvpx --enable-libilbc --enable-libwavpack --enable-libwebp --enable-libgme --enable-dxva2 --enable-libdcadec --enable-avisynth --enable-gray --enable-libopenh264" 
   # other possibilities (you'd need to also uncomment the call to their build method): 
   # --enable-w32threads # [worse UDP than pthreads, so not using that] 
-  # --enable-libflite # [too big]
-  # config_options="$config_options --enable-libmfx" # [not windows xp friendly]
+  # --enable-libflite # [too big so not enabled]
+  if [[ $build_intel_qsv = y ]]; then
+    config_options="$config_options --enable-libmfx" # [not windows xp friendly]
+  fi
   config_options="$config_options --extra-libs=-lpsapi" # dlfcn [frei0r?] requires this, has no .pc file XXX put in frei0r.pc? ...
   config_options="$config_options --extra-cflags=$CFLAGS" # --extra-cflags is not needed here, but adds it to the console output which I like for debugging purposes
 
@@ -1421,7 +1423,9 @@ build_dependencies() {
   build_libfribidi
   build_libass # needs freetype, needs fribidi, needs fontconfig
   build_libopenjpeg
-  #build_intel_quicksync_mfx # not windows xp friendly...
+  if [[ $build_intel_qsv = y ]]; then
+    build_intel_quicksync_mfx
+  fi
   if [[ "$non_free" = "y" ]]; then
     build_fdk_aac
     # build_faac # not included for now, too poor quality output :)
@@ -1488,6 +1492,7 @@ build_mplayer=n
 build_vlc=n
 git_get_latest=y
 prefer_stable=y
+build_intel_qsv=n
 #disable_nonfree=n # have no value to force prompt
 original_cflags= # no export needed, this is just a local copy
 
@@ -1499,6 +1504,7 @@ while true; do
       --build-ffmpeg-static=y 
       --gcc-cpu-count=1x [number of cpu cores set it higher than 1 if you have multiple cores and > 1GB RAM, this speeds up initial cross compiler build. FFmpeg build uses number of cores no matter what] 
       --disable-nonfree=y (set to n to include nonfree like libfdk-aac) 
+      --build-intel-qsv=n (set to y to include the [non windows xp compat.] qsv library and ffmpeg module
       --sandbox-ok=n [skip sandbox prompt if y] 
       -d [meaning \"defaults\" skip all prompts, just build ffmpeg static with some reasonable defaults like no git updates] 
       --build-libmxf=n [builds libMXF, libMXF++, writeavidmxfi.exe and writeaviddv50.exe from the BBC-Ingex project] 
@@ -1517,6 +1523,7 @@ while true; do
     --build-libmxf=* ) build_libmxf="${1#*=}"; shift ;;
     --build-mp4box=* ) build_mp4box="${1#*=}"; shift ;;
     --git-get-latest=* ) git_get_latest="${1#*=}"; shift ;;
+    --build-intel-qsv=* ) build_intel_qsv="${1#*=}"; shift ;;
     --build-mplayer=* ) build_mplayer="${1#*=}"; shift ;;
     --cflags=* ) 
        echo "removing old .exe's, in case cflags has changed"
