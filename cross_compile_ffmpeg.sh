@@ -499,7 +499,7 @@ build_libx265() {
 }
 
 build_libopenh264() {
-  do_git_checkout "https://github.com/cisco/openh264.git" openh264
+  do_git_checkout "https://github.com/cisco/openh264.git" openh264 24916a652ee5d3 # need this to match ffmpeg's use apparently
   cd openh264
     if [ $bits_target = 32 ]; then
       do_make_and_make_install "$make_prefix_options OS=mingw_nt ARCH=i686" # x86?
@@ -1302,7 +1302,7 @@ build_ffmpeg() {
   fi
 
   init_options="--arch=$arch --target-os=mingw32 --cross-prefix=$cross_prefix --pkg-config=pkg-config --disable-w32threads"
-  config_options="$init_options --enable-gpl --enable-libsoxr --enable-fontconfig --enable-libass --enable-libutvideo --enable-libbluray --enable-iconv --enable-libtwolame --extra-cflags=-DLIBTWOLAME_STATIC --enable-libzvbi --enable-libcaca --enable-libmodplug --extra-libs=-lstdc++ --extra-libs=-lpng --enable-libvidstab --enable-libx265 --enable-decklink --extra-libs=-loleaut32 --enable-libx264 --enable-libxvid --enable-libmp3lame --enable-version3 --enable-zlib --enable-librtmp --enable-libvorbis --enable-libtheora --enable-libspeex --enable-libopenjpeg --enable-gnutls --enable-libgsm --enable-libfreetype --enable-libopus --enable-frei0r --enable-filter=frei0r --enable-libvo-aacenc --enable-bzlib --enable-libxavs --enable-libopencore-amrnb --enable-libopencore-amrwb --enable-libvo-amrwbenc --enable-libschroedinger --enable-libvpx --enable-libilbc --enable-libwavpack --enable-libwebp --enable-libgme --enable-dxva2 --enable-libdcadec --enable-avisynth --enable-gray" 
+  config_options="$init_options --enable-gpl --enable-libsoxr --enable-fontconfig --enable-libass --enable-libutvideo --enable-libbluray --enable-iconv --enable-libtwolame --extra-cflags=-DLIBTWOLAME_STATIC --enable-libzvbi --enable-libcaca --enable-libmodplug --extra-libs=-lstdc++ --extra-libs=-lpng --enable-libvidstab --enable-libx265 --enable-decklink --extra-libs=-loleaut32 --enable-libx264 --enable-libxvid --enable-libmp3lame --enable-version3 --enable-zlib --enable-librtmp --enable-libvorbis --enable-libtheora --enable-libspeex --enable-libopenjpeg --enable-gnutls --enable-libgsm --enable-libfreetype --enable-libopus --enable-frei0r --enable-filter=frei0r --enable-libvo-aacenc --enable-bzlib --enable-libxavs --enable-libopencore-amrnb --enable-libopencore-amrwb --enable-libvo-amrwbenc --enable-libschroedinger --enable-libvpx --enable-libilbc --enable-libwavpack --enable-libwebp --enable-libgme --enable-dxva2 --enable-libdcadec --enable-avisynth --enable-gray --enable-libopenh264" 
   # other possibilities (you'd need to also uncomment the call to their build method): 
   # --enable-w32threads # [worse UDP than pthreads, so not using that] 
   # --enable-libflite # [too big]
@@ -1321,7 +1321,7 @@ build_ffmpeg() {
 
   if [[ "$native_build" = "y" ]]; then
     config_options="$config_options --disable-runtime-cpudetect"
-    # TODO --cpu=host ... ?
+    # XXXX add --cpu=host ... ?
   else
     config_options="$config_options --enable-runtime-cpudetect"
   fi
@@ -1330,7 +1330,7 @@ build_ffmpeg() {
   if [[ "$do_debug_build" = "y" ]]; then
     # not sure how many of these are actually needed/useful...possibly none LOL
     config_options="$config_options --disable-optimizations --extra-cflags=-Og --extra-cflags=-fno-omit-frame-pointer --enable-debug=3 --extra-cflags=-fno-inline $postpend_configure_opts"
-    # this one kills gdb for static what? ai ai [?]
+    # this one kills gdb workability for static build? ai ai [?] XXXX
     config_options="$config_options --disable-libgme"
   fi
   
@@ -1401,7 +1401,7 @@ build_dependencies() {
   build_libxvid
   build_libxavs
   build_libsoxr
-#  build_libopenh264
+  build_libopenh264
   build_libx264
   build_libx265
   build_lame
