@@ -498,6 +498,17 @@ build_libx265() {
   cd ../..
 }
 
+build_libopenh264() {
+  do_git_checkout "https://github.com/cisco/openh264.git" openh264
+  cd openh264
+    if [ $bits_target = 32 ]; then
+      do_make_and_make_install "$make_prefix_options OS=mingw_nt ARCH=i686" # x86?
+    else
+      do_make_and_make_install "$make_prefix_options OS=mingw_nt ARCH=x86_64"
+    fi
+  cd ..
+}
+
 x264_profile_guided=n # or y -- haven't gotten this working yet...
 
 build_libx264() {
@@ -588,7 +599,7 @@ build_libxavs() {
     export LDFLAGS='-lm'
     generic_configure "--cross-prefix=$cross_prefix" # see https://github.com/rdp/ffmpeg-windows-build-helpers/issues/3
     unset LDFLAGS
-    do_make_and_make_install "CC=$(echo $cross_prefix)gcc AR=$(echo $cross_prefix)ar PREFIX=$mingw_w64_x86_64_prefix RANLIB=$(echo $cross_prefix)ranlib STRIP=$(echo $cross_prefix)strip"
+    do_make_and_make_install "$make_prefix_options"
     rm NUL # cygwin can't delete this folder if it has this oddly named file in it...
   cd ..
 }
@@ -618,7 +629,7 @@ build_wavpack() {
 build_libdcadec() {
   do_git_checkout https://github.com/foo86/dcadec.git dcadec_git
   cd dcadec_git
-    do_make_and_make_install "CC=$(echo $cross_prefix)gcc AR=$(echo $cross_prefix)ar PREFIX=$mingw_w64_x86_64_prefix"
+    do_make_and_make_install "$make_prefix_options"
   cd ..
 }
 
@@ -705,7 +716,7 @@ build_libgsm() {
   cd gsm-1.0-pl13
   apply_patch https://raw.githubusercontent.com/rdp/ffmpeg-windows-build-helpers/master/patches/libgsm.patch # for openssl to work with it, I think?
   # not do_make here since this actually fails [wrongly]
-  make CC=${cross_prefix}gcc AR=${cross_prefix}ar RANLIB=${cross_prefix}ranlib INSTALL_ROOT=${mingw_w64_x86_64_prefix}
+  make $make_prefix_options INSTALL_ROOT=${mingw_w64_x86_64_prefix}
   cp lib/libgsm.a $mingw_w64_x86_64_prefix/lib || exit 1
   mkdir -p $mingw_w64_x86_64_prefix/include/gsm
   cp inc/gsm.h $mingw_w64_x86_64_prefix/include/gsm || exit 1
@@ -752,7 +763,7 @@ build_glew() { # opengl stuff, apparently [disabled...]
   exit
   download_and_unpack_file https://sourceforge.net/projects/glew/files/glew/1.10.0/glew-1.10.0.tgz/download glew-1.10.0 
   cd glew-1.10.0
-    do_make_and_make_install "SYSTEM=linux-mingw32 GLEW_DEST=$mingw_w64_x86_64_prefix CC=${cross_prefix}gcc LD=${cross_prefix}ld CFLAGS=-DGLEW_STATIC" # could use $CFLAGS here [?] meh
+    do_make_and_make_install "SYSTEM=linux-mingw32 GLEW_DEST=$mingw_w64_x86_64_prefix $make_prefix_options CFLAGS=-DGLEW_STATIC" # could use $CFLAGS here [?] meh
     # now you should delete some "non static" files that it installed anyway? maybe? vlc does more here...
   cd ..
 }
@@ -883,7 +894,7 @@ build_bzlib2() {
   download_and_unpack_file http://fossies.org/linux/misc/bzip2-1.0.6.tar.gz bzip2-1.0.6
   cd bzip2-1.0.6
     apply_patch https://raw.githubusercontent.com/rdp/ffmpeg-windows-build-helpers/master/patches/bzip2_cross_compile.diff
-    do_make "CC=$(echo $cross_prefix)gcc AR=$(echo $cross_prefix)ar PREFIX=$mingw_w64_x86_64_prefix RANLIB=$(echo $cross_prefix)ranlib libbz2.a bzip2 bzip2recover install"
+    do_make "$make_prefix_options libbz2.a bzip2 bzip2recover install"
   cd ..
 }
 
@@ -891,7 +902,7 @@ build_zlib() {
   download_and_unpack_file http://zlib.net/zlib-1.2.8.tar.gz zlib-1.2.8
   cd zlib-1.2.8
     do_configure "--static --prefix=$mingw_w64_x86_64_prefix"
-    do_make_and_make_install "CC=$(echo $cross_prefix)gcc AR=$(echo $cross_prefix)ar RANLIB=$(echo $cross_prefix)ranlib ARFLAGS=rcs"
+    do_make_and_make_install "$make_prefix_options ARFLAGS=rcs"
   cd ..
 }
 
@@ -935,18 +946,17 @@ build_libaacplus() {
 build_openssl() {
   download_and_unpack_file http://www.openssl.org/source/openssl-1.0.1g.tar.gz openssl-1.0.1g
   cd openssl-1.0.1g
-  export cross="$cross_prefix"
-  export CC="${cross}gcc"
-  export AR="${cross}ar"
-  export RANLIB="${cross}ranlib"
-  XXXX do we need no-asm here?
+  #export CC="${cross_prefix}gcc"
+  #export AR="${cross_prefix}ar"
+  #export RANLIB="${cross_prefix}ranlib"
+  #XXXX do we need no-asm here?
   if [ "$bits_target" = "32" ]; then
     do_configure "--prefix=$mingw_w64_x86_64_prefix no-shared no-asm mingw" ./Configure
   else
     do_configure "--prefix=$mingw_w64_x86_64_prefix no-shared no-asm mingw64" ./Configure
   fi
   cpu_count=1
-  do_make_and_make_install
+  do_make_and_make_install "$make_prefix_options"
   cpu_count=$original_cpu_count
   unset cross
   unset CC
@@ -1102,7 +1112,7 @@ build_lua() {
   download_and_unpack_file http://www.lua.org/ftp/lua-5.1.tar.gz lua-5.1
   cd lua-5.1
     export AR="${cross_prefix}ar rcu" # needs a parameter :|
-    do_make "CC=${cross_prefix}gcc RANLIB=${cross_prefix}ranlib generic" # generic == static :)
+    do_make "$make_prefix_options generic" # generic == static :)
     unset AR
     do_make_and_make_install "INSTALL_TOP=$mingw_w64_x86_64_prefix"
     cp etc/lua.pc $PKG_CONFIG_PATH
@@ -1219,12 +1229,12 @@ build_mp4box() { # like build_gpac
   # I seem unable to pass 3 libs into the same config line so do it with sed...
   sed -i.bak "s/EXTRALIBS=.*/EXTRALIBS=-lws2_32 -lwinmm -lz/g" config.mak
   cd src
-  do_make "CC=${cross_prefix}gcc AR=${cross_prefix}ar RANLIB=${cross_prefix}ranlib PREFIX= STRIP=${cross_prefix}strip"
+  do_make "$make_prefix_options"
   cd ..
   rm -f ./bin/gcc/MP4Box* # try and force a relink/rebuild of the .exe
   cd applications/mp4box
   rm -f already_ran_make* # ?? 
-  do_make "CC=${cross_prefix}gcc AR=${cross_prefix}ar RANLIB=${cross_prefix}ranlib PREFIX= STRIP=${cross_prefix}strip"
+  do_make "$make_prefix_options"
   cd ../..
   # copy it every time just in case it was rebuilt...
   cp ./bin/gcc/MP4Box ./bin/gcc/MP4Box.exe # it doesn't name it .exe? That feels broken somehow...
@@ -1391,6 +1401,7 @@ build_dependencies() {
   build_libxvid
   build_libxavs
   build_libsoxr
+#  build_libopenh264
   build_libx264
   build_libx265
   build_lame
@@ -1565,6 +1576,7 @@ if [ -d "mingw-w64-i686" ]; then # they installed a 32-bit compiler, build 32-bi
   export PKG_CONFIG_PATH="$cur_dir/mingw-w64-i686/i686-w64-mingw32/lib/pkgconfig"
   bits_target=32
   cross_prefix="$cur_dir/mingw-w64-i686/bin/i686-w64-mingw32-"
+  make_prefix_options="CC=${cross_prefix}gcc AR=${cross_prefix}ar PREFIX=$mingw_w64_x86_64_prefix RANLIB=${cross_prefix}ranlib LD=${cross_prefix}ld STRIP=${cross_prefix}strip CXX=${cross_prefix}g++"
   mkdir -p win32
   cd win32
   build_dependencies
@@ -1581,6 +1593,7 @@ if [ -d "mingw-w64-x86_64" ]; then # they installed a 64-bit compiler, build 64-
   mkdir -p x86_64
   bits_target=64
   cross_prefix="$cur_dir/mingw-w64-x86_64/bin/x86_64-w64-mingw32-"
+  make_prefix_options="CC=${cross_prefix}gcc AR=${cross_prefix}ar PREFIX=$mingw_w64_x86_64_prefix RANLIB=${cross_prefix}ranlib LD=${cross_prefix}ld STRIP=${cross_prefix}strip CXX=${cross_prefix}g++"
   cd x86_64
   build_dependencies
   build_apps
