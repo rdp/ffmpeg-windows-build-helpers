@@ -334,10 +334,21 @@ do_make() {
 do_make_and_make_install() {
   local extra_make_options="$1"
   do_make "$extra_make_options"
-  local touch_name=$(get_small_touchfile_name already_ran_make_install "$extra_make_options")
+  do_make_install "$extra_make_options"
+}
+
+do_make_install() {
+  local extra_make_install_options="$1"
+  local override_make_install_options="$2" # startingly, some need/use something different than just 'make install'
+  if [[ -z $override_make_install_options ]]; then
+    local make_install_options="install $extra_make_options"
+  else
+    local make_install_options="$override_make_install_options"
+  fi
+  local touch_name=$(get_small_touchfile_name already_ran_make_install "$make_install_options")
   if [ ! -f $touch_name ]; then
-    echo "make installing $(pwd) as $ PATH=$PATH make install $extra_make_options"
-    nice make install $extra_make_options || exit 1
+    echo "make installing $(pwd) as $ PATH=$PATH make $make_install_options"
+    nice make $make_install_options || exit 1
     touch $touch_name || exit 1
   fi
 }
@@ -502,10 +513,11 @@ build_libopenh264() {
   do_git_checkout "https://github.com/cisco/openh264.git" openh264 24916a652ee5d3 # need this to match ffmpeg's use apparently
   cd openh264
     if [ $bits_target = 32 ]; then
-      do_make_and_make_install "$make_prefix_options OS=mingw_nt ARCH=i686" # x86?
+      do_make "$make_prefix_options OS=mingw_nt ARCH=i686" # x86 instead i686? guess that's ok...
     else
-      do_make_and_make_install "$make_prefix_options OS=mingw_nt ARCH=x86_64"
+      do_make "$make_prefix_options OS=mingw_nt ARCH=x86_64"
     fi
+    do_make_install "" "$make_prefix_options install-static"
   cd ..
 }
 
@@ -1403,9 +1415,9 @@ build_dependencies() {
   build_libxvid
   build_libxavs
   build_libsoxr
-  build_libopenh264
   build_libx264
   build_libx265
+  build_libopenh264
   build_lame
   build_twolame
   #build_lua was only used by libquvi
