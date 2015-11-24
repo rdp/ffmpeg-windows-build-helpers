@@ -1165,8 +1165,9 @@ build_vidstab() {
 build_vlc() {
   # currently broken, since it got too old for libavcodec and I didn't want to build its own custom one yet to match, and now it's broken with gcc 5.2.0 seemingly
   # call out dependencies here since it's a lot, plus hierarchical FTW!
+  # should be ffmpeg 1.1.1 or some odd?
   #if [ ! -f $mingw_w64_x86_64_prefix/lib/libavutil.a ]; then # it takes awhile without this 
-    build_ffmpeg ffmpeg # static
+    build_ffmpeg ffmpeg 
   #fi
   build_libdvdread
   build_libdvdnav
