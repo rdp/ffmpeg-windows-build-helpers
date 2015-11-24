@@ -23,11 +23,9 @@ Or to build it from linux (uses cross compiler, takes 2 hours or so but requires
 
   download the script (git clone the repo, cd into it, run script, or do the following in a bash prompt) $
 
-    ```bash
-    wget https://raw.github.com/rdp/ffmpeg-windows-build-helpers/master/cross_compile_ffmpeg.sh -O cross_compile_ffmpeg.sh
-    chmod u+x cross_compile_ffmpeg.sh
-    ./cross_compile_ffmpeg.sh
-    ```
+    $ wget https://raw.github.com/rdp/ffmpeg-windows-build-helpers/master/cross_compile_ffmpeg.sh -O cross_compile_ffmpeg.sh
+    $ chmod u+x cross_compile_ffmpeg.sh
+    $ ./cross_compile_ffmpeg.sh
 
 And answer the prompts.  
 It should end up with a working static ffmpeg.exe within the "sandbox/*/ffmpeg_git" director(ies).
