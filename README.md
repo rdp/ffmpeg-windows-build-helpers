@@ -45,7 +45,7 @@ Run it like
 to see all the various options available.
 Also NB that you can also "cross compile" mp4box.exe if you pass in the appropriate command line parameter.
 Also NB that you can also "cross compile" {mplayer,mencoder}.exe if you pass in the appropriate command line parameter too.
-Also NB that you can also "cross compile" vlc.exe if you pass in the appropriate command line parameter too.
+Also NB that you can also "cross compile" vlc.exe if you pass in the appropriate command line parameter too [currently broken, ping if you want it to work again].
 To enable Intel QSV (vista+ compatible only dependency so not enabled by default) use option --build-intel-qsv=y
 
 If you want to customize your FFmpeg final executable even more (remove features you don't need, etc.) then edit the script

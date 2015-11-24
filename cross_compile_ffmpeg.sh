@@ -1166,6 +1166,10 @@ build_vlc() {
   # currently broken, since it got too old for libavcodec and I didn't want to build its own custom one yet to match, and now it's broken with gcc 5.2.0 seemingly
   # call out dependencies here since it's a lot, plus hierarchical FTW!
   # should be ffmpeg 1.1.1 or some odd?
+
+  echo "not doing vlc build, currently broken until enough interest to fix it"
+  return
+
   #if [ ! -f $mingw_w64_x86_64_prefix/lib/libavutil.a ]; then # it takes awhile without this 
     build_ffmpeg ffmpeg 
   #fi
