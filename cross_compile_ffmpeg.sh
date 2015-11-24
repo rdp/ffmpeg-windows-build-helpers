@@ -1569,7 +1569,7 @@ check_missing_packages # do this first since it's annoying to go through prompts
 intro # remember to always run the intro, since it adjust pwd
 install_cross_compiler 
 
-export PKG_CONFIG_LIBDIR= # disable pkg-config from reverting back to and finding system installed packages [yikes]
+export PKG_CONFIG_LIBDIR= # disable pkg-config from finding [and using] normal linux system installed libs [yikes]
 
 if [[ $OSTYPE == darwin* ]]; then 
   # mac add some helper scripts
@@ -1578,7 +1578,7 @@ if [[ $OSTYPE == darwin* ]]; then
   fi
   cd mac_bin
     if [[ ! -x readlink ]]; then
-      # make some behave like linux...
+      # make some scripts behave like linux...
       curl -4 https://raw.githubusercontent.com/rdp/ffmpeg-windows-build-helpers/master/patches/md5sum.mac > md5sum  || exit 1
       chmod u+x ./md5sum
       curl -4 https://raw.githubusercontent.com/rdp/ffmpeg-windows-build-helpers/master/patches/readlink.mac > readlink  || exit 1
