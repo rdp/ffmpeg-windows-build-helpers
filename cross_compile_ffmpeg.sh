@@ -957,6 +957,7 @@ build_libaacplus() {
 }
 
 build_openssl() {
+  # warning, this is a very old version of openssl since we don't really use it anymore hasn't been updated in awhile...
   download_and_unpack_file http://www.openssl.org/source/openssl-1.0.1g.tar.gz openssl-1.0.1g
   cd openssl-1.0.1g
   #export CC="${cross_prefix}gcc"
