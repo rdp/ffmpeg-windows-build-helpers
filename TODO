@@ -2,17 +2,19 @@
 
 test out mplayer with its record-size whatever...
 fix gsm shared is broken...that was painful...
-add a command line option for qsv [?]
+fix vlc... :|
+poor audio sdl ffplay?
 
 == maybe/never do, more on the never... ==
 
-move collect.sh "inside it" :)
+move collect.sh "inside it" :) [already moved it to patches for now]
 
 add a "cygwin prompt here" .bat file when I do anything windowszy...yeah.
 
 default to more gcc cpu's?  hrm... (or do I do this already)
 
 opencl support [copy in headers?] https://www.khronos.org/registry/cl/ it needs something to link against too...ai ai
+  apparently "hard"
 
 figure out real static linkable builds [tell zeranoe to put them on his site?]
   linkable against them with mingw, msvc...
@@ -38,12 +40,7 @@ ask the x264 guys what is a good fprofiled option out there...
 
 were there any other places with suspect non march stuff?
 
-native windows'ify it
-  then some download with all of it?
-
 linux VM download with all of it
-
-add 10040 to their error message translator
 
 https://github.com/qyot27/mpv/blob/extra-new/DOCS/crosscompile-mingw-tedious.txt lists some more dependencies, some of which even work with FFmpeg.  Some might work with Mplayer.  Might as well add them, right?
 
@@ -53,32 +50,14 @@ clean sandbox build all with libfdk [i.e. can it still build everything everythi
 
 march without runtime cpu with hard core 1GB y4m fprofiled x264 and amd/intel cpu specified...LOLyeah...ask sherpya if he gets any speedups.
 
-tell mingw-w64 that they should support VARIANT
-
 use libcaca git instead, tell them it still isn't enough...
 
 test all things dvd to make sure they play anything...
 
-mplayer git'ify'
-  blocked'ish by lack of easy access to their source
 
 -d should auto select "both 32 and 64 bit" [XXX make it into command line param too?]
 
 command line option "don't update any git repos"
-
-libav work with nonfree? meh
-
-figure out how av_export workz with shared, to be able to tell so and so...
-  my guess is that it works with ffmpeg because the .lib files instruct it to use a dll? huhwuh?
-    ok you've got ffmpeg built static, and then .dll.lib.a files, right?  so thiiis is a different import structure than pthreads uses, and allows you to use "uni .h" files.......so maybe pthreads win32 should be generating different .lib files or something?
-  so ffmppeg maybe it creates the .lib.dll.a file different, and so *that* one can work...there may be a way to get it to work
-
-don't "always install libavcodec" [only when building VLC, maybe only ffmpeg too]
-  or smaller?
-
-VLC, you should use ../plugins/accessibility [?]
-  you should also not use plugins [?]
-  after investigate more, does it use them now? meh
 
 complain on anybody that I have to sed their .pc files [yikes!]
 
@@ -86,7 +65,7 @@ complain on anybody that I have to sed their .pc files [yikes!]
 
 fix all that are hard coded revision checkouts...meh
 
-SDL check if has same bug with 2.0, if so then file it...
+SDL check if has same configure bug with 2.0, if so then file it...
 
 Qt check if same weirdness with 5.1, if so then file it...
 

@@ -1204,6 +1204,7 @@ build_vlc() {
 
 "
   cd ..
+  unset DVDREAD_LIBS
 }
 
 build_mplayer() {
