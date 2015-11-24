@@ -38,7 +38,7 @@ real distro/installer/put it online
 
 ask the x264 guys what is a good fprofiled option out there...
 
-were there any other places with suspect non march stuff?
+were there any other places with suspect non -march stuff?
 
 linux VM download with all of it
 
@@ -88,8 +88,6 @@ distribute "my own set of [I guess optimized?] binaries" that are processor opti
 
 a distro that's a VM they can just open up and hit "go" in :)
 
-ask a pkg-config mailing list?
-
 make it compilable on windows native...
   release a downloadable "click here to run it" to build full libfdk-aac on windows LOL
 
@@ -105,8 +103,6 @@ test fribidi git master (does 0.19.5 fail? it should?) with wine installed
 
 tell orc+schro "you didn't well cross compile!"
 
-more march stuff...today we have the namsy pamsy enable cpu detection stuffs :P
-
 calculate size of each piece, put it on a wiki somewhere...
   startup slowdown, too?
 
@@ -114,8 +110,6 @@ support external toolchains
   then support "checking if they already have zlib installed into it"
 
 --enable-none --enable-x264 --enable-all-gpl --enable-all-non-free
-
-cleanup ramiro suggested for libgsm [?]
 
 profile guided builds?
   major libs
@@ -127,5 +121,3 @@ other "-march" like options? fastmath? f full program?
 qt seemed to infer too much about the cpu [possibly?]
 
 somewhere mentioned the old "-fwhole-project" setting again somewhere LOL hmm...for optimizing x264 possibly?
-
-TWOLAME move to .pc?
