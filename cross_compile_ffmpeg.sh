@@ -517,7 +517,7 @@ build_libopenh264() {
     else
       local arch=x86_64
     fi
-    do_make "$make_prefix_options OS=mingw_nt ARCH=$arch"
+    do_make "$make_prefix_options OS=mingw_nt ARCH=$arch ASM=yasm"
     do_make_install "" "$make_prefix_options install-static"
   cd ..
 }
