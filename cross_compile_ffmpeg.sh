@@ -613,7 +613,7 @@ build_libxavs() {
     generic_configure "--cross-prefix=$cross_prefix" # see https://github.com/rdp/ffmpeg-windows-build-helpers/issues/3
     unset LDFLAGS
     do_make_and_make_install "$make_prefix_options"
-    rm NUL # cygwin can't delete this folder if it has this oddly named file in it...
+    rm -f NUL # cygwin causes windows explorer to not be able to delete this folder if it has this oddly named file in it...
   cd ..
 }
 
