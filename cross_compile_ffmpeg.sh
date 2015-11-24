@@ -510,13 +510,14 @@ build_libx265() {
 }
 
 build_libopenh264() {
-  do_git_checkout "https://github.com/cisco/openh264.git" openh264 24916a652ee5d3 # need this to match ffmpeg's use apparently
+  do_git_checkout "https://github.com/cisco/openh264.git" openh264 24916a652ee5d3 # need this to match ffmpeg's apparently or openh264v1.4 [this is last commit before 1.5 AFAICT]
   cd openh264
     if [ $bits_target = 32 ]; then
-      do_make "$make_prefix_options OS=mingw_nt ARCH=i686" # x86 instead i686? guess that's ok...
+      local arch=i686 # or x86? 
     else
-      do_make "$make_prefix_options OS=mingw_nt ARCH=x86_64"
+      local arch=x86_64
     fi
+    do_make "$make_prefix_options OS=mingw_nt ARCH=$arch"
     do_make_install "" "$make_prefix_options install-static"
   cd ..
 }
@@ -885,8 +886,8 @@ build_libschroedinger() {
 }
 
 build_gnutls() {
-  download_and_unpack_file ftp://ftp.gnutls.org/gcrypt/gnutls/v3.3/gnutls-3.3.17.1.tar.xz gnutls-3.3.17.1
-  cd gnutls-3.3.17.1
+  download_and_unpack_file ftp://ftp.gnutls.org/gcrypt/gnutls/v3.3/gnutls-3.3.19.tar.xz gnutls-3.3.19
+  cd gnutls-3.3.19
     sed -i.bak 's/mkstemp(tmpfile)/ -1 /g' src/danetool.c # fix x86_64 absent? but danetool is just an exe AFAICT so this hack should be ok...
     generic_configure "--disable-cxx --disable-doc --enable-local-libopts  --disable-guile" # don't need the c++ version, in an effort to cut down on size... XXXX test size difference... libopts to allow building with local autogen installed, guile is so that if it finds guile installed (cygwin did/does) it won't try and link/build to it and fail...
     do_make_and_make_install
