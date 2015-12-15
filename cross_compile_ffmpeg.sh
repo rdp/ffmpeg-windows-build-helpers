@@ -845,7 +845,7 @@ build_libfribidi() {
 }
 
 build_libass() {
-  generic_download_and_install http://libass.googlecode.com/files/libass-0.10.2.tar.gz libass-0.10.2
+  generic_download_and_install https://github.com/libass/libass/releases/download/0.13.1/libass-0.13.1.tar.gz libass-0.13.1
   # fribidi, fontconfig, freetype throw them all in there for good measure, trying to help mplayer once though it didn't help [FFmpeg needed a change for fribidi here though I believe]
   sed -i.bak 's/-lass -lm/-lass -lfribidi -lfontconfig -lfreetype -lexpat -lm/' "$PKG_CONFIG_PATH/libass.pc"
 }
