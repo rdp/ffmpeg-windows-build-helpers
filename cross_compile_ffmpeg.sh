@@ -178,7 +178,7 @@ install_cross_compiler() {
   echo "starting to download and build cross compile version of gcc [requires working internet access] with thread count $gcc_cpu_count..."
   echo ""
   # --disable-shared allows c++ to be distributed at all...which seemed necessary for some random dependency...
-  nice ./$zeranoe_script_name --clean-build --disable-shared --default-configure  --pthreads-w32-ver=2-9-1 --cpu-count=$gcc_cpu_count --build-type=$compiler_flavors --gcc-ver=5.2.0 || exit 1 
+  nice ./$zeranoe_script_name --clean-build --disable-shared --default-configure  --pthreads-w32-ver=2-9-1 --cpu-count=$gcc_cpu_count --build-type=$compiler_flavors --gcc-ver=5.3.0 || exit 1 
   export CFLAGS=$original_cflags # reset it
   if [[ ! -f mingw-w64-i686/bin/i686-w64-mingw32-gcc && ! -f mingw-w64-x86_64/bin/x86_64-w64-mingw32-gcc ]]; then
     echo "no gcc cross compiler(s) seem built [?] (build failure [?]) recommend nuke sandbox dir (rm -rf sandbox) and try again!"
