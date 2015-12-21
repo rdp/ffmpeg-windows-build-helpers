@@ -165,15 +165,13 @@ install_cross_compiler() {
     return
   fi
 
-  # if they get this far, they want a compiler that's not installed, I think...fire away!
+  # if they get this far, they want a compiler that's not installed, I think...fire away! XXXX if 32 bit compiler installed, and request both, rebuilds 32...
 
   local zeranoe_script_name=mingw-w64-build-3.6.7.local
-  if [[ -f $zeranoe_script_name ]]; then
-    rm $zeranoe_script_name || exit 1
-  fi
+  rm -f $zeranoe_script_name || exit 1
   curl -4 https://raw.githubusercontent.com/rdp/ffmpeg-windows-build-helpers/master/patches/$zeranoe_script_name -O  || exit 1
   chmod u+x $zeranoe_script_name
-  unset CFLAGS # don't want these for the compiler itself since it creates executables to run on the local box
+  unset CFLAGS # don't want these for the compiler itself since it creates executables to run on the local box (we have a parameter allowing them to set them for the script "all builds" basically)
   # pthreads version to avoid having to use cvs for it
   echo "starting to download and build cross compile version of gcc [requires working internet access] with thread count $gcc_cpu_count..."
   echo ""
