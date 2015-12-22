@@ -146,7 +146,7 @@ EOF
 }
 
 install_cross_compiler() {
-  if [[ -f "mingw-w64-i686/compiler.done" && -f "mingw-w64-x86_64/compiler.done" ]]; then
+  if [[ -f "cross_compilers/mingw-w64-i686/compiler.done" && -f "cross_compilers/mingw-w64-x86_64/compiler.done" ]]; then
    echo "MinGW-w64 compilers already installed, not re-installing..."
    return # early exit just assume they want both, don't even prompt :)
   fi
@@ -154,43 +154,60 @@ install_cross_compiler() {
   if [[ -z $compiler_flavors ]]; then
     pick_compiler_flavors
   fi
+  local want_win32=n
+  if [[ $compiler_flavors == "win32" || $compiler_flavors == "multi" ]]; then
+    want_win32=y
+  fi
+  local want_win64=n
+  if [[ $compiler_flavors == "win64" || $compiler_flavors == "multi" ]]; then
+    want_win64=y
+  fi
 
-  if [[ $compiler_flavors == "win32" && -f "mingw-w64-i686/compiler.done" ]]; then
+  if [[ $want_win32 == "y" -f "cross_compilers/mingw-w64-i686/compiler.done" ]]; then
     echo "win32 cross compiler already installed, not reinstalling"
     return
   fi
 
-  if [[ $compiler_flavors == "win64" && -f "mingw-w64-x86_64/compiler.done" ]]; then
+  if [[ $compiler_flavors == "win64" && -f "cross_compilersmingw-w64-x86_64/compiler.done" ]]; then
     echo "win64 cross compiler already installed, not reinstalling"
     return
   fi
 
-  # if they get this far, they want a compiler that's not installed, I think...fire away! XXXX if 32 bit compiler installed, and request both, rebuilds 32...
-  # TODO if they don't have 64 bit, but do have 32 bit, then request multi, it rebuilds 32 bit I think... :|
+  mkdir cross_compilers
+  cd cross_compilers
 
-  local zeranoe_script_name=mingw-w64-build-3.6.7.local
-  rm -f $zeranoe_script_name || exit 1
-  curl -4 https://raw.githubusercontent.com/rdp/ffmpeg-windows-build-helpers/master/patches/$zeranoe_script_name -O  || exit 1
-  chmod u+x $zeranoe_script_name
-  unset CFLAGS # don't want these for the compiler itself since it creates executables to run on the local box (we have a parameter allowing them to set them for the script "all builds" basically)
-  # pthreads version to avoid having to use cvs for it
-  echo "starting to download and build cross compile version of gcc [requires working internet access] with thread count $gcc_cpu_count..."
-  echo ""
-  # --disable-shared allows c++ to be distributed at all...which seemed necessary for some random dependency...
-  nice ./$zeranoe_script_name --clean-build --disable-shared --default-configure  --pthreads-w32-ver=2-9-1 --cpu-count=$gcc_cpu_count --build-type=$compiler_flavors --gcc-ver=5.3.0 || exit 1 
-  export CFLAGS=$original_cflags # reset it
-  if [[ ! -f mingw-w64-i686/bin/i686-w64-mingw32-gcc && ! -f mingw-w64-x86_64/bin/x86_64-w64-mingw32-gcc ]]; then
-    echo "no gcc cross compiler(s) seem built [?] (build failure [?]) recommend nuke sandbox dir (rm -rf sandbox) and try again!"
-    exit 1
-  fi
-  if [ -d mingw-w64-x86_64 ]; then
-    touch mingw-w64-x86_64/compiler.done
-  fi
-  if [ -d mingw-w64-i686 ]; then
-    touch mingw-w64-i686/compiler.done
-  fi
-  rm -f build.log
-  clear
+    local zeranoe_script_name=mingw-w64-build-3.6.7.local
+    rm -f $zeranoe_script_name || exit 1
+    curl -4 https://raw.githubusercontent.com/rdp/ffmpeg-windows-build-helpers/master/patches/$zeranoe_script_name -O  || exit 1
+    chmod u+x $zeranoe_script_name
+    unset CFLAGS # don't want these for the compiler itself since it creates executables to run on the local box (we have a parameter allowing them to set them for the script "all builds" basically)
+    # pthreads version to avoid having to use cvs for it
+    echo "starting to download and build cross compile version of gcc [requires working internet access] with thread count $gcc_cpu_count..."
+    echo ""
+
+    # --disable-shared allows c++ to be distributed at all...which seemed necessary for some random dependency...
+    if [[ $want_win32 == "y" && !(-f "cross_compilers/mingw-w64-i686/compiler.done") ]]; then
+      nice ./$zeranoe_script_name --clean-build --disable-shared --default-configure  --pthreads-w32-ver=2-9-1 --cpu-count=$gcc_cpu_count --build-type=win32 --gcc-ver=5.3.0 || exit 1 
+    fi
+    if [[ $want_win64 == "y" && !(-f "cross_compilers/mingw-w64-x86_64/compiler.done") ]]; then
+      nice ./$zeranoe_script_name --clean-build --disable-shared --default-configure  --pthreads-w32-ver=2-9-1 --cpu-count=$gcc_cpu_count --build-type=win64 --gcc-ver=5.3.0 || exit 1 
+    fi
+
+    if [[ ! -f mingw-w64-i686/bin/i686-w64-mingw32-gcc && ! -f mingw-w64-x86_64/bin/x86_64-w64-mingw32-gcc ]]; then
+      echo "no gcc cross compiler(s) seem built [?] (build failure [?]) recommend nuke sandbox dir (rm -rf sandbox) and try again!"
+      exit 1
+    fi
+
+    if [ -d mingw-w64-x86_64 ]; then
+      touch mingw-w64-x86_64/compiler.done
+    fi
+    if [ -d mingw-w64-i686 ]; then
+      touch mingw-w64-i686/compiler.done
+    fi
+    rm -f build.log
+    export CFLAGS=$original_cflags # reset it back to what it was passed in as, via parameter :)
+    clear
+  cd ..
   echo "Ok, done building MinGW-w64 cross-compiler(s) successfully..."
 }
 
@@ -626,7 +643,7 @@ build_libbs2b() {
   unset ac_cv_func_malloc_0_nonnull
 }
 
-build_libgame-music-emu() {
+build_libgme_game_music_emu() {
   download_and_unpack_file  https://bitbucket.org/mpyne/game-music-emu/downloads/game-music-emu-0.6.0.tar.bz2 game-music-emu-0.6.0
   cd game-music-emu-0.6.0
     sed -i.bak "s|SHARED|STATIC|" gme/CMakeLists.txt
@@ -916,7 +933,7 @@ build_bzlib2() {
 }
 
 build_zlib() {
-  download_and_unpack_file http://zlib.net/zlib-1.2.8.tar.gz zlib-1.2.8
+  download_and_unpack_file http://sourceforge.net/projects/libpng/files/zlib/1.2.8/zlib-1.2.8.tar.gz/download zlib-1.2.8
   cd zlib-1.2.8
     do_configure "--static --prefix=$mingw_w64_x86_64_prefix"
     do_make_and_make_install "$make_prefix_options ARFLAGS=rcs"
@@ -1404,7 +1421,7 @@ build_dependencies() {
   build_libbs2b # needs libsndfile
   build_wavpack
   build_libdcadec
-  build_libgame-music-emu
+  build_libgme_game_music_emu
   build_libwebp
   build_libutvideo
   #build_libflite # too big for distro...though may still be useful
@@ -1599,14 +1616,14 @@ if [[ $OSTYPE == darwin* ]]; then
 fi
 
 original_path="$PATH"
-if [ -d "mingw-w64-i686" ]; then # they installed a 32-bit compiler, build 32-bit everything
+if [ -d "cross_compilers/mingw-w64-i686" ]; then # they installed a 32-bit compiler, build 32-bit everything
   echo "Building 32-bit ffmpeg..."
   host_target='i686-w64-mingw32'
-  mingw_w64_x86_64_prefix="$cur_dir/mingw-w64-i686/$host_target"
-  export PATH="$cur_dir/mingw-w64-i686/bin:$original_path"
-  export PKG_CONFIG_PATH="$cur_dir/mingw-w64-i686/i686-w64-mingw32/lib/pkgconfig"
+  mingw_w64_x86_64_prefix="$cur_dir/cross_compilers/mingw-w64-i686/$host_target"
+  export PATH="$cur_dir/cross_compilers/mingw-w64-i686/bin:$original_path"
+  export PKG_CONFIG_PATH="$cur_dir/cross_compilers/mingw-w64-i686/i686-w64-mingw32/lib/pkgconfig"
   bits_target=32
-  cross_prefix="$cur_dir/mingw-w64-i686/bin/i686-w64-mingw32-"
+  cross_prefix="$cur_dir/cross_compilers/mingw-w64-i686/bin/i686-w64-mingw32-"
   make_prefix_options="CC=${cross_prefix}gcc AR=${cross_prefix}ar PREFIX=$mingw_w64_x86_64_prefix RANLIB=${cross_prefix}ranlib LD=${cross_prefix}ld STRIP=${cross_prefix}strip CXX=${cross_prefix}g++"
   mkdir -p win32
   cd win32
@@ -1615,15 +1632,15 @@ if [ -d "mingw-w64-i686" ]; then # they installed a 32-bit compiler, build 32-bi
   cd ..
 fi
 
-if [ -d "mingw-w64-x86_64" ]; then # they installed a 64-bit compiler, build 64-bit everything
-  echo "Building 64-bit ffmpeg..."
+if [ -d "cross_compilers/mingw-w64-x86_64" ]; then # they installed a 64-bit compiler, build 64-bit everything
+  echo "\n\n\n\n\n\n\n\nBuilding 64-bit ffmpeg..." # make it have a bit header to you can see when 32 bit is done more easily
   host_target='x86_64-w64-mingw32'
-  mingw_w64_x86_64_prefix="$cur_dir/mingw-w64-x86_64/$host_target"
-  export PATH="$cur_dir/mingw-w64-x86_64/bin:$original_path"
-  export PKG_CONFIG_PATH="$cur_dir/mingw-w64-x86_64/x86_64-w64-mingw32/lib/pkgconfig"
+  mingw_w64_x86_64_prefix="$cur_dir/cross_compilers/mingw-w64-x86_64/$host_target"
+  export PATH="$cur_dir/cross_compilers/mingw-w64-x86_64/bin:$original_path"
+  export PKG_CONFIG_PATH="$cur_dir/cross_compilers/mingw-w64-x86_64/x86_64-w64-mingw32/lib/pkgconfig"
   mkdir -p x86_64
   bits_target=64
-  cross_prefix="$cur_dir/mingw-w64-x86_64/bin/x86_64-w64-mingw32-"
+  cross_prefix="$cur_dir/cross_compilers/mingw-w64-x86_64/bin/x86_64-w64-mingw32-"
   make_prefix_options="CC=${cross_prefix}gcc AR=${cross_prefix}ar PREFIX=$mingw_w64_x86_64_prefix RANLIB=${cross_prefix}ranlib LD=${cross_prefix}ld STRIP=${cross_prefix}strip CXX=${cross_prefix}g++"
   cd x86_64
   build_dependencies
