@@ -15,10 +15,10 @@ To build in windows (no VM needed, uses the native'ish cygwin):
 Next run one of the "native_build/build_locally_XXX.bat" file.
 The "fast" one is just libx264, fdk aac, and FFmpeg, and takes about 1 hour.
 The "options" one or "gpl" one is ffmpeg with or without fdk aac, and has all the other fixings like lots of dependencies.
-  Can take 6 hours or more.
+  Can take 6 hours or more.  Recommend start it, wait for it to give you some prompts (it asks them as a bunch up front) then
+  let it build overnight :)
   
-Or to build it from linux (uses cross compiler, takes 2 hours or so but requires linux box or VM):
-
+Or build it from linux (uses cross compiler, much faster, takes 2 hours or so but requires a linux box or VM):
   In some type of Linux box (VM or native, or you could even create a VM temporarily, ex: digitalocean [1], [use it, then destroy your droplet]):
 
   download the script (git clone the repo, cd into it, run script, or do the following in a bash prompt) $
