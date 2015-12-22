@@ -8,7 +8,7 @@ To run the script...
 
 To build in windows (uses the native'ish cygwin):
 
-     obtain repository: 
+obtain repository: 
        download zip file: 
        
 https://github.com/rdp/ffmpeg-windows-build-helpers/archive/master.zip
