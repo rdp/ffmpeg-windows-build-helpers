@@ -6,10 +6,15 @@ including many dependency libraries they use.
 
 To run the script...
 
-To build in windows (no VM needed, uses the native'ish cygwin):
+To build in windows (uses the native'ish cygwin):
 
      obtain repository: 
-       download zip file: https://github.com/rdp/ffmpeg-windows-build-helpers/archive/master.zip and unzip
+       download zip file: 
+       
+       https://github.com/rdp/ffmpeg-windows-build-helpers/archive/master.zip
+       
+       and unzip
+       
        or clone the repository: c:\>git clone https://github.com/rdp/ffmpeg-windows-build-helpers.git
        
 Next run one of the "native_build/build_locally_XXX.bat" file.
@@ -18,7 +23,7 @@ Next run one of the "native_build/build_locally_XXX.bat" file.
 * build_locally_gpl_32_bit_option: Same as option prompts above, but 32bit non-fdk auto selected.  Simplified build, if you don't know what to build, choose this.
   For the long running builds, recommend start it, wait for it to give you prompts (if it does, it asks them as a bunch up front after installing cygwin) then  let it build overnight :)
   
-Or second option: build it from linux (much faster, uses cross compiler, takes 2 hours for the "options" build, requires a linux box or VM):  In some type of Linux box (VM or native, or you could even create a VM temporarily, ex: digitalocean [1], [use it, then destroy your droplet]):
+Or second option: build it from linux (much faster, takes 2 hours for the "options" build, requires a linux box or VM with linux guest running on a windows box):  In some type of Linux box (VM or native, or you could even create a VM temporarily, ex: digitalocean [1], [use it, then destroy your droplet]):
 
     Download the script 
     git clone this repo:
