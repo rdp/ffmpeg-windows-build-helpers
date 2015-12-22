@@ -11,11 +11,11 @@ To build in windows (uses the native'ish cygwin):
      obtain repository: 
        download zip file: 
        
-       https://github.com/rdp/ffmpeg-windows-build-helpers/archive/master.zip
+https://github.com/rdp/ffmpeg-windows-build-helpers/archive/master.zip
        
-       and unzip
-       
-       or clone the repository: c:\>git clone https://github.com/rdp/ffmpeg-windows-build-helpers.git
+and unzip, or clone the repository: 
+
+     c:\>git clone https://github.com/rdp/ffmpeg-windows-build-helpers.git
        
 Next run one of the "native_build/build_locally_XXX.bat" file.
 * build_locally_fdk_aac_and_x264_32bit_fast: Just libx264, fdk aac, and FFmpeg, and takes about 1 hour.
