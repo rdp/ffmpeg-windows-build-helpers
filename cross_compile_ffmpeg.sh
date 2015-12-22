@@ -166,6 +166,7 @@ install_cross_compiler() {
   fi
 
   # if they get this far, they want a compiler that's not installed, I think...fire away! XXXX if 32 bit compiler installed, and request both, rebuilds 32...
+  # TODO if they don't have 64 bit, but do have 32 bit, then request multi, it rebuilds 32 bit I think... :|
 
   local zeranoe_script_name=mingw-w64-build-3.6.7.local
   rm -f $zeranoe_script_name || exit 1
@@ -1557,7 +1558,7 @@ while true; do
     --disable-nonfree=* ) disable_nonfree="${1#*=}"; shift ;;
     -a         ) build_mplayer=y; build_libmxf=y; build_mp4box=y; build_vlc=y; build_ffmpeg_shared=y; high_bitdepth=y; build_ffmpeg_static=y; 
                  disable_nonfree=n; git_get_latest=y; shift ;;
-    -d         ) gcc_cpu_count=$cpu_count; disable_nonfree="y"; sandbox_ok="y"; compiler_flavors="multi"; git_get_latest="n" ; shift ;;
+    -d         ) gcc_cpu_count=$cpu_count; disable_nonfree="y"; sandbox_ok="y"; compiler_flavors="win32"; git_get_latest="n" ; shift ;;
     --compiler-flavors=* ) compiler_flavors="${1#*=}"; shift ;;
     --build-ffmpeg-static=* ) build_ffmpeg_static="${1#*=}"; shift ;;
     --build-ffmpeg-shared=* ) build_ffmpeg_shared="${1#*=}"; shift ;;
