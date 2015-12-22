@@ -14,7 +14,7 @@ To build in windows (no VM needed, uses the native'ish cygwin):
        
 Next run one of the "native_build/build_locally_XXX.bat" file.
 The "fast" one is just libx264, fdk aac, and FFmpeg, and takes about 1 hour.
-The "options" one or "gpl" one is ffmpeg with or without fdk aac, and has all the other fixings like lots of dependencies.
+The "options" one or "gpl" one is ffmpeg with options to include fdk or not, and also both include many FFmpeg dependency libraries.
   Can take 6 hours or more.  Recommend start it, wait for it to give you some prompts (it asks them as a bunch up front) then
   let it build overnight :)
   
