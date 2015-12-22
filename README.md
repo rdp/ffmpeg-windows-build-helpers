@@ -18,9 +18,10 @@ and unzip, or clone the repository:
      c:\>git clone https://github.com/rdp/ffmpeg-windows-build-helpers.git
        
 Next run one of the "native_build/build_locally_XXX.bat" file.
-* build_locally_fdk_aac_and_x264_32bit_fast: Just libx264, fdk aac, and FFmpeg, and takes about 1 hour.
+* build_locally_fdk_aac_and_x264_32bit_fast: Just libx264, fdk aac, and FFmpeg, and takes about 1 hour. Easiest way to get fdk aac, if you don't know which you want, use this one.
 * build_locally_with_various_option_prompts: Has FFmpeg and many dependency libraries.  Prompts for whether you'd like to also include fdk/nvenc libraries, 32 and/or 64 bit executables.  Can take 6 hours or more.
-* build_locally_gpl_32_bit_option: Same as option prompts above, but 32bit non-fdk auto selected.  Simplified build, if you don't know what to build, choose this.
+* build_locally_gpl_32_bit_option: Same as option prompts above, but 32bit non-fdk auto selected.
+
   For the long running builds, recommend start it, wait for it to give you prompts (if it does, it asks them as a bunch up front after installing cygwin) then  let it build overnight :)
   
 Or second option: build it from linux (much faster, takes 2 hours for the "options" build, requires a linux box or VM with linux guest running on a windows box):  In some type of Linux box (VM or native, or you could even create a VM temporarily, ex: digitalocean [1], [use it, then destroy your droplet]):
