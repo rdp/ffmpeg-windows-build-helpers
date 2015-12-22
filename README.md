@@ -20,12 +20,12 @@ Next run one of the "native_build/build_locally_XXX.bat" file.
   
 Or second option: build it from linux (much faster, uses cross compiler, takes 2 hours for the "options" build, requires a linux box or VM):  In some type of Linux box (VM or native, or you could even create a VM temporarily, ex: digitalocean [1], [use it, then destroy your droplet]):
 
-       Download the script 
-         git clone this repo:
-         $ git clone https://github.com/rdp/ffmpeg-windows-build-helpers.git
-         $ cd ffmpeg-windows-build-helpers
+    Download the script 
+    git clone this repo:
+    $ git clone https://github.com/rdp/ffmpeg-windows-build-helpers.git
+    $ cd ffmpeg-windows-build-helpers
 
-   Or do the following in a bash prompt instead of git clone:
+    Or do the following in a bash prompt instead of git clone:
     $ mkdir ffmpeg_build
     $ cd ffmpeg_build
     $ wget https://raw.github.com/rdp/ffmpeg-windows-build-helpers/master/cross_compile_ffmpeg.sh -O cross_compile_ffmpeg.sh
