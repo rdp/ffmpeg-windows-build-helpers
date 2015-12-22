@@ -51,7 +51,9 @@ Also NB that it has some other optional command line parameters you can pass it,
 building a shared FFmpeg build (libavcodec-56.dll type distro), 
 building mp4box/mplayer/vlc, 10 bit libx264, etc.
 Run it like
+
 ./cross_compile_ffmpeg.sh -h 
+
 to see all the various options available.
 Also NB that you can also "cross compile" mp4box.exe if you pass in the appropriate command line parameter.
 Also NB that you can also "cross compile" {mplayer,mencoder}.exe if you pass in the appropriate command line parameter too.
