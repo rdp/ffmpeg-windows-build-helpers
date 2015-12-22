@@ -39,8 +39,10 @@ And answer the prompts.
 It should end up with a working static ffmpeg.exe within the "sandbox/*/ffmpeg_git" director(ies).
 
 Another option instead of running ./cross_compile_ffmpeg.sh is to run 
+
     $ quick_cross_compile_ffmpeg_fdk_aac_and_x264_using_packaged_mingw64.sh script.
-  The "quick" part being the important part here, this one attempts to just uses your local distributions'
+
+The "quick" part being the important part here, this one attempts to just uses your local distributions'
   mingw-w64 package for the cross compiler, thus speeding up compilation *dramatically*.
 
 OS X users, follow instructions for linux above (it should "just work" no VM needed, using cross compiling).
