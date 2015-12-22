@@ -724,14 +724,19 @@ build_libflite() {
 }
 
 build_libgsm() {
-  download_and_unpack_file http://www.quut.com/gsm/gsm-1.0.13.tar.gz gsm-1.0-pl13
-  cd gsm-1.0-pl13
-  apply_patch https://raw.githubusercontent.com/rdp/ffmpeg-windows-build-helpers/master/patches/libgsm.patch # for openssl to work with it, I think?
-  # not do_make here since this actually fails [wrongly]
-  make $make_prefix_options INSTALL_ROOT=${mingw_w64_x86_64_prefix}
-  cp lib/libgsm.a $mingw_w64_x86_64_prefix/lib || exit 1
-  mkdir -p $mingw_w64_x86_64_prefix/include/gsm
-  cp inc/gsm.h $mingw_w64_x86_64_prefix/include/gsm || exit 1
+  download_and_unpack_file http://www.quut.com/gsm/gsm-1.0.14.tar.gz gsm-1.0-pl14
+  cd gsm-1.0-pl14
+    apply_patch https://raw.githubusercontent.com/rdp/ffmpeg-windows-build-helpers/master/patches/libgsm.patch
+    # for openssl to work with it, I think?
+    if [[ ! -f  $mingw_w64_x86_64_prefix/include/gsm/gsm.h ]]; then
+      # not do_make here since this actually fails [wrongly]
+      make $make_prefix_options INSTALL_ROOT=${mingw_w64_x86_64_prefix}
+      cp lib/libgsm.a $mingw_w64_x86_64_prefix/lib || exit 1
+      mkdir -p $mingw_w64_x86_64_prefix/include/gsm
+      cp inc/gsm.h $mingw_w64_x86_64_prefix/include/gsm || exit 1
+    else
+      echo "already installed gsm"
+    fi
   cd ..
 }
 
@@ -788,7 +793,7 @@ build_libopencore() {
 build_libdlfcn() {
   do_git_checkout https://github.com/dlfcn-win32/dlfcn-win32.git dlfcn-win32 
   cd dlfcn-win32
-    ./configure --disable-shared --enable-static --cross-prefix=$cross_prefix --prefix=$mingw_w64_x86_64_prefix
+    do_configure "--disable-shared --enable-static --cross-prefix=$cross_prefix --prefix=$mingw_w64_x86_64_prefix" # rejects some normal cross compile options so custom here
     do_make_and_make_install
   cd ..
 }
