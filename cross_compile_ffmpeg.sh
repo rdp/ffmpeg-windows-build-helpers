@@ -85,6 +85,7 @@ check_missing_packages () {
 
 
 intro() {
+  echo `date`
   cat <<EOL
      ##################### Welcome ######################
   Welcome to the ffmpeg cross-compile builder-helper script.
@@ -200,6 +201,8 @@ install_cross_compiler() {
     export CFLAGS=$original_cflags # reset it back to what it was passed in as, via parameter :)
   cd ..
   echo "Ok, done building (or already built) MinGW-w64 cross-compiler(s) successfully..."
+  echo `date`
+
 }
 
 # helper methods for downloading and building projects that can take generic input
@@ -1380,6 +1383,7 @@ build_ffmpeg() {
   sed -i.bak 's/-lavutil -lm.*/-lavutil -lm -lpthread/' "$PKG_CONFIG_PATH/libavutil.pc" # XXX patch ffmpeg itself...
   sed -i.bak 's/-lswresample -lm.*/-lswresample -lm -lsoxr/' "$PKG_CONFIG_PATH/libswresample.pc" # XXX patch ffmpeg
   echo "Done! You will find $bits_target bit $shared non_free=$non_free binaries in $(pwd)/*.exe"
+  echo `date`
   cd ..
 }
 
@@ -1624,7 +1628,7 @@ if [ -d "cross_compilers/mingw-w64-i686" ]; then # they installed a 32-bit compi
 fi
 
 if [ -d "cross_compilers/mingw-w64-x86_64" ]; then # they installed a 64-bit compiler, build 64-bit everything
-  echo "\n\n\n\n\n\n\n\nBuilding 64-bit ffmpeg..." # make it have a bit header to you can see when 32 bit is done more easily
+  echo "**************Building 64-bit ffmpeg..." # make it have a bit header to you can see when 32 bit is done more easily
   host_target='x86_64-w64-mingw32'
   mingw_w64_x86_64_prefix="$cur_dir/cross_compilers/mingw-w64-x86_64/$host_target"
   export PATH="$cur_dir/cross_compilers/mingw-w64-x86_64/bin:$original_path"
