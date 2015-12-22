@@ -147,7 +147,7 @@ EOF
 
 install_cross_compiler() {
   if [[ -f "cross_compilers/mingw-w64-i686/compiler.done" && -f "cross_compilers/mingw-w64-x86_64/compiler.done" ]]; then
-   echo "MinGW-w64 compilers already installed, not re-installing..."
+   echo "MinGW-w64 compilers both already installed, not re-installing..."
    return # early exit just assume they want both, don't even prompt :)
   fi
 
@@ -163,17 +163,7 @@ install_cross_compiler() {
     want_win64=y
   fi
 
-  if [[ $want_win32 == "y" -f "cross_compilers/mingw-w64-i686/compiler.done" ]]; then
-    echo "win32 cross compiler already installed, not reinstalling"
-    return
-  fi
-
-  if [[ $compiler_flavors == "win64" && -f "cross_compilersmingw-w64-x86_64/compiler.done" ]]; then
-    echo "win64 cross compiler already installed, not reinstalling"
-    return
-  fi
-
-  mkdir cross_compilers
+  mkdir -p cross_compilers
   cd cross_compilers
 
     local zeranoe_script_name=mingw-w64-build-3.6.7.local
@@ -186,10 +176,12 @@ install_cross_compiler() {
     echo ""
 
     # --disable-shared allows c++ to be distributed at all...which seemed necessary for some random dependency...
-    if [[ $want_win32 == "y" && !(-f "cross_compilers/mingw-w64-i686/compiler.done") ]]; then
+    if [[ $want_win32 == "y" && ! -f "mingw-w64-i686/compiler.done" ]]; then
+      echo "building win32 cross compiler"
       nice ./$zeranoe_script_name --clean-build --disable-shared --default-configure  --pthreads-w32-ver=2-9-1 --cpu-count=$gcc_cpu_count --build-type=win32 --gcc-ver=5.3.0 || exit 1 
     fi
-    if [[ $want_win64 == "y" && !(-f "cross_compilers/mingw-w64-x86_64/compiler.done") ]]; then
+    if [[ $want_win64 == "y" && ! -f "mingw-w64-x86_64/compiler.done" ]]; then
+      echo "building win64 x86_64 cross compiler"
       nice ./$zeranoe_script_name --clean-build --disable-shared --default-configure  --pthreads-w32-ver=2-9-1 --cpu-count=$gcc_cpu_count --build-type=win64 --gcc-ver=5.3.0 || exit 1 
     fi
 
@@ -206,9 +198,8 @@ install_cross_compiler() {
     fi
     rm -f build.log
     export CFLAGS=$original_cflags # reset it back to what it was passed in as, via parameter :)
-    clear
   cd ..
-  echo "Ok, done building MinGW-w64 cross-compiler(s) successfully..."
+  echo "Ok, done building (or already built) MinGW-w64 cross-compiler(s) successfully..."
 }
 
 # helper methods for downloading and building projects that can take generic input
