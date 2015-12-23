@@ -1595,10 +1595,10 @@ export PKG_CONFIG_LIBDIR= # disable pkg-config from finding [and using] normal l
 
 if [[ $OSTYPE == darwin* ]]; then 
   # mac add some helper scripts
-  if [[ ! -d mac_bin ]]; then
-    mkdir mac_bin
+  if [[ ! -d mac_helper_scripts ]]; then
+    mkdir mac_helper_scripts
   fi
-  cd mac_bin
+  cd mac_helper_scripts
     if [[ ! -x readlink ]]; then
       # make some scripts behave like linux...
       curl -4 https://raw.githubusercontent.com/rdp/ffmpeg-windows-build-helpers/master/patches/md5sum.mac > md5sum  || exit 1
