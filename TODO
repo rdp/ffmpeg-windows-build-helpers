@@ -51,6 +51,7 @@ clean sandbox build all with libfdk [i.e. can it still build everything everythi
 march without runtime cpu with hard core 1GB y4m fprofiled x264 and amd/intel cpu specified...LOLyeah...ask sherpya if he gets any speedups.
 
 use libcaca git instead, tell them it still isn't enough...
+  https://ffmpeg.zeranoe.com/forum/viewtopic.php?t=1391 also tell them non windows xp? also tell mingw-w64 what?
 
 test all things dvd to make sure they play anything...
 

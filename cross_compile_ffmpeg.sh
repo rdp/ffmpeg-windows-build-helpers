@@ -1120,11 +1120,13 @@ build_libcaca() {
   download_and_unpack_file https://distfiles.macports.org/libcaca/libcaca-0.99.beta19.tar.gz libcaca-0.99.beta19
   cd libcaca-0.99.beta19
   cd caca
-    sed -i.bak "s/int vsnprintf/int vnsprintf_disabled/" *.c # beta19 bug...
+    sed -i.bak "s/int vsnprintf/int vnsprintf_disabled/" *.c # beta19 bug, wouldn't build otherwise...
     sed -i.bak "s/__declspec(dllexport)//g" *.h # get rid of the declspec lines otherwise the build will fail for undefined symbols
     sed -i.bak "s/__declspec(dllimport)//g" *.h 
   cd ..
-  generic_configure_make_install "--libdir=$mingw_w64_x86_64_prefix/lib --disable-cxx --disable-csharp --disable-java --disable-python --disable-ruby --disable-imlib2 --disable-doc"
+  generic_configure "--libdir=$mingw_w64_x86_64_prefix/lib --disable-cxx --disable-csharp --disable-java --disable-python --disable-ruby --disable-imlib2 --disable-doc"
+  sed -i.bak "s/#define HAVE_VSNPRINTF_S 1/#define HAVE_VSNPRINTF_S 0/" config.h # msvcrt.dll doesn't have this [?] so disable for windows XP friendliness
+  do_make_and_make_install
   cd ..
 }
 
