@@ -1120,9 +1120,9 @@ build_libcaca() {
   download_and_unpack_file https://distfiles.macports.org/libcaca/libcaca-0.99.beta19.tar.gz libcaca-0.99.beta19
   cd libcaca-0.99.beta19
   # make it windows xp vsnprintf happy, from MXE
-  apply_patch https://raw.githubusercontent.com/rdp/ffmpeg-windows-build-helpers/master/patches/libcaca-1-fixes.patch
-  apply_patch https://raw.githubusercontent.com/rdp/ffmpeg-windows-build-helpers/master/patches/libcaca-2-vsnprintf.patch
   cd caca
+    apply_patch https://raw.githubusercontent.com/rdp/ffmpeg-windows-build-helpers/master/patches/libcaca-1-fixes.patch
+    apply_patch https://raw.githubusercontent.com/rdp/ffmpeg-windows-build-helpers/master/patches/libcaca-2-vsnprintf.patch
     sed -i.bak "s/int vsnprintf/int vnsprintf_disabled/" *.c # beta19 bug, wouldn't build otherwise...
     sed -i.bak "s/__declspec(dllexport)//g" *.h # get rid of the declspec lines otherwise the build will fail for undefined symbols
     sed -i.bak "s/__declspec(dllimport)//g" *.h 
