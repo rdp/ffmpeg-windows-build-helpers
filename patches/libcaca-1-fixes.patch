@@ -1,10 +1,3 @@
-From b9f723cf31e007004ccc748a0e16c594fa7fdf35 Mon Sep 17 00:00:00 2001
-From: Timothy Gu <timothygu99@gmail.com>
-Date: Sat, 2 Aug 2014 15:12:50 -0700
-Subject: [PATCH 1/3] Fix Windows build for ncurses and slang
-
-Signed-off-by: Timothy Gu <timothygu99@gmail.com>
-
 diff --git a/caca/driver/ncurses.c b/caca/driver/ncurses.c
 index 7171e91..8161c0f 100644
 --- a/caca/driver/ncurses.c
@@ -14,7 +7,7 @@ index 7171e91..8161c0f 100644
   */
  
 -#if defined HAVE_SIGNAL
-+#if defined HAVE_SIGNAL && defined SIGWINCH
++#if defined HAVE_SIGNAL && defined SIGWINCH // this patch file from MXE
  static RETSIGTYPE sigwinch_handler(int);
  static caca_display_t *sigwinch_d; /* FIXME: we ought to get rid of this */
  #endif
