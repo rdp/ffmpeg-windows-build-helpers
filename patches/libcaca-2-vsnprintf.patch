@@ -62,26 +62,6 @@ index 4581aaf..6aaa295 100644
      s->name[127] = '\0';
      va_end(args);
  
--- 
-1.9.1
-
-
-From 2d9f0f378261d19b56a66f9f0f0508f11f31e56c Mon Sep 17 00:00:00 2001
-From: Timothy Gu <timothygu99@gmail.com>
-Date: Fri, 22 Aug 2014 10:04:06 -0700
-Subject: [PATCH 2/2] string: remove broken vsnprintf[_s] implementation
-
-This interferes mingw-w64, which as a proper vsnprintf definition.
-
-The usage of vsnprintf in the file is guarded with HAVE_VSNPRINF
-with appropriate fallback, so removing it should not break anything.
-
-Signed-off-by: Timothy Gu <timothygu99@gmail.com>
----
- caca/figfont.c | 26 --------------------------
- caca/string.c  | 22 ----------------------
- 2 files changed, 48 deletions(-)
-
 diff --git a/caca/figfont.c b/caca/figfont.c
 index caa44d5..4e10186 100644
 --- a/caca/figfont.c
@@ -166,6 +146,4 @@ index 22e0af2..db79e30 100644
   * XXX: The following functions are aliases.
   */
  
--- 
-1.9.1
 
