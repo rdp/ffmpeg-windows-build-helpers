@@ -1,7 +1,5 @@
-diff --git a/caca/driver/ncurses.c b/caca/driver/ncurses.c
-index 7171e91..8161c0f 100644
---- a/caca/driver/ncurses.c
-+++ b/caca/driver/ncurses.c
+--- caca/driver/ncurses.c
++++ caca/driver/ncurses.c
 @@ -187,7 +187,7 @@
   * Local functions
   */
@@ -40,10 +38,8 @@ index 7171e91..8161c0f 100644
  static RETSIGTYPE sigwinch_handler(int sig)
  {
      sigwinch_d->resize.resized = 1;
-diff --git a/caca/driver/slang.c b/caca/driver/slang.c
-index 9714956..4dd9fb6 100644
---- a/caca/driver/slang.c
-+++ b/caca/driver/slang.c
+--- caca/driver/slang.c
++++ caca/driver/slang.c
 @@ -131,7 +131,7 @@ static int slang_init_graphics(caca_display_t *dp)
      slang_install_terminal(dp);
  #endif
@@ -62,11 +58,8 @@ index 9714956..4dd9fb6 100644
  static RETSIGTYPE sigwinch_handler(int sig)
  {
      sigwinch_d->resize.resized = 1;
--- 
-diff --git a/caca-config.in b/caca-config.in
-index a54e6e1..f48d9de 100644
---- a/caca-config.in
-+++ b/caca-config.in
+--- caca-config.in
++++ caca-config.in
 @@ -67,7 +67,7 @@ do
        echo_libs=yes
        ;;
@@ -76,10 +69,8 @@ index a54e6e1..f48d9de 100644
        ;;
      *)
        usage 1 1>&2
-diff --git a/caca/caca.pc.in b/caca/caca.pc.in
-index fa683fb..6e50668 100644
---- a/caca/caca.pc.in
-+++ b/caca/caca.pc.in
+--- caca/caca.pc.in
++++ caca/caca.pc.in
 @@ -9,5 +9,5 @@ Version: @VERSION@
  Requires: 
  Conflicts: 
@@ -87,11 +78,8 @@ index fa683fb..6e50668 100644
 -Libs.private: @ZLIB_LIBS@
 +Libs.private: @ZLIB_LIBS@ @CACA_LIBS@
  Cflags: -I${includedir}
--- 
-diff --git a/configure.ac b/configure.ac
-index 641dd17..3ce7057 100644
---- a/configure.ac
-+++ b/configure.ac
+--- configure.ac
++++ configure.ac
 @@ -232,22 +232,83 @@ fi
  
  if test "${enable_gl}" != "no"; then

@@ -1,7 +1,5 @@
-diff --git a/caca/driver/ncurses.c b/caca/driver/ncurses.c
-index 8161c0f..53c76c1 100644
---- a/caca/driver/ncurses.c
-+++ b/caca/driver/ncurses.c
+--- caca/driver/ncurses.c
++++ caca/driver/ncurses.c
 @@ -634,7 +634,11 @@ static void ncurses_uninstall_terminal(caca_display_t *dp)
      if(!dp->drv.p->term)
          return;
@@ -14,10 +12,8 @@ index 8161c0f..53c76c1 100644
      free(dp->drv.p->term);
      (void)putenv(termenv);
  }
-diff --git a/caca/driver/slang.c b/caca/driver/slang.c
-index 4dd9fb6..cf38ecf 100644
---- a/caca/driver/slang.c
-+++ b/caca/driver/slang.c
+--- caca/driver/slang.c
++++ caca/driver/slang.c
 @@ -576,7 +576,11 @@ static void slang_uninstall_terminal(caca_display_t *dp)
      if(!dp->drv.p->term)
          return;
@@ -30,10 +26,8 @@ index 4dd9fb6..cf38ecf 100644
      free(dp->drv.p->term);
      (void)putenv(termenv);
  }
-diff --git a/caca/driver/x11.c b/caca/driver/x11.c
-index 6bd04cf..24bcdbf 100644
---- a/caca/driver/x11.c
-+++ b/caca/driver/x11.c
+--- caca/driver/x11.c
++++ caca/driver/x11.c
 @@ -155,7 +155,11 @@ static int x11_init_graphics(caca_display_t *dp)
  
              if (dp->drv.p->font_set)
@@ -46,10 +40,8 @@ index 6bd04cf..24bcdbf 100644
              dp->drv.p->font_set = XCreateFontSet(dp->drv.p->dpy, buf,
                                                   &missing_charset_list,
                                                   &missing_charset_count,
-diff --git a/caca/prof.c b/caca/prof.c
-index 4581aaf..6aaa295 100644
---- a/caca/prof.c
-+++ b/caca/prof.c
+--- caca/prof.c
++++ caca/prof.c
 @@ -59,7 +59,11 @@ void _caca_init_stat(struct caca_stat *s, const char *format, ...)
      s->name = malloc(128 * sizeof(char));
      va_list args;
@@ -62,10 +54,8 @@ index 4581aaf..6aaa295 100644
      s->name[127] = '\0';
      va_end(args);
  
-diff --git a/caca/figfont.c b/caca/figfont.c
-index caa44d5..4e10186 100644
---- a/caca/figfont.c
-+++ b/caca/figfont.c
+--- caca/figfont.c
++++ caca/figfont.c
 @@ -29,11 +29,6 @@
  #include "caca.h"
  #include "caca_internals.h"
@@ -106,10 +96,8 @@ index caa44d5..4e10186 100644
   * XXX: The following functions are aliases.
   */
  
-diff --git a/caca/string.c b/caca/string.c
-index 22e0af2..db79e30 100644
---- a/caca/string.c
-+++ b/caca/string.c
+--- caca/string.c
++++ caca/string.c
 @@ -36,12 +36,6 @@
  #include "caca.h"
  #include "caca_internals.h"
