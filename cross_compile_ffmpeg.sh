@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # ffmpeg windows cross compile helper/download script, see github repo README
 # Copyright (C) 2012 Roger Pack, the script is under the GPLv3, but output FFmpeg's executables aren't
-set -x # uncomment to enable script debug output
+# set -x # uncomment to enable script debug output
 
 yes_no_sel () {
   unset user_input
@@ -1127,6 +1127,7 @@ build_libmodplug() {
 }
 
 build_libcaca() {
+  # beta19 and git were non xp friendly
   download_and_unpack_file http://pkgs.fedoraproject.org/repo/extras/libcaca/libcaca-0.99.beta18.tar.gz/93d35dbdb0527d4c94df3e9a02e865cc/libcaca-0.99.beta18.tar.gz libcaca-0.99.beta18
   cd libcaca-0.99.beta18
     cd caca
@@ -1135,12 +1136,6 @@ build_libcaca() {
       sed -i.bak "s/__declspec(dllimport)//g" *.h 
     cd ..
     generic_configure "--libdir=$mingw_w64_x86_64_prefix/lib --disable-cxx --disable-csharp --disable-java --disable-python --disable-ruby --disable-imlib2 --disable-doc"
-    sed -i.bak "s/#define HAVE_VSNPRINTF_S 1/#define HAVE_VSNPRINTF_S 0/" config.h # msvcrt.dll doesn't have this [?] so disable for windows XP friendliness
-    sed -i.bak "s/#define HAVE_SPRINTF_S 1/#define HAVE_SPRINTF_S 0/" config.h # msvcrt.dll doesn't have this [?] so disable for windows XP friendliness
-    sed -i.bak "s/#define HAVE_SPRINTF_S 1/#define HAVE_SPRINTF_S 0/" win32/config.h # msvcrt.dll doesn't have this [?] so disable for windows XP friendliness
-    sed -i.bak "s/#define HAVE_VSNPRINTF_S 1/#define HAVE_VSNPRINTF_S 0/" win32/config.h # msvcrt.dll doesn't have this [?] so disable for windows XP friendliness
-    sed -i.bak "s/#define HAVE_VSNPRINTF 1/#define HAVE_VSNPRINTF 0/" config.h # msvcrt.dll doesn't have this [?] so disable for windows XP friendliness
-    sed -i.bak "s/#define HAVE_VSNPRINTF 1/#define HAVE_VSNPRINTF 0/" win32/config.h # msvcrt.dll doesn't have this [?] so disable for windows XP friendliness
     do_make_and_make_install
   cd ..
 }
