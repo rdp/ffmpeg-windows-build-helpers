@@ -1010,9 +1010,9 @@ build_libnvenc() {
     mkdir nvenc
     cd nvenc
       echo "installing nvenc [nvidia gpu assisted encoder]"
-      curl -4 http://developer.download.nvidia.com/compute/nvenc/v5.0/nvenc_5.0.1_sdk.zip -O -L || exit 1
-      unzip nvenc_5.0.1_sdk.zip
-      cp nvenc_5.0.1_sdk/Samples/common/inc/* $mingw_w64_x86_64_prefix/include
+      curl -4 http://developer.download.nvidia.com/assets/cuda/files/nvidia_video_sdk_6.0.1.zip -O -L || exit 1
+      unzip nvidia_video_sdk_6.0.1.zip
+      cp nvidia_video_sdk_6.0.1/Samples/common/inc/* $mingw_w64_x86_64_prefix/include
     cd ..
   else
     echo "already installed nvenc"
