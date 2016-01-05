@@ -1,0 +1,180 @@
+--- caca/driver/ncurses.c
++++ caca/driver/ncurses.c
+@@ -187,7 +187,7 @@
+  * Local functions
+  */
+ 
+-#if defined HAVE_SIGNAL
++#if defined HAVE_SIGNAL && defined SIGWINCH // this patch file from MXE
+ static RETSIGTYPE sigwinch_handler(int);
+ static caca_display_t *sigwinch_d; /* FIXME: we ought to get rid of this */
+ #endif
+@@ -237,7 +237,7 @@ static int ncurses_init_graphics(caca_display_t *dp)
+     ncurses_install_terminal(dp);
+ #endif
+ 
+-#if defined HAVE_SIGNAL
++#if defined HAVE_SIGNAL && defined SIGWINCH
+     sigwinch_d = dp;
+     signal(SIGWINCH, sigwinch_handler);
+ #endif
+@@ -392,9 +392,9 @@ static void ncurses_display(caca_display_t *dp)
+ 
+ static void ncurses_handle_resize(caca_display_t *dp)
+ {
++#if defined HAVE_SYS_IOCTL_H
+     struct winsize size;
+ 
+-#if defined HAVE_SYS_IOCTL_H
+     if(ioctl(fileno(stdout), TIOCGWINSZ, &size) == 0)
+     {
+         dp->resize.w = size.ws_col;
+@@ -587,7 +587,7 @@ static void ncurses_set_cursor(caca_display_t *dp, int flags)
+  * XXX: following functions are local
+  */
+ 
+-#if defined HAVE_SIGNAL
++#if defined HAVE_SIGNAL && defined SIGWINCH
+ static RETSIGTYPE sigwinch_handler(int sig)
+ {
+     sigwinch_d->resize.resized = 1;
+--- caca/driver/slang.c
++++ caca/driver/slang.c
+@@ -131,7 +131,7 @@ static int slang_init_graphics(caca_display_t *dp)
+     slang_install_terminal(dp);
+ #endif
+ 
+-#if defined(HAVE_SIGNAL)
++#if defined(HAVE_SIGNAL) && defined(SIGWINCH)
+     sigwinch_d = dp;
+     signal(SIGWINCH, sigwinch_handler);
+ #endif
+@@ -534,7 +534,7 @@ static void slang_write_utf32(uint32_t ch)
+ #endif
+ }
+ 
+-#if defined(HAVE_SIGNAL)
++#if defined(HAVE_SIGNAL) && defined(SIGWINCH)
+ static RETSIGTYPE sigwinch_handler(int sig)
+ {
+     sigwinch_d->resize.resized = 1;
+--- caca-config.in
++++ caca-config.in
+@@ -67,7 +67,7 @@ do
+       echo_libs=yes
+       ;;
+     caca)
+-      libs="$libs -lcaca"
++      libs="$libs -lcaca @ZLIB_LIBS@ @CACA_LIBS@"
+       ;;
+     *)
+       usage 1 1>&2
+--- caca/caca.pc.in
++++ caca/caca.pc.in
+@@ -9,5 +9,5 @@ Version: @VERSION@
+ Requires: 
+ Conflicts: 
+ Libs: -L${libdir} -lcaca
+-Libs.private: @ZLIB_LIBS@
++Libs.private: @ZLIB_LIBS@ @CACA_LIBS@
+ Cflags: -I${includedir}
+--- configure.ac
++++ configure.ac
+@@ -232,22 +232,83 @@ fi
+ 
+ if test "${enable_gl}" != "no"; then
+   ac_cv_my_have_gl="no"
+-  AC_CHECK_HEADERS(GL/gl.h OpenGL/gl.h,
+-   [AC_CHECK_HEADERS(GL/glut.h,
+-     [AC_CHECK_LIB(glut, glutCloseFunc,
+-       [AC_DEFINE(HAVE_GLUTCLOSEFUNC, 1, Define to 1 if you have the ‘glutCloseFunc’ function.)])
+-      AC_CHECK_LIB(glut, glutMainLoopEvent,
+-       [ac_cv_my_have_gl="yes"])
+-      AC_CHECK_LIB(glut, glutCheckLoop,
+-       [ac_cv_my_have_gl="yes"
+-        AC_DEFINE(HAVE_GLUTCHECKLOOP, 1, Define to 1 if you have the ‘glutCheckLoop’ function.)])])
+-      break])
++
++  dnl GLUT is usable if (by order of checking):
++  dnl 1. OpenGL/gl.h (OS X) or GL/gl.h (others) is available.
++  dnl    The former implies that GLUT header is GLUT/glut.h.
++  dnl    The latter implies that GLUT headers are GL/glut.h and
++  dnl    GL/freeglut_ext.h.
++  dnl 2. pkg-config can find it.
++  dnl 3. glutMainLoopEvent() or glutCheckLoop()'s declarations is in the GLUT
++  dnl    header(s), and it can be linked.
++
++  dnl Also checking for glutCloseFunc(), but that is not mandatory.
++
++  AC_CHECK_HEADERS([OpenGL/gl.h GL/gl.h], [
++   PKG_CHECK_MODULES([GL], [glut glu gl], [
++    CFLAGS="${CFLAGS} ${GL_CFLAGS}"
++    LIBS="${LIBS} ${GL_LIBS}"
++    AC_MSG_CHECKING([for glutCloseFunc()])
++    AC_LINK_IFELSE([
++     AC_LANG_PROGRAM(
++      [[#ifdef HAVE_OPENGL_GL_H
++        # include <OpenGL/gl.h>
++        # include <GLUT/glut.h>
++        #else
++        # include <GL/gl.h>
++        # include <GL/glut.h>   
++        # include <GL/freeglut_ext.h>
++        #endif
++      ]], [[glutCloseFunc(NULL);]])],
++     [AC_DEFINE(HAVE_GLUTCLOSEFUNC, 1,
++                [Define to 1 if you have the ‘glutCloseFunc’ function.])
++      AC_MSG_RESULT(yes)],
++     [AC_MSG_RESULT(no)])
++    AC_MSG_CHECKING([for glutMainLoopEvent()])
++    AC_LINK_IFELSE([
++     AC_LANG_PROGRAM(
++      [[#ifdef HAVE_OPENGL_GL_H
++        # include <OpenGL/gl.h>
++        # include <GLUT/glut.h>
++        #else
++        # include <GL/gl.h>
++        # include <GL/glut.h>   
++        # include <GL/freeglut_ext.h>
++        #endif
++      ]], [[glutMainLoopEvent();]])],
++     [ac_cv_my_have_gl="yes"
++      AC_MSG_RESULT(yes)],
++     [AC_MSG_RESULT(no)])
++    AC_MSG_CHECKING([for glutCheckLoop()])
++    AC_LINK_IFELSE([
++     AC_LANG_PROGRAM(
++      [[#ifdef HAVE_OPENGL_GL_H
++        # include <OpenGL/gl.h>
++        # include <GLUT/glut.h>
++        #else
++        # include <GL/gl.h>
++        # include <GL/glut.h>   
++        # include <GL/freeglut_ext.h>
++        #endif
++      ]], [[glutCheckLoop();]])],
++     [ac_cv_my_have_gl="yes"
++      AC_DEFINE(HAVE_GLUTCHECKLOOP, 1,
++                [Define to 1 if you have the ‘glutCheckLoop’ function.])
++      AC_MSG_RESULT(yes)],
++     [AC_MSG_RESULT(no)])
++   ])
++   break
++  ])
++  AC_MSG_CHECKING([if GLUT is usable])
+   if test "${ac_cv_my_have_gl}" = "yes"; then
+     AC_DEFINE(USE_GL, 1, Define to 1 to activate the OpenGL backend driver)
+-    GL_LIBS="${GL_LIBS} -lGL -lGLU -lglut"
+     CACA_DRIVERS="${CACA_DRIVERS} gl"
+-  elif test "${enable_gl}" = "yes"; then
+-    AC_MSG_ERROR([cannot find OpenGL+FreeGLUT development files])
++    AC_MSG_RESULT([yes])
++  else
++    AC_MSG_RESULT([no])
++    if test "${enable_gl}" = "yes"; then
++      AC_MSG_ERROR([cannot find OpenGL+FreeGLUT development files])
++    fi
+   fi
+   PKG_CHECK_MODULES(FTGL, ftgl >= 2.1.3, [FTGL="yes"], [FTGL="no"])
+ fi
+

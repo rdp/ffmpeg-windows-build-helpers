@@ -1,0 +1,137 @@
+--- caca/driver/ncurses.c
++++ caca/driver/ncurses.c
+@@ -634,7 +634,11 @@ static void ncurses_uninstall_terminal(caca_display_t *dp)
+     if(!dp->drv.p->term)
+         return;
+ 
++#if defined(HAVE_SNPRINTF) // this patch file from MXE
+     snprintf(termenv, 1023, "TERM=%s", dp->drv.p->term);
++#else
++    sprintf(termenv, "TERM=%s", dp->drv.p->term);
++#endif
+     free(dp->drv.p->term);
+     (void)putenv(termenv);
+ }
+--- caca/driver/slang.c
++++ caca/driver/slang.c
+@@ -576,7 +576,11 @@ static void slang_uninstall_terminal(caca_display_t *dp)
+     if(!dp->drv.p->term)
+         return;
+ 
++#if defined(HAVE_SNPRINTF)
+     snprintf(termenv, 1023, "TERM=%s", dp->drv.p->term);
++#else
++    sprintf(termenv, "TERM=%s", dp->drv.p->term);
++#endif
+     free(dp->drv.p->term);
+     (void)putenv(termenv);
+ }
+--- caca/driver/x11.c
++++ caca/driver/x11.c
+@@ -155,7 +155,11 @@ static int x11_init_graphics(caca_display_t *dp)
+ 
+             if (dp->drv.p->font_set)
+                 XFreeFontSet(dp->drv.p->dpy, dp->drv.p->font_set);
++#if defined(HAVE_SNPRINTF)
+             snprintf(buf, BUFSIZ - 1, "%s,*", *parser);
++#else
++            sprintf(buf, "%s,*", *parser);
++#endif
+             dp->drv.p->font_set = XCreateFontSet(dp->drv.p->dpy, buf,
+                                                  &missing_charset_list,
+                                                  &missing_charset_count,
+--- caca/prof.c
++++ caca/prof.c
+@@ -59,7 +59,11 @@ void _caca_init_stat(struct caca_stat *s, const char *format, ...)
+     s->name = malloc(128 * sizeof(char));
+     va_list args;
+     va_start(args, format);
++#if defined(HAVE_VSNPRINTF)
+     vsnprintf(s->name, 128, format, args);
++#else
++    vsprintf(s->name, format, args);
++#endif
+     s->name[127] = '\0';
+     va_end(args);
+ 
+--- caca/figfont.c
++++ caca/figfont.c
+@@ -29,11 +29,6 @@
+ #include "caca.h"
+ #include "caca_internals.h"
+ 
+-#if defined _WIN32 && defined __GNUC__ && __GNUC__ >= 3
+-int sprintf_s(char *s, size_t n, const char *fmt, ...) CACA_WEAK;
+-int vsnprintf(char *s, size_t n, const char *fmt, va_list ap) CACA_WEAK;
+-#endif
+-
+ struct caca_charfont
+ {
+     int term_width;
+@@ -633,27 +628,6 @@ static uint32_t hsmush(uint32_t ch1, uint32_t ch2, int rule)
+ }
+ 
+ /*
+- * Functions for the mingw32 runtime
+- */
+-
+-#if defined _WIN32 && defined __GNUC__ && __GNUC__ >= 3
+-int sprintf_s(char *s, size_t n, const char *fmt, ...)
+-{
+-    va_list args;
+-    int ret;
+-    va_start(args, fmt);
+-    ret = vsnprintf(s, n, fmt, args);
+-    va_end(args);
+-    return ret;
+-}
+-
+-int vsnprintf(char *s, size_t n, const char *fmt, va_list ap)
+-{
+-    return 0;
+-}
+-#endif
+-
+-/*
+  * XXX: The following functions are aliases.
+  */
+ 
+--- caca/string.c
++++ caca/string.c
+@@ -36,12 +36,6 @@
+ #include "caca.h"
+ #include "caca_internals.h"
+ 
+-#if defined _WIN32 && defined __GNUC__ && __GNUC__ >= 3
+-int vsnprintf_s(char *s, size_t n, size_t c,
+-                const char *fmt, va_list ap) CACA_WEAK;
+-int vsnprintf(char *s, size_t n, const char *fmt, va_list ap) CACA_WEAK;
+-#endif
+-
+ /** \brief Set cursor position.
+  *
+  *  Put the cursor at the given coordinates. Functions making use of the
+@@ -607,22 +601,6 @@ int caca_set_canvas_boundaries(caca_canvas_t *cv, int x, int y, int w, int h)
+ }
+ 
+ /*
+- * Functions for the mingw32 runtime
+- */
+-
+-#if defined _WIN32 && defined __GNUC__ && __GNUC__ >= 3
+-int vsnprintf_s(char *s, size_t n, size_t c, const char *fmt, va_list ap)
+-{
+-    return vsnprintf(s, n, fmt, ap);
+-}
+-
+-int vsnprintf(char *s, size_t n, const char *fmt, va_list ap)
+-{
+-    return 0;
+-}
+-#endif
+-
+-/*
+  * XXX: The following functions are aliases.
+  */
+ 
+

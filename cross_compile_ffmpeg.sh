@@ -146,6 +146,14 @@ EOF
   esac
 }
 
+# made into a method so I don't/don't have to download this script every time if only doing 32 bit builds...
+download_gcc_build_script() {
+    local zeranoe_script_name=$1
+    rm -f $zeranoe_script_name || exit 1
+    curl -4 https://raw.githubusercontent.com/rdp/ffmpeg-windows-build-helpers/master/patches/$zeranoe_script_name -O  || exit 1
+    chmod u+x $zeranoe_script_name
+}
+
 install_cross_compiler() {
   if [[ -f "cross_compilers/mingw-w64-i686/compiler.done" && -f "cross_compilers/mingw-w64-x86_64/compiler.done" ]]; then
    echo "MinGW-w64 compilers both already installed, not re-installing..."
@@ -167,22 +175,21 @@ install_cross_compiler() {
   mkdir -p cross_compilers
   cd cross_compilers
 
-    local zeranoe_script_name=mingw-w64-build-3.6.7.local
-    rm -f $zeranoe_script_name || exit 1
-    curl -4 https://raw.githubusercontent.com/rdp/ffmpeg-windows-build-helpers/master/patches/$zeranoe_script_name -O  || exit 1
-    chmod u+x $zeranoe_script_name
     unset CFLAGS # don't want these for the compiler itself since it creates executables to run on the local box (we have a parameter allowing them to set them for the script "all builds" basically)
     # pthreads version to avoid having to use cvs for it
     echo "starting to download and build cross compile version of gcc [requires working internet access] with thread count $gcc_cpu_count..."
     echo ""
 
     # --disable-shared allows c++ to be distributed at all...which seemed necessary for some random dependency...
+    local zeranoe_script_name=mingw-w64-build-3.6.7.local
     if [[ $want_win32 == "y" && ! -f "mingw-w64-i686/compiler.done" ]]; then
       echo "building win32 cross compiler"
+      download_gcc_build_script $zeranoe_script_name
       nice ./$zeranoe_script_name --clean-build --disable-shared --default-configure  --pthreads-w32-ver=2-9-1 --cpu-count=$gcc_cpu_count --build-type=win32 --gcc-ver=5.3.0 || exit 1 
     fi
     if [[ $want_win64 == "y" && ! -f "mingw-w64-x86_64/compiler.done" ]]; then
       echo "building win64 x86_64 cross compiler"
+      download_gcc_build_script $zeranoe_script_name
       nice ./$zeranoe_script_name --clean-build --disable-shared --default-configure  --pthreads-w32-ver=2-9-1 --cpu-count=$gcc_cpu_count --build-type=win64 --gcc-ver=5.3.0 || exit 1 
     fi
 
@@ -309,6 +316,9 @@ do_configure() {
   if [ ! -f "$touch_name" ]; then
     make clean # just in case useful...try and cleanup stuff...possibly not useful
     # make uninstall # does weird things when run under ffmpeg src so disabled
+    if [ -f bootstrap ]; then
+      ./bootstrap
+    fi
     if [ -f bootstrap.sh ]; then
       ./bootstrap.sh
     fi
@@ -1000,9 +1010,9 @@ build_libnvenc() {
     mkdir nvenc
     cd nvenc
       echo "installing nvenc [nvidia gpu assisted encoder]"
-      curl -4 http://developer.download.nvidia.com/compute/nvenc/v5.0/nvenc_5.0.1_sdk.zip -O -L || exit 1
-      unzip nvenc_5.0.1_sdk.zip
-      cp nvenc_5.0.1_sdk/Samples/common/inc/* $mingw_w64_x86_64_prefix/include
+      curl -4 http://developer.download.nvidia.com/assets/cuda/files/nvidia_video_sdk_6.0.1.zip -O -L || exit 1
+      unzip nvidia_video_sdk_6.0.1.zip
+      cp nvidia_video_sdk_6.0.1/Samples/common/inc/* $mingw_w64_x86_64_prefix/include
     cd ..
   else
     echo "already installed nvenc"
@@ -1116,16 +1126,16 @@ build_libmodplug() {
 }
 
 build_libcaca() {
-  download_and_unpack_file https://distfiles.macports.org/libcaca/libcaca-0.99.beta19.tar.gz libcaca-0.99.beta19
-  cd libcaca-0.99.beta19
-  cd caca
-    sed -i.bak "s/int vsnprintf/int vnsprintf_disabled/" *.c # beta19 bug, wouldn't build otherwise...
-    sed -i.bak "s/__declspec(dllexport)//g" *.h # get rid of the declspec lines otherwise the build will fail for undefined symbols
-    sed -i.bak "s/__declspec(dllimport)//g" *.h 
-  cd ..
-  generic_configure "--libdir=$mingw_w64_x86_64_prefix/lib --disable-cxx --disable-csharp --disable-java --disable-python --disable-ruby --disable-imlib2 --disable-doc"
-  sed -i.bak "s/#define HAVE_VSNPRINTF_S 1/#define HAVE_VSNPRINTF_S 0/" config.h # msvcrt.dll doesn't have this [?] so disable for windows XP friendliness
-  do_make_and_make_install
+  # beta19 and git were non xp friendly
+  download_and_unpack_file http://pkgs.fedoraproject.org/repo/extras/libcaca/libcaca-0.99.beta18.tar.gz/93d35dbdb0527d4c94df3e9a02e865cc/libcaca-0.99.beta18.tar.gz libcaca-0.99.beta18
+  cd libcaca-0.99.beta18
+    cd caca
+      sed -i.bak "s/int vsnprintf/int vnsprintf_disabled/" *.c # doesn't compile with this in it double defined uh guess
+      sed -i.bak "s/__declspec(dllexport)//g" *.h # get rid of the declspec lines otherwise the build will fail for undefined symbols
+      sed -i.bak "s/__declspec(dllimport)//g" *.h 
+    cd ..
+    generic_configure "--libdir=$mingw_w64_x86_64_prefix/lib --disable-cxx --disable-csharp --disable-java --disable-python --disable-ruby --disable-imlib2 --disable-doc"
+    do_make_and_make_install
   cd ..
 }
 
