@@ -118,7 +118,6 @@ The resultant binary may not be distributable, but can be useful for in-house us
 }
 
 pick_compiler_flavors() {
-
   while [[ "$compiler_flavors" != [1-4] ]]; do
     if [[ -n "${unknown_opts[@]}" ]]; then
       echo -n 'Unknown option(s)'
@@ -163,14 +162,6 @@ install_cross_compiler() {
   if [[ -z $compiler_flavors ]]; then
     pick_compiler_flavors
   fi
-  local want_win32=n
-  if [[ $compiler_flavors == "win32" || $compiler_flavors == "multi" ]]; then
-    want_win32=y
-  fi
-  local want_win64=n
-  if [[ $compiler_flavors == "win64" || $compiler_flavors == "multi" ]]; then
-    want_win64=y
-  fi
 
   mkdir -p cross_compilers
   cd cross_compilers
@@ -184,15 +175,17 @@ install_cross_compiler() {
     local zeranoe_script_name=mingw-w64-build-3.6.7.local
     # mingw-w64 git for updated tuner.h past 4.0.4
     local zeranoe_script_options="--clean-build --mingw-w64-ver=git --disable-shared --default-configure  --pthreads-w32-ver=2-9-1 --cpu-count=$gcc_cpu_count --gcc-ver=5.3.0"
-    if [[ $want_win32 == "y" && ! -f "mingw-w64-i686/compiler.done" ]]; then
+    if [[ ($compiler_flavors == "win32" || $compiler_flavors == "multi") && ! -f "mingw-w64-i686/compiler.done" ]]; then
       echo "building win32 cross compiler"
       download_gcc_build_script $zeranoe_script_name
       nice ./$zeranoe_script_name $zeranoe_script_options --build-type=win32 || exit 1 
+      touch mingw-w64-i686/compiler.done # assume success
     fi
-    if [[ $want_win64 == "y" && ! -f "mingw-w64-x86_64/compiler.done" ]]; then
+    if [[ ($compiler_flavors == "win64" || $compiler_flavors == "multi") && ! -f "mingw-w64-x86_64/compiler.done" ]]; then
       echo "building win64 x86_64 cross compiler"
       download_gcc_build_script $zeranoe_script_name
       nice ./$zeranoe_script_name $zeranoe_script_options --build-type=win64 || exit 1 
+      touch mingw-w64-x86_64/compiler.done # assume success :)
     fi
 
     if [[ ! -f mingw-w64-i686/bin/i686-w64-mingw32-gcc && ! -f mingw-w64-x86_64/bin/x86_64-w64-mingw32-gcc ]]; then
@@ -200,16 +193,10 @@ install_cross_compiler() {
       exit 1
     fi
 
-    if [ -d mingw-w64-x86_64 ]; then
-      touch mingw-w64-x86_64/compiler.done # assume success :)
-    fi
-    if [ -d mingw-w64-i686 ]; then
-      touch mingw-w64-i686/compiler.done
-    fi
     rm -f build.log
     export CFLAGS=$original_cflags # reset it back to what it was passed in as, via parameter :)
   cd ..
-  echo "Ok, done building (or already built) MinGW-w64 cross-compiler(s) successfully..."
+  echo "Done building (or already built) MinGW-w64 cross-compiler(s) successfully..."
   echo `date`
 
 }
@@ -1624,7 +1611,7 @@ if [[ $OSTYPE == darwin* ]]; then
 fi
 
 original_path="$PATH"
-if [ -d "cross_compilers/mingw-w64-i686" ]; then # they installed a 32-bit compiler, build 32-bit everything
+if [[ $compiler_flavors == "multi" || $compiler_flavors == "win32" ]]; then
   echo "Building 32-bit ffmpeg..."
   host_target='i686-w64-mingw32'
   mingw_w64_x86_64_prefix="$cur_dir/cross_compilers/mingw-w64-i686/$host_target"
@@ -1640,7 +1627,7 @@ if [ -d "cross_compilers/mingw-w64-i686" ]; then # they installed a 32-bit compi
   cd ..
 fi
 
-if [ -d "cross_compilers/mingw-w64-x86_64" ]; then # they installed a 64-bit compiler, build 64-bit everything
+if [[ $compiler_flavors == "multi" || $compiler_flavors == "win64" ]]; then
   echo "**************Building 64-bit ffmpeg..." # make it have a bit header to you can see when 32 bit is done more easily
   host_target='x86_64-w64-mingw32'
   mingw_w64_x86_64_prefix="$cur_dir/cross_compilers/mingw-w64-x86_64/$host_target"
