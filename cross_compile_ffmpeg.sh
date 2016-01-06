@@ -180,26 +180,28 @@ install_cross_compiler() {
     echo "starting to download and build cross compile version of gcc [requires working internet access] with thread count $gcc_cpu_count..."
     echo ""
 
-    # --disable-shared allows c++ to be distributed at all...which seemed necessary for some random dependency...
+    # --disable-shared allows c++ to be distributed at all...which seemed necessary for some random dependency which happens to use/require c++...
     local zeranoe_script_name=mingw-w64-build-3.6.7.local
+    # mingw-w64 git for updated tuner.h past 4.0.4
+    local zeranoe_script_options="--clean-build --mingw-w64-ver=git --disable-shared --default-configure  --pthreads-w32-ver=2-9-1 --cpu-count=$gcc_cpu_count --gcc-ver=5.3.0"
     if [[ $want_win32 == "y" && ! -f "mingw-w64-i686/compiler.done" ]]; then
       echo "building win32 cross compiler"
       download_gcc_build_script $zeranoe_script_name
-      nice ./$zeranoe_script_name --clean-build --disable-shared --default-configure  --pthreads-w32-ver=2-9-1 --cpu-count=$gcc_cpu_count --build-type=win32 --gcc-ver=5.3.0 || exit 1 
+      nice ./$zeranoe_script_name $zeranoe_script_options --build-type=win32 || exit 1 
     fi
     if [[ $want_win64 == "y" && ! -f "mingw-w64-x86_64/compiler.done" ]]; then
       echo "building win64 x86_64 cross compiler"
       download_gcc_build_script $zeranoe_script_name
-      nice ./$zeranoe_script_name --clean-build --disable-shared --default-configure  --pthreads-w32-ver=2-9-1 --cpu-count=$gcc_cpu_count --build-type=win64 --gcc-ver=5.3.0 || exit 1 
+      nice ./$zeranoe_script_name $zeranoe_script_options --build-type=win64 || exit 1 
     fi
 
     if [[ ! -f mingw-w64-i686/bin/i686-w64-mingw32-gcc && ! -f mingw-w64-x86_64/bin/x86_64-w64-mingw32-gcc ]]; then
-      echo "no gcc cross compiler(s) seem built [?] (build failure [?]) recommend nuke sandbox dir (rm -rf sandbox) and try again!"
+      echo "no gcc cross compiler(s) seem to have been created [?] (build failure [?]) recommend nuke sandbox dir (rm -rf sandbox) and try again!"
       exit 1
     fi
 
     if [ -d mingw-w64-x86_64 ]; then
-      touch mingw-w64-x86_64/compiler.done
+      touch mingw-w64-x86_64/compiler.done # assume success :)
     fi
     if [ -d mingw-w64-i686 ]; then
       touch mingw-w64-i686/compiler.done
