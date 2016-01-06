@@ -1115,7 +1115,6 @@ build_zvbi() {
 #   there is no .pc for zvbi, so we add --extra-libs=-lpng to FFmpegs configure TODO there is a .pc file it just doesn't get installed [?]
 #   sed -i.bak 's/-lzvbi *$/-lzvbi -lpng/' "$PKG_CONFIG_PATH/zvbi.pc"
   cd ..
-  export CFLAGS=$original_cflags # it was set to the win32-pthreads ones, so revert it
 }
 
 build_libmodplug() {
