@@ -271,17 +271,17 @@ do_git_checkout() {
 
     if [[ -z $desired_branch ]]; then
       if [[ $git_get_latest = "y" ]]; then
-        echo "Updating to latest $to_dir version... $desired_branch"
-        git fetch
-        git merge origin/master
+        echo "Updating to latest $to_dir git version [origin/master]..."
+        git fetch || exit 1
+        git merge origin/master || exit 1
       else
         echo "not doing git get latest pull for latest code $to_dir"
       fi
     else
       if [[ $git_get_latest = "y" ]]; then
         echo "Doing git fetch $to_dir in case it affects the desired branch [$desired_branch]"
-        git fetch
-        git merge $desired_branch
+        git fetch || exit 1
+        git merge $desired_branch || exit 1
       else
         echo "not doing git fetch $to_dir to see if it affected desired branch [$desired_branch]"
       fi
