@@ -382,6 +382,10 @@ do_cmake_and_install() {
 
 apply_patch() {
  local url=$1
+ local patch_type=$2
+ if [[ -z $patch_type ]]; then
+   patch_type="-p0"
+ fi
  local patch_name=$(basename $url)
  local patch_done_name="$patch_name.done"
  if [[ ! -e $patch_done_name ]]; then
@@ -390,7 +394,7 @@ apply_patch() {
    fi
    curl -4 $url -O || exit 1
    echo "applying patch $patch_name"
-   patch -p0 < "$patch_name" || exit 1
+   patch $patch_type < "$patch_name" || exit 1
    touch $patch_done_name || exit 1
    rm -f already_ran* # if it's a new patch, reset everything too, in case it's really really really new
  else
@@ -1357,7 +1361,7 @@ build_ffmpeg() {
     # libfaac deemed too poor quality and becomes the default if included -- add it in and uncomment the build_faac line to include it, if anybody ever wants it... 
     # To use fdk-aac in VLC, we need to change FFMPEG's default (aac), but I haven't found how to do that... So I disabled it. This could be an new option for the script? (was --disable-decoder=aac )
     # other possible options: --enable-openssl [unneeded since we use gnutls] --enable-libaacplus [just use fdk-aac only to avoid collision]
-    apply_patch https://raw.githubusercontent.com/rdp/ffmpeg-windows-build-helpers/master/patches/nvresize2.patch
+    apply_patch https://raw.githubusercontent.com/rdp/ffmpeg-windows-build-helpers/master/patches/nvresize2.patch "-p1"
   fi
 
   if [[ "$native_build" = "y" ]]; then
