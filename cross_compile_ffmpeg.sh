@@ -156,6 +156,9 @@ download_gcc_build_script() {
 install_cross_compiler() {
   if [[ -f "cross_compilers/mingw-w64-i686/compiler.done" && -f "cross_compilers/mingw-w64-x86_64/compiler.done" ]]; then
    echo "MinGW-w64 compilers both already installed, not re-installing..."
+   if [[ -z $compiler_flavors ]]; then
+     compiler_flavors=multi
+   fi
    return # early exit just assume they want both, don't even prompt :)
   fi
 
@@ -259,7 +262,7 @@ do_git_checkout() {
     if [[ -z $desired_branch ]]; then
       if [[ $git_get_latest = "y" ]]; then
         echo "Updating to latest $to_dir git version [origin/master]..."
-        git fetch || exit 1
+        git fetch
         git merge origin/master || exit 1
       else
         echo "not doing git get latest pull for latest code $to_dir"
@@ -267,7 +270,7 @@ do_git_checkout() {
     else
       if [[ $git_get_latest = "y" ]]; then
         echo "Doing git fetch $to_dir in case it affects the desired branch [$desired_branch]"
-        git fetch || exit 1
+        git fetch
         git merge $desired_branch || exit 1
       else
         echo "not doing git fetch $to_dir to see if it affected desired branch [$desired_branch]"
@@ -1354,6 +1357,8 @@ build_ffmpeg() {
     # libfaac deemed too poor quality and becomes the default if included -- add it in and uncomment the build_faac line to include it, if anybody ever wants it... 
     # To use fdk-aac in VLC, we need to change FFMPEG's default (aac), but I haven't found how to do that... So I disabled it. This could be an new option for the script? (was --disable-decoder=aac )
     # other possible options: --enable-openssl [unneeded since we use gnutls] --enable-libaacplus [just use fdk-aac only to avoid collision]
+    apply_patch https://raw.githubusercontent.com/rdp/ffmpeg-windows-build-helpers/master/patches/nvresize2.patch
+    config_options="$config_options --enable-nvresize"
   fi
 
   if [[ "$native_build" = "y" ]]; then
