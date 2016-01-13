@@ -176,8 +176,8 @@ install_cross_compiler() {
 
     # --disable-shared allows c++ to be distributed at all...which seemed necessary for some random dependency which happens to use/require c++...
     local zeranoe_script_name=mingw-w64-build-3.6.7.local
-    # mingw-w64 git for updated tuner.h past 4.0.4
-    local zeranoe_script_options="--clean-build --mingw-w64-ver=git --disable-shared --default-configure  --pthreads-w32-ver=2-9-1 --cpu-count=$gcc_cpu_count --gcc-ver=5.3.0"
+    # add --mingw-w64-ver=git for updated tuner.h [dshow dtv] past 4.0.4 TODO
+    local zeranoe_script_options="--clean-build --disable-shared --default-configure  --pthreads-w32-ver=2-9-1 --cpu-count=$gcc_cpu_count --gcc-ver=5.3.0"
     if [[ ($compiler_flavors == "win32" || $compiler_flavors == "multi") && ! -f "mingw-w64-i686/compiler.done" ]]; then
       echo "building win32 cross compiler"
       download_gcc_build_script $zeranoe_script_name
