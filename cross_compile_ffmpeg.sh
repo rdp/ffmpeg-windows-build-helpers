@@ -1495,7 +1495,6 @@ build_dependencies() {
 
 build_apps() {
   # now the things that use the dependencies...
-  build_libdvbtee
   if [[ $build_libmxf = "y" ]]; then
     build_libMXF
   fi
