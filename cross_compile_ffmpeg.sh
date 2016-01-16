@@ -1182,6 +1182,7 @@ build_vidstab() {
 }
 
 build_libdvbtee() {
+  # currently fails to compile with mignw :| [so disabled]
   do_git_checkout https://github.com/mkrufky/libdvbtee.git libdvbtee
   cd libdvbtee
     # checkout submodule
@@ -1494,7 +1495,6 @@ build_dependencies() {
 
 build_apps() {
   # now the things that use the dependencies...
-#  build_libdvbtee
   if [[ $build_libmxf = "y" ]]; then
     build_libMXF
   fi
