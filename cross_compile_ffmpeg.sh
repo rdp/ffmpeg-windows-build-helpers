@@ -314,6 +314,9 @@ do_configure() {
     if [ -f bootstrap.sh ]; then
       ./bootstrap.sh
     fi
+    if [[ ! -f $configure_name ]]; then
+      autoreconf -fiv # a handful of them require this  to create ./configure :|
+    fi
     rm -f already_* # reset
     echo "configuring $english_name ($PWD) as $ PATH=$PATH $configure_name $configure_options"
     nice "$configure_name" $configure_options || exit 1
@@ -437,12 +440,13 @@ generic_download_and_install() {
   local extra_configure_options="$3"
   download_and_unpack_file $url $english_name
   cd $english_name || exit "needs 2 parameters"
-  generic_configure_make_install "$extra_configure_options"
+  generic_configure "$extra_configure_options"
+  do_make_and_make_install
   cd ..
 }
 
 generic_configure_make_install() {
-  generic_configure "$1"
+  generic_configure # no parameters, force them to break it up :)
   do_make_and_make_install
 }
 
@@ -675,8 +679,7 @@ build_libopenjpeg() {
   download_and_unpack_file http://sourceforge.net/projects/openjpeg.mirror/files/1.5.2/openjpeg-1.5.2.tar.gz/download openjpeg-1.5.2
   cd openjpeg-1.5.2
     export CFLAGS="$CFLAGS -DOPJ_STATIC" # see https://github.com/rdp/ffmpeg-windows-build-helpers/issues/37
-    generic_configure 
-    do_make_and_make_install
+    generic_configure_make_install
     export CFLAGS=$original_cflags # reset it
   cd ..
 }
@@ -782,8 +785,7 @@ build_libdvdnav() {
   if [[ ! -f ./configure ]]; then
     ./autogen.sh
   fi
-  generic_configure
-  do_make_and_make_install 
+  generic_configure_make_install
   sed -i.bak 's/-ldvdnav.*/-ldvdnav -ldvdread -ldvdcss -lpsapi/' "$PKG_CONFIG_PATH/dvdnav.pc" # psapi for dlfcn ... [hrm?]
   cd ..
 }
@@ -853,15 +855,13 @@ build_libfribidi() {
   cd fribidi-0.19.4
     # make it export symbols right...
     apply_patch https://raw.githubusercontent.com/rdp/ffmpeg-windows-build-helpers/master/patches/fribidi.diff
-    generic_configure
-    do_make_and_make_install
+    generic_configure_make_install
   cd ..
 
   #do_git_checkout http://anongit.freedesktop.org/git/fribidi/fribidi.git fribidi_git
   #cd fribidi_git
   #  ./bootstrap # couldn't figure out how to make this work...
-  #  generic_configure
-  #  do_make_and_make_install
+  #  generic_configure_make_install
   #cd ..
 }
 
@@ -1045,8 +1045,7 @@ build_iconv() {
   download_and_unpack_file http://ftp.gnu.org/pub/gnu/libiconv/libiconv-1.14.tar.gz libiconv-1.14
   cd libiconv-1.14
     export CFLAGS=-O2 
-    generic_configure
-    do_make_and_make_install
+    generic_configure_make_install
     unset CFLAGS
   cd ..
 }
@@ -1158,9 +1157,7 @@ build_lua() {
 build_libquvi() {
   download_and_Unpack_file http://sourceforge.net/projects/quvi/files/0.9/libquvi/libquvi-0.9.4.tar.xz/download libquvi-0.9.4
   cd libquvi-0.9.4
-    generic_configure
-    do_make
-    do_make_and_make_install
+    generic_configure_make_install
   cd ..
 }
 
@@ -1181,6 +1178,21 @@ build_vidstab() {
   cd vid.stab
     sed -i.bak "s/SHARED/STATIC/g" CMakeLists.txt # static build-ify
     do_cmake_and_install
+  cd ..
+}
+
+build_libdvbtee() {
+  do_git_checkout https://github.com/mkrufky/libdvbtee.git libdvbtee
+  cd libdvbtee
+    # checkout submodule
+    if [ ! -e libdvbpsi/bootstrap ]; then
+      rm -rf libdvbpsi # remove placeholder
+      do_git_checkout https://github.com/mkrufky/libdvbpsi.git libdvbpsi
+      cd libdvbpsi
+        generic_configure_make_install # library dependency apparently...
+      cd ..
+    fi
+    generic_configure_make_install 
   cd ..
 }
 
@@ -1482,6 +1494,7 @@ build_dependencies() {
 
 build_apps() {
   # now the things that use the dependencies...
+#  build_libdvbtee
   if [[ $build_libmxf = "y" ]]; then
     build_libMXF
   fi
