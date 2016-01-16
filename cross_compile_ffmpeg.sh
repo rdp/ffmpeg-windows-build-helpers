@@ -318,7 +318,7 @@ do_configure() {
       autoreconf -fiv # a handful of them require this  to create ./configure :|
     fi
     rm -f already_* # reset
-    echo "configuring $english_name ($PWD) as $ PATH=$PATH $configure_name $configure_options"
+    echo "configuring $english_name ($PWD) as $ PATH=$path_addition:$original_path $configure_name $configure_options"
     nice "$configure_name" $configure_options || exit 1
     touch -- "$touch_name"
     make clean # just in case, but sometimes useful when files change, etc.
@@ -334,7 +334,7 @@ do_make() {
 
   if [ ! -f $touch_name ]; then
     echo
-    echo "making $cur_dir2 as $ PATH=$PATH make $extra_make_options"
+    echo "making $cur_dir2 as $ PATH=$path_addition:\$PATH make $extra_make_options"
     echo
     if [ ! -f configure ]; then
       make clean # just in case helpful if old junk left around and this is a 're make' and wasn't cleaned at reconfigure time
@@ -362,7 +362,7 @@ do_make_install() {
   fi
   local touch_name=$(get_small_touchfile_name already_ran_make_install "$make_install_options")
   if [ ! -f $touch_name ]; then
-    echo "make installing $(pwd) as $ PATH=$PATH make $make_install_options"
+    echo "make installing $(pwd) as $ PATH=$path_addition:\$PATH make $make_install_options"
     nice make $make_install_options || exit 1
     touch $touch_name || exit 1
   fi
@@ -375,7 +375,7 @@ do_cmake_and_install() {
   if [ ! -f $touch_name ]; then
     rm -f already_* # reset so that make will run again if option just changed
     local cur_dir2=$(pwd)
-    echo doing cmake in $cur_dir2 with PATH=$PATH  with extra_args=$extra_args like this:
+    echo doing cmake in $cur_dir2 with PATH=$path_addition:\$PATH with extra_args=$extra_args like this:
     echo cmake –G”Unix Makefiles” . -DENABLE_STATIC_RUNTIME=1 -DCMAKE_SYSTEM_NAME=Windows -DCMAKE_RANLIB=${cross_prefix}ranlib -DCMAKE_C_COMPILER=${cross_prefix}gcc -DCMAKE_CXX_COMPILER=${cross_prefix}g++ -DCMAKE_RC_COMPILER=${cross_prefix}windres -DCMAKE_INSTALL_PREFIX=$mingw_w64_x86_64_prefix $extra_args
     cmake –G”Unix Makefiles” . -DENABLE_STATIC_RUNTIME=1 -DCMAKE_SYSTEM_NAME=Windows -DCMAKE_RANLIB=${cross_prefix}ranlib -DCMAKE_C_COMPILER=${cross_prefix}gcc -DCMAKE_CXX_COMPILER=${cross_prefix}g++ -DCMAKE_RC_COMPILER=${cross_prefix}windres -DCMAKE_INSTALL_PREFIX=$mingw_w64_x86_64_prefix $extra_args || exit 1
     touch $touch_name || exit 1
@@ -1495,6 +1495,7 @@ build_dependencies() {
 
 build_apps() {
   # now the things that use the dependencies...
+  build_libdvbtee
   if [[ $build_libmxf = "y" ]]; then
     build_libMXF
   fi
@@ -1636,7 +1637,8 @@ if [[ $compiler_flavors == "multi" || $compiler_flavors == "win32" ]]; then
   echo "Building 32-bit ffmpeg..."
   host_target='i686-w64-mingw32'
   mingw_w64_x86_64_prefix="$cur_dir/cross_compilers/mingw-w64-i686/$host_target"
-  export PATH="$cur_dir/cross_compilers/mingw-w64-i686/bin:$original_path"
+  path_addition="$cur_dir/cross_compilers/mingw-w64-i686/bin"
+  export PATH="$path_addition:$original_path"
   export PKG_CONFIG_PATH="$cur_dir/cross_compilers/mingw-w64-i686/i686-w64-mingw32/lib/pkgconfig"
   bits_target=32
   cross_prefix="$cur_dir/cross_compilers/mingw-w64-i686/bin/i686-w64-mingw32-"
@@ -1652,7 +1654,8 @@ if [[ $compiler_flavors == "multi" || $compiler_flavors == "win64" ]]; then
   echo "**************Building 64-bit ffmpeg..." # make it have a bit header to you can see when 32 bit is done more easily
   host_target='x86_64-w64-mingw32'
   mingw_w64_x86_64_prefix="$cur_dir/cross_compilers/mingw-w64-x86_64/$host_target"
-  export PATH="$cur_dir/cross_compilers/mingw-w64-x86_64/bin:$original_path"
+  path_addition="$cur_dir/cross_compilers/mingw-w64-x86_64/bin"
+  export PATH="$path_addition:$original_path"
   export PKG_CONFIG_PATH="$cur_dir/cross_compilers/mingw-w64-x86_64/x86_64-w64-mingw32/lib/pkgconfig"
   mkdir -p x86_64
   bits_target=64
