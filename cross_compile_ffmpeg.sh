@@ -714,8 +714,8 @@ build_libvpx() {
 
 build_libutvideo() {
   # if ending in .zip from sourceforge needs to not have /download on it? huh wuh?
-  download_and_unpack_file http://sourceforge.net/projects/ffmpegwindowsbi/files/utvideo-12.2.1-src.zip # local copy since the originating site http://umezawa.dyndns.info/archive/utvideo is sometimes inaccessible from draconian proxies
-  #do_git_checkout https://github.com/qyot27/libutvideo.git libutvideo_git_qyot27 # todo this would be even newer version [?]
+  download_and_unpack_file http://sourceforge.net/projects/ffmpegwindowsbi/files/utvideo-12.2.1-src.zip utvideo-12.2.1 # local copy since the originating site http://umezawa.dyndns.info/archive/utvideo is sometimes inaccessible from draconian proxies
+  #do_git_checkout https://github.com/qyot27/libutvideo.git libutvideo_git_qyot27 # todo this would be even newer version than 12.2.1?
   cd utvideo-12.2.1
     apply_patch https://raw.githubusercontent.com/rdp/ffmpeg-windows-build-helpers/master/patches/utv.diff
     sed -i.bak "s|Format.o|DummyCodec.o|" GNUmakefile
@@ -750,11 +750,11 @@ build_libflite() {
 }
 
 build_libgsm() {
-  download_and_unpack_file http://www.quut.com/gsm/gsm-1.0.14.tar.gz
+  download_and_unpack_file http://www.quut.com/gsm/gsm-1.0.14.tar.gz gsm-1.0-pl14
   cd gsm-1.0-pl14
+    # patch for openssl to work with it, I think?
     apply_patch https://raw.githubusercontent.com/rdp/ffmpeg-windows-build-helpers/master/patches/libgsm.patch
-    # for openssl to work with it, I think?
-    if [[ ! -f  $mingw_w64_x86_64_prefix/include/gsm/gsm.h ]]; then
+    if [[ ! -f $mingw_w64_x86_64_prefix/include/gsm/gsm.h ]]; then
       # not do_make here since this actually fails [wrongly]
       make $make_prefix_options INSTALL_ROOT=${mingw_w64_x86_64_prefix}
       cp lib/libgsm.a $mingw_w64_x86_64_prefix/lib || exit 1
