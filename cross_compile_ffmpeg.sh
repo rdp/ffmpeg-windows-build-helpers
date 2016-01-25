@@ -673,11 +673,11 @@ build_libdcadec() {
 }
 
 build_libwebp() {
-  generic_download_and_install http://downloads.webmproject.org/releases/webp/libwebp-0.4.3.tar.gz
+  generic_download_and_install http://downloads.webmproject.org/releases/webp/libwebp-0.5.0.tar.gz
 }
 
 build_libpng() {
-  generic_download_and_install http://download.sourceforge.net/libpng/libpng-1.5.18.tar.xz 
+  generic_download_and_install http://download.sourceforge.net/libpng/libpng-1.6.12.tar.xz 
 }
 
 build_libopenjpeg() {
@@ -898,6 +898,7 @@ build_libxml2() {
 }
 
 build_libbluray() {
+  # higher versions require java, which is a bit trickier...
   generic_download_and_install ftp://ftp.videolan.org/pub/videolan/libbluray/0.7.0/libbluray-0.7.0.tar.bz2
   sed -i.bak 's/-lbluray.*$/-lbluray -lfreetype -lexpat -lz -lbz2 -lxml2 -lws2_32 -liconv/' "$PKG_CONFIG_PATH/libbluray.pc" # not sure...is this a blu-ray bug, or VLC's problem in not pulling freetype's .pc file? or our problem with not using pkg-config --static ...
 }
@@ -913,19 +914,29 @@ build_libschroedinger() {
 }
 
 build_gnutls() {
-  download_and_unpack_file ftp://ftp.gnutls.org/gcrypt/gnutls/v3.3/gnutls-3.3.19.tar.xz
-  cd gnutls-3.3.19
+  download_and_unpack_file ftp://ftp.gnutls.org/gcrypt/gnutls/v3.4/gnutls-3.4.8.tar.xz
+  cd gnutls-3.4.8
     sed -i.bak 's/mkstemp(tmpfile)/ -1 /g' src/danetool.c # fix x86_64 absent? but danetool is just an exe AFAICT so this hack should be ok...
-    generic_configure "--disable-cxx --disable-doc --enable-local-libopts  --disable-guile" # don't need the c++ version, in an effort to cut down on size... XXXX test size difference... libopts to allow building with local autogen installed, guile is so that if it finds guile installed (cygwin did/does) it won't try and link/build to it and fail...
+    generic_configure "--disable-cxx --disable-doc --enable-local-libopts --disable-guile -with-included-libtasn1 --without-p11-kit" 
+    # --disable-cxx don't need the c++ version, in an effort to cut down on size... XXXX test size difference... 
+    # --enable-local-libopts to allow building with local autogen installed, 
+    # --disable-guile is so that if it finds guile installed (cygwin did/does) it won't try and link/build to it and fail...
+    # libtasn1 is some dependency, appears provided is an option [see also build_libnettle]
+    # pks #11 hopefully we don't need kit
     do_make_and_make_install
   cd ..
   sed -i.bak 's/-lgnutls *$/-lgnutls -lnettle -lhogweed -lgmp -lcrypt32 -lws2_32 -liconv/' "$PKG_CONFIG_PATH/gnutls.pc"
 }
 
+build_libtasn() {
+  generic_download_make_install http://ftp.gnu.org/gnu/libtasn1/libtasn1-4.7.tar.gz
+}
+
 build_libnettle() {
-  download_and_unpack_file http://www.lysator.liu.se/~nisse/archive/nettle-2.7.1.tar.gz 
-  cd nettle-2.7.1
-    generic_configure "--disable-openssl" # in case we have both gnutls and openssl, just use gnutls [except that gnutls uses this so...huh? https://github.com/rdp/ffmpeg-windows-build-helpers/issues/25#issuecomment-28158515
+  build_libtasn # dependency
+  download_and_unpack_file https://ftp.gnu.org/gnu/nettle/nettle-3.1.tar.gz
+  cd nettle-3.1
+    generic_configure "--disable-openssl --with-included-libtasn1" # in case we have both gnutls and openssl, just use gnutls [except that gnutls uses this so...huh? https://github.com/rdp/ffmpeg-windows-build-helpers/issues/25#issuecomment-28158515
     do_make_and_make_install
   cd ..
 }
@@ -965,8 +976,8 @@ build_libxvid() {
 }
 
 build_fontconfig() {
-  download_and_unpack_file http://www.freedesktop.org/software/fontconfig/release/fontconfig-2.11.1.tar.gz 
-  cd fontconfig-2.11.1
+  download_and_unpack_file http://www.freedesktop.org/software/fontconfig/release/fontconfig-2.11.94.tar.gz 
+  cd fontconfig-2.11.94
     generic_configure --disable-docs
     do_make_and_make_install
   cd .. 
@@ -1191,7 +1202,7 @@ build_libcurl() {
 }
 
 build_libdvbtee() {
-  build_libcurl # "can use this" so why not
+  build_libcurl # it "can use this" so why not
   do_git_checkout https://github.com/mkrufky/libdvbtee.git libdvbtee origin/win # win compat branch
   cd libdvbtee
     # checkout its submodule
@@ -1503,7 +1514,9 @@ build_dependencies() {
 }
 
 build_apps() {
-  #build_libdvbtee
+  if [[ $should_build_libdvbtee = "y" ]]; then
+    build_libdvbtee
+  fi
   # now the things that use the dependencies...
   if [[ $build_libmxf = "y" ]]; then
     build_libMXF
@@ -1553,6 +1566,7 @@ fi
 
 build_ffmpeg_static=y
 build_ffmpeg_shared=n
+should_build_libdvbtee=n
 build_libmxf=n
 build_mp4box=n
 build_mplayer=n
@@ -1560,7 +1574,7 @@ build_vlc=n
 git_get_latest=y
 prefer_stable=y
 build_intel_qsv=n
-#disable_nonfree=n # have no value to force prompt
+#disable_nonfree=n # have no value by default to force user selection
 original_cflags= # no export needed, this is just a local copy
 
 # parse command line parameters, if any
@@ -1579,6 +1593,7 @@ while true; do
       --build-mplayer=n [builds mplayer.exe and mencoder.exe] 
       --build-vlc=n [builds a [rather bloated] vlc.exe] 
       -a 'build all' builds mplayer, vlc, etc.
+      --build-dvbtee=n [build dvbtee.exe a DVB profiler]
       --compiler-flavors=[multi,win32,win64] [default prompt, or skip if you already have one built, multi is both win32 and win64]
       --cflags= [default is empty, compiles for generic cpu, see README]
       --git-get-latest=y [do a git pull for latest code from repositories like FFmpeg--can force a rebuild if changes are detected]
@@ -1603,9 +1618,10 @@ while true; do
        done
        export CFLAGS="${1#*=}"; original_cflags="${1#*=}"; echo "setting cflags as $original_cflags"; shift ;;
     --build-vlc=* ) build_vlc="${1#*=}"; shift ;;
+    --build-dvbtee=* ) should_build_libdvbtee="${1#*=}"; shift ;;
     --disable-nonfree=* ) disable_nonfree="${1#*=}"; shift ;;
     -a         ) compiler_flavors="multi"; build_mplayer=y; build_libmxf=y; build_mp4box=y; build_vlc=y; build_ffmpeg_shared=y; high_bitdepth=y; build_ffmpeg_static=y; 
-                 disable_nonfree=n; git_get_latest=y; sandbox_ok="y"; build_intel_qsv="y"; shift ;;
+                 disable_nonfree=n; git_get_latest=y; sandbox_ok="y"; build_intel_qsv="y"; should_build_libdvbtee="y"; shift ;;
     -d         ) gcc_cpu_count=$cpu_count; disable_nonfree="y"; sandbox_ok="y"; compiler_flavors="win32"; git_get_latest="n"; shift ;;
     --compiler-flavors=* ) compiler_flavors="${1#*=}"; shift ;;
     --build-ffmpeg-static=* ) build_ffmpeg_static="${1#*=}"; shift ;;
