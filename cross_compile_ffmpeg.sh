@@ -677,7 +677,8 @@ build_libwebp() {
 }
 
 build_libpng() {
-  generic_download_and_install http://download.sourceforge.net/libpng/libpng-1.6.12.tar.xz 
+  # generic_download_and_install http://download.sourceforge.net/libpng/libpng-1.6.12.tar.xz 
+  generic_download_and_install http://download.sourceforge.net/libpng/libpng-1.5.18.tar.xz  # libtheora can't take 1.6.x :|
 }
 
 build_libopenjpeg() {
