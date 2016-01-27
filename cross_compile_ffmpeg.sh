@@ -1219,7 +1219,8 @@ build_libdvbtee() {
         generic_configure_make_install # library dependency submodule... TODO don't install it, just leave it local :)
       cd ..
     fi
-    generic_configure_make_install 
+    generic_configure
+    do_make # not install since don't have a dependency on the library
   cd ..
 }
 
