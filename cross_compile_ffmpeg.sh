@@ -929,12 +929,7 @@ build_gnutls() {
   sed -i.bak 's/-lgnutls *$/-lgnutls -lnettle -lhogweed -lgmp -lcrypt32 -lws2_32 -liconv/' "$PKG_CONFIG_PATH/gnutls.pc"
 }
 
-build_libtasn() {
-  generic_download_make_install http://ftp.gnu.org/gnu/libtasn1/libtasn1-4.7.tar.gz
-}
-
 build_libnettle() {
-  build_libtasn # dependency
   download_and_unpack_file https://ftp.gnu.org/gnu/nettle/nettle-3.1.tar.gz
   cd nettle-3.1
     generic_configure "--disable-openssl --with-included-libtasn1" # in case we have both gnutls and openssl, just use gnutls [except that gnutls uses this so...huh? https://github.com/rdp/ffmpeg-windows-build-helpers/issues/25#issuecomment-28158515
