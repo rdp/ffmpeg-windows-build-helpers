@@ -1197,8 +1197,18 @@ build_libcurl() {
   generic_download_and_install http://curl.haxx.se/download/curl-7.46.0.tar.gz
 }
 
+build_libhdhomerun() {
+  exit 1 # still broken unfortunately, for cross compile :|
+  download_and_unpack_file http://download.silicondust.com/hdhomerun/libhdhomerun_20150826.tgz libhdhomerun
+  cd libhdhomerun
+    do_make CROSS_COMPILE=$cross_prefix  OS=Windows_NT
+  cd ..
+  exit 1
+}
+
 build_libdvbtee() {
   build_libcurl # it "can use this" so why not
+#  build_libhdhomerun
   do_git_checkout https://github.com/mkrufky/libdvbtee.git libdvbtee origin/win # win compat branch
   cd libdvbtee
     # checkout its submodule
