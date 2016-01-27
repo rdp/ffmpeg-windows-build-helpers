@@ -1216,7 +1216,7 @@ build_libdvbtee() {
       rm -rf libdvbpsi # remove placeholder
       do_git_checkout https://github.com/mkrufky/libdvbpsi.git libdvbpsi
       cd libdvbpsi
-        generic_configure_make_install # library dependency submodule...
+        generic_configure_make_install # library dependency submodule... TODO don't install it, just leave it local :)
       cd ..
     fi
     generic_configure_make_install 
