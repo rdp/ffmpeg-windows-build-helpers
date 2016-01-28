@@ -231,11 +231,11 @@ update_to_desired_git_branch_or_revision() {
   local to_dir="$1"
   local desired_branch="$2" # or tag or whatever...
   if [ -n "$desired_branch" ]; then
-   pushd $to_dir
+    pushd $to_dir
       echo "git checkout'ing $desired_branch"
       git checkout "$desired_branch" || exit 1 # if this fails, nuke the directory first...
-      git merge "$desired_branch" || exit 1 # this would be if they want to checkout a revision number, not a branch...
-   popd # in case it's a cd to ., don't want to cd to .. here...since sometimes we call it with a '.'
+      git merge "$desired_branch" || exit 1 # this would satisfy the case if they want to checkout a revision number, not a branch...
+    popd # in case it's a cd to ., don't want to cd to .. here...since sometimes we call it with a '.'
   fi
 }
 
@@ -271,7 +271,8 @@ do_git_checkout() {
       if [[ $git_get_latest = "y" ]]; then
         echo "Doing git fetch $to_dir in case it affects the desired branch [$desired_branch]"
         git fetch
-        git merge $desired_branch || exit 1
+        # I think unneeded, and it caused the annoying merge commit message commit pop up when tracking branches...maybe needed a checkout first?
+        # git merge $desired_branch || exit 1
       else
         echo "not doing git fetch $to_dir to see if it affected desired branch [$desired_branch]"
       fi
@@ -1208,8 +1209,8 @@ build_libhdhomerun() {
 
 build_libdvbtee() {
   build_libcurl # it "can use this" so why not
-#  build_libhdhomerun
-  do_git_checkout https://github.com/mkrufky/libdvbtee.git libdvbtee origin/win # win compat branch
+#  build_libhdhomerun # broken :|
+  do_git_checkout https://github.com/mkrufky/libdvbtee.git libdvbtee
   cd libdvbtee
     # checkout its submodule
     if [ ! -e libdvbpsi/bootstrap ]; then
