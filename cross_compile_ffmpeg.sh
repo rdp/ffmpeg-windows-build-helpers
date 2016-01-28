@@ -155,7 +155,7 @@ download_gcc_build_script() {
 
 install_cross_compiler() {
   if [[ -f "cross_compilers/mingw-w64-i686/compiler.done" && -f "cross_compilers/mingw-w64-x86_64/compiler.done" ]]; then
-   echo "MinGW-w64 compilers both already installed, not re-installing..."
+   echo "MinGW-w64 compilers both already installed, not re-installing, selecting multi build (both win32 and win64)..."
    if [[ -z $compiler_flavors ]]; then
      compiler_flavors=multi
    fi
@@ -1673,7 +1673,7 @@ fi
 
 original_path="$PATH"
 if [[ $compiler_flavors == "multi" || $compiler_flavors == "win32" ]]; then
-  echo "Building 32-bit ffmpeg..."
+  echo "Starting 32-bit builds..."
   host_target='i686-w64-mingw32'
   mingw_w64_x86_64_prefix="$cur_dir/cross_compilers/mingw-w64-i686/$host_target"
   path_addition="$cur_dir/cross_compilers/mingw-w64-i686/bin"
@@ -1690,7 +1690,7 @@ if [[ $compiler_flavors == "multi" || $compiler_flavors == "win32" ]]; then
 fi
 
 if [[ $compiler_flavors == "multi" || $compiler_flavors == "win64" ]]; then
-  echo "**************Building 64-bit ffmpeg..." # make it have a bit header to you can see when 32 bit is done more easily
+  echo "**************Starting 64-bit builds..." make it have a bit header to you can see when 32 bit is done more easily
   host_target='x86_64-w64-mingw32'
   mingw_w64_x86_64_prefix="$cur_dir/cross_compilers/mingw-w64-x86_64/$host_target"
   path_addition="$cur_dir/cross_compilers/mingw-w64-x86_64/bin"
