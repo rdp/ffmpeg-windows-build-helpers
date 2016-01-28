@@ -6,6 +6,8 @@ fix vlc... :|
 poor audio sdl ffplay?
 winpthread-1.dll ?
 
+-a is broken (qsv)
+
 == maybe/never do, more on the never... ==
 
 move collect.sh "inside it" :) [already moved it to patches for now]
