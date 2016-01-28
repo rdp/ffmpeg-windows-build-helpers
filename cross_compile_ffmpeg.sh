@@ -550,15 +550,21 @@ build_libopenh264() {
   cd ..
 }
 
-x264_profile_guided=n # or y -- haven't gotten this working yet...
 
 build_libx264() {
-  do_git_checkout "http://repo.or.cz/r/x264.git" "x264" "origin/stable"
-  cd x264
-  local configure_flags="--host=$host_target --enable-static --cross-prefix=$cross_prefix --prefix=$mingw_w64_x86_64_prefix --enable-strip --disable-lavf" # --enable-win32thread --enable-debug is another useful option here.
-  
+  local x264_profile_guided=n # or y -- haven't gotten this proven yet...TODO
   if [[ $high_bitdepth == "y" ]]; then
-    configure_flags="$configure_flags --bit-depth=10" # Enable 10 bits (main10) per pixels profile.
+    local checkout_dir="x264_high_bitdepth"
+  else
+    local checkout_dir="x264"
+  fi
+  
+  do_git_checkout "http://repo.or.cz/r/x264.git" $checkout_dir "origin/stable"
+  cd $checkout_dir
+
+  local configure_flags="--host=$host_target --enable-static --cross-prefix=$cross_prefix --prefix=$mingw_w64_x86_64_prefix --enable-strip --disable-lavf" # --enable-win32thread --enable-debug is another useful option here.
+  if [[ $high_bitdepth == "y" ]]; then
+    configure_flags="$configure_flags --bit-depth=10" # Enable 10 bits (main10) per pixels profile. possibly affects other profiles as well (?)
   fi
   
   if [[ $x264_profile_guided = y ]]; then
