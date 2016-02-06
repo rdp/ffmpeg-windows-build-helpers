@@ -308,7 +308,9 @@ do_configure() {
   local touch_name=$(get_small_touchfile_name already_configured "$configure_options $configure_name $LDFLAGS $CFLAGS")
   if [ ! -f "$touch_name" ]; then
     make clean # just in case useful...try and cleanup stuff...possibly not useful
-    # make uninstall # does weird things when run under ffmpeg src so disabled
+    # make uninstall # does weird things when run under ffmpeg src so disabled for now...
+
+    echo "configuring $english_name ($PWD) as $ PATH=$path_addition:$original_path $configure_name $configure_options" # say it now in case bootstrap fails etc.
     if [ -f bootstrap ]; then
       ./bootstrap
     fi
@@ -319,7 +321,6 @@ do_configure() {
       autoreconf -fiv # a handful of them require this  to create ./configure :|
     fi
     rm -f already_* # reset
-    echo "configuring $english_name ($PWD) as $ PATH=$path_addition:$original_path $configure_name $configure_options"
     nice "$configure_name" $configure_options || exit 1
     touch -- "$touch_name"
     make clean # just in case, but sometimes useful when files change, etc.
