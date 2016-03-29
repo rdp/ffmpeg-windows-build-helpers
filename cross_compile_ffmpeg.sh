@@ -1183,12 +1183,11 @@ build_twolame() {
 }
 
 build_frei0r() {
-  # theoretically we could get by with just copying a .h file in, but why not build them here anyway, just for fun? :)
+  # theoretically we could get by with just copying a .h file in, but why not build the .dll's here anyway, for fun? :)
   download_and_unpack_file https://files.dyne.org/frei0r/releases/frei0r-plugins-1.4.tar.gz
   cd frei0r-plugins-1.4
     sed -i.bak "s/find_package (Cairo)//g" CMakeLists.txt
-    do_cmake 
-    do_make_and_make_install
+    do_cmake_and_install
   cd ..
 }
 
