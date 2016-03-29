@@ -370,7 +370,7 @@ do_make_install() {
   fi
 }
 
-do_cmake_and_install() {
+do_cmake() {
   extra_args="$1" 
   local touch_name=$(get_small_touchfile_name already_ran_cmake "$extra_args")
 
@@ -382,6 +382,10 @@ do_cmake_and_install() {
     cmake –G”Unix Makefiles” . -DENABLE_STATIC_RUNTIME=1 -DCMAKE_SYSTEM_NAME=Windows -DCMAKE_RANLIB=${cross_prefix}ranlib -DCMAKE_C_COMPILER=${cross_prefix}gcc -DCMAKE_CXX_COMPILER=${cross_prefix}g++ -DCMAKE_RC_COMPILER=${cross_prefix}windres -DCMAKE_INSTALL_PREFIX=$mingw_w64_x86_64_prefix $extra_args || exit 1
     touch $touch_name || exit 1
   fi
+}
+
+do_cmake_and_install() {
+  do_cmake $1 $2
   do_make_and_make_install
 }
 
@@ -1182,7 +1186,9 @@ build_frei0r() {
   # theoretically we could get by with just copying a .h file in, but why not build them here anyway, just for fun? :)
   download_and_unpack_file https://files.dyne.org/frei0r/releases/frei0r-plugins-1.4.tar.gz
   cd frei0r-plugins-1.4
-    do_cmake_and_install
+    sed -i.bak "s/find_package (Cairo)//g" CMakeLists.txt
+    do_cmake 
+    do_make_and_make_install
   cd ..
 }
 
