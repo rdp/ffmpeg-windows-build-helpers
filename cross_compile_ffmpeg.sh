@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # ffmpeg windows cross compile helper/download script, see github repo README
 # Copyright (C) 2012 Roger Pack, the script is under the GPLv3, but output FFmpeg's executables aren't
-# set -x # uncomment to enable script debug output
+# set -x # uncomment the set -x to enable script debug output ...
 
 yes_no_sel () {
   unset user_input
@@ -154,9 +154,12 @@ download_gcc_build_script() {
 }
 
 install_cross_compiler() {
-  if [[ -f "cross_compilers/mingw-w64-i686/compiler.done" && -f "cross_compilers/mingw-w64-x86_64/compiler.done" ]]; then
-   echo "MinGW-w64 compilers both already installed, not re-installing, selecting multi build (both win32 and win64)..."
+  local win32_gcc="cross_compilers/mingw-w64-i686/bin/i686-w64-mingw32-gcc"
+  local win64_gcc="cross_compilers/mingw-w64-x86_64/bin/x86_64-w64-mingw32-gcc"
+  if [[ -f $win32_gcc && -f $win64_gcc ]]; then
+   echo "MinGW-w64 compilers both already installed, not re-installing..."
    if [[ -z $compiler_flavors ]]; then
+     echo "selecting multi build (both win32 and win64)..."
      compiler_flavors=multi
    fi
    return # early exit just assume they want both, don't even prompt :)
@@ -178,30 +181,27 @@ install_cross_compiler() {
     local zeranoe_script_name=mingw-w64-build-3.6.7.local
     # add --mingw-w64-ver=git for updated tuner.h [dshow dtv] past 4.0.4 TODO
     local zeranoe_script_options="--clean-build --disable-shared --default-configure  --pthreads-w32-ver=2-9-1 --cpu-count=$gcc_cpu_count --gcc-ver=5.3.0"
-    if [[ ($compiler_flavors == "win32" || $compiler_flavors == "multi") && ! -f "mingw-w64-i686/compiler.done" ]]; then
-      echo "building win32 cross compiler"
+    if [[ ($compiler_flavors == "win32" || $compiler_flavors == "multi") && ! -f $win64_gcc ]]; then
+      echo "building win32 cross compiler..."
       download_gcc_build_script $zeranoe_script_name
       nice ./$zeranoe_script_name $zeranoe_script_options --build-type=win32 || exit 1 
-      touch mingw-w64-i686/compiler.done # assume success
     fi
-    if [[ ($compiler_flavors == "win64" || $compiler_flavors == "multi") && ! -f "mingw-w64-x86_64/compiler.done" ]]; then
-      echo "building win64 x86_64 cross compiler"
+    if [[ ($compiler_flavors == "win64" || $compiler_flavors == "multi") && ! -f $win64_gcc ]]; then
+      echo "building win64 x86_64 cross compiler..."
       download_gcc_build_script $zeranoe_script_name
       nice ./$zeranoe_script_name $zeranoe_script_options --build-type=win64 || exit 1 
-      touch mingw-w64-x86_64/compiler.done # assume success :)
     fi
 
-    if [[ ! -f mingw-w64-i686/bin/i686-w64-mingw32-gcc && ! -f mingw-w64-x86_64/bin/x86_64-w64-mingw32-gcc ]]; then
+    if [[ ! -f ../$win32_gcc && ! -f ../$win64_gcc ]]; then
       echo "no gcc cross compiler(s) seem to have been created [?] (build failure [?]) recommend nuke sandbox dir (rm -rf sandbox) and try again!"
       exit 1
     fi
 
-    rm -f build.log
+    rm -f build.log # left over stuff...
     export CFLAGS=$original_cflags # reset it back to what it was passed in as, via parameter :)
   cd ..
   echo "Done building (or already built) MinGW-w64 cross-compiler(s) successfully..."
-  echo `date`
-
+  echo `date` # so they can see how long it took :)
 }
 
 # helper methods for downloading and building projects that can take generic input
@@ -671,13 +671,6 @@ build_libgme_game_music_emu() {
 
 build_wavpack() {
   generic_download_and_install http://wavpack.com/wavpack-4.70.0.tar.bz2
-}
-
-build_libdcadec() {
-  do_git_checkout https://github.com/foo86/dcadec.git dcadec_git
-  cd dcadec_git
-    do_make_and_make_install "$make_prefix_options"
-  cd ..
 }
 
 build_libwebp() {
@@ -1471,7 +1464,6 @@ build_dependencies() {
   build_libsndfile
   build_libbs2b # needs libsndfile
   build_wavpack
-  build_libdcadec
   build_libgme_game_music_emu
   build_libwebp
   build_libutvideo
