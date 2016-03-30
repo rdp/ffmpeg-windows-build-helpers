@@ -561,16 +561,17 @@ build_libopenh264() {
 }
 
 build_libx264() {
-  local build_x264_with_libav=n # change to y to build an x264.exe that includes ffmpeg library libav...
+  local checkout_dir="x264"
   if [[ $build_x264_with_libav == y ]]; then
-    build_ffmpeg static --disable-libx264 ffmpeg_git_pre_x264 # installs it so we can use it within x264.exe FWIW...
+    build_ffmpeg static --disable-libx264 ffmpeg_git_pre_x264 # installs libav locally so we can use it within x264.exe FWIW...
+    checkout_dir="${checkout_dir}_with_libav"
   fi
 
   local x264_profile_guided=n # or y -- haven't gotten this proven yet...TODO
   if [[ $high_bitdepth == "y" ]]; then
-    local checkout_dir="x264_high_bitdepth"
+    checkout_dir="${checkout_dir}_high_bitdepth_10"
   else
-    local checkout_dir="x264"
+    checkout_dir="${checkout_dir}_normal_bitdepth"
   fi
   
   do_git_checkout "http://repo.or.cz/r/x264.git" $checkout_dir "origin/stable"
@@ -1509,7 +1510,6 @@ build_dependencies() {
   build_libxvid
   build_libxavs
   build_libsoxr
-  build_libx264
   build_libx265
   build_libopenh264
   build_lame
@@ -1532,6 +1532,7 @@ build_dependencies() {
   if [[ $build_intel_qsv = y ]]; then
     build_intel_quicksync_mfx
   fi
+  build_libx264
   if [[ "$non_free" = "y" ]]; then
     build_fdk_aac
     # build_faac # not included for now, too poor quality output :)
@@ -1605,11 +1606,12 @@ prefer_stable=y
 build_intel_qsv=n
 #disable_nonfree=n # have no value by default to force user selection
 original_cflags= # no export needed, this is just a local copy
+build_x264_with_libav=n
 
 # parse command line parameters, if any
 while true; do
   case $1 in
-    -h | --help ) echo "available options [with defaults]: 
+    -h | --help ) echo "available options [with default value]: 
       --build-ffmpeg-shared=n 
       --build-ffmpeg-static=y 
       --gcc-cpu-count=1x [number of cpu cores set it higher than 1 if you have multiple cores and > 1GB RAM, this speeds up initial cross compiler build. FFmpeg build uses number of cores no matter what] 
@@ -1626,6 +1628,8 @@ while true; do
       --compiler-flavors=[multi,win32,win64] [default prompt, or skip if you already have one built, multi is both win32 and win64]
       --cflags= [default is empty, compiles for generic cpu, see README]
       --git-get-latest=y [do a git pull for latest code from repositories like FFmpeg--can force a rebuild if changes are detected]
+      --build-intel-qsv=n include intel QSV library [not windows xp friendly]
+      --build-x264-with-libav=n build x264.exe with bundled/included "libav" ffmpeg libraries within it
       --prefer-stable=y build a few libraries from releases instead of git master
       --high-bitdepth=y Enable high bit depth for x264 (10 bits) and x265 (10 and 12 bits, x64 build. Not officially supported on x86 (win32), but enabled by disabling its assembly).
        "; exit 0 ;;
@@ -1635,6 +1639,7 @@ while true; do
     --build-mp4box=* ) build_mp4box="${1#*=}"; shift ;;
     --git-get-latest=* ) git_get_latest="${1#*=}"; shift ;;
     --build-intel-qsv=* ) build_intel_qsv="${1#*=}"; shift ;;
+    --build-x264-with-libav=* ) build_x264_with_libav="${1#*=}"; shift ;;
     --build-mplayer=* ) build_mplayer="${1#*=}"; shift ;;
     --cflags=* ) 
        echo "removing old .exe's, in case cflags has changed"
