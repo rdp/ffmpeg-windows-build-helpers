@@ -389,7 +389,7 @@ do_cmake() {
 }
 
 do_cmake_and_install() {
-  do_cmake $1 $2
+  do_cmake "$1"
   do_make_and_make_install
 }
 
@@ -642,8 +642,8 @@ build_qt() {
 }
 
 build_libsoxr() {
-  download_and_unpack_file http://sourceforge.net/projects/soxr/files/soxr-0.1.0-Source.tar.xz 
-  cd soxr-0.1.0-Source
+  download_and_unpack_file http://sourceforge.net/projects/soxr/files/soxr-0.1.2-Source.tar.xz 
+  cd soxr-0.1.2-Source
     do_cmake_and_install "-DHAVE_WORDS_BIGENDIAN_EXITCODE=0  -DBUILD_SHARED_LIBS:bool=off -DBUILD_TESTS:BOOL=OFF"
   cd ..
 }
