@@ -1072,8 +1072,8 @@ build_iconv() {
 }
 
 build_freetype() {
-  download_and_unpack_file http://download.savannah.gnu.org/releases/freetype/freetype-2.5.5.tar.gz
-  cd freetype-2.5.5
+  download_and_unpack_file https://download.videolan.org/contrib/freetype-2.6.2.tar.gz
+  cd freetype-2.6.2
     if [[ `uname -s` == CYGWIN* ]]; then
       generic_configure "--build=i686-pc-cygwin --with-png=no"  # hard to believe but needed...
     else
