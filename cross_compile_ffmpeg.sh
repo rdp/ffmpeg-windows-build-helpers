@@ -181,21 +181,25 @@ install_cross_compiler() {
     local zeranoe_script_name=mingw-w64-build-3.6.7.local
     # add --mingw-w64-ver=git for updated tuner.h [dshow dtv] past 4.0.4 TODO
     local zeranoe_script_options="--clean-build --disable-shared --default-configure  --pthreads-w32-ver=2-9-1 --cpu-count=$gcc_cpu_count --gcc-ver=5.3.0"
-    if [[ ($compiler_flavors == "win32" || $compiler_flavors == "multi") && ! -f $win64_gcc ]]; then
+    if [[ ($compiler_flavors == "win32" || $compiler_flavors == "multi") && ! -f ../$win32_gcc ]]; then
       echo "building win32 cross compiler..."
       download_gcc_build_script $zeranoe_script_name
-      nice ./$zeranoe_script_name $zeranoe_script_options --build-type=win32 || exit 1 
+      nice ./$zeranoe_script_name $zeranoe_script_options --build-type=win32 || exit 1
+      if [[ ! -f ../$win32_gcc ]]; then
+        echo "failure building 32 bit gcc? recommend nuke sandbox (rm -rf sandbox) and start over..."
+        exit 1
+      fi
     fi
     if [[ ($compiler_flavors == "win64" || $compiler_flavors == "multi") && ! -f $win64_gcc ]]; then
       echo "building win64 x86_64 cross compiler..."
       download_gcc_build_script $zeranoe_script_name
       nice ./$zeranoe_script_name $zeranoe_script_options --build-type=win64 || exit 1 
+      if [[ ! -f ../$win64_gcc ]]; then
+        echo "failure building 64 bit gcc? recommend nuke sandbox (rm -rf sandbox) and start over..."
+        exit 1
+      fi
     fi
 
-    if [[ ! -f ../$win32_gcc && ! -f ../$win64_gcc ]]; then
-      echo "no gcc cross compiler(s) seem to have been created [?] (build failure [?]) recommend nuke sandbox dir (rm -rf sandbox) and try again!"
-      exit 1
-    fi
 
     rm -f build.log # left over stuff...
     export CFLAGS=$original_cflags # reset it back to what it was passed in as, via parameter :)
@@ -1183,7 +1187,7 @@ build_twolame() {
 }
 
 build_frei0r() {
-  # theoretically we could get by with just copying a .h file in, but why not build the .dll's here anyway, for fun? :)
+  # theoretically we could get by with just copying a .h file in, but why not build the .dll's here anyway, for fun, and in case useful? :)
   download_and_unpack_file https://files.dyne.org/frei0r/releases/frei0r-plugins-1.4.tar.gz
   cd frei0r-plugins-1.4
     sed -i.bak "s/find_package (Cairo)//g" CMakeLists.txt
