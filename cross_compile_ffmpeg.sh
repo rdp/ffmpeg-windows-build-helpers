@@ -326,7 +326,7 @@ do_configure() {
       autoreconf -fiv # a handful of them require this  to create ./configure :|
     fi
     rm -f already_* # reset
-    nice "$configure_name" $configure_options || exit 1
+    "$configure_name" $configure_options || exit 1 # not nice, so that if some other script is running as nice, this one will get priority :)
     touch -- "$touch_name"
     make clean # just in case, but sometimes useful when files change, etc.
   else
@@ -469,11 +469,16 @@ generic_configure_make_install() {
 }
 
 build_libx265() {
-  # the only one that uses mercurial, so there's some extra initial junk here...
+  # the only one that uses mercurial, so there's some extra initial junk in this method... XXX needs some cleanup :|
+  local checkout_dir=x265
+  if [[ $high_bitdepth == "y" ]]; then
+    checkout_dir=x265_high_bitdepth_10
+  fi
+
   if [[ $prefer_stable = "n" ]]; then
     local old_hg_version
-    if [[ -d x265 ]]; then
-      cd x265
+    if [[ -d $checkout_dir ]]; then
+      cd $checkout_dir
       if [[ $git_get_latest = "y" ]]; then
         echo "doing hg pull -u x265"
         old_hg_version=`hg --debug id -i`
@@ -485,13 +490,13 @@ build_libx265() {
       fi
     else
       echo "doing hg clone x265"
-      hg clone https://bitbucket.org/multicoreware/x265 || exit 1
-      cd x265
+      hg clone https://bitbucket.org/multicoreware/x265 $checkout_dir || exit 1
+      cd $checkout_dir
       old_hg_version=none-yet
     fi
     cd source
 
-    # hg checkout 9b0c9b # no longer needed, but once was...
+    # hg checkout 9b0c9b # no longer needed, but once was...left here so I know how :)
 
     local new_hg_version=`hg --debug id -i`  
     if [[ "$old_hg_version" != "$new_hg_version" ]]; then
@@ -502,8 +507,8 @@ build_libx265() {
     fi
   else
     local old_hg_version
-    if [[ -d x265 ]]; then
-      cd x265
+    if [[ -d $checkout_dir ]]; then
+      cd $checkout_dir
       if [[ $git_get_latest = "y" ]]; then
         echo "doing hg pull -u x265"
         old_hg_version=`hg --debug id -i`
@@ -514,8 +519,8 @@ build_libx265() {
         old_hg_version=`hg --debug id -i`
       fi
     else
-      hg clone https://bitbucket.org/multicoreware/x265 -r stable || exit 1
-      cd x265
+      hg clone https://bitbucket.org/multicoreware/x265 -r stable $checkout_dir || exit 1
+      cd $checkout_dir
       old_hg_version=none-yet
     fi
     cd source
