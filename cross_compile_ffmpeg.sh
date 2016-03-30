@@ -570,6 +570,9 @@ build_libx264() {
   if [[ $build_x264_with_libav == y ]]; then
     build_ffmpeg static --disable-libx264 ffmpeg_git_pre_x264 # installs libav locally so we can use it within x264.exe FWIW...
     checkout_dir="${checkout_dir}_with_libav"
+    # they don't know how to use a normal pkg-config when cross compiling, so specify some manually:
+    export LAVF_LIBS="$LAVF_LIBS $(pkg-config --libs libavformat libavcodec libavutil libswscale)"
+    export LAVF_CFLAGS="$LAVF_CFLAGS $(pkg-config --cflags libavformat libavcodec libavutil libswscale)"
   fi
 
   local x264_profile_guided=n # or y -- haven't gotten this proven yet...TODO
@@ -582,10 +585,14 @@ build_libx264() {
   do_git_checkout "http://repo.or.cz/r/x264.git" $checkout_dir "origin/stable"
   cd $checkout_dir
 
-  local configure_flags="--host=$host_target --enable-static --cross-prefix=$cross_prefix --prefix=$mingw_w64_x86_64_prefix --enable-strip --disable-lavf" # --enable-win32thread --enable-debug is another useful option here?
+  local configure_flags="--host=$host_target --enable-static --cross-prefix=$cross_prefix --prefix=$mingw_w64_x86_64_prefix --enable-strip" # --enable-win32thread --enable-debug is another useful option here?
+
   if [[ $build_x264_with_libav == y ]]; then
-    configure_flags="$configure_flags --enable-lavf"
+    configure_flags="$configure_flags" # lavf stands for libavformat, there is no --enable-lavf option, either auto or disable...
+  else
+    configure_flags="$configure_flags --disable-lavf"
   fi
+
   if [[ $high_bitdepth == "y" ]]; then
     configure_flags="$configure_flags --bit-depth=10" # Enable 10 bits (main10) per pixels profile. possibly affects other profiles as well (?)
   fi
@@ -605,6 +612,9 @@ build_libx264() {
     do_configure "$configure_flags"
     do_make_and_make_install
   fi
+
+  unset LAVF_LIBS
+  unset LAVF_CFLAGS
   cd ..
 }
 
@@ -1537,7 +1547,6 @@ build_dependencies() {
   if [[ $build_intel_qsv = y ]]; then
     build_intel_quicksync_mfx
   fi
-  build_libx264
   if [[ "$non_free" = "y" ]]; then
     build_fdk_aac
     # build_faac # not included for now, too poor quality output :)
@@ -1546,6 +1555,7 @@ build_dependencies() {
   fi
   # build_openssl # hopefully do not need it anymore, since we use gnutls everywhere, so just don't even build it anymore...
   build_librtmp # needs gnutls [or openssl...]
+  build_libx264 # at bottom as it might build an ffmpeg which needs all the above deps...
 }
 
 build_apps() {
