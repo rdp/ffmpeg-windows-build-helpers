@@ -560,8 +560,12 @@ build_libopenh264() {
   cd ..
 }
 
-
 build_libx264() {
+  local build_x264_with_libav=n # change to y to build an x264.exe that includes ffmpeg library libav...
+  if [[ $build_x264_with_libav == y ]]; then
+    build_ffmpeg static --disable-libx264 ffmpeg_git_pre_x264 # installs it so we can use it within x264.exe FWIW...
+  fi
+
   local x264_profile_guided=n # or y -- haven't gotten this proven yet...TODO
   if [[ $high_bitdepth == "y" ]]; then
     local checkout_dir="x264_high_bitdepth"
@@ -572,7 +576,10 @@ build_libx264() {
   do_git_checkout "http://repo.or.cz/r/x264.git" $checkout_dir "origin/stable"
   cd $checkout_dir
 
-  local configure_flags="--host=$host_target --enable-static --cross-prefix=$cross_prefix --prefix=$mingw_w64_x86_64_prefix --enable-strip --disable-lavf" # --enable-win32thread --enable-debug is another useful option here.
+  local configure_flags="--host=$host_target --enable-static --cross-prefix=$cross_prefix --prefix=$mingw_w64_x86_64_prefix --enable-strip --disable-lavf" # --enable-win32thread --enable-debug is another useful option here?
+  if [[ $build_x264_with_libav == y ]]; then
+    configure_flags="$configure_flags --enable-lavf"
+  fi
   if [[ $high_bitdepth == "y" ]]; then
     configure_flags="$configure_flags --bit-depth=10" # Enable 10 bits (main10) per pixels profile. possibly affects other profiles as well (?)
   fi
@@ -1243,9 +1250,10 @@ build_vlc() {
   echo "not doing vlc build, currently broken until enough interest to fix it"
   return
 
-  #if [ ! -f $mingw_w64_x86_64_prefix/lib/libavutil.a ]; then # it takes awhile without this 
-    build_ffmpeg ffmpeg 
-  #fi
+  # vlc dependencies:
+  # if [ ! -f $mingw_w64_x86_64_prefix/lib/libavutil.a ]; then # it takes awhile without this 
+    build_ffmpeg
+  # fi
   build_libdvdread
   build_libdvdnav
   build_libx265
@@ -1341,7 +1349,7 @@ build_libMXF() {
   apply_patch https://raw.githubusercontent.com/rdp/ffmpeg-windows-build-helpers/master/patches/libMXF.diff
   do_make "MINGW_CC_PREFIX=$cross_prefix"
   #
-  # Manual equivalent of make install.  Enable it if desired.  We shouldn't need it in theory since we never use libMXF.a file and can just hand pluck out the *.exe files...
+  # Manual equivalent of make install.  Enable it if desired.  We shouldn't need it in theory since we never use libMXF.a file and can just hand pluck out the *.exe files already...
   #
   # cp libMXF/lib/libMXF.a $mingw_w64_x86_64_prefix/lib/libMXF.a
   # cp libMXF++/libMXF++/libMXF++.a $mingw_w64_x86_64_prefix/lib/libMXF++.a
@@ -1363,10 +1371,13 @@ build_libdecklink() {
 }
 
 build_ffmpeg() {
-  local type=$1
-  local shared=$2
+  local shared_or_static=$1
+  local extra_postpend_configure_options=$2
   local git_url="https://github.com/FFmpeg/FFmpeg.git"
-  local output_dir="ffmpeg_git"
+  local output_dir=$3
+  if [[ -z $output_dir ]]; then
+    output_dir="ffmpeg_git"
+  fi
 
   if [[ "$non_free" = "y" ]]; then
     output_dir="${output_dir}_with_fdk_aac"
@@ -1375,7 +1386,7 @@ build_ffmpeg() {
   local postpend_configure_opts=""
 
   # can't mix and match --enable-static --enable-shared unfortunately, or the final executable seems to just use shared if the're both present
-  if [[ $shared == "shared" ]]; then
+  if [[ $shared_or_static == "shared" ]]; then
     output_dir=${output_dir}_shared
     final_install_dir=`pwd`/${output_dir}.installed
     postpend_configure_opts="--enable-shared --disable-static $postpend_configure_opts"
@@ -1422,13 +1433,14 @@ build_ffmpeg() {
     config_options="$config_options --enable-runtime-cpudetect"
   fi
 
-  do_debug_build=n # if you need one for backtraces/examining segfaults using gdb.exe ... change this to a y :)
+  do_debug_build=n # if you need one for backtraces/examining segfaults using gdb.exe ... change this to y :)
   if [[ "$do_debug_build" = "y" ]]; then
     # not sure how many of these are actually needed/useful...possibly none LOL
     config_options="$config_options --disable-optimizations --extra-cflags=-Og --extra-cflags=-fno-omit-frame-pointer --enable-debug=3 --extra-cflags=-fno-inline $postpend_configure_opts"
     # this one kills gdb workability for static build? ai ai [?] XXXX
     config_options="$config_options --disable-libgme"
   fi
+  config_options="$config_options $extra_postpend_configure_options"
   
   do_configure "$config_options"
   rm -f */*.a */*.dll *.exe # just in case some dependency library has changed, force it to re-link even if the ffmpeg source hasn't changed...
@@ -1441,7 +1453,7 @@ build_ffmpeg() {
 
   sed -i.bak 's/-lavutil -lm.*/-lavutil -lm -lpthread/' "$PKG_CONFIG_PATH/libavutil.pc" # XXX patch ffmpeg itself...
   sed -i.bak 's/-lswresample -lm.*/-lswresample -lm -lsoxr/' "$PKG_CONFIG_PATH/libswresample.pc" # XXX patch ffmpeg
-  echo "Done! You will find $bits_target bit $shared non_free=$non_free binaries in $(pwd)/*.exe"
+  echo "Done! You will find $bits_target bit $shared_or_static non_free=$non_free binaries in $(pwd)/*.exe"
   echo `date`
   cd ..
 }
@@ -1545,10 +1557,10 @@ build_apps() {
     build_mplayer
   fi
   if [[ $build_ffmpeg_static = "y" ]]; then
-    build_ffmpeg ffmpeg
+    build_ffmpeg 
   fi
   if [[ $build_ffmpeg_shared = "y" ]]; then
-    build_ffmpeg ffmpeg shared
+    build_ffmpeg shared
   fi
   if [[ $build_vlc = "y" ]]; then
     build_vlc
