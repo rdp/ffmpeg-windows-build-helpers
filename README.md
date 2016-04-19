@@ -4,7 +4,9 @@ ffmpeg-windows-build-helpers
 This helper script lets you cross compile a windows 32 or 64 bit version of ffmpeg/mplayer/mp4box.exe, etc.
 including many dependency libraries they use.
 
-To run the script, build in windows, or build in linux (cross compiles to build windows executables):
+To run the script, either build in windows, or build in linux (cross compiles to build windows executables).
+Building in linux takes less time overall, but requires a linux box or VM.
+Building in windows takes "quite awhile" but avoids the need of needing linux installed somewhere.
 
 To build in windows (uses the native'ish cygwin):
 
