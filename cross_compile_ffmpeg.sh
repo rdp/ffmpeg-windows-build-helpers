@@ -1315,7 +1315,7 @@ build_mplayer() {
   build_libdvdnav
   download_and_unpack_file http://sourceforge.net/projects/mplayer-edl/files/mplayer-export-snapshot.2014-05-19.tar.bz2 mplayer-export-2014-05-19
   cd mplayer-export-2014-05-19
-  do_git_checkout https://github.com/FFmpeg/FFmpeg ffmpeg d43c303038e9bd
+  do_git_checkout https://github.com/FFmpeg/FFmpeg ffmpeg d43c303038e9bd # known to work
   export LDFLAGS='-lpthread -ldvdnav -ldvdread -ldvdcss' # not compat with newer dvdread possibly? huh wuh?
   export CFLAGS=-DHAVE_DVDCSS_DVDCSS_H
   do_configure "--enable-cross-compile --host-cc=cc --cc=${cross_prefix}gcc --windres=${cross_prefix}windres --ranlib=${cross_prefix}ranlib --ar=${cross_prefix}ar --as=${cross_prefix}as --nm=${cross_prefix}nm --enable-runtime-cpudetection --extra-cflags=$CFLAGS --with-dvdnav-config=$mingw_w64_x86_64_prefix/bin/dvdnav-config --disable-dvdread-internal --disable-libdvdcss-internal --disable-w32threads --enable-pthreads --extra-libs=-lpthread --enable-debug --enable-ass-internal --enable-dvdread --enable-dvdnav" # haven't reported the ldvdcss thing, think it's to do with possibly it not using dvdread.pc [?] XXX check with trunk
@@ -1412,7 +1412,7 @@ build_ffmpeg() {
     postpend_configure_opts="--enable-static --disable-shared $postpend_configure_opts --prefix=$mingw_w64_x86_64_prefix"
   fi
 
-  do_git_checkout $git_url ${output_dir}
+  do_git_checkout $git_url $output_dir $ffmpeg_git_checkout_version 
   cd $output_dir
   
   if [ "$bits_target" = "32" ]; then
@@ -1622,6 +1622,7 @@ build_intel_qsv=n
 #disable_nonfree=n # have no value by default to force user selection
 original_cflags= # no export needed, this is just a local copy
 build_x264_with_libav=n
+ffmpeg_git_checkout_version=
 
 # parse command line parameters, if any
 while true; do
@@ -1629,6 +1630,7 @@ while true; do
     -h | --help ) echo "available options [with default value]: 
       --build-ffmpeg-shared=n 
       --build-ffmpeg-static=y 
+      --ffmpeg-git-checkout-version=[master] if you want to build a particular version of FFmpeg, ex: release/2.8 or a git hash
       --gcc-cpu-count=1x [number of cpu cores set it higher than 1 if you have multiple cores and > 1GB RAM, this speeds up initial cross compiler build. FFmpeg build uses number of cores no matter what] 
       --disable-nonfree=y (set to n to include nonfree like libfdk-aac) 
       --build-intel-qsv=n (set to y to include the [non windows xp compat.] qsv library and ffmpeg module
@@ -1650,6 +1652,7 @@ while true; do
        "; exit 0 ;;
     --sandbox-ok=* ) sandbox_ok="${1#*=}"; shift ;;
     --gcc-cpu-count=* ) gcc_cpu_count="${1#*=}"; shift ;;
+    --ffmpeg-git-checkout-version=* ) ffmpeg_git_checkout_version="${1#*=}"; shift ;;
     --build-libmxf=* ) build_libmxf="${1#*=}"; shift ;;
     --build-mp4box=* ) build_mp4box="${1#*=}"; shift ;;
     --git-get-latest=* ) git_get_latest="${1#*=}"; shift ;;
