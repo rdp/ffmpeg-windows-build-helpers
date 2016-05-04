@@ -1063,9 +1063,9 @@ build_libnvenc() {
   fi
 }
 
-build_intel_quicksync_mfx() { # qsv
-  do_git_checkout https://github.com/mjb2000/mfx_dispatch.git mfx_dispatch_git
-  cd mfx_dispatch_git
+build_intel_quicksync_mfx() { # i.e. qsv
+  do_git_checkout https://github.com/lu-zero/mfx_dispatch.git mfx_dispatch_git_lu_zero
+  cd mfx_dispatch_git_lu_zero
     if [[ ! -f "configure" ]]; then
       autoreconf -fiv || exit 1
     fi
