@@ -570,9 +570,10 @@ build_libx264() {
   if [[ $build_x264_with_libav == y ]]; then
     build_ffmpeg static --disable-libx264 ffmpeg_git_pre_x264 # installs libav locally so we can use it within x264.exe FWIW...
     checkout_dir="${checkout_dir}_with_libav"
-    # they don't know how to use a normal pkg-config when cross compiling, so specify some manually:
+    # they don't know how to use a normal pkg-config when cross compiling, so specify some manually: (see their mailing list for a request...)
     export LAVF_LIBS="$LAVF_LIBS $(pkg-config --libs libavformat libavcodec libavutil libswscale)"
     export LAVF_CFLAGS="$LAVF_CFLAGS $(pkg-config --cflags libavformat libavcodec libavutil libswscale)"
+    export SWSCALE_LIBS="$SWSCALE_LIBS -lpthread"
   fi
 
   local x264_profile_guided=n # or y -- haven't gotten this proven yet...TODO
@@ -615,6 +616,7 @@ build_libx264() {
 
   unset LAVF_LIBS
   unset LAVF_CFLAGS
+  unset SWSCALE_LIBS 
   cd ..
 }
 
