@@ -1263,9 +1263,6 @@ build_vlc() {
   # call out dependencies here since it's a lot, plus hierarchical FTW!
   # should be ffmpeg 1.1.1 or some odd?
 
-  echo "not doing vlc build, currently broken until enough interest to fix it"
-  return
-
   # vlc dependencies:
   # if [ ! -f $mingw_w64_x86_64_prefix/lib/libavutil.a ]; then # it takes awhile without this 
     build_ffmpeg
@@ -1274,6 +1271,9 @@ build_vlc() {
   build_libdvdnav
   build_libx265
   build_qt
+
+  # currently broken :|
+  return
 
   do_git_checkout https://github.com/videolan/vlc.git vlc_git
   cd vlc_git
@@ -1300,7 +1300,7 @@ build_vlc() {
   echo "
 
 
-     created a file like ${PWD}/vlc-2.2.0-git/vlc.exe
+     vlc success, created a file like ${PWD}/vlc-xxx-git/vlc.exe
 
 
 
@@ -1627,8 +1627,8 @@ build_x264_with_libav=n
 while true; do
   case $1 in
     -h | --help ) echo "available options [with default value]: 
-      --build-ffmpeg-shared=n 
-      --build-ffmpeg-static=y 
+      --build-ffmpeg-static=y  (the "normal" ffmpeg.exe build, on by default)
+      --build-ffmpeg-shared=n  (ffmpeg with .dll files as well as .exe files)
       --gcc-cpu-count=1x [number of cpu cores set it higher than 1 if you have multiple cores and > 1GB RAM, this speeds up initial cross compiler build. FFmpeg build uses number of cores no matter what] 
       --disable-nonfree=y (set to n to include nonfree like libfdk-aac) 
       --build-intel-qsv=n (set to y to include the [non windows xp compat.] qsv library and ffmpeg module
