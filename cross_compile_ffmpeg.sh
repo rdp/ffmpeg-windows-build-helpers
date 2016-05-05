@@ -56,7 +56,7 @@ check_missing_packages () {
     echo "for ubuntu: $ sudo apt-get install subversion curl texinfo g++ bison flex cvs yasm automake libtool autoconf gcc cmake git make pkg-config zlib1g-dev mercurial unzip pax -y" 
     echo "for gentoo (a non ubuntu distro): same as above, but no g++, no gcc, git is dev-vcs/git, zlib1g-dev is zlib, pkg-config is dev-util/pkgconfig, add ed..."
     echo "for OS X (homebrew): brew install wget cvs hg yasm automake autoconf cmake hg libtool xz pkg-config"
-    echo "for debian: same as ubuntu, but add  libtool-bin"
+    echo "for debian: same as ubuntu, but add libtool-bin and ed"
     exit 1
   fi
 
@@ -573,7 +573,7 @@ build_libx264() {
     # they don't know how to use a normal pkg-config when cross compiling, so specify some manually: (see their mailing list for a request...)
     export LAVF_LIBS="$LAVF_LIBS $(pkg-config --libs libavformat libavcodec libavutil libswscale)"
     export LAVF_CFLAGS="$LAVF_CFLAGS $(pkg-config --cflags libavformat libavcodec libavutil libswscale)"
-    export SWSCALE_LIBS="$SWSCALE_LIBS -lpthread"
+    export SWSCALE_LIBS="$SWSCALE_LIBS $(pkg-config --libs libswscale)"
   fi
 
   local x264_profile_guided=n # or y -- haven't gotten this proven yet...TODO
