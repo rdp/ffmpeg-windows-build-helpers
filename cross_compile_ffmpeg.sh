@@ -56,7 +56,7 @@ check_missing_packages () {
     echo "for ubuntu: $ sudo apt-get install subversion curl texinfo g++ bison flex cvs yasm automake libtool autoconf gcc cmake git make pkg-config zlib1g-dev mercurial unzip pax -y" 
     echo "for gentoo (a non ubuntu distro): same as above, but no g++, no gcc, git is dev-vcs/git, zlib1g-dev is zlib, pkg-config is dev-util/pkgconfig, add ed..."
     echo "for OS X (homebrew): brew install wget cvs hg yasm automake autoconf cmake hg libtool xz pkg-config"
-    echo "for debian: same as ubuntu, but add  libtool-bin"
+    echo "for debian: same as ubuntu, but add libtool-bin and ed"
     exit 1
   fi
 
@@ -570,9 +570,10 @@ build_libx264() {
   if [[ $build_x264_with_libav == y ]]; then
     build_ffmpeg static --disable-libx264 ffmpeg_git_pre_x264 # installs libav locally so we can use it within x264.exe FWIW...
     checkout_dir="${checkout_dir}_with_libav"
-    # they don't know how to use a normal pkg-config when cross compiling, so specify some manually:
+    # they don't know how to use a normal pkg-config when cross compiling, so specify some manually: (see their mailing list for a request...)
     export LAVF_LIBS="$LAVF_LIBS $(pkg-config --libs libavformat libavcodec libavutil libswscale)"
     export LAVF_CFLAGS="$LAVF_CFLAGS $(pkg-config --cflags libavformat libavcodec libavutil libswscale)"
+    export SWSCALE_LIBS="$SWSCALE_LIBS $(pkg-config --libs libswscale)"
   fi
 
   local x264_profile_guided=n # or y -- haven't gotten this proven yet...TODO
@@ -615,6 +616,7 @@ build_libx264() {
 
   unset LAVF_LIBS
   unset LAVF_CFLAGS
+  unset SWSCALE_LIBS 
   cd ..
 }
 
@@ -1061,9 +1063,9 @@ build_libnvenc() {
   fi
 }
 
-build_intel_quicksync_mfx() { # qsv
-  do_git_checkout https://github.com/mjb2000/mfx_dispatch.git mfx_dispatch_git
-  cd mfx_dispatch_git
+build_intel_quicksync_mfx() { # i.e. qsv
+  do_git_checkout https://github.com/lu-zero/mfx_dispatch.git mfx_dispatch_git_lu_zero
+  cd mfx_dispatch_git_lu_zero
     if [[ ! -f "configure" ]]; then
       autoreconf -fiv || exit 1
     fi
@@ -1263,9 +1265,6 @@ build_vlc() {
   # call out dependencies here since it's a lot, plus hierarchical FTW!
   # should be ffmpeg 1.1.1 or some odd?
 
-  echo "not doing vlc build, currently broken until enough interest to fix it"
-  return
-
   # vlc dependencies:
   # if [ ! -f $mingw_w64_x86_64_prefix/lib/libavutil.a ]; then # it takes awhile without this 
     build_ffmpeg
@@ -1274,6 +1273,9 @@ build_vlc() {
   build_libdvdnav
   build_libx265
   build_qt
+
+  # currently broken :|
+  return
 
   do_git_checkout https://github.com/videolan/vlc.git vlc_git
   cd vlc_git
@@ -1300,7 +1302,7 @@ build_vlc() {
   echo "
 
 
-     created a file like ${PWD}/vlc-2.2.0-git/vlc.exe
+     vlc success, created a file like ${PWD}/vlc-xxx-git/vlc.exe
 
 
 
@@ -1618,7 +1620,7 @@ build_mplayer=n
 build_vlc=n
 git_get_latest=y
 prefer_stable=y
-build_intel_qsv=n
+build_intel_qsv=y
 #disable_nonfree=n # have no value by default to force user selection
 original_cflags= # no export needed, this is just a local copy
 build_x264_with_libav=n
@@ -1628,12 +1630,12 @@ ffmpeg_git_checkout_version=
 while true; do
   case $1 in
     -h | --help ) echo "available options [with default value]: 
-      --build-ffmpeg-shared=n 
-      --build-ffmpeg-static=y 
+      --build-ffmpeg-static=y  (the "normal" ffmpeg.exe build, on by default)
+      --build-ffmpeg-shared=n  (ffmpeg with .dll files as well as .exe files)
       --ffmpeg-git-checkout-version=[master] if you want to build a particular version of FFmpeg, ex: release/2.8 or a git hash
       --gcc-cpu-count=1x [number of cpu cores set it higher than 1 if you have multiple cores and > 1GB RAM, this speeds up initial cross compiler build. FFmpeg build uses number of cores no matter what] 
       --disable-nonfree=y (set to n to include nonfree like libfdk-aac) 
-      --build-intel-qsv=n (set to y to include the [non windows xp compat.] qsv library and ffmpeg module
+      --build-intel-qsv=y (set to y to include the [non windows xp compat.] qsv library and ffmpeg module. NB this not not hevc_qsv...
       --sandbox-ok=n [skip sandbox prompt if y] 
       -d [meaning \"defaults\" skip all prompts, just build ffmpeg static with some reasonable defaults like no git updates] 
       --build-libmxf=n [builds libMXF, libMXF++, writeavidmxfi.exe and writeaviddv50.exe from the BBC-Ingex project] 
@@ -1645,7 +1647,6 @@ while true; do
       --compiler-flavors=[multi,win32,win64] [default prompt, or skip if you already have one built, multi is both win32 and win64]
       --cflags= [default is empty, compiles for generic cpu, see README]
       --git-get-latest=y [do a git pull for latest code from repositories like FFmpeg--can force a rebuild if changes are detected]
-      --build-intel-qsv=n include intel QSV library [not windows xp friendly]
       --build-x264-with-libav=n build x264.exe with bundled/included "libav" ffmpeg libraries within it
       --prefer-stable=y build a few libraries from releases instead of git master
       --high-bitdepth=y Enable high bit depth for x264 (10 bits) and x265 (10 and 12 bits, x64 build. Not officially supported on x86 (win32), but enabled by disabling its assembly).
