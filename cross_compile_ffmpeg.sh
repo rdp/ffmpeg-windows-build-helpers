@@ -690,8 +690,8 @@ build_libsndfile() {
 }
 
 build_libbs2b() {
-  export ac_cv_func_malloc_0_nonnull=yes # rp_alloc failure yikes
-  generic_download_and_install http://downloads.sourceforge.net/project/bs2b/libbs2b/3.1.0/libbs2b-3.1.0.tar.lzma
+  export ac_cv_func_malloc_0_nonnull=yes # rp_alloc compile failure yikes
+  generic_download_and_install http://downloads.sourceforge.net/project/bs2b/libbs2b/3.1.0/libbs2b-3.1.0.tar.gz
   unset ac_cv_func_malloc_0_nonnull
 }
 
