@@ -1551,14 +1551,14 @@ build_dependencies() {
   build_libfribidi
   build_libass # needs freetype, needs fribidi, needs fontconfig
   build_libopenjpeg
+  build_libnvenc
   if [[ $build_intel_qsv = y ]]; then
     build_intel_quicksync_mfx
   fi
   if [[ "$non_free" = "y" ]]; then
     build_fdk_aac
     # build_faac # not included for now, too poor quality output :)
-    # build_libaacplus # if you use it, conflicts with other AAC encoders <sigh>, so disabled :)
-    build_libnvenc
+    # build_libaacplus # if you use it, conflicts with other AAC encoders <sigh>, so disabled :)    
   fi
   # build_openssl # hopefully do not need it anymore, since we use gnutls everywhere, so just don't even build it anymore...
   build_librtmp # needs gnutls [or openssl...]
