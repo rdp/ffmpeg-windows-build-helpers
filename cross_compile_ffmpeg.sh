@@ -759,7 +759,7 @@ build_libutvideo() {
     fi
     #sed -i.bak "s|Format.o|DummyCodec.o|" GNUmakefile
     export CXXFLAGS='-g -O2 -Wall -Wextra -Wno-multichar -Wno-unused-parameter -Wno-sign-compare -Iinclude -Iutv_logl' # not sure why I needed those extra includes...
-    do_make_and_make_install "CROSS_PREFIX=$cross_prefix DESTDIR=$mingw_w64_x86_64_prefix"
+    do_make_and_make_install "CROSS_PREFIX=$cross_prefix DESTDIR=$mingw_w64_x86_64_prefix prefix=" # prefix= required for some odd reason
     unset CXXFLAGS
   cd ..
 }
@@ -1511,7 +1511,7 @@ build_dependencies() {
   build_wavpack
   build_libgme_game_music_emu
   build_libwebp
-  build_libutvideo
+  #build_libutvideo # broken
   #build_libflite # too big for distro...though may still be useful
   build_libgsm
   build_sdl # needed for ffplay to be created
