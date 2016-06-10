@@ -191,7 +191,7 @@ install_cross_compiler() {
         exit 1
       fi
     fi
-    if [[ ($compiler_flavors == "win64" || $compiler_flavors == "multi") && ! -f $win64_gcc ]]; then
+    if [[ ($compiler_flavors == "win64" || $compiler_flavors == "multi") && ! -f ../$win64_gcc ]]; then
       echo "building win64 x86_64 cross compiler..."
       download_gcc_build_script $zeranoe_script_name
       nice ./$zeranoe_script_name $zeranoe_script_options --build-type=win64 || exit 1 
