@@ -312,7 +312,7 @@ do_configure() {
   local english_name=$(basename $cur_dir2)
   local touch_name=$(get_small_touchfile_name already_configured "$configure_options $configure_name $LDFLAGS $CFLAGS")
   if [ ! -f "$touch_name" ]; then
-    make clean # just in case useful...try and cleanup stuff...possibly not useful
+    nice make clean -j $cpu_count # just in case useful...try and cleanup stuff...possibly not useful
     # make uninstall # does weird things when run under ffmpeg src so disabled for now...
 
     echo "configuring $english_name ($PWD) as $ PATH=$path_addition:$original_path $configure_name $configure_options" # say it now in case bootstrap fails etc.
@@ -328,7 +328,7 @@ do_configure() {
     rm -f already_* # reset
     "$configure_name" $configure_options || exit 1 # not nice, so that if some other script is running as nice, this one will get priority :)
     touch -- "$touch_name"
-    make clean # just in case, but sometimes useful when files change, etc.
+    nice make clean -j $cpu_count # just in case, but sometimes useful when files change, etc.
   else
     echo "already configured $(basename $cur_dir2)" 
   fi
@@ -344,7 +344,7 @@ do_make() {
     echo "making $cur_dir2 as $ PATH=$path_addition:\$PATH make $extra_make_options"
     echo
     if [ ! -f configure ]; then
-      make clean # just in case helpful if old junk left around and this is a 're make' and wasn't cleaned at reconfigure time
+      nice make clean -j $cpu_count # just in case helpful if old junk left around and this is a 're make' and wasn't cleaned at reconfigure time
     fi
     nice make $extra_make_options || exit 1
     touch $touch_name || exit 1 # only touch if the build was OK
