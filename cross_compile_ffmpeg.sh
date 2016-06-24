@@ -728,9 +728,9 @@ build_libopenjpeg() {
 
 build_libvpx() {
   local config_options=""
-  if [[ $prefer_stable = "y" ]]; then
-    download_and_unpack_file http://storage.googleapis.com/downloads.webmproject.org/releases/webm/libvpx-1.4.0.tar.bz2
-    cd libvpx-1.4.0
+  if [[ true || $prefer_stable = "y" ]]; then # unstable is just messed :|
+    download_and_unpack_file http://storage.googleapis.com/downloads.webmproject.org/releases/webm/libvpx-1.5.0.tar.bz2
+    cd libvpx-1.5.0
   else
     config_options="--enable-vp10 --enable-vp10-encoder --enable-vp10-decoder" #enable vp10 for experimental use
     do_git_checkout https://chromium.googlesource.com/webm/libvpx "libvpx_git"
@@ -1089,7 +1089,7 @@ build_iconv() {
 
 build_freetype() {
   download_and_unpack_file https://download.videolan.org/contrib/freetype2/freetype-2.6.3.tar.gz
-  cd freetype-2.6.2
+  cd freetype-2.6.3
     if [[ `uname -s` == CYGWIN* ]]; then
       generic_configure "--build=i686-pc-cygwin --with-png=no"  # hard to believe but needed...
     else
