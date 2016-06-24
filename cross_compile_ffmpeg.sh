@@ -959,8 +959,7 @@ build_libschroedinger() {
 }
 
 build_gnutls() {
-  #download_and_unpack_file ftp://ftp.gnutls.org/gcrypt/gnutls/v3.4/gnutls-3.4.10.tar.xz
-  download_and_unpack_file ftp://ftp.ring.gr.jp/pub/net/gnupg/gnutls/v3.4/gnutls-3.4.10.tar.xz
+  download_and_unpack_file ftp://ftp.gnutls.org/gcrypt/gnutls/v3.4/gnutls-3.4.10.tar.xz
   cd gnutls-3.4.10
     sed -i.bak 's/mkstemp(tmpfile)/ -1 /g' src/danetool.c # fix x86_64 absent? but danetool is just an exe AFAICT so this hack should be ok...
     # --disable-cxx don't need the c++ version, in an effort to cut down on size... XXXX test size difference... 
