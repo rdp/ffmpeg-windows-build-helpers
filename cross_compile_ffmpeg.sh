@@ -959,8 +959,8 @@ build_libschroedinger() {
 }
 
 build_gnutls() {
-  download_and_unpack_file ftp://ftp.gnutls.org/gcrypt/gnutls/v3.4/gnutls-3.4.10.tar.xz
-  cd gnutls-3.4.10
+  download_and_unpack_file ftp://ftp.gnutls.org/gcrypt/gnutls/v3.4/gnutls-3.4.13.tar.xz
+  cd gnutls-3.4.13
     sed -i.bak 's/mkstemp(tmpfile)/ -1 /g' src/danetool.c # fix x86_64 absent? but danetool is just an exe AFAICT so this hack should be ok...
     # --disable-cxx don't need the c++ version, in an effort to cut down on size... XXXX test size difference... 
     # --enable-local-libopts to allow building with local autogen installed, 
@@ -1107,7 +1107,7 @@ build_iconv() {
 }
 
 build_freetype() {
-  download_and_unpack_file https://download.videolan.org/contrib/freetype-2.6.2.tar.gz
+  download_and_unpack_file https://download.videolan.org/contrib/freetype2/freetype-2.6.3.tar.gz
   cd freetype-2.6.2
     if [[ `uname -s` == CYGWIN* ]]; then
       generic_configure "--build=i686-pc-cygwin --with-png=no"  # hard to believe but needed...
