@@ -748,25 +748,6 @@ build_libvpx() {
   cd ..
 }
 
-build_libutvideo() {
-  do_git_checkout https://github.com/umezawatakeshi/utvideo utvideo_git
-  cd utvideo_git
-    if [ -d "../../cross_compilers/mingw-w64-i686" ]; then
-    cp ./include/myinttypes.h ../../cross_compilers/mingw-w64-i686/include/myinttypes.h
-    fi
-    if [ -d "../../cross_compilers/mingw-w64-x86_64" ]; then
-    cp ./include/myinttypes.h ../../cross_compilers/mingw-w64-x86_64/include/myinttypes.h
-    fi    
-    apply_patch https://raw.githubusercontent.com/rdp/ffmpeg-windows-build-helpers/master/patches/utv.diff
-    if [[ ! -f GNUmakefile ]]; then
-      curl -4 https://raw.githubusercontent.com/rdp/utvideo/master/utvideo-makefile -o GNUmakefile -L || exit 1
-    fi
-    #sed -i.bak "s|Format.o|DummyCodec.o|" GNUmakefile
-    export CXXFLAGS='-g -O2 -Wall -Wextra -Wno-multichar -Wno-unused-parameter -Wno-sign-compare -Iinclude -Iutv_logl' # not sure why I needed those extra includes...
-    do_make_and_make_install "CROSS_PREFIX=$cross_prefix DESTDIR=$mingw_w64_x86_64_prefix prefix=" # prefix= required for some odd reason
-    unset CXXFLAGS
-  cd ..
-}
 
 build_libilbc() {
   do_git_checkout https://github.com/dekkers/libilbc.git libilbc_git
@@ -1440,9 +1421,6 @@ build_ffmpeg() {
   if [[ $build_intel_qsv = y ]]; then
     config_options="$config_options --enable-libmfx" # [note, not windows xp friendly]
   fi
-  if [[ $build_libutv = y ]]; then
-    config_options="$config_options --enable-libutvideo"
-  fi
   config_options="$config_options --extra-libs=-lpsapi" # dlfcn [frei0r?] requires this, has no .pc file should put in frei0r.pc? ...
   config_options="$config_options --extra-cflags=$CFLAGS" # --extra-cflags is not needed here, but adds it to the console output which I like for debugging purposes
 
@@ -1518,9 +1496,6 @@ build_dependencies() {
   build_wavpack
   build_libgme_game_music_emu
   build_libwebp
-  if [[ $build_libutv = y ]]; then
-    build_libutvideo
-  fi
   #build_libflite # too big for distro...uncomment if you want it though :)
   build_libgsm
   build_sdl # needed for ffplay to be created
@@ -1635,7 +1610,6 @@ build_vlc=n
 git_get_latest=y
 prefer_stable=y
 build_intel_qsv=y
-build_libutv=n
 #disable_nonfree=n # have no value by default to force user selection
 original_cflags= # no export needed, this is just a local copy
 build_x264_with_libav=n
