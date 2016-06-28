@@ -316,16 +316,16 @@ do_configure() {
 
     echo "configuring $english_name ($PWD) as $ PATH=$path_addition:$original_path $configure_name $configure_options" # say it now in case bootstrap fails etc.
     if [ -f bootstrap ]; then
-      ./bootstrap
+      ./bootstrap # some need this to create ./configure :|
     fi
     if [ -f bootstrap.sh ]; then
       ./bootstrap.sh
     fi
     if [[ ! -f $configure_name ]]; then
-      autoreconf -fiv # a handful of them require this  to create ./configure :|
+      autoreconf -fiv # a handful of them require this to create ./configure :|
     fi
     rm -f already_* # reset
-    "$configure_name" $configure_options || exit 1 # not nice, so that if some other script is running as nice, this one will get priority :)
+    "$configure_name" $configure_options || exit 1 # not nice on purpose, so that if some other script is running as nice, this one will get priority :)
     touch -- "$touch_name"
     nice make clean -j $cpu_count # just in case, but sometimes useful when files change, etc.
   else
