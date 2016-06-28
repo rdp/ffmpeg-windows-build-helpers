@@ -172,7 +172,7 @@ install_cross_compiler() {
   mkdir -p cross_compilers
   cd cross_compilers
 
-    unset CFLAGS # don't want these for the compiler itself since it creates executables to run on the local box (we have a parameter allowing them to set them for the script "all builds" basically)
+    unset CFLAGS # don't want these "windows target" settings used the compiler itself since it creates executables to run on the local box (we have a parameter allowing them to set them for the script "all builds" basically)
     # pthreads version to avoid having to use cvs for it
     echo "starting to download and build cross compile version of gcc [requires working internet access] with thread count $gcc_cpu_count..."
     echo ""
@@ -202,7 +202,7 @@ install_cross_compiler() {
 
 
     rm -f build.log # left over stuff...
-    export CFLAGS=$original_cflags # reset it back to what it was passed in as, via parameter :)
+    export CFLAGS=$original_cflags # reset it back to windows target build CFLAGs
   cd ..
   echo "Done building (or already built) MinGW-w64 cross-compiler(s) successfully..."
   echo `date` # so they can see how long it took :)
@@ -296,7 +296,7 @@ do_git_checkout() {
 get_small_touchfile_name() { # have to call with assignment like a=$(get_small...)
   local beginning="$1"
   local extra_stuff="$2"
-  local touch_name="${beginning}_$(echo -- $extra_stuff $CFLAGS | /usr/bin/env md5sum)" # md5sum to make it smaller, cflags to force rebuild if changes
+  local touch_name="${beginning}_$(echo -- $extra_stuff $CFLAGS $LDFLAGS | /usr/bin/env md5sum)" # md5sum to make it smaller, cflags to force rebuild if changes
   touch_name=$(echo "$touch_name" | sed "s/ //g") # md5sum introduces spaces, remove them
   echo "$touch_name" # bash cruddy return system LOL
 } 
@@ -309,7 +309,7 @@ do_configure() {
   fi
   local cur_dir2=$(pwd)
   local english_name=$(basename $cur_dir2)
-  local touch_name=$(get_small_touchfile_name already_configured "$configure_options $configure_name $LDFLAGS $CFLAGS")
+  local touch_name=$(get_small_touchfile_name already_configured "$configure_options $configure_name")
   if [ ! -f "$touch_name" ]; then
     nice make clean -j $cpu_count # just in case useful...try and cleanup stuff...possibly not useful
     # make uninstall # does weird things when run under ffmpeg src so disabled for now...
@@ -640,7 +640,7 @@ build_librtmp() {
 build_qt() {
   build_libjpeg_turbo # libjpeg a dependency [?]
 
-  unset CFLAGS # it makes something of its own first, which runs locally, so can't use a foreign arch, or maybe it can, but not important enough: http://stackoverflow.com/a/18775859/32453
+  unset CFLAGS # it makes something of its own first, which runs locally, so can't use a foreign arch, or maybe it can, but not important enough: http://stackoverflow.com/a/18775859/32453 XXXX could look at this
   # download_and_unpack_file http://download.qt-project.org/official_releases/qt/5.1/5.1.1/submodules/qtbase-opensource-src-5.1.1.tar.xz qtbase-opensource-src-5.1.1 # not officially supported seems...so didn't try it
 
   download_and_unpack_file http://pkgs.fedoraproject.org/repo/pkgs/qt/qt-everywhere-opensource-src-4.8.5.tar.gz/1864987bdbb2f58f8ae8b350dfdbe133/qt-everywhere-opensource-src-4.8.5.tar.gz 
@@ -803,7 +803,8 @@ build_libdvdread() {
   build_libdvdcss
   download_and_unpack_file http://dvdnav.mplayerhq.hu/releases/libdvdread-4.9.9.tar.xz # last revision before 5.X series so still works with MPlayer
   cd libdvdread-4.9.9
-  generic_configure "CFLAGS=-DHAVE_DVDCSS_DVDCSS_H LDFLAGS=-ldvdcss --enable-dlfcn" # vlc patch: "--enable-libdvdcss" # XXX ask how I'm *supposed* to do this to the dvdread peeps [svn?]
+  XXXX better CFLAGS here?
+  generic_configure "CFLAGS= -DHAVE_DVDCSS_DVDCSS_H LDFLAGS=-ldvdcss --enable-dlfcn" # vlc patch: "--enable-libdvdcss" # XXX ask how I'm *supposed* to do this to the dvdread peeps [svn?]
   #apply_patch https://raw.githubusercontent.com/rdp/ffmpeg-windows-build-helpers/master/patches/dvdread-win32.patch # has been reported to them...
   do_make_and_make_install 
   sed -i.bak 's/-ldvdread.*/-ldvdread -ldvdcss/' "$PKG_CONFIG_PATH/dvdread.pc"
@@ -1607,7 +1608,8 @@ git_get_latest=y
 prefer_stable=y
 build_intel_qsv=y
 #disable_nonfree=n # have no value by default to force user selection
-original_cflags= # no export needed, this is just a local copy
+original_cflags='-mtune=generic' # mtune seems necessary here, otherwise like half speed executables :|
+# XXXX try more settings, also -march=x86-64 to see if it helpz
 build_x264_with_libav=n
 ffmpeg_git_checkout_version=
 
@@ -1646,7 +1648,7 @@ while true; do
     --build-x264-with-libav=* ) build_x264_with_libav="${1#*=}"; shift ;;
     --build-mplayer=* ) build_mplayer="${1#*=}"; shift ;;
     --cflags=* ) 
-       export CFLAGS="${1#*=}"; original_cflags="${1#*=}"; echo "setting cflags as $original_cflags"; shift ;;
+       original_cflags="${1#*=}"; echo "setting cflags as $original_cflags"; shift ;;
     --build-vlc=* ) build_vlc="${1#*=}"; shift ;;
     --build-dvbtee=* ) should_build_libdvbtee="${1#*=}"; shift ;;
     --disable-nonfree=* ) disable_nonfree="${1#*=}"; shift ;;
@@ -1664,6 +1666,7 @@ while true; do
   esac
 done
 
+export CFLAGS=$original_cflags # also overrides any "native" CFLAGS
 check_missing_packages # do this first since it's annoying to go through prompts then be rejected
 intro # remember to always run the intro, since it adjust pwd
 install_cross_compiler 
