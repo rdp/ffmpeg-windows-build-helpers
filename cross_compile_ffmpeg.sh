@@ -1100,10 +1100,6 @@ build_freetype() {
   cd ..
 }
 
-build_vo_aacenc() {
-  generic_download_and_install http://sourceforge.net/projects/opencore-amr/files/vo-aacenc/vo-aacenc-0.1.3.tar.gz
-}
-
 build_sdl() {
   # apparently ffmpeg expects prefix-sdl-config not sdl-config that they give us, so rename...
   export CFLAGS=-DDECLSPEC=  # avoid SDL trac tickets 939 and 282, not worried about optimizing yet
@@ -1529,7 +1525,6 @@ build_dependencies() {
   build_libmodplug # ffmepg and vlc can use this
   build_zvbi
   build_libvpx
-  build_vo_aacenc
   build_libdecklink
   build_libilbc
   build_fontconfig # needs expat, needs freetype (at least uses it if available), can use iconv, but I believe doesn't currently
@@ -1727,7 +1722,7 @@ if [[ $compiler_flavors == "multi" || $compiler_flavors == "win64" ]]; then
   cd ..
 fi
 
-echo "searching for all local exe's..."
+echo "searching for all local exe's (some may not have been built this round, NB)..."
 for file in $(find_all_build_exes); do
   echo "built $file"
 done
