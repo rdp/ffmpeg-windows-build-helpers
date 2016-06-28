@@ -75,8 +75,11 @@ If you *really* want to customize it, you can add new dependencies:
 1. You can write custom functions for new features you want to integrate, make sure to add them to the build_dependencies() functions and also include the corresponding "--enable-xxx" settings to the build_ffmpeg() function under the config_options
 2. There are some helper method do_XXX etc. for checking out code, running make only once, etc. that may be useful.
 
-Also NB that you can optionally create a "somewhat more machine optimized builds" by modifying an appropriate --cflags parameter, like --cflags=-march=athlon64-sse2 or what not.  
-So if you're cross compiling it on the box you'll end up targeting it for, you could build it like --cflags=-march=native to get a slightly faster executable
+Also NB that you can optionally create a "somewhat more machine optimized builds" by modifying an appropriate --cflags parameter, like --cflags=-march=athlon64-sse2 or what not.
+Sometimes they slow down the executable, sometimes speed them up.
+One option you cannot use is --cflags=native (doesn't work cross compiling apparently)
+To find an appropriate "native" flag for your box, instead you must install gcc, then run http://stackoverflow.com/a/24213278/32453 then use that.
+
 Unfortunately, after doing some benchmarking, it seems that modifying the CFLAGS this way (at least using libx264) doesn't end up helping much speed-wise (it might make a smaller executable?) since libx264 auto detects and auto uses your cpu capabilities anyway, so...until further research is done, these options may not actually provide significant speedup.  Ping me if you get different results than this, and you may be wasting your time using the --cflags= parameter here.
 
 NB that this may contain slightly older/out of date dependency versions, so there may be a chance of security risk, though FFmpeg itself will be built from git master by default, with all the latest and greatest.
