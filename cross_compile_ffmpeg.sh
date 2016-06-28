@@ -202,7 +202,7 @@ install_cross_compiler() {
 
 
     rm -f build.log # left over stuff...
-    export CFLAGS=$original_cflags # reset it back to windows target build CFLAGs
+    reset_cflags
   cd ..
   echo "Done building (or already built) MinGW-w64 cross-compiler(s) successfully..."
   echo `date` # so they can see how long it took :)
@@ -663,7 +663,7 @@ build_qt() {
     # vlc needs an adjust .pc file? huh wuh?
     sed -i.bak 's/Libs: -L${libdir} -lQtGui/Libs: -L${libdir} -lcomctl32 -lqjpeg -lqtaccessiblewidgets -lQtGui/' "$PKG_CONFIG_PATH/QtGui.pc" # sniff
   cd ..
-  export CFLAGS=$original_cflags
+  reset_cflags
 }
 
 build_libsoxr() {
@@ -721,7 +721,7 @@ build_libopenjpeg() {
   cd openjpeg-1.5.2
     export CFLAGS="$CFLAGS -DOPJ_STATIC" # see https://github.com/rdp/ffmpeg-windows-build-helpers/issues/37
     generic_configure_make_install
-    export CFLAGS=$original_cflags # reset it
+    reset_cflags
   cd ..
 }
 
@@ -803,7 +803,7 @@ build_libdvdread() {
   build_libdvdcss
   download_and_unpack_file http://dvdnav.mplayerhq.hu/releases/libdvdread-4.9.9.tar.xz # last revision before 5.X series so still works with MPlayer
   cd libdvdread-4.9.9
-  XXXX better CFLAGS here?
+  XXXX better CFLAGS here? what?
   generic_configure "CFLAGS= -DHAVE_DVDCSS_DVDCSS_H LDFLAGS=-ldvdcss --enable-dlfcn" # vlc patch: "--enable-libdvdcss" # XXX ask how I'm *supposed* to do this to the dvdread peeps [svn?]
   #apply_patch https://raw.githubusercontent.com/rdp/ffmpeg-windows-build-helpers/master/patches/dvdread-win32.patch # has been reported to them...
   do_make_and_make_install 
@@ -999,8 +999,10 @@ build_libxvid() {
 build_fontconfig() {
   download_and_unpack_file http://www.freedesktop.org/software/fontconfig/release/fontconfig-2.11.94.tar.gz 
   cd fontconfig-2.11.94
+    export CFLAGS= # dies with -march=sandybridge else
     generic_configure --disable-docs
     do_make_and_make_install
+    reset_cflags
   cd .. 
   sed -i.bak 's/-L${libdir} -lfontconfig[^l]*$/-L${libdir} -lfontconfig -lfreetype -lexpat/' "$PKG_CONFIG_PATH/fontconfig.pc"
 }
@@ -1081,9 +1083,9 @@ build_libexpat() {
 build_iconv() {
   download_and_unpack_file http://ftp.gnu.org/pub/gnu/libiconv/libiconv-1.14.tar.gz 
   cd libiconv-1.14
-    export CFLAGS=-O2 
+    export CFLAGS=-O2 # ??
     generic_configure_make_install
-    unset CFLAGS
+    reset_cflags
   cd ..
 }
 
@@ -1115,6 +1117,7 @@ build_sdl() {
   cp "$mingw_w64_x86_64_prefix/bin/sdl-config" "$bin_dir/${prefix}sdl-config" # this is the only mingw dir in the PATH so use it for now [though FFmpeg doesn't use it?]
   cd ..
   rmdir temp
+  reset_cflags
 }
 
 build_faac() {
@@ -1298,6 +1301,10 @@ build_vlc() {
   unset DVDREAD_LIBS
 }
 
+reset_cflags() {
+  export CFLAGS=$original_cflags
+}
+
 build_mplayer() {
   # pre requisites
   build_libdvdread
@@ -1310,7 +1317,7 @@ build_mplayer() {
   do_configure "--enable-cross-compile --host-cc=cc --cc=${cross_prefix}gcc --windres=${cross_prefix}windres --ranlib=${cross_prefix}ranlib --ar=${cross_prefix}ar --as=${cross_prefix}as --nm=${cross_prefix}nm --enable-runtime-cpudetection --extra-cflags=$CFLAGS --with-dvdnav-config=$mingw_w64_x86_64_prefix/bin/dvdnav-config --disable-dvdread-internal --disable-libdvdcss-internal --disable-w32threads --enable-pthreads --extra-libs=-lpthread --enable-debug --enable-ass-internal --enable-dvdread --enable-dvdnav --disable-libvpx-lavc" # haven't reported the ldvdcss thing, think it's to do with possibly it not using dvdread.pc [?] XXX check with trunk
   # disable libvpx didn't work with its v1.5.0 some reason :|
   unset LDFLAGS
-  export CFLAGS=$original_cflags
+  reset_cflags
   sed -i.bak "s/HAVE_PTHREAD_CANCEL 0/HAVE_PTHREAD_CANCEL 1/g" config.h # mplayer doesn't set this up right?
   touch -t 201203101513 config.h # the above line change the modify time for config.h--forcing a full rebuild *every time* yikes!
   # try to force re-link just in case...
@@ -1420,7 +1427,7 @@ build_ffmpeg() {
     config_options="$config_options --enable-libmfx" # [note, not windows xp friendly]
   fi
   config_options="$config_options --extra-libs=-lpsapi" # dlfcn [frei0r?] requires this, has no .pc file should put in frei0r.pc? ...
-  config_options="$config_options --extra-cflags=$CFLAGS" # --extra-cflags is not needed here, but adds it to the console output which I like for debugging purposes
+  config_options="$config_options --extra-cflags=$CFLAGS" # --extra-cflags is not needed here, but adds it to the final console output which I like for debugging purposes
 
   config_options="$config_options $postpend_configure_opts"
 
@@ -1573,7 +1580,6 @@ build_apps() {
 
 # set some parameters initial values
 cur_dir="$(pwd)/sandbox"
-unset CFLAGS # I think this resets it...we don't want any linux CFLAGS seeping through...they can set this via --cflags=  if they want it set to anything
 cpu_count="$(grep -c processor /proc/cpuinfo 2>/dev/null)" # linux cpu count
 if [ -z "$cpu_count" ]; then
   cpu_count=`sysctl -n hw.ncpu | tr -d '\n'` # OS X
@@ -1666,7 +1672,7 @@ while true; do
   esac
 done
 
-export CFLAGS=$original_cflags # also overrides any "native" CFLAGS
+reset_cflags # also overrides any "native" CFLAGS, which we may need if there are some 'linux only' settings in there
 check_missing_packages # do this first since it's annoying to go through prompts then be rejected
 intro # remember to always run the intro, since it adjust pwd
 install_cross_compiler 
