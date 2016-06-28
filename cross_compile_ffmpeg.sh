@@ -296,7 +296,7 @@ do_git_checkout() {
 get_small_touchfile_name() { # have to call with assignment like a=$(get_small...)
   local beginning="$1"
   local extra_stuff="$2"
-  local touch_name="${beginning}_$(echo -- $extra_stuff $CFLAGS | /usr/bin/env md5sum)" # make it smaller
+  local touch_name="${beginning}_$(echo -- $extra_stuff $CFLAGS | /usr/bin/env md5sum)" # md5sum to make it smaller, cflags to force rebuild if changes
   touch_name=$(echo "$touch_name" | sed "s/ //g") # md5sum introduces spaces, remove them
   echo "$touch_name" # bash cruddy return system LOL
 } 
@@ -1651,14 +1651,6 @@ while true; do
     --build-x264-with-libav=* ) build_x264_with_libav="${1#*=}"; shift ;;
     --build-mplayer=* ) build_mplayer="${1#*=}"; shift ;;
     --cflags=* ) 
-       echo "removing old .exe's, in case cflags has changed"
-       for file in $(find_all_build_exes); do
-         echo "deleting $file in case it isn't rebuilt with new different cflags, which could cause confusion"
-         echo "also deleting $(dirname $file)/already_ran_make*"
-         rm $(dirname $file)/already_ran_make*
-         rm $(dirname $(dirname $file))/already_ran_make* # vlc is packaged somewhere nested 2 deep
-         rm $file
-       done
        export CFLAGS="${1#*=}"; original_cflags="${1#*=}"; echo "setting cflags as $original_cflags"; shift ;;
     --build-vlc=* ) build_vlc="${1#*=}"; shift ;;
     --build-dvbtee=* ) should_build_libdvbtee="${1#*=}"; shift ;;
