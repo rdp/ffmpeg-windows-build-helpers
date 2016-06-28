@@ -1417,7 +1417,9 @@ build_ffmpeg() {
     config_options="$config_options --enable-libmfx" # [note, not windows xp friendly]
   fi
   config_options="$config_options --extra-libs=-lpsapi" # dlfcn [frei0r?] requires this, has no .pc file should put in frei0r.pc? ...
-  config_options="$config_options --extra-cflags=$CFLAGS" # --extra-cflags is not needed here, but adds it to the final console output which I like for debugging purposes
+  for i in $CFLAGS; do
+    config_options="$config_options --extra-cflags=$i" # --extra-cflags may not be needed here, but adds it to the final console output which I like for debugging purposes
+  done
 
   config_options="$config_options $postpend_configure_opts"
 
@@ -1444,7 +1446,7 @@ build_ffmpeg() {
     config_options="$config_options --disable-libgme"
   fi
   config_options="$config_options $extra_postpend_configure_options"
-  
+ 
   do_configure "$config_options"
   rm -f */*.a */*.dll *.exe # just in case some dependency library has changed, force it to re-link even if the ffmpeg source hasn't changed...
   rm -f already_ran_make*
