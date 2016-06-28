@@ -1095,9 +1095,9 @@ build_freetype() {
 
 build_sdl() {
   # apparently ffmpeg expects prefix-sdl-config not sdl-config that they give us, so rename...
-  export CFLAGS=-DDECLSPEC=  # avoid SDL trac tickets 939 and 282, not worried about optimizing yet
+  export CFLAGS=-DDECLSPEC=  # avoid SDL trac tickets 939 and 282, and not worried about optimizing yet...
   generic_download_and_install http://www.libsdl.org/release/SDL-1.2.15.tar.gz
-  export CFLAGS=$original_cflags # and reset it
+  reset_cflags
   mkdir temp
   cd temp # so paths will work out right
   local prefix=$(basename $cross_prefix)
@@ -1107,7 +1107,6 @@ build_sdl() {
   cp "$mingw_w64_x86_64_prefix/bin/sdl-config" "$bin_dir/${prefix}sdl-config" # this is the only mingw dir in the PATH so use it for now [though FFmpeg doesn't use it?]
   cd ..
   rmdir temp
-  reset_cflags
 }
 
 build_faac() {
