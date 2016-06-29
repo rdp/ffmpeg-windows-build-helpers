@@ -20,7 +20,7 @@ start /min /wait setup-x86_64.exe ^
 --site http://mirrors.xmission.com/cygwin/ ^
 --root %cd% ^
 --packages ^
-wget,yasm,git,make,pkg-config,mingw64-i686-gcc-g++,mingw64-i686-gcc-core,libtool,autoconf,automake
+wget,yasm,git,make,pkg-config,mingw64-i686-gcc-g++,mingw64-i686-gcc-core,libtool,autoconf,automake,nasm
 @rem no curl required here seemingly, though it still might be being installed by some other dependency [?]
 
 echo "done installing cygwin"
