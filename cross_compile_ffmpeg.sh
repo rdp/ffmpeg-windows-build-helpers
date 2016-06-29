@@ -678,6 +678,7 @@ build_libebur128() {
   cd lib_ebur128_git
     sed -i.bak 's/ebur128 SHARED ebur128.c/ebur128 STATIC ebur128.c/' ebur128/CMakeLists.txt  # no option for STATIC only [?] removed shared LOL
     do_cmake_and_install "-DENABLE_INTERNAL_QUEUE_H:BOOL=ON"
+    # can't add -lspeexdsp to its .pc file, it doesn't have one, so just add to ffmpeg configure flags <sigh>
   cd ..
 }
 
@@ -1424,6 +1425,7 @@ build_ffmpeg() {
     config_options="$config_options --enable-libmfx" # [note, not windows xp friendly]
   fi
   config_options="$config_options --extra-libs=-lpsapi" # dlfcn [frei0r?] requires this, has no .pc file should put in frei0r.pc? ...
+  config_options="$config_options --extra-libs=-lspeexdsp" # libebur :|
   for i in $CFLAGS; do
     config_options="$config_options --extra-cflags=$i" # --extra-cflags may not be needed here, but adds it to the final console output which I like for debugging purposes
   done
