@@ -1605,7 +1605,7 @@ git_get_latest=y
 prefer_stable=y
 build_intel_qsv=y
 #disable_nonfree=n # have no value by default to force user selection
-original_cflags='-mtune=generic -O3' # mtune seemed necessary here, but why? be careful, these override lots of stuff in makesfiles :|
+original_cflags='-mtune=core2 -O3' # mtune seemed necessary here, but why? be careful, these override lots of stuff in makesfiles :|
 # XXXX try more settings, also -march=x86-64 to see if it helpz
 build_x264_with_libav=n
 ffmpeg_git_checkout_version=
