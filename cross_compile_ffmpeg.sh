@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # ffmpeg windows cross compile helper/download script, see github repo README
 # Copyright (C) 2012 Roger Pack, the script is under the GPLv3, but output FFmpeg's executables aren't
-# set -x # uncomment the set -x to enable script debug output ...
+set -x # uncomment the set -x to enable script debug output ...
 
 yes_no_sel () {
   unset user_input
@@ -505,6 +505,7 @@ build_libx265() {
       echo "still at hg $new_hg_version x265"
     fi
   else
+    # prefer_stable == "y" TODO clean this up...
     local old_hg_version
     if [[ -d $checkout_dir ]]; then
       cd $checkout_dir
@@ -518,6 +519,7 @@ build_libx265() {
         old_hg_version=`hg --debug id -i`
       fi
     else
+      echo "doing hg clone x265"
       hg clone https://bitbucket.org/multicoreware/x265 -r stable $checkout_dir || exit 1
       cd $checkout_dir
       old_hg_version=none-yet
