@@ -1689,6 +1689,7 @@ fi
 
 original_path="$PATH"
 if [[ $compiler_flavors == "multi" || $compiler_flavors == "win32" ]]; then
+  echo 
   echo "Starting 32-bit builds..."
   host_target='i686-w64-mingw32'
   mingw_w64_x86_64_prefix="$cur_dir/cross_compilers/mingw-w64-i686/$host_target"
@@ -1706,6 +1707,7 @@ if [[ $compiler_flavors == "multi" || $compiler_flavors == "win32" ]]; then
 fi
 
 if [[ $compiler_flavors == "multi" || $compiler_flavors == "win64" ]]; then
+  echo
   echo "**************Starting 64-bit builds..." make it have a bit header to you can see when 32 bit is done more easily
   host_target='x86_64-w64-mingw32'
   mingw_w64_x86_64_prefix="$cur_dir/cross_compilers/mingw-w64-x86_64/$host_target"
