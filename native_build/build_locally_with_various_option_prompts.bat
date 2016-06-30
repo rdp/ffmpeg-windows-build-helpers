@@ -26,7 +26,7 @@ start /min /wait setup-x86.exe ^
 --site http://mirrors.xmission.com/cygwin/ ^
 --root %cd% ^
 --packages ^
-ed,curl,wget,subversion,texinfo,gcc-g++,bison,flex,cvs,yasm,automake,libtool,autoconf,gcc-core,cmake,git,make,pkg-config,zlib1g-dev,mercurial,unzip,pax,ncurses,patch,gettext-devel
+ed,curl,wget,subversion,texinfo,gcc-g++,bison,flex,cvs,yasm,automake,libtool,autoconf,gcc-core,cmake,git,make,pkg-config,zlib1g-dev,mercurial,unzip,pax,ncurses,patch,gettext-devel,nasm
 @rem wget for the initial script download as well as zeranoe's uses it
 @rem curl is used in our script all over
 @rem ncurses for the "clear" command yikes!
@@ -45,7 +45,7 @@ cd ffmpeg_local_builds
 
 .\cygwin_local_install\bin\bash.exe -c "wget https://raw.github.com/rdp/ffmpeg-windows-build-helpers/master/cross_compile_ffmpeg.sh -O cross_compile_ffmpeg.sh"
 .\cygwin_local_install\bin\bash.exe -c "chmod u+x ./cross_compile_ffmpeg.sh"
-.\cygwin_local_install\bin\bash.exe -c "./cross_compile_ffmpeg.sh %1 %2 %3"
+.\cygwin_local_install\bin\bash.exe -c "./cross_compile_ffmpeg.sh %1 %2 %3 %4 %5 %6 %7 %8 %9 %10 %11 %12 %13 %14 %15 %16 %17"
 
 cd ..
 
