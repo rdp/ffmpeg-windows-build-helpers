@@ -36,5 +36,5 @@ cd ffmpeg_local_builds
 .\cygwin_local_install_fast\bin\bash.exe -c "chmod u+x ./quick_cross_compile_ffmpeg_fdk_aac_and_x264_using_packaged_mingw64.sh"
 .\cygwin_local_install_fast\bin\bash.exe -c ./quick_cross_compile_ffmpeg_fdk_aac_and_x264_using_packaged_mingw64.sh
 
-ECHO done with local build...check output above to see if successfull...
+ECHO done with local fast  build...check output above to see if successfull...
 pause
