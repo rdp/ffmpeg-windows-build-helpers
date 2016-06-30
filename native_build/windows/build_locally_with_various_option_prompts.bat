@@ -1,4 +1,4 @@
-@ECHO OFF
+@ECHO off
 ECHO Welcome to this FFmpeg compile script.
 ECHO this process will first install a local copy of cygwin to a new directory "ffmpeg_local_builds"
 ECHO then it will prompt you for some options like 32 bit vs. 64 bit, free vs. non free dependencies
@@ -6,9 +6,9 @@ ECHO and then it will build the gcc cross compiler, then some FFmpeg dependencie
 ECHO there are also even *more* option available than what you'll be prompted for.
 ECHO if you want more advanced options, after the first pass, it will give instructions when done
 ECHO on how to run it again with more advanced options.
-ECHO
+ECHO.
 ECHO Starting cygwin install/update...
-ECHO
+ECHO.
 mkdir ffmpeg_local_builds\cygwin_local_install
 @rem cd to it so that cygwin install logs etc. go there
 cd ffmpeg_local_builds\cygwin_local_install
@@ -26,7 +26,7 @@ start /min /wait setup-x86.exe ^
 --site http://mirrors.xmission.com/cygwin/ ^
 --root %cd% ^
 --packages ^
-ed,curl,wget,subversion,texinfo,gcc-g++,bison,flex,cvs,yasm,automake,libtool,autoconf,gcc-core,cmake,git,make,pkg-config,zlib1g-dev,mercurial,unzip,pax,ncurses,patch,gettext-devel
+ed,curl,wget,subversion,texinfo,gcc-g++,bison,flex,cvs,yasm,automake,libtool,autoconf,gcc-core,cmake,git,make,pkg-config,zlib1g-dev,mercurial,unzip,pax,ncurses,patch,gettext-devel,nasm
 @rem wget for the initial script download as well as zeranoe's uses it
 @rem curl is used in our script all over
 @rem ncurses for the "clear" command yikes!
@@ -45,7 +45,7 @@ cd ffmpeg_local_builds
 
 .\cygwin_local_install\bin\bash.exe -c "wget https://raw.github.com/rdp/ffmpeg-windows-build-helpers/master/cross_compile_ffmpeg.sh -O cross_compile_ffmpeg.sh"
 .\cygwin_local_install\bin\bash.exe -c "chmod u+x ./cross_compile_ffmpeg.sh"
-.\cygwin_local_install\bin\bash.exe -c "./cross_compile_ffmpeg.sh %1 %2 %3 %4 %5 %6 %7 %8 %9 %10 %11 %12 %13 %14 %15 %16 %17"
+.\cygwin_local_install\bin\bash.exe -c "./cross_compile_ffmpeg.sh %1 %2 %3 %4 %5 %6 %7 %8 %9"
 
 cd ..
 

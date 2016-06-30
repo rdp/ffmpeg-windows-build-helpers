@@ -76,9 +76,9 @@ If you *really* want to customize it, you can add new dependencies:
 2. There are some helper method do_XXX etc. for checking out code, running make only once, etc. that may be useful.
 
 Also NB that you can optionally create a "somewhat more machine optimized builds" by modifying an appropriate --cflags parameter, like 
---cflags='-mtune=athlon64-sse2 -O3' or what not.
+--cflags='-march=athlon64-sse2 -O3' or what not. (march or mtune specified here, google them)
 Sometimes they slow down the executable, sometimes speed them up.
-One option you cannot use is --cflags=native (the native part--doesn't work cross compiling apparently)
+One option you cannot use is --cflags=-march=native (the native--doesn't work cross compiling apparently)
 To find an appropriate "native" flag for your local box, if you plan on running it only on that box, instead then run http://stackoverflow.com/a/24213278/32453 then manually specify that.
 
 Unfortunately, after doing some benchmarking, it seems that modifying the CFLAGS this way (at least using libx264) doesn't end up helping much speed-wise (it might make a smaller executable?) since libx264 auto detects and auto uses your cpu capabilities anyway, so...until further research is done, these options may not actually provide significant speedup.  Ping me if you get different results than this, and you may be wasting your time using the --cflags= parameter here.
