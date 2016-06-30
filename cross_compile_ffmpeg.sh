@@ -159,7 +159,7 @@ install_cross_compiler() {
   if [[ -f $win32_gcc && -f $win64_gcc ]]; then
    echo "MinGW-w64 compilers both already installed, not re-installing..."
    if [[ -z $compiler_flavors ]]; then
-     echo "selecting multi build (both win32 and win64)..."
+     echo "selecting multi build (both win32 and win64)...since both cross compilers are present assuming you want both..."
      compiler_flavors=multi
    fi
    return # early exit just assume they want both, don't even prompt :)
