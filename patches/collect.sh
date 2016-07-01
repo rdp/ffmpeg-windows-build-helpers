@@ -44,8 +44,6 @@ copy_ffmpeg_binaries() {
 
 copy_ffmpeg_binaries ./sandbox/win32/ffmpeg_git "$root/32-bit/ffmpeg-static"  
 copy_ffmpeg_binaries ./sandbox/x86_64/ffmpeg_git "$root/64-bit/ffmpeg-static" 
-copy_ffmpeg_binaries ./sandbox/win32/ffmpeg_git_x26x_high_bitdepth "$root/32-bit/ffmpeg-static-x26x-high-bitdepth"  
-copy_ffmpeg_binaries ./sandbox/x86_64/ffmpeg_git_x26x_high_bitdepth "$root/64-bit/ffmpeg-static-x26x-high-bitdepth" 
 
 do_shareds() {
   copy_ffmpeg_binaries ./sandbox/win32/ffmpeg_git_shared $root/32-bit/ffmpeg-shared ./sandbox/mingw-w64-i686/bin/i686-w64-mingw32-strip
@@ -81,10 +79,19 @@ create_zips() {
   cd sandbox/distros
     create_zip ffmpeg.static.$date.32-bit.zip "$file/32-bit/ffmpeg-static/*"
     create_zip ffmpeg.static.$date.64-bit.zip "$file/64-bit/ffmpeg-static/*"
+  cd ..
+}
+
+create_zips
+
+do_high_bitdepth() {
+  copy_ffmpeg_binaries ./sandbox/win32/ffmpeg_git_x26x_high_bitdepth "$root/32-bit/ffmpeg-static-x26x-high-bitdepth"  
+  copy_ffmpeg_binaries ./sandbox/x86_64/ffmpeg_git_x26x_high_bitdepth "$root/64-bit/ffmpeg-static-x26x-high-bitdepth" 
+  cd sandbox/distros
     create_zip ffmpeg.static.$date.32-bit.x26x-high-bitdepth.zip "$file/32-bit/ffmpeg-static-x26x-high-bitdepth/*"
     create_zip ffmpeg.static.$date.64-bit.x26x-high-bitdepth.zip "$file/64-bit/ffmpeg-static-x26x-high-bitdepth/*"
   cd ..
 }
 
-create_zips
+#do_high_bitdepth
 
