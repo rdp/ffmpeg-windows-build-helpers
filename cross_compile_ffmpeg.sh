@@ -283,10 +283,10 @@ do_git_checkout() {
     update_to_desired_git_branch_or_revision "." $desired_branch
     new_git_version=`git rev-parse HEAD`
     if [[ "$old_git_version" != "$new_git_version" ]]; then
-     echo "got upstream changes, forcing re-configure."
-     rm -f already*
+      echo "got upstream changes, forcing re-configure."
+      rm -f already*
     else
-     echo "this pull got no new upstream changes, not forcing re-configure... (already at $new_git_version)"
+      echo "got no new upstream changes, not forcing re-configure..."
     fi 
     cd ..
   fi
