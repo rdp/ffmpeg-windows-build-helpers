@@ -1234,18 +1234,9 @@ build_libcurl() {
 
 build_netcdf() {
   # used for sofalizer filter
-  #download_and_unpack_file  http://www.hdfgroup.org/ftp/HDF/releases/HDF4.2.12/src/hdf-4.2.12.tar.bz2
-  #cd hdf-4.2.12
-  #  mkdir build
-  #  cd build
-  #    do_cmake_and_install ".. -DHDF4_BUILD_FORTRAN:BOOL=FALSE"
-  #  cd ..
-  #cd ..
   download_and_unpack_file ftp://ftp.unidata.ucar.edu/pub/netcdf/netcdf-4.4.1.tar.gz
   cd netcdf-4.4.1
-    generic_configure --disable-netcdf-4 --disable-dap
-#  build_libcurl # it "can use this" so why not
-    #do_cmake_and_install "-DENABLE_NETCDF_4:BOOL=FALSE"
+    generic_configure --disable-netcdf-4 --disable-dap # its dependencies were *hard* LOL
     do_make_and_make_install
   cd ..
 }
