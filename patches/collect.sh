@@ -1,4 +1,4 @@
-#This basically packages up all your FFmpeg static/shared builds into .7z files
+#This basically packages up all your FFmpeg static/shared builds into zipped files
 
 cd sandbox/win32/ffmpeg_git
 git_version=`git rev-parse --short HEAD`
@@ -13,9 +13,9 @@ fi
 mkdir -p distros # -p so it doesn't warn
 date=`date +%Y-%m-%d`
 date="$date-g$git_version"
-echo "creating distro for $date ffmpeg $git_version"
+echo "creating distros for $date ffmpeg $git_version"
 
-file="distro-$date"
+file="$date"
 root="distros/$file"
 rm -rf $root
 mkdir -p "$root/32-bit"
@@ -26,17 +26,19 @@ if [ -f ./sandbox/win32/ffmpeg_git/ffmpeg.exe ]; then
   mkdir $dir
 fi
 
+# special static collect files XXXX use make install here [?]
+
 cp ./sandbox/win32/ffmpeg_git/ffmpeg.exe "$dir"
 cp ./sandbox/win32/ffmpeg_git/ffplay.exe "$dir"
-cp ./sandbox/win32/ffmpeg_git/ffmpeg_g.exe "$dir"
+cp ./sandbox/win32/ffmpeg_git/ffprobe.exe "$dir"
 
 dir="$root/64-bit/ffmpeg-static"
-if [ -f ./sandbox/x86_64/ffmpeg_git/ffmpeg.exe ]; then
-  mkdir $dir
-  cp ./sandbox/x86_64/ffmpeg_git/ffmpeg.exe "$dir"
-  cp ./sandbox/x86_64/ffmpeg_git/ffplay.exe "$dir"
-  cp ./sandbox/x86_64/ffmpeg_git/ffmpeg_g.exe "$dir"
-fi
+mkdir $dir
+cp ./sandbox/x86_64/ffmpeg_git/ffmpeg.exe "$dir"
+cp ./sandbox/x86_64/ffmpeg_git/ffplay.exe "$dir"
+cp ./sandbox/x86_64/ffmpeg_git/ffprobe.exe "$dir"
+
+# XXXX copy in frei0r filters :)
 
 do_shareds() {
   dir="$root/32-bit/ffmpeg-shared"
@@ -86,9 +88,10 @@ create_zips() {
   # os x: brew install p7zip
   # -mx=1 for fastest compression speed [but biggest file ...]
   # 7zr -mx=1 a "$file.7z" "$file/*" || 7za a "$file.7z" "$file/*"  # some have a package with only 7za, see https://github.com/rdp/ffmpeg-windows-build-helpers/issues/16
-  zip -r $file.zip $file/*
+  zip -r $file.32-bit.zip $file/32-bit/*
+  zip -r $file.64-bit.zip $file/64-bit/*
   cd ..
-  echo "created distros/$file.zip"
+  echo "created distros/$file.{32,64}.zip"
 }
 
 create_zips
