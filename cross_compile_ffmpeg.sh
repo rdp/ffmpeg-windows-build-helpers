@@ -179,7 +179,7 @@ install_cross_compiler() {
     # --disable-shared allows c++ to be distributed at all...which seemed necessary for some random dependency which happens to use/require c++...
     local zeranoe_script_name=mingw-w64-build-3.6.7.local
     # add --mingw-w64-ver=git for updated tuner.h [dshow dtv] at least not present in 4.0.6 TODO bump to v 5 when released, if released
-    local zeranoe_script_options="--clean-build --disable-shared --default-configure  --pthreads-w32-ver=2-9-1 --cpu-count=$gcc_cpu_count --gcc-ver=5.4.0"
+    local zeranoe_script_options="--clean-build --disable-shared --default-configure  --pthreads-w32-ver=2-9-1 --cpu-count=$gcc_cpu_count --gcc-ver=5.3.0"
     if [[ ($compiler_flavors == "win32" || $compiler_flavors == "multi") && ! -f ../$win32_gcc ]]; then
       echo "building win32 cross compiler..."
       download_gcc_build_script $zeranoe_script_name
@@ -1664,6 +1664,7 @@ while true; do
     --disable-nonfree=* ) disable_nonfree="${1#*=}"; shift ;;
     -a         ) compiler_flavors="multi"; build_mplayer=y; build_libmxf=y; build_mp4box=y; build_vlc=y; build_ffmpeg_shared=y; high_bitdepth=y; build_ffmpeg_static=y; 
                  disable_nonfree=n; git_get_latest=y; sandbox_ok="y"; build_intel_qsv="y"; should_build_libdvbtee="y"; build_x264_with_libav="y"; shift ;;
+       # this doesn't build everything, like 10 bit free ffmpeg, but it does exercise the "non default" code I suppose...
     -d         ) gcc_cpu_count=$cpu_count; disable_nonfree="y"; sandbox_ok="y"; compiler_flavors="win32"; git_get_latest="n"; shift ;;
     --compiler-flavors=* ) compiler_flavors="${1#*=}"; shift ;;
     --build-ffmpeg-static=* ) build_ffmpeg_static="${1#*=}"; shift ;;
