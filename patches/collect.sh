@@ -1,15 +1,9 @@
 #This basically packages up all your FFmpeg static/shared builds into zipped files
+# set -x
 
 cd sandbox/win32/ffmpeg_git
-git_version=`git rev-parse --short HEAD`
+  git_version=`git rev-parse --short HEAD`
 cd ../../..
-cd sandbox/win32/ffmpeg_git
-git_64_version=`git rev-parse --short HEAD`
-cd ../../..
-if [[ $git_version != $git_64_version ]]; then
-  echo "64 and 32 bit versions don't match, hesitating to use this script..."
-  return -1
-fi
 mkdir -p sandbox/distros # -p so it doesn't warn
 date=`date +%Y-%m-%d`
 date="$date-g$git_version"
@@ -23,44 +17,42 @@ mkdir -p "$root/64-bit"
 
 # special static install files XXXX use make install here [?]
 
-dir="$root/32-bit/ffmpeg-static"
-mkdir $dir
-cp ./sandbox/win32/ffmpeg_git/ffmpeg.exe "$dir"
-cp ./sandbox/win32/ffmpeg_git/ffplay.exe "$dir"
-cp ./sandbox/win32/ffmpeg_git/ffprobe.exe "$dir"
+copy_ffmpeg_binaries() {
+  local from_dir=$1
+  local to_dir=$2
+  local strip=$3
 
-dir="$root/64-bit/ffmpeg-static"
-mkdir $dir
-cp ./sandbox/x86_64/ffmpeg_git/ffmpeg.exe "$dir"
-cp ./sandbox/x86_64/ffmpeg_git/ffplay.exe "$dir"
-cp ./sandbox/x86_64/ffmpeg_git/ffprobe.exe "$dir"
+  # make sure git matches everywhere, otherwise zip names off :|
+  cd $from_dir
+    local_git_version=`git rev-parse --short HEAD`
+    if [[ $git_version != $local_git_version ]]; then
+      echo "git versions don't match $from_dir, hesitating to continue..."
+      exit -1
+    fi
+  cd ../../..
+  mkdir $to_dir
+  cp $from_dir/ffmpeg.exe "$to_dir"
+  cp $from_dir/ffplay.exe "$to_dir"
+  cp $from_dir/ffprobe.exe "$to_dir"
 
-# XXXX copy in frei0r filters :)
+  # in case shared: TODO
+  # cp $from_dir/*/*-*.dll "$to_dir"  # flatten it, since we're not using make install :|
+  # $strip $to_dir/*.dll # XXX why?
 
-do_shareds() {
-  dir="$root/32-bit/ffmpeg-shared"
-  mkdir $dir
-
-  cp ./sandbox/win32/ffmpeg_git_shared/ffmpeg.exe "$dir"
-  cp ./sandbox/win32/ffmpeg_git_shared/ffplay.exe "$dir"
-  cp ./sandbox/win32/ffmpeg_git_shared/ffmpeg_g.exe "$dir"
-
-  cp ./sandbox/win32/ffmpeg_git_shared/*/*-*.dll     "$dir"  # have to flatten it
-  ./sandbox/mingw-w64-i686/bin/i686-w64-mingw32-strip $dir/*.dll # XXX why?
-
-  dir="$root/64-bit/ffmpeg-shared"
-  mkdir $dir
-
-  cp ./sandbox/x86_64/ffmpeg_git_shared/ffmpeg.exe "$dir"
-  cp ./sandbox/x86_64/ffmpeg_git_shared/ffplay.exe "$dir"
-  cp ./sandbox/x86_64/ffmpeg_git_shared/ffmpeg_g.exe "$dir"
-
-  cp ./sandbox/x86_64/ffmpeg_git_shared/*/*-*.dll "$dir"
-  ./sandbox/mingw-w64-x86_64/bin/x86_64-w64-mingw32-strip $dir/*.dll
+  # XXXX copy in frei0r filters :) meh sopmeday
 }
 
-#do_shareds
+copy_ffmpeg_binaries ./sandbox/win32/ffmpeg_git "$root/32-bit/ffmpeg-static"  
+copy_ffmpeg_binaries ./sandbox/x86_64/ffmpeg_git "$root/64-bit/ffmpeg-static" 
+copy_ffmpeg_binaries ./sandbox/win32/ffmpeg_git_x26x_high_bitdepth "$root/32-bit/ffmpeg-static-high-bitdepth"  
+copy_ffmpeg_binaries ./sandbox/x86_64/ffmpeg_git_x26x_high_bitdepth "$root/64-bit/ffmpeg-static-high-bitdepth" 
 
+do_shareds() {
+  copy_ffmpeg_binaries ./sandbox/win32/ffmpeg_git_shared $root/32-bit/ffmpeg-shared ./sandbox/mingw-w64-i686/bin/i686-w64-mingw32-strip
+  copy_ffmpeg_binaries ./sandbox/x86_64/ffmpeg_git_shared $root/64-bit/ffmpeg-shared ./sandbox/mingw-w64-x86_64/bin/x86_64-w64-mingw32-strip
+}
+
+#do_shareds # if I ever care
 
 copy_from() {
  # if you want other exe's like x264.exe ...
@@ -82,7 +74,9 @@ copy_from() {
 
 create_zips() {
   cd sandbox/distros
+    echo "zipping 32 bit static"
     zip -r ffmpeg.static.$date.32-bit.zip $file/32-bit/ffmpeg-static/*
+    echo "zipping 64 bit static"
     zip -r ffmpeg.static.$date.64-bit.zip $file/64-bit/ffmpeg-static/*
   cd ..
   echo "created sandbox/distros/ffmpeg.$date.*.zip"

@@ -551,7 +551,8 @@ build_libx265() {
 
   do_cmake "$cmake_params"
   do_make
-  rm already_ran_make_install* # force reinstall in case bit depth changed at all :|
+  echo force reinstall in case bit depth changed at all :|
+  rm already_ran_make_install* 
   do_make_install
   cd ../..
 }
@@ -617,7 +618,8 @@ build_libx264() {
     # normal path
     do_configure "$configure_flags"
     do_make
-    rm already_ran_make_install* # force reinstall in case bit depth changed at all :|
+    echo force reinstall in case bit depth changed at all :|
+    rm already_ran_make_install* 
     do_make_install
   fi
 
