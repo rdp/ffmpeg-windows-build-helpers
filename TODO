@@ -10,14 +10,10 @@ winpthread-1.dll ?
 
 == maybe/never do, more on the never... ==
 
-move collect.sh "inside it" :) [already moved it to patches for now]
-
-add a "cygwin prompt here" .bat file when I do anything windowszy...yeah.
-
-default to more gcc cpu's?  hrm... (or do I do this already)
-
 opencl support [copy in headers?] https://www.khronos.org/registry/cl/ it needs something to link against too...ai ai
-  apparently "hard"
+  I doubt you can use the kronos stuff but maybe...
+  apparently "hard" http://oscarbg.blogspot.com/2009/12/opencl-with-mingw.html but possible, but https://streamcomputing.eu/blog/2015-03-16/how-to-install-opencl-on-windows/ says just to download the drivers still :|
+  or maybe just use the most basic version and is ok? https://raw.githubusercontent.com/KhronosGroup/OpenCL-Headers/opencl12/opencl.h
 
 figure out real static linkable builds [tell zeranoe to put them on his site?]
   linkable against them with mingw, msvc...
