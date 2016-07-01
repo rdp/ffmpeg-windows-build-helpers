@@ -1464,7 +1464,9 @@ build_ffmpeg() {
   do_make_and_make_install # install ffmpeg to get libavcodec libraries to be used as dependencies for other things, like vlc [XXX make this a parameter?] or install shared to a local dir
 
   # build ismindex.exe, too, just for fun 
-  make tools/ismindex.exe || exit 1
+  if [[ $build_ismindex == "y" ]]; then
+    make tools/ismindex.exe || exit 1
+  fi
 
   sed -i.bak 's/-lavutil -lm.*/-lavutil -lm -lpthread/' "$PKG_CONFIG_PATH/libavutil.pc" # XXX patch ffmpeg itself...
   sed -i.bak 's/-lswresample -lm.*/-lswresample -lm -lsoxr/' "$PKG_CONFIG_PATH/libswresample.pc" # XXX patch ffmpeg
@@ -1621,6 +1623,7 @@ original_cflags='-mtune=core2 -O3' # mtune seemed necessary here, but why? be ca
 # XXXX try more settings, also -march=x86-64 to see if it helpz
 build_x264_with_libav=n
 ffmpeg_git_checkout_version=
+build_ismindex=n
 
 # parse command line parameters, if any
 while true; do
@@ -1638,6 +1641,7 @@ while true; do
       --build-mp4box=n [builds MP4Box.exe from the gpac project] 
       --build-mplayer=n [builds mplayer.exe and mencoder.exe] 
       --build-vlc=n [builds a [rather bloated] vlc.exe] 
+      --build-ismindex=n [builds ffmpeg utility ismindex.exe]
       -a 'build all' builds mplayer, vlc, etc.
       --build-dvbtee=n [build dvbtee.exe a DVB profiler]
       --compiler-flavors=[multi,win32,win64] [default prompt, or skip if you already have one built, multi is both win32 and win64]
@@ -1653,6 +1657,7 @@ while true; do
     --ffmpeg-git-checkout-version=* ) ffmpeg_git_checkout_version="${1#*=}"; shift ;;
     --build-libmxf=* ) build_libmxf="${1#*=}"; shift ;;
     --build-mp4box=* ) build_mp4box="${1#*=}"; shift ;;
+    --build-ismindex=* ) build_ismindex="${1#*=}"; shift ;;
     --git-get-latest=* ) git_get_latest="${1#*=}"; shift ;;
     --build-intel-qsv=* ) build_intel_qsv="${1#*=}"; shift ;;
     --build-x264-with-libav=* ) build_x264_with_libav="${1#*=}"; shift ;;
