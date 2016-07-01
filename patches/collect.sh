@@ -3,6 +3,13 @@
 cd sandbox/win32/ffmpeg_git
 git_version=`git rev-parse --short HEAD`
 cd ../../..
+cd sandbox/win32/ffmpeg_git
+git_64_version=`git rev-parse --short HEAD`
+cd ../../..
+if [[ $git_version != $git_64_version ]]; then
+  echo "64 and 32 bit versions don't match, hesitating to use this script..."
+  return -1
+fi
 mkdir -p distros # -p so it doesn't warn
 date=`date +%Y-%m-%d`
 date="$date-g$git_version"
@@ -74,14 +81,15 @@ copy_from() {
 # copy_from win32 32-bit
 # copy_from x86_64 64-bit
 
-create_7zips() {
+create_zips() {
   cd distros
   # os x: brew install p7zip
   # -mx=1 for fastest compression speed [but biggest file ...]
-  7zr -mx=1 a "$file.7z" "$file/*" || 7za a "$file.7z" "$file/*"  # some have a package with only 7za, see https://github.com/rdp/ffmpeg-windows-build-helpers/issues/16
+  # 7zr -mx=1 a "$file.7z" "$file/*" || 7za a "$file.7z" "$file/*"  # some have a package with only 7za, see https://github.com/rdp/ffmpeg-windows-build-helpers/issues/16
+  zip -r $file.zip $file/*
   cd ..
-  echo "created distros/$file.7z"
+  echo "created distros/$file.zip"
 }
 
-create_7zips
+create_zips
 
