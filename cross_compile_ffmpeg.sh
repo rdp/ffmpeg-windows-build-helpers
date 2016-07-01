@@ -448,7 +448,7 @@ generic_configure() {
 }
 
 # params: url, optional "english name it will unpack to"
-generic_download_and_install() {
+generic_download_and_make_and_install() {
   local url="$1"
   local english_name="$2" 
   if [[ -z $english_name ]]; then
@@ -463,7 +463,7 @@ generic_download_and_install() {
 }
 
 generic_configure_make_install() {
-  generic_configure # no parameters, force them to break it up :)
+  generic_configure # no parameters, force myself to break it up :)
   do_make_and_make_install
 }
 
@@ -683,6 +683,7 @@ build_libsoxr() {
   cd ..
 }
 
+
 build_libebur128() {
   do_git_checkout https://github.com/jiixyj/libebur128.git lib_ebur128_git
   cd lib_ebur128_git
@@ -704,12 +705,12 @@ build_libxavs() {
 }
 
 build_libsndfile() {
-  generic_download_and_install http://www.mega-nerd.com/libsndfile/files/libsndfile-1.0.25.tar.gz
+  generic_download_and_make_and_install http://www.mega-nerd.com/libsndfile/files/libsndfile-1.0.25.tar.gz
 }
 
 build_libbs2b() {
   export ac_cv_func_malloc_0_nonnull=yes # rp_alloc compile failure yikes
-  generic_download_and_install http://downloads.sourceforge.net/project/bs2b/libbs2b/3.1.0/libbs2b-3.1.0.tar.gz
+  generic_download_and_make_and_install http://downloads.sourceforge.net/project/bs2b/libbs2b/3.1.0/libbs2b-3.1.0.tar.gz
   unset ac_cv_func_malloc_0_nonnull
 }
 
@@ -722,16 +723,16 @@ build_libgme_game_music_emu() {
 }
 
 build_wavpack() {
-  generic_download_and_install http://wavpack.com/wavpack-4.70.0.tar.bz2
+  generic_download_and_make_and_install http://wavpack.com/wavpack-4.70.0.tar.bz2
 }
 
 build_libwebp() {
-  generic_download_and_install http://downloads.webmproject.org/releases/webp/libwebp-0.5.0.tar.gz
+  generic_download_and_make_and_install http://downloads.webmproject.org/releases/webp/libwebp-0.5.0.tar.gz
 }
 
 build_libpng() {
-  # generic_download_and_install http://download.sourceforge.net/libpng/libpng-1.6.12.tar.xz 
-  generic_download_and_install http://download.sourceforge.net/libpng/libpng-1.5.26.tar.xz  # libtheora can't take 1.6.x :|
+  # generic_download_and_make_and_install http://download.sourceforge.net/libpng/libpng-1.6.12.tar.xz 
+  generic_download_and_make_and_install http://download.sourceforge.net/libpng/libpng-1.5.26.tar.xz  # libtheora can't take 1.6.x :|
 }
 
 build_libopenjpeg() {
@@ -842,12 +843,12 @@ build_libdvdnav() {
 }
 
 build_libdvdcss() {
-  generic_download_and_install http://download.videolan.org/pub/videolan/libdvdcss/1.2.13/libdvdcss-1.2.13.tar.bz2
+  generic_download_and_make_and_install http://download.videolan.org/pub/videolan/libdvdcss/1.2.13/libdvdcss-1.2.13.tar.bz2
 }
 
 build_libopencore() {
-  generic_download_and_install http://sourceforge.net/projects/opencore-amr/files/opencore-amr/opencore-amr-0.1.3.tar.gz
-  generic_download_and_install http://sourceforge.net/projects/opencore-amr/files/vo-amrwbenc/vo-amrwbenc-0.1.2.tar.gz
+  generic_download_and_make_and_install http://sourceforge.net/projects/opencore-amr/files/opencore-amr/opencore-amr-0.1.3.tar.gz
+  generic_download_and_make_and_install http://sourceforge.net/projects/opencore-amr/files/vo-amrwbenc/vo-amrwbenc-0.1.2.tar.gz
 }
 
 build_libdlfcn() {
@@ -869,15 +870,15 @@ build_libjpeg_turbo() {
 }
 
 build_libogg() {
-  generic_download_and_install http://downloads.xiph.org/releases/ogg/libogg-1.3.1.tar.gz
+  generic_download_and_make_and_install http://downloads.xiph.org/releases/ogg/libogg-1.3.1.tar.gz
 }
 
 build_libvorbis() {
-  generic_download_and_install http://downloads.xiph.org/releases/vorbis/libvorbis-1.3.4.tar.gz
+  generic_download_and_make_and_install http://downloads.xiph.org/releases/vorbis/libvorbis-1.3.4.tar.gz
 }
 
 build_libspeex() {
-  generic_download_and_install http://downloads.xiph.org/releases/speex/speex-1.2rc1.tar.gz
+  generic_download_and_make_and_install http://downloads.xiph.org/releases/speex/speex-1.2rc1.tar.gz
 }  
 
 build_libtheora() {
@@ -891,7 +892,7 @@ build_libtheora() {
 }
 
 build_libfribidi() {
-  # generic_download_and_install http://fribidi.org/download/fribidi-0.19.5.tar.bz2 fribidi-0.19.5 # got report of still failing?
+  # generic_download_and_make_and_install http://fribidi.org/download/fribidi-0.19.5.tar.bz2 fribidi-0.19.5 # got report of still failing?
   download_and_unpack_file http://fribidi.org/download/fribidi-0.19.4.tar.bz2
   cd fribidi-0.19.4
     # make it export symbols right...
@@ -907,7 +908,7 @@ build_libfribidi() {
 }
 
 build_libass() {
-  generic_download_and_install https://github.com/libass/libass/releases/download/0.13.1/libass-0.13.1.tar.gz 
+  generic_download_and_make_and_install https://github.com/libass/libass/releases/download/0.13.1/libass-0.13.1.tar.gz 
   # fribidi, fontconfig, freetype throw them all in there for good measure, trying to help mplayer once though it didn't help [FFmpeg needed a change for fribidi here though I believe]
   sed -i.bak 's/-lass -lm/-lass -lfribidi -lfontconfig -lfreetype -lexpat -lm/' "$PKG_CONFIG_PATH/libass.pc"
 }
@@ -925,16 +926,16 @@ build_gmp() {
 }
 
 build_orc() {
-  generic_download_and_install http://download.videolan.org/contrib/orc-0.4.18.tar.gz
+  generic_download_and_make_and_install http://download.videolan.org/contrib/orc-0.4.18.tar.gz
 }
 
 build_libxml2() {
-  generic_download_and_install http://xmlsoft.org/sources/libxml2-2.9.2.tar.gz libxml2-2.9.2 "--without-python"
+  generic_download_and_make_and_install http://xmlsoft.org/sources/libxml2-2.9.2.tar.gz libxml2-2.9.2 "--without-python"
 }
 
 build_libbluray() {
   # higher versions require java, which is a bit trickier...
-  generic_download_and_install ftp://ftp.videolan.org/pub/videolan/libbluray/0.7.0/libbluray-0.7.0.tar.bz2
+  generic_download_and_make_and_install ftp://ftp.videolan.org/pub/videolan/libbluray/0.7.0/libbluray-0.7.0.tar.bz2
   sed -i.bak 's/-lbluray.*$/-lbluray -lfreetype -lexpat -lz -lbz2 -lxml2 -lws2_32 -liconv/' "$PKG_CONFIG_PATH/libbluray.pc" # not sure...is this a blu-ray bug, or VLC's problem in not pulling freetype's .pc file? or our problem with not using pkg-config --static ...
 }
 
@@ -1075,7 +1076,7 @@ build_intel_quicksync_mfx() { # i.e. qsv
 }
 
 build_fdk_aac() {
-  #generic_download_and_install http://sourceforge.net/projects/opencore-amr/files/fdk-aac/fdk-aac-0.1.0.tar.gz
+  #generic_download_and_make_and_install http://sourceforge.net/projects/opencore-amr/files/fdk-aac/fdk-aac-0.1.0.tar.gz
   do_git_checkout https://github.com/mstorsjo/fdk-aac.git fdk-aac_git
   cd fdk-aac_git
     if [[ ! -f "configure" ]]; then
@@ -1086,7 +1087,7 @@ build_fdk_aac() {
 }
 
 build_libexpat() {
-  generic_download_and_install http://sourceforge.net/projects/expat/files/expat/2.1.0/expat-2.1.0.tar.gz
+  generic_download_and_make_and_install http://sourceforge.net/projects/expat/files/expat/2.1.0/expat-2.1.0.tar.gz
 }
 
 build_iconv() {
@@ -1115,7 +1116,7 @@ build_freetype() {
 build_sdl() {
   # apparently ffmpeg expects prefix-sdl-config not sdl-config that they give us, so rename...
   export CFLAGS=-DDECLSPEC=  # avoid SDL trac tickets 939 and 282, and not worried about optimizing yet...
-  generic_download_and_install http://www.libsdl.org/release/SDL-1.2.15.tar.gz
+  generic_download_and_make_and_install http://www.libsdl.org/release/SDL-1.2.15.tar.gz
   reset_cflags
   mkdir temp
   cd temp # so paths will work out right
@@ -1129,7 +1130,7 @@ build_sdl() {
 }
 
 build_faac() {
-  generic_download_and_install http://downloads.sourceforge.net/faac/faac-1.28.tar.gz faac-1.28 "--with-mp4v2=no"
+  generic_download_and_make_and_install http://downloads.sourceforge.net/faac/faac-1.28.tar.gz faac-1.28 "--with-mp4v2=no"
 }
 
 build_lame() {
@@ -1158,7 +1159,7 @@ build_zvbi() {
 }
 
 build_libmodplug() {
-  generic_download_and_install http://sourceforge.net/projects/modplug-xmms/files/libmodplug/0.8.8.5/libmodplug-0.8.8.5.tar.gz
+  generic_download_and_make_and_install http://sourceforge.net/projects/modplug-xmms/files/libmodplug/0.8.8.5/libmodplug-0.8.8.5.tar.gz
   # unfortunately this sed isn't enough, though I think it should be [so we add --extra-libs=-lstdc++ to FFmpegs configure] http://trac.ffmpeg.org/ticket/1539
   sed -i.bak 's/-lmodplug.*/-lmodplug -lstdc++/' "$PKG_CONFIG_PATH/libmodplug.pc" # huh ?? c++?
   sed -i.bak 's/__declspec(dllexport)//' "$mingw_w64_x86_64_prefix/include/libmodplug/modplug.h" #strip DLL import/export directives
@@ -1207,7 +1208,7 @@ build_libquvi() {
 }
 
 build_twolame() {
-  generic_download_and_install http://sourceforge.net/projects/twolame/files/twolame/0.3.13/twolame-0.3.13.tar.gz twolame-0.3.13 "CPPFLAGS=-DLIBTWOLAME_STATIC"
+  generic_download_and_make_and_install http://sourceforge.net/projects/twolame/files/twolame/0.3.13/twolame-0.3.13.tar.gz twolame-0.3.13 "CPPFLAGS=-DLIBTWOLAME_STATIC"
 }
 
 build_frei0r() {
@@ -1228,7 +1229,25 @@ build_vidstab() {
 }
 
 build_libcurl() {
-  generic_download_and_install http://curl.haxx.se/download/curl-7.46.0.tar.gz
+  generic_download_and_make_and_install http://curl.haxx.se/download/curl-7.46.0.tar.gz
+}
+
+build_netcdf() {
+  # used for sofalizer filter
+  #download_and_unpack_file  http://www.hdfgroup.org/ftp/HDF/releases/HDF4.2.12/src/hdf-4.2.12.tar.bz2
+  #cd hdf-4.2.12
+  #  mkdir build
+  #  cd build
+  #    do_cmake_and_install ".. -DHDF4_BUILD_FORTRAN:BOOL=FALSE"
+  #  cd ..
+  #cd ..
+  download_and_unpack_file ftp://ftp.unidata.ucar.edu/pub/netcdf/netcdf-4.4.1.tar.gz
+  cd netcdf-4.4.1
+    generic_configure --disable-netcdf-4 --disable-dap
+#  build_libcurl # it "can use this" so why not
+    #do_cmake_and_install "-DENABLE_NETCDF_4:BOOL=FALSE"
+    do_make_and_make_install
+  cd ..
 }
 
 build_libhdhomerun() {
@@ -1431,7 +1450,7 @@ build_ffmpeg() {
   fi
 
   init_options="--arch=$arch --target-os=mingw32 --cross-prefix=$cross_prefix --pkg-config=pkg-config --disable-w32threads"
-  config_options="$init_options --enable-gpl --enable-libsoxr --enable-fontconfig --enable-libass --enable-libbluray --enable-iconv --enable-libtwolame --extra-cflags=-DLIBTWOLAME_STATIC --enable-libzvbi --enable-libcaca --enable-libmodplug --extra-libs=-lstdc++ --extra-libs=-lpng --enable-libvidstab --enable-libx265 --enable-decklink --extra-libs=-loleaut32 --enable-libx264 --enable-libxvid --enable-libmp3lame --enable-version3 --enable-zlib --enable-librtmp --enable-libvorbis --enable-libtheora --enable-libspeex --enable-libopenjpeg --enable-gnutls --enable-libgsm --enable-libfreetype --enable-libopus --enable-frei0r --enable-filter=frei0r --enable-bzlib --enable-libxavs --enable-libopencore-amrnb --enable-libopencore-amrwb --enable-libvo-amrwbenc --enable-libschroedinger --enable-libvpx --enable-libilbc --enable-libwavpack --enable-libwebp --enable-libgme --enable-dxva2 --enable-avisynth --enable-gray --enable-libopenh264 --enable-nvenc --enable-libebur128" 
+  config_options="$init_options --enable-gpl --enable-libsoxr --enable-fontconfig --enable-libass --enable-libbluray --enable-iconv --enable-libtwolame --extra-cflags=-DLIBTWOLAME_STATIC --enable-libzvbi --enable-libcaca --enable-libmodplug --extra-libs=-lstdc++ --extra-libs=-lpng --enable-libvidstab --enable-libx265 --enable-decklink --extra-libs=-loleaut32 --enable-libx264 --enable-libxvid --enable-libmp3lame --enable-version3 --enable-zlib --enable-librtmp --enable-libvorbis --enable-libtheora --enable-libspeex --enable-libopenjpeg --enable-gnutls --enable-libgsm --enable-libfreetype --enable-libopus --enable-frei0r --enable-filter=frei0r --enable-bzlib --enable-libxavs --enable-libopencore-amrnb --enable-libopencore-amrwb --enable-libvo-amrwbenc --enable-libschroedinger --enable-libvpx --enable-libilbc --enable-libwavpack --enable-libwebp --enable-libgme --enable-dxva2 --enable-avisynth --enable-gray --enable-libopenh264 --enable-nvenc --enable-libebur128 --enable-netcdf"
   # other possibilities (you'd need to also uncomment the call to their build method): 
   #   --enable-w32threads # [worse UDP than pthreads, so not using that] 
   #   --enable-libflite # [too big so not enabled]
@@ -1547,6 +1566,7 @@ build_dependencies() {
   #build_libproxy  # broken, needs a .pc file still... only used by libquvi
   #build_libquvi # needs libproxy, lua, apparently not useful anyway...so don't build it
   build_vidstab
+  build_netcdf
   build_libcaca
   build_libmodplug # ffmepg and vlc can use this
   build_zvbi
