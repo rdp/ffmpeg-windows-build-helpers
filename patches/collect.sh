@@ -44,8 +44,8 @@ copy_ffmpeg_binaries() {
 
 copy_ffmpeg_binaries ./sandbox/win32/ffmpeg_git "$root/32-bit/ffmpeg-static"  
 copy_ffmpeg_binaries ./sandbox/x86_64/ffmpeg_git "$root/64-bit/ffmpeg-static" 
-copy_ffmpeg_binaries ./sandbox/win32/ffmpeg_git_x26x_high_bitdepth "$root/32-bit/ffmpeg-static-high-bitdepth"  
-copy_ffmpeg_binaries ./sandbox/x86_64/ffmpeg_git_x26x_high_bitdepth "$root/64-bit/ffmpeg-static-high-bitdepth" 
+copy_ffmpeg_binaries ./sandbox/win32/ffmpeg_git_x26x_high_bitdepth "$root/32-bit/ffmpeg-static-x26x-high-bitdepth"  
+copy_ffmpeg_binaries ./sandbox/x86_64/ffmpeg_git_x26x_high_bitdepth "$root/64-bit/ffmpeg-static-x26x-high-bitdepth" 
 
 do_shareds() {
   copy_ffmpeg_binaries ./sandbox/win32/ffmpeg_git_shared $root/32-bit/ffmpeg-shared ./sandbox/mingw-w64-i686/bin/i686-w64-mingw32-strip
@@ -72,14 +72,18 @@ copy_from() {
 # copy_from win32 32-bit
 # copy_from x86_64 64-bit
 
+create_zip() {
+  echo "zipping $1"
+  zip -r $1 $2
+}
+
 create_zips() {
   cd sandbox/distros
-    echo "zipping 32 bit static"
-    zip -r ffmpeg.static.$date.32-bit.zip $file/32-bit/ffmpeg-static/*
-    echo "zipping 64 bit static"
-    zip -r ffmpeg.static.$date.64-bit.zip $file/64-bit/ffmpeg-static/*
+    create_zip ffmpeg.static.$date.32-bit.zip "$file/32-bit/ffmpeg-static/*"
+    create_zip ffmpeg.static.$date.64-bit.zip "$file/64-bit/ffmpeg-static/*"
+    create_zip ffmpeg.static.$date.32-bit.x26x-high-bitdepth.zip "$file/32-bit/ffmpeg-static-x26x-high-bitdepth/*"
+    create_zip ffmpeg.static.$date.64-bit.x26x-high-bitdepth.zip "$file/64-bit/ffmpeg-static-x26x-high-bitdepth/*"
   cd ..
-  echo "created sandbox/distros/ffmpeg.$date.*.zip"
 }
 
 create_zips
