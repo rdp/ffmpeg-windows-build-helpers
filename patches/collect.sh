@@ -21,13 +21,10 @@ rm -rf $root
 mkdir -p "$root/32-bit"
 mkdir -p "$root/64-bit"
 
+# special static install files XXXX use make install here [?]
+
 dir="$root/32-bit/ffmpeg-static"
-if [ -f ./sandbox/win32/ffmpeg_git/ffmpeg.exe ]; then
-  mkdir $dir
-fi
-
-# special static collect files XXXX use make install here [?]
-
+mkdir $dir
 cp ./sandbox/win32/ffmpeg_git/ffmpeg.exe "$dir"
 cp ./sandbox/win32/ffmpeg_git/ffplay.exe "$dir"
 cp ./sandbox/win32/ffmpeg_git/ffprobe.exe "$dir"
@@ -85,13 +82,10 @@ copy_from() {
 
 create_zips() {
   cd sandbox/distros
-    # os x: brew install p7zip
-    # -mx=1 for fastest compression speed [but biggest file ...]
-    # 7zr -mx=1 a "$file.7z" "$file/*" || 7za a "$file.7z" "$file/*"  # some have a package with only 7za, see https://github.com/rdp/ffmpeg-windows-build-helpers/issues/16
-    zip -r $file.32-bit.zip $file/32-bit/*
-    zip -r $file.64-bit.zip $file/64-bit/*
+    zip -r ffmpeg.static.$date.32-bit.zip $file/32-bit/ffmpeg-static/*
+    zip -r ffmpeg.static.$date.64-bit.zip $file/64-bit/ffmpeg-static/*
   cd ..
-  echo "created sandbox/distros/$file.{32,64}.zip"
+  echo "created sandbox/distros/ffmpeg.$date.*.zip"
 }
 
 create_zips
