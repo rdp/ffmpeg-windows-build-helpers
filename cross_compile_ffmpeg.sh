@@ -549,7 +549,10 @@ build_libx265() {
     cmake_params="$cmake_params -DWINXP_SUPPORT:BOOL=TRUE" # enable windows xp support apparently
   #fi
 
-  do_cmake_and_install "$cmake_params" 
+  do_cmake "$cmake_params"
+  do_make
+  rm already_ran_make_install* # force reinstall in case bit depth changed at all :|
+  do_make_install
   cd ../..
 }
 
@@ -611,8 +614,11 @@ build_libx264() {
     sed -i.bak "s_\\, ./x264_, wine ./x264_" Makefile # in case they have wine auto-run disabled http://askubuntu.com/questions/344088/how-to-ensure-wine-does-not-auto-run-exe-files
     do_make_and_make_install "fprofiled VIDS=example.y4m" # guess it has its own make fprofiled, so we don't need to manually add -fprofile-generate here...
   else 
+    # normal path
     do_configure "$configure_flags"
-    do_make_and_make_install
+    do_make
+    rm already_ran_make_install* # force reinstall in case bit depth changed at all :|
+    do_make_install
   fi
 
   unset LAVF_LIBS
