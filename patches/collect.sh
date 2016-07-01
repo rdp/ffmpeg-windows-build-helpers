@@ -10,13 +10,13 @@ if [[ $git_version != $git_64_version ]]; then
   echo "64 and 32 bit versions don't match, hesitating to use this script..."
   return -1
 fi
-mkdir -p distros # -p so it doesn't warn
+mkdir -p sandbox/distros # -p so it doesn't warn
 date=`date +%Y-%m-%d`
 date="$date-g$git_version"
-echo "creating distros for $date ffmpeg $git_version"
 
 file="$date"
-root="distros/$file"
+root="sandbox/distros/$file"
+echo "creating $root for $date"
 rm -rf $root
 mkdir -p "$root/32-bit"
 mkdir -p "$root/64-bit"
@@ -84,14 +84,14 @@ copy_from() {
 # copy_from x86_64 64-bit
 
 create_zips() {
-  cd distros
-  # os x: brew install p7zip
-  # -mx=1 for fastest compression speed [but biggest file ...]
-  # 7zr -mx=1 a "$file.7z" "$file/*" || 7za a "$file.7z" "$file/*"  # some have a package with only 7za, see https://github.com/rdp/ffmpeg-windows-build-helpers/issues/16
-  zip -r $file.32-bit.zip $file/32-bit/*
-  zip -r $file.64-bit.zip $file/64-bit/*
+  cd sandbox/distros
+    # os x: brew install p7zip
+    # -mx=1 for fastest compression speed [but biggest file ...]
+    # 7zr -mx=1 a "$file.7z" "$file/*" || 7za a "$file.7z" "$file/*"  # some have a package with only 7za, see https://github.com/rdp/ffmpeg-windows-build-helpers/issues/16
+    zip -r $file.32-bit.zip $file/32-bit/*
+    zip -r $file.64-bit.zip $file/64-bit/*
   cd ..
-  echo "created distros/$file.{32,64}.zip"
+  echo "created sandbox/distros/$file.{32,64}.zip"
 }
 
 create_zips
