@@ -1,10 +1,11 @@
 #This basically packages up all your FFmpeg static/shared builds into .7z files
 
 cd sandbox/win32/ffmpeg_git
-git_version=`git rev-parse HEAD`
+git_version=`git rev-parse --short HEAD`
 cd ../../..
 mkdir -p distros # -p so it doesn't warn
-date=`date +%Y-%m-%d-%Hh%Mm`
+date=`date +%Y-%m-%d`
+date="$date-g$git_version"
 echo "creating distro for $date ffmpeg $git_version"
 
 file="distro-$date"
@@ -30,28 +31,33 @@ if [ -f ./sandbox/x86_64/ffmpeg_git/ffmpeg.exe ]; then
   cp ./sandbox/x86_64/ffmpeg_git/ffmpeg_g.exe "$dir"
 fi
 
-dir="$root/32-bit/ffmpeg-shared"
-mkdir $dir
+do_shareds() {
+  dir="$root/32-bit/ffmpeg-shared"
+  mkdir $dir
 
-cp ./sandbox/win32/ffmpeg_git_shared/ffmpeg.exe "$dir"
-cp ./sandbox/win32/ffmpeg_git_shared/ffplay.exe "$dir"
-cp ./sandbox/win32/ffmpeg_git_shared/ffmpeg_g.exe "$dir"
+  cp ./sandbox/win32/ffmpeg_git_shared/ffmpeg.exe "$dir"
+  cp ./sandbox/win32/ffmpeg_git_shared/ffplay.exe "$dir"
+  cp ./sandbox/win32/ffmpeg_git_shared/ffmpeg_g.exe "$dir"
 
-cp ./sandbox/win32/ffmpeg_git_shared/*/*-*.dll     "$dir"  # have to flatten it
-./sandbox/mingw-w64-i686/bin/i686-w64-mingw32-strip $dir/*.dll # XXX debug dll's?
+  cp ./sandbox/win32/ffmpeg_git_shared/*/*-*.dll     "$dir"  # have to flatten it
+  ./sandbox/mingw-w64-i686/bin/i686-w64-mingw32-strip $dir/*.dll # XXX why?
 
-dir="$root/64-bit/ffmpeg-shared"
-mkdir $dir
+  dir="$root/64-bit/ffmpeg-shared"
+  mkdir $dir
 
-cp ./sandbox/x86_64/ffmpeg_git_shared/ffmpeg.exe "$dir"
-cp ./sandbox/x86_64/ffmpeg_git_shared/ffplay.exe "$dir"
-cp ./sandbox/x86_64/ffmpeg_git_shared/ffmpeg_g.exe "$dir"
+  cp ./sandbox/x86_64/ffmpeg_git_shared/ffmpeg.exe "$dir"
+  cp ./sandbox/x86_64/ffmpeg_git_shared/ffplay.exe "$dir"
+  cp ./sandbox/x86_64/ffmpeg_git_shared/ffmpeg_g.exe "$dir"
 
-cp ./sandbox/x86_64/ffmpeg_git_shared/*/*-*.dll "$dir"
-./sandbox/mingw-w64-x86_64/bin/x86_64-w64-mingw32-strip $dir/*.dll
+  cp ./sandbox/x86_64/ffmpeg_git_shared/*/*-*.dll "$dir"
+  ./sandbox/mingw-w64-x86_64/bin/x86_64-w64-mingw32-strip $dir/*.dll
+}
+
+#do_shareds
 
 
 copy_from() {
+ # if you want other exe's like x264.exe ...
  from_dir=$1 # like win32
  to_dir=$2 # like 32-bit
 
@@ -65,12 +71,17 @@ copy_from() {
   fi
 }
 
-copy_from win32 32-bit
-copy_from x86_64 64-bit
+# copy_from win32 32-bit
+# copy_from x86_64 64-bit
 
-cd distros
-# -mx=1 for fastest compression speed [but biggest file ...]
-7zr -mx=1 a "$file.7z" "$file/*" || 7za a "$file.7z" "$file/*"  # some have a package with only 7za, see https://github.com/rdp/ffmpeg-windows-build-helpers/issues/16
-cd ..
+create_7zips() {
+  cd distros
+  # os x: brew install p7zip
+  # -mx=1 for fastest compression speed [but biggest file ...]
+  7zr -mx=1 a "$file.7z" "$file/*" || 7za a "$file.7z" "$file/*"  # some have a package with only 7za, see https://github.com/rdp/ffmpeg-windows-build-helpers/issues/16
+  cd ..
+  echo "created distros/$file.7z"
+}
 
-echo "created distros/$file.7z"
+create_7zips
+
