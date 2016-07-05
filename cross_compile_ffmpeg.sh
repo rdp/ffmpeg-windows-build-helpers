@@ -1351,7 +1351,7 @@ build_mplayer() {
 build_mp4box() { # like build_gpac
   # This script only builds the gpac_static lib plus MP4Box. Other tools inside
   # specify revision until this works: https://sourceforge.net/p/gpac/discussion/287546/thread/72cf332a/
-  do_svn_checkout https://svn.code.sf.net/p/gpac/code/trunk/gpac mp4box_gpac
+  do_git_checkout https://github.com/gpac/gpac.git mp4box_gpac
   cd mp4box_gpac
   # are these tweaks needed? If so then complain to the mp4box people about it?
   sed -i.bak "s/has_dvb4linux=\"yes\"/has_dvb4linux=\"no\"/g" configure
