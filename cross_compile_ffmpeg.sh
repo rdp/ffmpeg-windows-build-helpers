@@ -1357,7 +1357,7 @@ build_mp4box() { # like build_gpac
   sed -i.bak "s/has_dvb4linux=\"yes\"/has_dvb4linux=\"no\"/g" configure
   sed -i.bak "s/`uname -s`/MINGW32/g" configure
   # XXX do I want to disable more things here?
-  generic_configure "--static-mp4box --enable-static-bin"
+  generic_configure "--static-mp4box --enable-static-bin --disable-oss-audio --extra-ldflags=-municode"
   # I seem unable to pass 3 libs into the same config line so do it with sed...
   sed -i.bak "s/EXTRALIBS=.*/EXTRALIBS=-lws2_32 -lwinmm -lz/g" config.mak
   cd src
