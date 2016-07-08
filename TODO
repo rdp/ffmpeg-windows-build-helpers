@@ -1,14 +1,12 @@
 == actual todos ==
 
-test out mplayer with its record-size whatever...
-fix gsm shared is broken...that was painful...
-fix vlc... :|
-poor audio sdl ffplay?
-winpthread-1.dll ?
-
--a is broken (qsv)
+"XP" build, then full release cycle possible LOL [qsv I think? or mingwex?]
+fix vlc... :| then patch for DVD :)
+poor audio sdl ffplay something?
 
 == maybe/never do, more on the never... ==
+test out mplayer with its record-size whatever...
+fix gsm shared is broken...that was painful...
 
 opencl support [copy in headers?] https://www.khronos.org/registry/cl/ it needs something to link against too...ai ai
   I doubt you can use the kronos stuff but maybe...
