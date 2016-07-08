@@ -1142,6 +1142,28 @@ build_lame() {
   cd ..
 }
 
+build_vamp_plugin() {
+  download_and_unpack_file https://code.soundsoftware.ac.uk/attachments/download/1520/vamp-plugin-sdk-2.6.tar.gz # require sndfile
+  cd vamp-plugin-sdk-2.6
+    generic_configure
+    do_make_and_make_install "$make_prefix_options sdkstatic"
+  cd ..
+}
+
+build_librubberband() {
+  # sndfile
+  generic_download_and_make_and_install http://www.fftw.org/fftw-3.3.4.tar.gz
+  build_vamp_plugin
+  generic_download_and_make_and_install http://www.mega-nerd.com/SRC/libsamplerate-0.1.8.tar.gz
+  download_and_unpack_file http://code.breakfastquay.com/attachments/download/34/rubberband-1.8.1.tar.bz2
+  cd rubberband-1.8.1
+    generic_configure
+    do_make "static"  # normal is like other plugins that fail it :|
+    # make install tries to "build all" then install, so let it fail, it does copy in what we want anyway
+    make install  # expected to fail
+  cd ..
+}
+
 build_zvbi() {
   download_and_unpack_file http://sourceforge.net/projects/zapping/files/zvbi/0.2.35/zvbi-0.2.35.tar.bz2
   cd zvbi-0.2.35
@@ -1548,6 +1570,7 @@ build_dependencies() {
   build_libebur128 # needs speex
   build_libx265
   build_libopenh264
+  build_librubberband # needs libsndfile
   build_lame
   build_twolame
   build_vidstab
