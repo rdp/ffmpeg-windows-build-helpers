@@ -362,9 +362,9 @@ do_make_install() {
   local extra_make_install_options="$1"
   local override_make_install_options="$2" # startingly, some need/use something different than just 'make install'
   if [[ -z $override_make_install_options ]]; then
-    local make_install_options="install $extra_make_options"
+    local make_install_options="install $extra_make_install_options"
   else
-    local make_install_options="$override_make_install_options"
+    local make_install_options="$override_make_install_options $extra_make_install_options"
   fi
   local touch_name=$(get_small_touchfile_name already_ran_make_install "$make_install_options")
   if [ ! -f $touch_name ]; then
@@ -1192,18 +1192,11 @@ build_libproxy() {
 build_lua() {
   download_and_unpack_file http://www.lua.org/ftp/lua-5.1.tar.gz
   cd lua-5.1
-    export AR="${cross_prefix}ar rcu" # needs a parameter :|
-    do_make "$make_prefix_options generic" # generic == static :)
+    export AR="${cross_prefix}ar rcu" # needs rcu parameter so have to call it out different :|
+    do_make "CC=${cross_prefix}gcc RANLIB=${cross_prefix}ranlib generic" # generic == "generic target" and seems to result in a static build, no .exe's blah blah the mingw option doesn't even build liblua.a
     unset AR
-    do_make_and_make_install "INSTALL_TOP=$mingw_w64_x86_64_prefix"
+    do_make_install "INSTALL_TOP=$mingw_w64_x86_64_prefix" "generic install"
     cp etc/lua.pc $PKG_CONFIG_PATH
-  cd ..
-}
-
-build_libquvi() {
-  download_and_Unpack_file http://sourceforge.net/projects/quvi/files/0.9/libquvi/libquvi-0.9.4.tar.xz/download libquvi-0.9.4
-  cd libquvi-0.9.4
-    generic_configure_make_install
   cd ..
 }
 
@@ -1273,16 +1266,17 @@ build_vlc() {
   # call out dependencies here since it's a lot, plus hierarchical FTW!
   # should be ffmpeg 1.1.1 or some odd?
 
-  # vlc dependencies:
-  # if [ ! -f $mingw_w64_x86_64_prefix/lib/libavutil.a ]; then # it takes awhile without this 
-    build_ffmpeg
-  # fi
+  # vlc's own dependencies:
+  build_lua
   build_libdvdread
   build_libdvdnav
   build_libx265
+  # if [ ! -f $mingw_w64_x86_64_prefix/lib/libavutil.a ]; then # it takes awhile without this 
+    build_ffmpeg
+  # fi
   build_qt
 
-  # currently broken :|
+  # currently vlc itself actually broken :|
   return
 
   do_git_checkout https://github.com/videolan/vlc.git vlc_git
@@ -1553,9 +1547,6 @@ build_dependencies() {
   build_libopenh264
   build_lame
   build_twolame
-  #build_lua was only used by libquvi
-  #build_libproxy  # broken, needs a .pc file still... only used by libquvi
-  #build_libquvi # needs libproxy, lua, apparently not useful anyway...so don't build it
   build_vidstab
   build_netcdf
   build_libcaca
