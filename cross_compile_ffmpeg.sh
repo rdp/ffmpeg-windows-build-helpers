@@ -1190,8 +1190,8 @@ build_libproxy() {
 }
 
 build_lua() {
-  download_and_unpack_file http://www.lua.org/ftp/lua-5.1.tar.gz
-  cd lua-5.1
+  download_and_unpack_file http://www.lua.org/ftp/lua-5.3.3.tar.gz
+  cd lua-5.3.3
     export AR="${cross_prefix}ar rcu" # needs rcu parameter so have to call it out different :|
     do_make "CC=${cross_prefix}gcc RANLIB=${cross_prefix}ranlib generic" # generic == "generic target" and seems to result in a static build, no .exe's blah blah the mingw option doesn't even build liblua.a
     unset AR
