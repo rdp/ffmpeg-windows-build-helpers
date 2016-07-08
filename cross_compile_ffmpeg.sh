@@ -1412,6 +1412,10 @@ build_ffmpeg() {
     output_dir="${output_dir}_x26x_high_bitdepth"
   fi
 
+  if [[ $build_intel_qsv == "n" ]]; then
+    output_dir="${output_dir}_xp_compat"
+  fi
+
   local postpend_configure_opts=""
 
   # can't mix and match --enable-static --enable-shared unfortunately, or the final executable seems to just use shared if the're both present
