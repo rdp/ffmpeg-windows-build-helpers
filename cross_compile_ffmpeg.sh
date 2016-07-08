@@ -878,8 +878,7 @@ build_libvorbis() {
 }
 
 build_libspeex() {
-  generic_download_and_make_and_install http://downloads.xiph.org/releases/speex/speex-1.2rc2.tar.gz
-  generic_download_and_make_and_install http://downloads.xiph.org/releases/speex/speexdsp-1.2rc3.tar.gz
+  generic_download_and_make_and_install http://downloads.xiph.org/releases/speex/speex-1.2rc1.tar.gz
 }  
 
 build_libtheora() {
@@ -1411,10 +1410,6 @@ build_ffmpeg() {
 
   if [[ $high_bitdepth == "y" ]]; then
     output_dir="${output_dir}_x26x_high_bitdepth"
-  fi
-
-  if [[ $build_intel_qsv == "n" ]]; then
-    output_dir="${output_dir}_xp_compat"
   fi
 
   local postpend_configure_opts=""
