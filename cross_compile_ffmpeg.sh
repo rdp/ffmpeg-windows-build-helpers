@@ -877,8 +877,8 @@ build_libvorbis() {
   generic_download_and_make_and_install http://downloads.xiph.org/releases/vorbis/libvorbis-1.3.4.tar.gz
 }
 
-build_libspeex() {
-  generic_download_and_make_and_install http://downloads.xiph.org/releases/speex/speex-1.2rc1.tar.gz
+build_libspeexdsp() {
+  generic_download_and_make_and_install http://downloads.xiph.org/releases/speex/speexdsp-1.2rc3.tar.gz
 }  
 
 build_libtheora() {
@@ -1532,8 +1532,7 @@ build_dependencies() {
   build_libopus
   build_libopencore
   build_libogg
-  
-  build_libspeex # needs libogg for exe's
+  build_libspeexdsp # needs libogg for exe's
   build_libvorbis # needs libogg
   build_libtheora # needs libvorbis, libogg
   build_orc
