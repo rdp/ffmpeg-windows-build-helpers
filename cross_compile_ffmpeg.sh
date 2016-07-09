@@ -433,9 +433,9 @@ download_and_unpack_file() {
     #  -4, --ipv4
     #  If curl is capable of resolving an address to multiple IP versions (which it is if it is  IPv6-capable),
     #  this option tells curl to resolve names to IPv4 addresses only.
-    #  avoid a "network unreachable" error in certain [broken Ubuntu] configurations some user ran into once
+    #  avoid a "network unreachable" error in certain [broken Ubuntu] configurations a user ran into once
 
-    curl -4 "$url" -O -L || exit 1
+    curl -4 "$url" -O -L || curl -r "$url" -O -L || exit 1 # retry once :)
     tar -xf "$output_name" || unzip "$output_name" || exit 1
     touch "$output_dir/unpacked.successfully" || exit 1
     rm "$output_name" || exit 1
@@ -1151,13 +1151,14 @@ build_vamp_plugin() {
 }
 
 build_librubberband() {
-  # requires sndfile
-  # generic_download_and_make_and_install http://www.fftw.org/fftw-3.3.4.tar.gz # said to make it "faster"
-  # generic_download_and_make_and_install http://www.mega-nerd.com/SRC/libsamplerate-0.1.8.tar.gz # can use this, but uses speex bundled by default [any difference?]
+  # requires sndfile [?]
+  build_vamp_plugin # unused, but configure needs it? ai ai...
+  generic_download_and_make_and_install http://www.fftw.org/fftw-3.3.4.tar.gz # said to make it "double precision-er"
+  generic_download_and_make_and_install http://www.mega-nerd.com/SRC/libsamplerate-0.1.8.tar.gz # can use this, but uses speex bundled by default [any difference?]
   download_and_unpack_file http://code.breakfastquay.com/attachments/download/34/rubberband-1.8.1.tar.bz2
   cd rubberband-1.8.1
-    generic_configure
-    mkdir lib # ???
+    generic_configure 
+    mkdir lib # seems needed :|
     do_make "static $make_prefix_options"  # make default target is "all" which includes weird other plugins
     # make install tries to "build all" then install, so let it fail, it does copy in what we want anyway
     make install # expected to fail, gets some files in there we want anyway :|
