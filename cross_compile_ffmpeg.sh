@@ -311,6 +311,7 @@ do_configure() {
   local english_name=$(basename $cur_dir2)
   local touch_name=$(get_small_touchfile_name already_configured "$configure_options $configure_name")
   if [ ! -f "$touch_name" ]; then
+    echo "doing preventative make clean..."
     nice make clean -j $cpu_count # just in case useful...try and cleanup stuff...possibly not useful
     # make uninstall # does weird things when run under ffmpeg src so disabled for now...
 
@@ -327,6 +328,7 @@ do_configure() {
     rm -f already_* # reset
     "$configure_name" $configure_options || exit 1 # not nice on purpose, so that if some other script is running as nice, this one will get priority :)
     touch -- "$touch_name"
+    echo "doing preventative make clean"
     nice make clean -j $cpu_count # just in case, but sometimes useful when files change, etc.
   else
     echo "already configured $(basename $cur_dir2)" 
@@ -336,7 +338,7 @@ do_configure() {
 do_make() {
   local extra_make_options="$1 -j $cpu_count"
   local cur_dir2=$(pwd)
-  local touch_name=$(get_small_touchfile_name already_ran_make "$extra_make_options")
+  local touch_name=$(get_small_touchfile_name already_ran_make "$extra_make_options" )
 
   if [ ! -f $touch_name ]; then
     echo
@@ -348,7 +350,7 @@ do_make() {
     nice make $extra_make_options || exit 1
     touch $touch_name || exit 1 # only touch if the build was OK
   else
-    echo "already did make $(basename "$cur_dir2")"
+    echo "already did make $(basename "$cur_dir2") ..."
   fi
 }
 
@@ -879,6 +881,12 @@ build_libvorbis() {
 
 build_libspeexdsp() {
   generic_download_and_make_and_install http://downloads.xiph.org/releases/speex/speexdsp-1.2rc3.tar.gz
+  # speex needs speexdsp apparently :|
+  download_and_unpack_file http://downloads.xiph.org/releases/speex/speex-1.2rc2.tar.gz
+  cd speex-1.2rc2
+    generic_configure "LDFLAGS=-lwinmm" # speexdec.exe needs this :|
+    do_make_and_make_install
+  cd ..
 }  
 
 build_libtheora() {
@@ -1118,7 +1126,7 @@ build_sdl() {
   export CFLAGS=-DDECLSPEC=  # avoid SDL trac tickets 939 and 282, and not worried about optimizing yet...
   generic_download_and_make_and_install http://www.libsdl.org/release/SDL-1.2.15.tar.gz
   reset_cflags
-  mkdir temp
+  mkdir -p temp
   cd temp # so paths will work out right
   local prefix=$(basename $cross_prefix)
   local bin_dir=$(dirname $cross_prefix)
@@ -1151,19 +1159,21 @@ build_vamp_plugin() {
 }
 
 build_librubberband() {
-  # requires sndfile [?]
+  # uses sndfile [?]
   build_vamp_plugin # unused, but configure needs it? ai ai...
   generic_download_and_make_and_install http://www.fftw.org/fftw-3.3.4.tar.gz # said to make it "double precision-er"
   generic_download_and_make_and_install http://www.mega-nerd.com/SRC/libsamplerate-0.1.8.tar.gz # can use this, but uses speex bundled by default [any difference?]
   download_and_unpack_file http://code.breakfastquay.com/attachments/download/34/rubberband-1.8.1.tar.bz2
   cd rubberband-1.8.1
     generic_configure 
-    mkdir lib # seems needed :|
+    mkdir -p lib # seems needed ? :|
     do_make "static $make_prefix_options"  # make default target is "all" which includes weird other plugins
-    # make install tries to "build all" then install, so let it fail, it does copy in what we want anyway
-    make install # expected to fail, gets some files in there we want anyway :|
-    sed -i.bak "s|%PREFIX%|$mingw_w64_x86_64_prefix|" rubberband.pc.in # make doesn't get this far :|
+    # make install tries to "build all" then install, so fails. manual for now :|
+    cp lib/* $mingw_w64_x86_64_prefix/lib
+    cp -r rubberband $mingw_w64_x86_64_prefix/include
     cp rubberband.pc.in $PKG_CONFIG_PATH/rubberband.pc
+    sed -i.bak "s|%PREFIX%|$mingw_w64_x86_64_prefix|" $PKG_CONFIG_PATH/rubberband.pc
+    sed -i.bak 's/-lrubberband *$/-lrubberband -lfftw3 -lsamplerate/' $PKG_CONFIG_PATH/rubberband.pc
   cd ..
 }
 
@@ -1736,9 +1746,7 @@ export PKG_CONFIG_LIBDIR= # disable pkg-config from finding [and using] normal l
 
 if [[ $OSTYPE == darwin* ]]; then 
   # mac add some helper scripts
-  if [[ ! -d mac_helper_scripts ]]; then
-    mkdir mac_helper_scripts
-  fi
+  mkdir -p mac_helper_scripts
   cd mac_helper_scripts
     if [[ ! -x readlink ]]; then
       # make some scripts behave like linux...
