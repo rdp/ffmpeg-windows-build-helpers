@@ -1158,11 +1158,15 @@ build_vamp_plugin() {
   cd ..
 }
 
-build_librubberband() {
-  # uses sndfile [?]
-  build_vamp_plugin # unused, but configure needs it? ai ai...
+build_fftw() {
   generic_download_and_make_and_install http://www.fftw.org/fftw-3.3.4.tar.gz # said to make it "double precision-er"
+}
+
+build_libsamplerate() {
   generic_download_and_make_and_install http://www.mega-nerd.com/SRC/libsamplerate-0.1.8.tar.gz # can use this, but uses speex bundled by default [any difference?]
+}
+
+build_librubberband() {
   download_and_unpack_file http://code.breakfastquay.com/attachments/download/34/rubberband-1.8.1.tar.bz2
   cd rubberband-1.8.1
     generic_configure 
@@ -1306,12 +1310,11 @@ build_vlc() {
   build_libdvdread
   build_libdvdnav
   build_libx265
-  # if [ ! -f $mingw_w64_x86_64_prefix/lib/libavutil.a ]; then # it takes awhile without this 
-    build_ffmpeg
-  # fi
+  build_libjpeg_turbo
+  build_ffmpeg
   build_qt
 
-  # currently vlc itself actually broken :|
+  # currently vlc itself currently broken :|
   return
 
   do_git_checkout https://github.com/videolan/vlc.git vlc_git
@@ -1354,6 +1357,7 @@ reset_cflags() {
 
 build_mplayer() {
   # pre requisites
+  build_libjpeg_turbo
   build_libdvdread
   build_libdvdnav
   download_and_unpack_file http://sourceforge.net/projects/mplayer-edl/files/mplayer-export-snapshot.2014-05-19.tar.bz2 mplayer-export-2014-05-19
@@ -1576,15 +1580,20 @@ build_dependencies() {
   build_freetype # uses bz2/zlib seemingly
   build_libexpat
   build_libxml2
-  build_libbluray # needs libxml2, freetype [FFmpeg, VLC use this, at least]
-  build_libjpeg_turbo # mplayer can use this, VLC qt might need it? [replaces libjpeg]
+  build_libbluray # needs libxml2, freetype
+  # build_libjpeg_turbo # mplayer can use this, VLC qt might need it? [replaces libjpeg]
   build_libxvid
   build_libxavs
   build_libsoxr
   build_libebur128 # needs speex
   build_libx265
   build_libopenh264
-  build_librubberband # needs libsndfile
+
+  build_vamp_plugin
+  build_fftw
+  build_libsamplerate
+  build_librubberband # needs libsndfile, vamp_plugin, fftw, libsamplerate
+
   build_lame
   build_twolame
   build_vidstab
