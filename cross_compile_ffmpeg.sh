@@ -881,7 +881,9 @@ build_libvorbis() {
 
 build_libspeexdsp() {
   generic_download_and_make_and_install http://downloads.xiph.org/releases/speex/speexdsp-1.2rc3.tar.gz
-  # speex needs speexdsp apparently :|
+}
+
+build_libspeex() {
   download_and_unpack_file http://downloads.xiph.org/releases/speex/speex-1.2rc2.tar.gz
   cd speex-1.2rc2
     generic_configure "LDFLAGS=-lwinmm" # speexdec.exe needs this :|
@@ -1568,6 +1570,7 @@ build_dependencies() {
   build_libopencore
   build_libogg
   build_libspeexdsp # needs libogg for exe's
+  build_libspeex # needs libspeexdsp
   build_libvorbis # needs libogg
   build_libtheora # needs libvorbis, libogg
   build_orc
