@@ -7,6 +7,7 @@ including many dependency libraries they use.
 To run the script, either build in windows, or build in linux (cross compiles to build windows executables).
 Building in linux takes less time overall, but requires a linux box or VM.
 Building in windows takes "quite awhile" but avoids the need of needing linux installed somewhere.
+I do have some "distro release builds" of running the script here: https://sourceforge.net/projects/ffmpegwindowsbi/files
 
 To build in windows (uses the native'ish cygwin):
 
