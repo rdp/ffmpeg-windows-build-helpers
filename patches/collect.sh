@@ -71,9 +71,19 @@ do_high_bitdepth_and_zip() {
   cd ../..
 }
 
+do_xp_compat_and_zip() {
+  copy_ffmpeg_binaries ./sandbox/win32/ffmpeg_git_xp_compat "$root/32-bit/ffmpeg-static-xp-compatible"
+  copy_ffmpeg_binaries ./sandbox/x86_64/ffmpeg_git_xp_compat "$root/64-bit/ffmpeg-static-xp-compatible"
+  cd sandbox/distros
+    create_zip ffmpeg.static.$date.32-bit.ffmpeg-static-xp-compatible.zip "$file/32-bit/ffmpeg-static-xp-compatible/*"
+    create_zip ffmpeg.static.$date.64-bit.ffmpeg-static-xp-compatible.zip "$file/64-bit/ffmpeg-static-xp-compatible/*"
+  cd ../..
+}
+
 copy_ffmpeg_binaries ./sandbox/win32/ffmpeg_git "$root/32-bit/ffmpeg-static"  
 copy_ffmpeg_binaries ./sandbox/x86_64/ffmpeg_git "$root/64-bit/ffmpeg-static" 
 create_static_zips
-#do_shareds # if I ever care...
 do_high_bitdepth_and_zip
+do_xp_compat_and_zip
+#do_shareds # if I ever care...
 
