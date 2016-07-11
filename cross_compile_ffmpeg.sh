@@ -785,7 +785,8 @@ build_libflite() {
    sed -i.bak "s|i386-mingw32-|$cross_prefix|" configure*
    generic_configure
    do_make
-   make install # it fails in error...
+   # make install # it fails in error...
+   cp include/*  $mingw_w64_x86_64_prefix/include
    if [[ "$bits_target" = "32" ]]; then
      cp ./build/i386-mingw32/lib/*.a $mingw_w64_x86_64_prefix/lib || exit 1
    else
