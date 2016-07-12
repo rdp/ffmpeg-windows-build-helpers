@@ -602,6 +602,10 @@ build_libx264() {
   if [[ $high_bitdepth == "y" ]]; then
     configure_flags="$configure_flags --bit-depth=10" # Enable 10 bits (main10) per pixels profile. possibly affects other profiles as well (?)
   fi
+
+  for i in $CFLAGS; do
+    configure_flags="$configure_flags --extra-cflags=$i" # needs it this way seemingly :|
+  done
   
   if [[ $x264_profile_guided = y ]]; then
     # I wasn't able to figure out how/if this gave any speedup...
@@ -1025,7 +1029,7 @@ build_libxvid() {
 build_fontconfig() {
   download_and_unpack_file http://www.freedesktop.org/software/fontconfig/release/fontconfig-2.11.94.tar.gz 
   cd fontconfig-2.11.94
-    export CFLAGS= # dies with -march=sandybridge ... with mingw 4.0.6 at least ...
+    export CFLAGS= # compile fails with -march=sandybridge ... with mingw 4.0.6 at least ...
     generic_configure --disable-docs
     do_make_and_make_install
     reset_cflags
@@ -1690,8 +1694,8 @@ git_get_latest=y
 prefer_stable=y
 build_intel_qsv=y
 #disable_nonfree=n # have no value by default to force user selection
-original_cflags='-mtune=core2 -O3' # mtune seemed necessary here, but why? be careful, these override lots of stuff in makesfiles :|
-# XXXX try more settings, also -march=x86-64 to see if it helpz
+original_cflags='-mtune=generic -O3' #  be careful, these override lots of stuff in makesfiles :|
+# if you specify a march it needs to first so x264's configure will use it :|
 build_x264_with_libav=n
 ffmpeg_git_checkout_version=
 build_ismindex=n
