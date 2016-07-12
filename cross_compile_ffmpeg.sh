@@ -883,10 +883,14 @@ build_libspeexdsp() {
 }
 
 build_libspeex() {
-  download_and_unpack_file http://downloads.xiph.org/releases/speex/speex-1.2rc2.tar.gz
-  cd speex-1.2rc2
-    generic_configure "LDFLAGS=-lwinmm" # speexdec.exe needs this :|
-    do_make_and_make_install
+  #download_and_unpack_file http://downloads.xiph.org/releases/speex/speex-1.2rc2.tar.gz
+  #cd speex-1.2rc2
+  #  generic_configure "LDFLAGS=-lwinmm" # speexdec.exe needs this :|
+  #  do_make_and_make_install
+  #cd ..
+  do_git_checkout https://github.com/xiph/speex.git speex_git
+  cd speex_git
+    generic_configure_make_install
   cd ..
 }  
 
