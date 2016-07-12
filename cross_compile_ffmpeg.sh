@@ -784,9 +784,12 @@ build_libflite() {
    apply_patch https://raw.githubusercontent.com/rdp/ffmpeg-windows-build-helpers/master/patches/flite_64.diff
    sed -i.bak "s|i386-mingw32-|$cross_prefix|" configure*
    generic_configure
+   cpu_count=1 # can't handle it
    do_make
+   cpu_count=$original_cpu_count
    # make install # it fails in error...
-   cp include/*  $mingw_w64_x86_64_prefix/include
+   mkdir -p  $mingw_w64_x86_64_prefix/include/flite
+   cp include/*  $mingw_w64_x86_64_prefix/include/flite
    if [[ "$bits_target" = "32" ]]; then
      cp ./build/i386-mingw32/lib/*.a $mingw_w64_x86_64_prefix/lib || exit 1
    else
