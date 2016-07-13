@@ -4,8 +4,6 @@ fix vlc... :| then patch for DVD :)
 poor audio sdl ffplay something?
 try more march, does it really even matter?
 
---enable-lzma
-libsnappy
 libzimg
 --enable-zlib
 
