@@ -166,6 +166,12 @@ install_cross_compiler() {
 
   if [[ -z $compiler_flavors ]]; then
     pick_compiler_flavors
+build_libzimg() {
+  do_git_checkout https://github.com/sekrit-twc/zimg.git zimg_git
+  cd zimg_git
+    generic_configure_make_install
+  cd ..
+}
   fi
 
   mkdir -p cross_compilers
@@ -461,6 +467,18 @@ generic_download_and_make_and_install() {
   do_make_and_make_install
   cd ..
 }
+# param: git url like /something.git
+do_git_checkout_and_make_install() {
+  local  git_checkout_name=$(basename $url | sed s/\.git/_git//) # abc.git -> abc_git
+  do_git_checkout $1 $git_checkout_name
+  cd $git_checkout_name
+    generic_configure_make_install
+  cd ..
+}
+
+build_libzimg() {
+  do_git_checkout_and_make_install  https://github.com/sekrit-twc/zimg.git 
+}
 
 generic_configure_make_install() {
   generic_configure # no parameters, force myself to break it up :)
@@ -754,6 +772,13 @@ build_libopenjpeg() {
     export CFLAGS="$CFLAGS -DOPJ_STATIC" # see https://github.com/rdp/ffmpeg-windows-build-helpers/issues/37
     generic_configure_make_install
     reset_cflags
+  cd ..
+}
+
+build_libzimg() {
+  do_git_checkout https://github.com/sekrit-twc/zimg.git zimg_git
+  cd zimg_git
+    generic_configure_make_install
   cd ..
 }
 
@@ -1573,6 +1598,7 @@ build_dependencies() {
   build_zlib # rtmp depends on it [as well as ffmpeg's optional but handy --enable-zlib]
   build_bzlib2 # in case someone wants it [ffmpeg uses it]
   build_liblzma
+  build_libzimg
   build_libsnappy
   build_libpng # for openjpeg, needs zlib
   build_gmp # for libnettle

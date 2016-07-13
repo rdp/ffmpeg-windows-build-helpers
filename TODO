@@ -4,10 +4,8 @@ fix vlc... :| then patch for DVD :)
 poor audio sdl ffplay something?
 try more march, does it really even matter?
 
-libzimg
---enable-zlib
-
 == maybe/never do, more on the never... ==
+
 XP mingwex?
 test out mplayer with its record-size whatever...
 fix gsm shared is broken...that was painful...
