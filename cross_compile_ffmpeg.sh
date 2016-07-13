@@ -726,6 +726,10 @@ build_libgme_game_music_emu() {
   cd ..
 }
 
+build_liblzma() {
+  generic_download_and_make_and_install http://tukaani.org/xz/xz-5.2.2.tar.bz2
+}
+
 build_wavpack() {
   generic_download_and_make_and_install http://wavpack.com/wavpack-4.70.0.tar.bz2
 }
@@ -1490,7 +1494,7 @@ build_ffmpeg() {
   fi
 
   init_options="--arch=$arch --target-os=mingw32 --cross-prefix=$cross_prefix --pkg-config=pkg-config --disable-w32threads"
-  config_options="$init_options --enable-gpl --enable-libsoxr --enable-fontconfig --enable-libass --enable-libbluray --enable-iconv --enable-libtwolame --extra-cflags=-DLIBTWOLAME_STATIC --enable-libzvbi --enable-libcaca --enable-libmodplug --extra-libs=-lstdc++ --extra-libs=-lpng --enable-libvidstab --enable-libx265 --enable-decklink --extra-libs=-loleaut32 --enable-libx264 --enable-libxvid --enable-libmp3lame --enable-version3 --enable-zlib --enable-librtmp --enable-libvorbis --enable-libtheora --enable-libspeex --enable-libopenjpeg --enable-gnutls --enable-libgsm --enable-libfreetype --enable-libopus --enable-frei0r --enable-filter=frei0r --enable-bzlib --enable-libxavs --enable-libopencore-amrnb --enable-libopencore-amrwb --enable-libvo-amrwbenc --enable-libschroedinger --enable-libvpx --enable-libilbc --enable-libwavpack --enable-libwebp --enable-libgme --enable-dxva2 --enable-avisynth --enable-gray --enable-libopenh264 --enable-nvenc --enable-libebur128 --enable-netcdf --enable-librubberband --enable-libflite"
+  config_options="$init_options --enable-gpl --enable-libsoxr --enable-fontconfig --enable-libass --enable-libbluray --enable-iconv --enable-libtwolame --extra-cflags=-DLIBTWOLAME_STATIC --enable-libzvbi --enable-libcaca --enable-libmodplug --extra-libs=-lstdc++ --extra-libs=-lpng --enable-libvidstab --enable-libx265 --enable-decklink --extra-libs=-loleaut32 --enable-libx264 --enable-libxvid --enable-libmp3lame --enable-version3 --enable-zlib --enable-librtmp --enable-libvorbis --enable-libtheora --enable-libspeex --enable-libopenjpeg --enable-gnutls --enable-libgsm --enable-libfreetype --enable-libopus --enable-frei0r --enable-filter=frei0r --enable-bzlib --enable-libxavs --enable-libopencore-amrnb --enable-libopencore-amrwb --enable-libvo-amrwbenc --enable-libschroedinger --enable-libvpx --enable-libilbc --enable-libwavpack --enable-libwebp --enable-libgme --enable-dxva2 --enable-avisynth --enable-gray --enable-libopenh264 --enable-nvenc --enable-libebur128 --enable-netcdf --enable-librubberband --enable-libflite --enable-lzma"
   # other possibilities (you'd need to also uncomment the call to their build method): 
   #   --enable-w32threads # [worse UDP than pthreads, so not using that] 
   if [[ $build_intel_qsv = y ]]; then
@@ -1564,6 +1568,7 @@ build_dependencies() {
   build_libdlfcn # ffmpeg's frei0r implentation needs this <sigh>
   build_zlib # rtmp depends on it [as well as ffmpeg's optional but handy --enable-zlib]
   build_bzlib2 # in case someone wants it [ffmpeg uses it]
+  build_liblzma
   build_libpng # for openjpeg, needs zlib
   build_gmp # for libnettle
   build_libnettle # needs gmp
@@ -1694,7 +1699,7 @@ git_get_latest=y
 prefer_stable=y
 build_intel_qsv=y
 #disable_nonfree=n # have no value by default to force user selection
-original_cflags='-mtune=generic -O3' #  be careful, these override lots of stuff in makesfiles :|
+original_cflags='-mtune=core2 -O3' #  be careful, these override lots of stuff in makesfiles :|
 # if you specify a march it needs to first so x264's configure will use it :|
 build_x264_with_libav=n
 ffmpeg_git_checkout_version=
