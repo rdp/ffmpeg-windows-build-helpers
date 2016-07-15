@@ -1489,10 +1489,7 @@ build_ffmpeg() {
     output_dir="${output_dir}_xp_compat"
   fi
 
-  if [[ $enable_gpl == 'y' ]]; then
-    output_dir="${output_dir}_lgpl"
-  fi
-  if [[ $enable_gpl == 'y' ]]; then
+  if [[ $enable_gpl == 'n' ]]; then
     output_dir="${output_dir}_lgpl"
   fi
 
