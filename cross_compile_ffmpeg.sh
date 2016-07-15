@@ -1468,6 +1468,7 @@ build_libdecklink() {
 }
 
 build_ffmpeg() {
+  # the real kahuna
   local shared_or_static=$1
   local extra_postpend_configure_options=$2
   local git_url="https://github.com/FFmpeg/FFmpeg.git"
@@ -1486,6 +1487,10 @@ build_ffmpeg() {
 
   if [[ $build_intel_qsv == "n" ]]; then
     output_dir="${output_dir}_xp_compat"
+  fi
+
+  if [[ $enable_gpl == 'y' ]]; then
+    output_dir="${output_dir}_lgpl"
   fi
 
   local postpend_configure_opts=""
@@ -1566,6 +1571,9 @@ build_ffmpeg() {
   sed -i.bak 's/-lavutil -lm.*/-lavutil -lm -lpthread/' "$PKG_CONFIG_PATH/libavutil.pc" # XXX patch ffmpeg itself...
   sed -i.bak 's/-lswresample -lm.*/-lswresample -lm -lsoxr/' "$PKG_CONFIG_PATH/libswresample.pc" # XXX patch ffmpeg
   echo "Done! You will find $bits_target bit $shared_or_static non_free=$non_free binaries in $(pwd)/*.exe"
+  if [[ $shared_or_static == "shared" ]]; then
+    echo "installed shared build to $final_install_dir" # this one actually got installed somewhere real LOL
+  fi
   echo `date`
   cd ..
 }
