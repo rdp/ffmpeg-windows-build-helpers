@@ -10,7 +10,6 @@ date="$date-g$git_version"
 file="$date"
 root="sandbox/distros/$file"
 echo "creating $root for $date"
-rm -rf sandbox/distros # save space :|
 rm -rf $root
 mkdir -p "$root/32-bit"
 mkdir -p "$root/64-bit"
