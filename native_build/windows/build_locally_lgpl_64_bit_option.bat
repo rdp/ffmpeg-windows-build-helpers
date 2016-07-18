@@ -4,5 +4,5 @@ ECHO You should not need to answer any prompts, and it should run unattended
 ECHO all the way to completion for you...
 ECHO.
 ECHO.
-rem this won't have any prompts :)
+@rem this won't have any prompts :)
 build_locally_with_various_option_prompts -d "--compiler-flavors=win64" "--build-ffmpeg-static=n" "--build-ffmpeg-shared=y" "--enable-gpl=no"
