@@ -9,7 +9,7 @@ ECHO on how to run it again with more advanced options.
 ECHO.
 ECHO Starting cygwin install/update...
 ECHO.
-mkdir ffmpeg_local_builds\cygwin_local_install
+if not exist ffmpeg_local_builds\cygwin_local_install mkdir ffmpeg_local_builds\cygwin_local_install
 @rem cd to it so that cygwin install logs etc. go there
 cd ffmpeg_local_builds\cygwin_local_install
 ECHO Downloading cygwin setup executable...some error warning messages are expected from the cygwin install...

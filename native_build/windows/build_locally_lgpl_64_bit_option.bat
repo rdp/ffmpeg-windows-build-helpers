@@ -5,4 +5,4 @@ ECHO all the way to completion for you...
 ECHO.
 ECHO.
 rem this won't have any prompts :)
-build_locally_with_various_option_prompts -d "--compiler-flavors=multi" "--build-ffmpeg-static=n" "--build-ffmpeg-shared=y" "--enable-gpl=no"
+build_locally_with_various_option_prompts -d "--compiler-flavors=win64" "--build-ffmpeg-static=n" "--build-ffmpeg-shared=y" "--enable-gpl=no"
