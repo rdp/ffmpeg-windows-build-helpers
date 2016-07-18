@@ -148,7 +148,7 @@ EOF
 download_gcc_build_script() {
     local zeranoe_script_name=$1
     rm -f $zeranoe_script_name || exit 1
-    curl -4 https://raw.githubusercontent.com/rdp/ffmpeg-windows-build-helpers/master/patches/$zeranoe_script_name -O  || exit 1
+    curl -4 https://raw.githubusercontent.com/rdp/ffmpeg-windows-build-helpers/master/patches/$zeranoe_script_name -O --fail || exit 1
     chmod u+x $zeranoe_script_name
 }
 
@@ -405,7 +405,7 @@ apply_patch() {
    if [[ -f $patch_name ]]; then
      rm $patch_name || exit 1 # remove old version in case it has been since updated
    fi
-   curl -4 $url -O || exit 1
+   curl -4 $url -O --fail || exit 1
    echo "applying patch $patch_name"
    patch $patch_type < "$patch_name" || exit 1
    touch $patch_done_name || exit 1
@@ -435,7 +435,7 @@ download_and_unpack_file() {
     #  this option tells curl to resolve names to IPv4 addresses only.
     #  avoid a "network unreachable" error in certain [broken Ubuntu] configurations a user ran into once
 
-    curl -4 "$url" -O -L || curl -r "$url" -O -L || exit 1 # retry once :)
+    curl -4 "$url" -O -L --fail || curl -4 "$url" -O -L --fail || exit 1 # retry once :) -L means "allow redirection" or some odd :|
     tar -xf "$output_name" || unzip "$output_name" || exit 1
     touch "$output_dir/unpacked.successfully" || exit 1
     rm "$output_name" || exit 1
@@ -625,7 +625,7 @@ build_libx264() {
     # TODO more march=native here?
     # TODO profile guided here option, with wine?
     do_configure "$configure_flags"
-    curl -4 http://samples.mplayerhq.hu/yuv4mpeg2/example.y4m.bz2 -O || exit 1
+    curl -4 http://samples.mplayerhq.hu/yuv4mpeg2/example.y4m.bz2 -O --fail || exit 1
     rm -f example.y4m # in case it exists already...
     bunzip2 example.y4m.bz2 || exit 1
     # XXX does this kill git updates? maybe a more general fix, since vid.stab does also?
@@ -1097,7 +1097,7 @@ build_libnvenc() {
     mkdir nvenc
     cd nvenc
       echo "installing nvenc [nvidia gpu assisted encoder]"
-      curl -4 http://developer.download.nvidia.com/assets/cuda/files/nvidia_video_sdk_6.0.1.zip -O -L || exit 1
+      curl -4 http://developer.download.nvidia.com/assets/cuda/files/nvidia_video_sdk_6.0.1.zip -O -L --fail || exit 1
       unzip nvidia_video_sdk_6.0.1.zip
       cp nvidia_video_sdk_6.0.1/Samples/common/inc/* $mingw_w64_x86_64_prefix/include
     cd ..
@@ -1460,10 +1460,10 @@ build_libMXF() {
 build_libdecklink() {
    if [[ ! -f $mingw_w64_x86_64_prefix/include/DeckLinkAPIVersion.h ]]; then
      # smaller files don't worry about partials for now, plus we only care about the last file anyway here...
-     curl -4 https://raw.githubusercontent.com/rdp/ffmpeg-windows-build-helpers/master/patches/DeckLinkAPI.h > $mingw_w64_x86_64_prefix/include/DeckLinkAPI.h  || exit 1
-     curl -4 https://raw.githubusercontent.com/rdp/ffmpeg-windows-build-helpers/master/patches/DeckLinkAPI_i.c > $mingw_w64_x86_64_prefix/include/DeckLinkAPI_i.c.tmp  || exit 1
+     curl -4 https://raw.githubusercontent.com/rdp/ffmpeg-windows-build-helpers/master/patches/DeckLinkAPI.h --fail > $mingw_w64_x86_64_prefix/include/DeckLinkAPI.h  || exit 1
+     curl -4 https://raw.githubusercontent.com/rdp/ffmpeg-windows-build-helpers/master/patches/DeckLinkAPI_i.c --fail > $mingw_w64_x86_64_prefix/include/DeckLinkAPI_i.c.tmp  || exit 1
      mv $mingw_w64_x86_64_prefix/include/DeckLinkAPI_i.c.tmp $mingw_w64_x86_64_prefix/include/DeckLinkAPI_i.c
-     curl -4 https://raw.githubusercontent.com/rdp/ffmpeg-windows-build-helpers/master/patches/DeckLinkAPIVersion.h > $mingw_w64_x86_64_prefix/include/DeckLinkAPIVersion.h  || exit 1
+     curl -4 https://raw.githubusercontent.com/rdp/ffmpeg-windows-build-helpers/master/patches/DeckLinkAPIVersion.h --fail > $mingw_w64_x86_64_prefix/include/DeckLinkAPIVersion.h  || exit 1
   fi
 }
 
@@ -1804,9 +1804,9 @@ if [[ $OSTYPE == darwin* ]]; then
   cd mac_helper_scripts
     if [[ ! -x readlink ]]; then
       # make some scripts behave like linux...
-      curl -4 https://raw.githubusercontent.com/rdp/ffmpeg-windows-build-helpers/master/patches/md5sum.mac > md5sum  || exit 1
+      curl -4 https://raw.githubusercontent.com/rdp/ffmpeg-windows-build-helpers/master/patches/md5sum.mac --fail > md5sum  || exit 1
       chmod u+x ./md5sum
-      curl -4 https://raw.githubusercontent.com/rdp/ffmpeg-windows-build-helpers/master/patches/readlink.mac > readlink  || exit 1
+      curl -4 https://raw.githubusercontent.com/rdp/ffmpeg-windows-build-helpers/master/patches/readlink.mac --fail > readlink  || exit 1
       chmod u+x ./readlink
     fi
     export PATH=`pwd`:$PATH
