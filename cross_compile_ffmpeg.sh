@@ -96,10 +96,8 @@ intro() {
   You can, of course, rebuild ffmpeg from within it, etc.
 EOL
   if [[ $sandbox_ok != 'y' && ! -d sandbox ]]; then
-    yes_no_sel "Is $PWD/sandbox ok (requires ~ 5GB space) [Y/n]?" "y"
-    if [[ "$user_input" = "n" ]]; then
-      exit 1
-    fi
+    echo "Building in $PWD/sandbox, will use ~ 5GB space!"
+    sleep 0.3 # :)
   fi
   mkdir -p "$cur_dir"
   cd "$cur_dir"
@@ -1834,7 +1832,7 @@ fi
 
 if [[ $compiler_flavors == "multi" || $compiler_flavors == "win64" ]]; then
   echo
-  echo "**************Starting 64-bit builds..." make it have a bit header to you can see when 32 bit is done more easily
+  echo "**************Starting 64-bit builds..." # make it have a bit easier to you can see when 32 bit is done 
   host_target='x86_64-w64-mingw32'
   mingw_w64_x86_64_prefix="$cur_dir/cross_compilers/mingw-w64-x86_64/$host_target"
   path_addition="$cur_dir/cross_compilers/mingw-w64-x86_64/bin"
