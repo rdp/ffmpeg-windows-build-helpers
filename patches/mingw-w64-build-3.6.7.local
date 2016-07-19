@@ -479,7 +479,7 @@ case "$archive" in
 esac
 if [[ ! -f "$archive" ]]; then
   build_progress "$archive" 'Downloading'
-  wget -nv -t 5 "$download_url" > >(build_log) 2>&1
+  (wget -nv -t 5 "$download_url" > >(build_log) 2>&1) || (wget -nv -t 5 "$download_url" > >(build_log) 2>&1) || exit "unable to download $download_url"
   if [[ -f "$archive" ]]; then
     build_progress 'done'
   else
