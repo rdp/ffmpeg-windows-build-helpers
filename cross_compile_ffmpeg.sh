@@ -1312,11 +1312,12 @@ build_libhdhomerun() {
   cd ..
 }
 
-build_libdvbtee_app() {
+build_dvbtee_app() {
   build_libcurl # it "can use this" so why not
 #  build_libhdhomerun # broken but dependency apparently :|
   do_git_checkout https://github.com/mkrufky/libdvbtee.git libdvbtee
-  exit 1 # broken with gcc 6.x :| did file issue... 
+  echo "not building dvbtee, broken with gcc 6.x"
+  return # broken with gcc 6.x :| filed issue... 
   cd libdvbtee
     # checkout its submodule, apparently required
     if [ ! -e libdvbpsi/bootstrap ]; then
@@ -1346,6 +1347,7 @@ build_vlc() {
   build_qt
 
   # currently vlc itself currently broken :|
+  echo "not building vlc, broken dependencies or something weird"
   return
 
   do_git_checkout https://github.com/videolan/vlc.git vlc_git
@@ -1662,8 +1664,8 @@ build_dependencies() {
 }
 
 build_apps() {
-  if [[ $build_libdvbtee = "y" ]]; then
-    build_libdvbtee_app
+  if [[ $build_dvbtee = "y" ]]; then
+    build_dvbtee_app
   fi
   # now the things that use the dependencies...
   if [[ $build_libmxf = "y" ]]; then
@@ -1713,7 +1715,7 @@ fi
 
 build_ffmpeg_static=y
 build_ffmpeg_shared=n
-build_libdvbtee=n
+build_dvbtee=n
 build_libmxf=n
 build_mp4box=n
 build_mplayer=n
@@ -1746,7 +1748,7 @@ while true; do
       --build-mplayer=n [builds mplayer.exe and mencoder.exe] 
       --build-vlc=n [builds a [rather bloated] vlc.exe] 
       --build-ismindex=n [builds ffmpeg utility ismindex.exe]
-      -a 'build all' builds mplayer, vlc, etc.
+      -a 'build all' builds ffmpeg, mplayer, vlc, etc. with all fixings turned on
       --build-dvbtee=n [build dvbtee.exe a DVB profiler]
       --compiler-flavors=[multi,win32,win64] [default prompt, or skip if you already have one built, multi is both win32 and win64]
       --cflags=[default is $original_cflags, which works on any cpu, see README for options]
@@ -1770,10 +1772,10 @@ while true; do
     --cflags=* ) 
        original_cflags="${1#*=}"; echo "setting cflags as $original_cflags"; shift ;;
     --build-vlc=* ) build_vlc="${1#*=}"; shift ;;
-    --build-dvbtee=* ) build_libdvbtee="${1#*=}"; shift ;;
+    --build-dvbtee=* ) build_dvbtee="${1#*=}"; shift ;;
     --disable-nonfree=* ) disable_nonfree="${1#*=}"; shift ;;
     -a         ) compiler_flavors="multi"; build_mplayer=y; build_libmxf=y; build_mp4box=y; build_vlc=y; build_ffmpeg_shared=y; high_bitdepth=y; build_ffmpeg_static=y; 
-                 disable_nonfree=n; git_get_latest=y; sandbox_ok="y"; build_intel_qsv="y"; build_libdvbtee="y"; build_x264_with_libav="y"; shift ;;
+                 disable_nonfree=n; git_get_latest=y; sandbox_ok="y"; build_intel_qsv="y"; build_dvbtee="y"; build_x264_with_libav="y"; shift ;;
        # this doesn't build everything, like 10 bit free ffmpeg, but it does exercise the "non default" code I suppose...
     -d         ) gcc_cpu_count=$cpu_count; disable_nonfree="y"; sandbox_ok="y"; compiler_flavors="win32"; git_get_latest="n"; shift ;;
     --compiler-flavors=* ) compiler_flavors="${1#*=}"; shift ;;
