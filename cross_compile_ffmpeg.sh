@@ -1310,15 +1310,15 @@ build_libhdhomerun() {
   cd libhdhomerun
     do_make CROSS_COMPILE=$cross_prefix  OS=Windows_NT
   cd ..
-  exit 1
 }
 
-build_libdvbtee() {
+build_libdvbtee_app() {
   build_libcurl # it "can use this" so why not
-#  build_libhdhomerun # broken :|
+#  build_libhdhomerun # broken but dependency apparently :|
   do_git_checkout https://github.com/mkrufky/libdvbtee.git libdvbtee
+  exit 1 # broken with gcc 6.x :| did file issue... 
   cd libdvbtee
-    # checkout its submodule
+    # checkout its submodule, apparently required
     if [ ! -e libdvbpsi/bootstrap ]; then
       rm -rf libdvbpsi # remove placeholder
       do_git_checkout https://github.com/mkrufky/libdvbpsi.git libdvbpsi
@@ -1662,8 +1662,8 @@ build_dependencies() {
 }
 
 build_apps() {
-  if [[ $should_build_libdvbtee = "y" ]]; then
-    build_libdvbtee
+  if [[ $build_libdvbtee = "y" ]]; then
+    build_libdvbtee_app
   fi
   # now the things that use the dependencies...
   if [[ $build_libmxf = "y" ]]; then
@@ -1713,7 +1713,7 @@ fi
 
 build_ffmpeg_static=y
 build_ffmpeg_shared=n
-should_build_libdvbtee=n
+build_libdvbtee=n
 build_libmxf=n
 build_mp4box=n
 build_mplayer=n
@@ -1770,10 +1770,10 @@ while true; do
     --cflags=* ) 
        original_cflags="${1#*=}"; echo "setting cflags as $original_cflags"; shift ;;
     --build-vlc=* ) build_vlc="${1#*=}"; shift ;;
-    --build-dvbtee=* ) should_build_libdvbtee="${1#*=}"; shift ;;
+    --build-dvbtee=* ) build_libdvbtee="${1#*=}"; shift ;;
     --disable-nonfree=* ) disable_nonfree="${1#*=}"; shift ;;
     -a         ) compiler_flavors="multi"; build_mplayer=y; build_libmxf=y; build_mp4box=y; build_vlc=y; build_ffmpeg_shared=y; high_bitdepth=y; build_ffmpeg_static=y; 
-                 disable_nonfree=n; git_get_latest=y; sandbox_ok="y"; build_intel_qsv="y"; should_build_libdvbtee="y"; build_x264_with_libav="y"; shift ;;
+                 disable_nonfree=n; git_get_latest=y; sandbox_ok="y"; build_intel_qsv="y"; build_libdvbtee="y"; build_x264_with_libav="y"; shift ;;
        # this doesn't build everything, like 10 bit free ffmpeg, but it does exercise the "non default" code I suppose...
     -d         ) gcc_cpu_count=$cpu_count; disable_nonfree="y"; sandbox_ok="y"; compiler_flavors="win32"; git_get_latest="n"; shift ;;
     --compiler-flavors=* ) compiler_flavors="${1#*=}"; shift ;;
