@@ -1316,8 +1316,6 @@ build_dvbtee_app() {
   build_libcurl # it "can use this" so why not
 #  build_libhdhomerun # broken but dependency apparently :|
   do_git_checkout https://github.com/mkrufky/libdvbtee.git libdvbtee
-  echo "not building dvbtee, broken with gcc 6.x"
-  return # broken with gcc 6.x :| filed issue... 
   cd libdvbtee
     # checkout its submodule, apparently required
     if [ ! -e libdvbpsi/bootstrap ]; then
