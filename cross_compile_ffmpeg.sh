@@ -326,8 +326,8 @@ do_configure() {
     touch -- "$touch_name"
     echo "doing preventative make clean"
     nice make clean -j $cpu_count # sometimes useful when files change, etc.
-  else
-    echo "already configured $(basename $cur_dir2)" 
+  #else
+  #  echo "already configured $(basename $cur_dir2)" 
   fi
 }
 
@@ -408,8 +408,8 @@ apply_patch() {
    patch $patch_type < "$patch_name" || exit 1
    touch $patch_done_name || exit 1
    rm -f already_ran* # if it's a new patch, reset everything too, in case it's really really really new
- else
-   echo "patch $patch_name already applied"
+ #else
+   #echo "patch $patch_name already applied"
  fi
 }
 
