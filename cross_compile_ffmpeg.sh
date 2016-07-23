@@ -969,7 +969,7 @@ build_orc() {
 }
 
 build_libxml2() {
-  generic_download_and_make_and_install http://xmlsoft.org/sources/libxml2-2.9.2.tar.gz libxml2-2.9.2 "--without-python"
+  generic_download_and_make_and_install http://xmlsoft.org/sources/libxml2-2.9.4.tar.gz libxml2-2.9.4 "--without-python"
 }
 
 build_libbluray() {
