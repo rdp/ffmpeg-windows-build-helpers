@@ -178,7 +178,7 @@ install_cross_compiler() {
     local zeranoe_script_name=mingw-w64-build-3.6.7.local
     # add --mingw-w64-ver=git for updated tuner.h [dshow dtv] at least not present in 4.0.6 TODO bump to v 5 when released, if released
     # actually git make "faster" builds for some reason, so leave for now, known working commit: d9ce1abe40efb835609e646b1533acab4a404d03
-    local zeranoe_script_options="--clean-build --disable-shared --default-configure  --pthreads-w32-ver=2-9-1 --cpu-count=$gcc_cpu_count --gcc-ver=5.4.0 --mingw-w64-ver=git"
+    local zeranoe_script_options="--clean-build --disable-shared --default-configure  --pthreads-w32-ver=2-9-1 --cpu-count=$gcc_cpu_count --mingw-w64-ver=git"
     if [[ ($compiler_flavors == "win32" || $compiler_flavors == "multi") && ! -f ../$win32_gcc ]]; then
       echo "building win32 cross compiler..."
       download_gcc_build_script $zeranoe_script_name
@@ -1208,7 +1208,7 @@ build_librubberband() {
     cp -r rubberband $mingw_w64_x86_64_prefix/include
     cp rubberband.pc.in $PKG_CONFIG_PATH/rubberband.pc
     sed -i.bak "s|%PREFIX%|$mingw_w64_x86_64_prefix|" $PKG_CONFIG_PATH/rubberband.pc
-    sed -i.bak 's/-lrubberband *$/-lrubberband -lfftw3 -lsamplerate/' $PKG_CONFIG_PATH/rubberband.pc
+    sed -i.bak 's/-lrubberband *$/-lrubberband -lfftw3 -lsamplerate -lstdc++/' $PKG_CONFIG_PATH/rubberband.pc
   cd ..
 }
 
@@ -1549,6 +1549,7 @@ build_ffmpeg() {
     config_options="$config_options --disable-libgme"
   fi
   config_options="$config_options $extra_postpend_configure_options"
+  config_options="$init_options --enable-librubberband --enable-gpl"
  
   do_configure "$config_options"
   rm -f */*.a */*.dll *.exe # just in case some dependency library has changed, force it to re-link even if the ffmpeg source hasn't changed...
