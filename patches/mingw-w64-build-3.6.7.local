@@ -672,6 +672,7 @@ fi
 
 case "$gcc_ver" in
   $gcc_release_ver ) isl_ver="$isl_release_ver" ;;
+  "svn" ) isl_ver="$isl_release_ver" ;;
   $gcc_old_release_ver ) isl_ver='0.12.2'; cloog_ver='0.18.1';  cloog_prefix="$pkgs_dir/cloog/cloog-$cloog_ver-$uname_m" ;;
 esac
 
