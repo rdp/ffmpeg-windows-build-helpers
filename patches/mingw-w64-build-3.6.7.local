@@ -76,7 +76,7 @@ target_x86_64='x86_64-w64-mingw32'
 ## Versions
 mingw_w64_release_ver='4.0.6' # we just use git anyway :)
 gcc_release_ver='6.1.0'
-gcc_old_release_ver='4.9.3'
+gcc_old_release_ver='6.1.0' # default, was 4.9.3
 mpfr_release_ver='3.1.3'
 mpc_release_ver='1.0.3'
 binutils_release_ver='2.26.1'
