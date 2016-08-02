@@ -3,6 +3,8 @@ ffmpeg-windows-build-helpers
 
 This helper script lets you cross compile a windows 32 or 64 bit version of ffmpeg/mplayer/mp4box.exe, etc.
 including many dependency libraries they use.
+Note that I do offer custom builds, typically $200 ping me rogerdpack@gmail.com
+and I'll do the work for you :) 
 
 To run the script, either build in windows, or build in linux (cross compiles to build windows executables).
 Building in linux takes less time overall, but requires a linux box or VM.
@@ -12,11 +14,11 @@ I do have some "distro release builds" of running the script here: https://sourc
 To build in windows (uses the native'ish cygwin):
 
 obtain repository: 
-       download zip file: 
+       download zip file, and unzip it: 
        
 https://github.com/rdp/ffmpeg-windows-build-helpers/archive/master.zip
        
-and unzip, or clone the repository: 
+clone the repository: 
 
      c:\>git clone https://github.com/rdp/ffmpeg-windows-build-helpers.git
        
@@ -25,9 +27,8 @@ Next run one of the "native_build/build_locally_XXX.bat" file.
 * build_locally_with_various_option_prompts: Has FFmpeg and many dependency libraries.  Prompts for whether you'd like to also include fdk/nvenc libraries, 32 and/or 64 bit executables.  Can take 6 hours or more.
 * build_locally_gpl_32_bit_option: Same as option prompts above, but 32bit non-fdk auto selected.
 
-  For the long running builds, recommend start it, wait for it to give you prompts (if it does, it asks them as a bunch up front after installing cygwin) then  let it build overnight :)
   
-Or second option: build it from linux (much faster, takes 2 hours for the "options" build, requires a linux box or VM with linux guest running on a windows box):  In some type of Linux box (VM or native, or you could even create a VM temporarily, ex: digitalocean [1], [use it, then destroy your droplet]):
+Or second option: build it from linux as a cross compiler (much faster, takes 2 hours for the "options" build, requires a linux box or VM with linux guest running on a windows box):  In some type of Linux box (VM or native, or you could even create a VM temporarily, ex: digitalocean [1], [use it, then destroy your droplet]). Linux instructions:
 
     Download the script 
     git clone this repo:
@@ -64,12 +65,16 @@ Run it like
 ./cross_compile_ffmpeg.sh -h 
 
 to see all the various options available.
+
+  For the long running builds, recommend start it, wait for it to give you prompts (if it does, it asks them as a bunch up front after installing cygwin) then  let it build overnight :)
+
 Also NB that you can also "cross compile" mp4box.exe if you pass in the appropriate command line parameter.
 Also NB that you can also "cross compile" {mplayer,mencoder}.exe if you pass in the appropriate command line parameter too.
 Also NB that you can also "cross compile" vlc.exe if you pass in the appropriate command line parameter too [currently broken, ping if you want it to work again].
 To enable Intel QSV (vista+ compatible only dependency so not enabled by default) use option --build-intel-qsv=y
+There is also an LGPL command line option for those that want that.
 
-If you want to customize your FFmpeg final executable even more (remove features you don't need, etc.) then edit the script
+If you want to customize your FFmpeg final executable even more (remove features you don't need, make a smaller build, or custom build, etc.) then edit the script
 1. Add or remove the "--enable-xxx" settings in the build_ffmpeg method (under config_options) near the bottom of the script.  This can enable or disable parts of FFmpeg that you don't need, or want more, etc.
 
 If you *really* want to customize it, you can add new dependencies:
