@@ -1549,7 +1549,6 @@ build_ffmpeg() {
     config_options="$config_options --disable-libgme"
   fi
   config_options="$config_options $extra_postpend_configure_options"
-  config_options="$init_options --enable-librubberband --enable-gpl" # DO NOT COMMIT
  
   do_configure "$config_options"
   rm -f */*.a */*.dll *.exe # just in case some dependency library has changed, force it to re-link even if the ffmpeg source hasn't changed...
