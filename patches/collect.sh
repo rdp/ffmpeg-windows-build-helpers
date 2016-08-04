@@ -1,4 +1,4 @@
-#This basically zips up some local builds for distro
+# This basically zips up some local builds for distro
 
 cd sandbox/win32/ffmpeg_git
   git_version=`git rev-parse --short HEAD`
