@@ -1057,15 +1057,6 @@ build_fontconfig() {
   sed -i.bak 's/-L${libdir} -lfontconfig[^l]*$/-L${libdir} -lfontconfig -lfreetype -lexpat/' "$PKG_CONFIG_PATH/fontconfig.pc"
 }
 
-build_libaacplus() {
-  download_and_unpack_file http://217.20.164.161/~tipok/aacplus/libaacplus-2.0.2.tar.gz
-  cd libaacplus-2.0.2
-    if [[ ! -f configure ]]; then
-     ./autogen.sh --fail-early
-    fi
-    generic_configure_make_install 
-  cd ..
-}
 
 build_openssl() {
   # warning, this is a very old version of openssl since we don't really use it anymore hasn't been updated in awhile...
@@ -1536,7 +1527,7 @@ build_ffmpeg() {
     config_options="$config_options --enable-nonfree --enable-libfdk-aac --disable-libfaac " 
     # libfaac deemed too poor quality and becomes the default if included -- add it in and uncomment the build_faac line to include it, if anybody ever wants it... 
     # To use fdk-aac in VLC, we need to change FFMPEG's default (aac), but I haven't found how to do that... So I disabled it. This could be an new option for the script? (was --disable-decoder=aac )
-    # other possible options: --enable-openssl [unneeded since we use gnutls] --enable-libaacplus [just use fdk-aac only to avoid collision]
+    # other possible options: --enable-openssl [unneeded since we use gnutls] 
     #  apply_patch https://raw.githubusercontent.com/rdp/ffmpeg-windows-build-helpers/master/patches/nvresize2.patch "-p1" # uncomment if you want to test nvresize filter [et al] http://ffmpeg.org/pipermail/ffmpeg-devel/2015-November/182781.html patch worked with 7ab37cae34b3845
   fi
 
@@ -1655,7 +1646,6 @@ build_dependencies() {
   if [[ "$non_free" = "y" ]]; then
     build_fdk_aac
     # build_faac # not included for now, too poor quality output :)
-    # build_libaacplus # if you use it, conflicts with other AAC encoders <sigh>, so disabled :)    
   fi
   # build_openssl # hopefully do not need it anymore, since we use gnutls everywhere, so just don't even build it anymore...
   build_librtmp # needs gnutls [or openssl...]

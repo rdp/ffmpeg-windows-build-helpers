@@ -11,6 +11,8 @@ nvresize build
 
 add cygwin "cygwin bash" prompt [and combine...]
 
+add LGPL to the normal releases, why not? (shared and static)
+
 == maybe/never do, more on the never... ==
 
 XP mingwex?
