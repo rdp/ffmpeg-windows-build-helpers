@@ -693,7 +693,7 @@ build_qt() {
 }
 
 build_libsoxr() {
-  download_and_unpack_file http://sourceforge.net/projects/soxr/files/soxr-0.1.2-Source.tar.xz 
+  download_and_unpack_file https://sourceforge.net/projects/soxr/files/soxr-0.1.2-Source.tar.xz 
   cd soxr-0.1.2-Source
     do_cmake_and_install "-DHAVE_WORDS_BIGENDIAN_EXITCODE=0  -DBUILD_SHARED_LIBS:bool=off -DBUILD_TESTS:BOOL=OFF"
   cd ..
@@ -726,7 +726,7 @@ build_libsndfile() {
 
 build_libbs2b() {
   export ac_cv_func_malloc_0_nonnull=yes # rp_alloc compile failure yikes
-  generic_download_and_make_and_install http://downloads.sourceforge.net/project/bs2b/libbs2b/3.1.0/libbs2b-3.1.0.tar.gz
+  generic_download_and_make_and_install https://downloads.sourceforge.net/project/bs2b/libbs2b/3.1.0/libbs2b-3.1.0.tar.gz
   unset ac_cv_func_malloc_0_nonnull
 }
 
@@ -755,13 +755,13 @@ build_libwebp() {
 }
 
 build_libpng() {
-  # generic_download_and_make_and_install http://download.sourceforge.net/libpng/libpng-1.6.12.tar.xz 
-  generic_download_and_make_and_install http://download.sourceforge.net/libpng/libpng-1.5.26.tar.xz  # libtheora can't take 1.6.x :|
+  # generic_download_and_make_and_install https://download.sourceforge.net/libpng/libpng-1.6.12.tar.xz 
+  generic_download_and_make_and_install https://download.sourceforge.net/libpng/libpng-1.5.26.tar.xz  # libtheora can't take 1.6.x :|
 }
 
 build_libopenjpeg() {
   # does openjpeg 2.0 work with ffmpeg? possibly not yet...
-  download_and_unpack_file http://sourceforge.net/projects/openjpeg.mirror/files/1.5.2/openjpeg-1.5.2.tar.gz
+  download_and_unpack_file https://sourceforge.net/projects/openjpeg.mirror/files/1.5.2/openjpeg-1.5.2.tar.gz
   cd openjpeg-1.5.2
     export CFLAGS="$CFLAGS -DOPJ_STATIC" # see https://github.com/rdp/ffmpeg-windows-build-helpers/issues/37
     generic_configure_make_install
@@ -772,7 +772,7 @@ build_libopenjpeg() {
 build_libvpx() {
   local config_options=""
   if [[ true || $prefer_stable = "y" ]]; then # unstable is just messed :|
-    download_and_unpack_file http://storage.googleapis.com/downloads.webmproject.org/releases/webm/libvpx-1.5.0.tar.bz2
+    download_and_unpack_file https://storage.googleapis.com/downloads.webmproject.org/releases/webm/libvpx-1.5.0.tar.bz2
     cd libvpx-1.5.0
   else
     config_options="--enable-vp10 --enable-vp10-encoder --enable-vp10-decoder" #enable vp10 for experimental use
@@ -871,12 +871,12 @@ build_libdvdnav() {
 }
 
 build_libdvdcss() {
-  generic_download_and_make_and_install http://download.videolan.org/pub/videolan/libdvdcss/1.2.13/libdvdcss-1.2.13.tar.bz2
+  generic_download_and_make_and_install https://download.videolan.org/pub/videolan/libdvdcss/1.2.13/libdvdcss-1.2.13.tar.bz2
 }
 
 build_libopencore() {
-  generic_download_and_make_and_install http://sourceforge.net/projects/opencore-amr/files/opencore-amr/opencore-amr-0.1.3.tar.gz
-  generic_download_and_make_and_install http://sourceforge.net/projects/opencore-amr/files/vo-amrwbenc/vo-amrwbenc-0.1.2.tar.gz
+  generic_download_and_make_and_install https://sourceforge.net/projects/opencore-amr/files/opencore-amr/opencore-amr-0.1.3.tar.gz
+  generic_download_and_make_and_install https://sourceforge.net/projects/opencore-amr/files/vo-amrwbenc/vo-amrwbenc-0.1.2.tar.gz
 }
 
 build_libdlfcn() {
@@ -888,7 +888,7 @@ build_libdlfcn() {
 }
 
 build_libjpeg_turbo() {
-  download_and_unpack_file http://sourceforge.net/projects/libjpeg-turbo/files/1.5.0/libjpeg-turbo-1.5.0.tar.gz
+  download_and_unpack_file https://sourceforge.net/projects/libjpeg-turbo/files/1.5.0/libjpeg-turbo-1.5.0.tar.gz
   cd libjpeg-turbo-1.5.0
     #do_cmake_and_install "-DNASM=yasm" # couldn't figure out a static only build with cmake...maybe you can these days dunno
     generic_configure "NASM=yasm"
@@ -966,7 +966,7 @@ build_gmp() {
 }
 
 build_orc() {
-  generic_download_and_make_and_install http://download.videolan.org/contrib/orc-0.4.18.tar.gz
+  generic_download_and_make_and_install https://download.videolan.org/contrib/orc-0.4.18.tar.gz
 }
 
 build_libxml2() {
@@ -980,7 +980,7 @@ build_libbluray() {
 }
 
 build_libschroedinger() {
-  download_and_unpack_file http://download.videolan.org/contrib/schroedinger-1.0.11.tar.gz
+  download_and_unpack_file https://download.videolan.org/contrib/schroedinger-1.0.11.tar.gz
   cd schroedinger-1.0.11
     generic_configure
     sed -i.bak 's/testsuite//' Makefile
@@ -1013,7 +1013,7 @@ build_libnettle() {
 }
 
 build_bzlib2() {
-  download_and_unpack_file http://fossies.org/linux/misc/bzip2-1.0.6.tar.gz
+  download_and_unpack_file https://fossies.org/linux/misc/bzip2-1.0.6.tar.gz
   cd bzip2-1.0.6
     apply_patch https://raw.githubusercontent.com/rdp/ffmpeg-windows-build-helpers/master/patches/bzip2_cross_compile.diff
     do_make "$make_prefix_options libbz2.a bzip2 bzip2recover install"
@@ -1021,7 +1021,7 @@ build_bzlib2() {
 }
 
 build_zlib() {
-  download_and_unpack_file http://sourceforge.net/projects/libpng/files/zlib/1.2.8/zlib-1.2.8.tar.gz
+  download_and_unpack_file https://sourceforge.net/projects/libpng/files/zlib/1.2.8/zlib-1.2.8.tar.gz
   cd zlib-1.2.8
     do_configure "--static --prefix=$mingw_w64_x86_64_prefix"
     do_make_and_make_install "$make_prefix_options ARFLAGS=rcs"
@@ -1047,7 +1047,7 @@ build_libxvid() {
 }
 
 build_fontconfig() {
-  download_and_unpack_file http://www.freedesktop.org/software/fontconfig/release/fontconfig-2.11.94.tar.gz 
+  download_and_unpack_file https://www.freedesktop.org/software/fontconfig/release/fontconfig-2.11.94.tar.gz 
   cd fontconfig-2.11.94
     export CFLAGS= # compile fails with -march=sandybridge ... with mingw 4.0.6 at least ...
     generic_configure --disable-docs
@@ -1060,7 +1060,7 @@ build_fontconfig() {
 
 build_openssl() {
   # warning, this is a very old version of openssl since we don't really use it anymore hasn't been updated in awhile...
-  download_and_unpack_file http://www.openssl.org/source/openssl-1.0.1q.tar.gz
+  download_and_unpack_file https://www.openssl.org/source/openssl-1.0.1q.tar.gz
   cd openssl-1.0.1q
   #export CC="${cross_prefix}gcc"
   #export AR="${cross_prefix}ar"
@@ -1107,7 +1107,7 @@ build_intel_quicksync_mfx() { # i.e. qsv
 }
 
 build_fdk_aac() {
-  #generic_download_and_make_and_install http://sourceforge.net/projects/opencore-amr/files/fdk-aac/fdk-aac-0.1.0.tar.gz
+  #generic_download_and_make_and_install https://sourceforge.net/projects/opencore-amr/files/fdk-aac/fdk-aac-0.1.0.tar.gz
   do_git_checkout https://github.com/mstorsjo/fdk-aac.git fdk-aac_git
   cd fdk-aac_git
     if [[ ! -f "configure" ]]; then
@@ -1118,11 +1118,11 @@ build_fdk_aac() {
 }
 
 build_libexpat() {
-  generic_download_and_make_and_install http://sourceforge.net/projects/expat/files/expat/2.1.0/expat-2.1.0.tar.gz
+  generic_download_and_make_and_install https://sourceforge.net/projects/expat/files/expat/2.1.0/expat-2.1.0.tar.gz
 }
 
 build_iconv() {
-  download_and_unpack_file http://ftp.gnu.org/pub/gnu/libiconv/libiconv-1.14.tar.gz 
+  download_and_unpack_file https://ftp.gnu.org/pub/gnu/libiconv/libiconv-1.14.tar.gz 
   cd libiconv-1.14
     export CFLAGS=-O2 # ??
     generic_configure_make_install
@@ -1147,7 +1147,7 @@ build_freetype() {
 build_sdl() {
   # apparently ffmpeg expects prefix-sdl-config not sdl-config that they give us, so rename...
   export CFLAGS=-DDECLSPEC=  # avoid SDL trac tickets 939 and 282, and not worried about optimizing yet...
-  generic_download_and_make_and_install http://www.libsdl.org/release/SDL-1.2.15.tar.gz
+  generic_download_and_make_and_install https://www.libsdl.org/release/SDL-1.2.15.tar.gz
   reset_cflags
   mkdir -p temp
   cd temp # so paths will work out right
@@ -1161,11 +1161,11 @@ build_sdl() {
 }
 
 build_faac() {
-  generic_download_and_make_and_install http://downloads.sourceforge.net/faac/faac-1.28.tar.gz faac-1.28 "--with-mp4v2=no"
+  generic_download_and_make_and_install https://downloads.sourceforge.net/faac/faac-1.28.tar.gz faac-1.28 "--with-mp4v2=no"
 }
 
 build_lame() {
-  download_and_unpack_file http://sourceforge.net/projects/lame/files/lame/3.99/lame-3.99.5.tar.gz
+  download_and_unpack_file https://sourceforge.net/projects/lame/files/lame/3.99/lame-3.99.5.tar.gz
   cd lame-3.99.5
     apply_patch https://raw.githubusercontent.com/rdp/ffmpeg-windows-build-helpers/master/patches/lame3.patch
     generic_configure --enable-nasm
@@ -1205,7 +1205,7 @@ build_librubberband() {
 }
 
 build_zvbi() {
-  download_and_unpack_file http://sourceforge.net/projects/zapping/files/zvbi/0.2.35/zvbi-0.2.35.tar.bz2
+  download_and_unpack_file https://sourceforge.net/projects/zapping/files/zvbi/0.2.35/zvbi-0.2.35.tar.bz2
   cd zvbi-0.2.35
     apply_patch https://raw.githubusercontent.com/rdp/ffmpeg-windows-build-helpers/master/patches/zvbi-win32.patch
     apply_patch https://raw.githubusercontent.com/rdp/ffmpeg-windows-build-helpers/master/patches/zvbi-ioctl.patch
@@ -1221,7 +1221,7 @@ build_zvbi() {
 }
 
 build_libmodplug() {
-  generic_download_and_make_and_install http://sourceforge.net/projects/modplug-xmms/files/libmodplug/0.8.8.5/libmodplug-0.8.8.5.tar.gz
+  generic_download_and_make_and_install https://sourceforge.net/projects/modplug-xmms/files/libmodplug/0.8.8.5/libmodplug-0.8.8.5.tar.gz
   # unfortunately this sed isn't enough, though I think it should be [so we add --extra-libs=-lstdc++ to FFmpegs configure] http://trac.ffmpeg.org/ticket/1539
   sed -i.bak 's/-lmodplug.*/-lmodplug -lstdc++/' "$PKG_CONFIG_PATH/libmodplug.pc" # huh ?? c++?
   sed -i.bak 's/__declspec(dllexport)//' "$mingw_w64_x86_64_prefix/include/libmodplug/modplug.h" #strip DLL import/export directives
@@ -1252,7 +1252,7 @@ build_libproxy() {
 }
 
 build_lua() {
-  download_and_unpack_file http://www.lua.org/ftp/lua-5.3.3.tar.gz
+  download_and_unpack_file https://www.lua.org/ftp/lua-5.3.3.tar.gz
   cd lua-5.3.3
     export AR="${cross_prefix}ar rcu" # needs rcu parameter so have to call it out different :|
     do_make "CC=${cross_prefix}gcc RANLIB=${cross_prefix}ranlib generic" # generic == "generic target" and seems to result in a static build, no .exe's blah blah the mingw option doesn't even build liblua.a
@@ -1263,7 +1263,7 @@ build_lua() {
 }
 
 build_twolame() {
-  generic_download_and_make_and_install http://sourceforge.net/projects/twolame/files/twolame/0.3.13/twolame-0.3.13.tar.gz twolame-0.3.13 "CPPFLAGS=-DLIBTWOLAME_STATIC"
+  generic_download_and_make_and_install https://sourceforge.net/projects/twolame/files/twolame/0.3.13/twolame-0.3.13.tar.gz twolame-0.3.13 "CPPFLAGS=-DLIBTWOLAME_STATIC"
 }
 
 build_frei0r() {
@@ -1284,7 +1284,7 @@ build_vidstab() {
 }
 
 build_libcurl() {
-  generic_download_and_make_and_install http://curl.haxx.se/download/curl-7.46.0.tar.gz
+  generic_download_and_make_and_install https://curl.haxx.se/download/curl-7.46.0.tar.gz
 }
 
 build_netcdf() {
@@ -1298,7 +1298,7 @@ build_netcdf() {
 
 build_libhdhomerun() {
   exit 1 # still broken unfortunately, for cross compile :|
-  download_and_unpack_file http://download.silicondust.com/hdhomerun/libhdhomerun_20150826.tgz libhdhomerun
+  download_and_unpack_file https://download.silicondust.com/hdhomerun/libhdhomerun_20150826.tgz libhdhomerun
   cd libhdhomerun
     do_make CROSS_COMPILE=$cross_prefix  OS=Windows_NT
   cd ..
@@ -1383,7 +1383,7 @@ build_mplayer() {
   build_libjpeg_turbo
   build_libdvdread
   build_libdvdnav
-  download_and_unpack_file http://sourceforge.net/projects/mplayer-edl/files/mplayer-export-snapshot.2014-05-19.tar.bz2 mplayer-export-2014-05-19
+  download_and_unpack_file https://sourceforge.net/projects/mplayer-edl/files/mplayer-export-snapshot.2014-05-19.tar.bz2 mplayer-export-2014-05-19
   cd mplayer-export-2014-05-19
   do_git_checkout https://github.com/FFmpeg/FFmpeg ffmpeg d43c303038e9bd # known to work
   export LDFLAGS='-lpthread -ldvdnav -ldvdread -ldvdcss' # not compat with newer dvdread possibly? huh wuh?
@@ -1431,7 +1431,7 @@ build_mp4box() { # like build_gpac
 }
 
 build_libMXF() {
-  download_and_unpack_file http://sourceforge.net/projects/ingex/files/1.0.0/libMXF/libMXF-src-1.0.0.tgz "libMXF-src-1.0.0"
+  download_and_unpack_file https://sourceforge.net/projects/ingex/files/1.0.0/libMXF/libMXF-src-1.0.0.tgz "libMXF-src-1.0.0"
   cd libMXF-src-1.0.0
   apply_patch https://raw.githubusercontent.com/rdp/ffmpeg-windows-build-helpers/master/patches/libMXF.diff
   do_make "MINGW_CC_PREFIX=$cross_prefix"
