@@ -990,8 +990,8 @@ build_libschroedinger() {
 }
 
 build_gnutls() {
-  download_and_unpack_file ftp://ftp.gnutls.org/gcrypt/gnutls/v3.4/gnutls-3.4.13.tar.xz
-  cd gnutls-3.4.13
+  download_and_unpack_file ftp://ftp.gnutls.org/gcrypt/gnutls/v3.4/gnutls-3.4.14.tar.xz
+  cd gnutls-3.4.14
     sed -i.bak 's/mkstemp(tmpfile)/ -1 /g' src/danetool.c # fix x86_64 absent? but danetool is just an exe AFAICT so this hack should be ok...
     # --disable-cxx don't need the c++ version, in an effort to cut down on size... XXXX test size difference... 
     # --enable-local-libopts to allow building with local autogen installed, 
@@ -1173,8 +1173,8 @@ build_lame() {
   cd ..
 }
 
-build_vamp_plugin() {
-  download_and_unpack_file https://code.soundsoftware.ac.uk/attachments/download/1520/vamp-plugin-sdk-2.6.tar.gz # require sndfile
+build_vamp_plugin() { 
+  download_and_unpack_file https://sourceforge.net/projects/ffmpegwindowsbi/files/dependency_libraries/vamp-plugin-sdk-2.6.tar.gz
   cd vamp-plugin-sdk-2.6
     generic_configure
     do_make_and_make_install "$make_prefix_options sdkstatic"
@@ -1620,10 +1620,10 @@ build_dependencies() {
   build_libx265
   build_libopenh264
 
-  build_vamp_plugin
+  build_vamp_plugin # requires libsndfile
   build_fftw
   build_libsamplerate
-  build_librubberband # needs libsndfile, vamp_plugin, fftw, libsamplerate
+  build_librubberband # needs libsndfile, vamp_plugin [though it never uses it], fftw, libsamplerate [some of which it doesn't have to use, but configure require they be installed, so we use them anyway...gah]
 
   build_lame
   build_twolame
