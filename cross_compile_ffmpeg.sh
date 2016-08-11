@@ -1182,7 +1182,7 @@ build_vamp_plugin() {
 }
 
 build_fftw() {
-  generic_download_and_make_and_install http://www.fftw.org/fftw-3.3.4.tar.gz # said to make it "double precision-er"
+  generic_download_and_make_and_install http://www.fftw.org/fftw-3.3.5.tar.gz # said to make it "double precision-er"
 }
 
 build_libsamplerate() {
