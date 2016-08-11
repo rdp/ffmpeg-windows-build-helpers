@@ -6,8 +6,9 @@ including many dependency libraries they use.
 Note that I do offer custom builds, typically $200 ping me rogerdpack@gmail.com
 and I'll do the work for you :) 
 
-To run the script, either build in windows, or build in linux (cross compiles to build windows executables).
+To run the script, either build in cygwin-windows (see below for instructions), or build in linux (cross compiles to build windows executables).
 Building in linux takes less time overall, but requires a linux box or VM.
+Update: or a windows 10 linux bash shell also works, no VM nor cygwin required. 
 Building in windows takes "quite awhile" but avoids the need of needing linux installed somewhere.
 I do have some "distro release builds" of running the script here: https://sourceforge.net/projects/ffmpegwindowsbi/files
 
