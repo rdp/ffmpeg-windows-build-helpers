@@ -19,7 +19,7 @@ done
 ./cross_compile_ffmpeg.sh --compiler-flavors=multi --disable-nonfree=y --git-get-latest=y --high-bitdepth=y $1 # high bit depth static
 
 ./patches/collect.sh
+rm ./sandbox/distros/readme.txt
 touch ./sandbox/distros/readme.txt
-echo "created readme file"
+echo "created empty readme file sandbox/distros/readme.txt"
 echo "now upload them!"
-
