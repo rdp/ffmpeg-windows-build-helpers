@@ -1,5 +1,5 @@
 # This basically zips up some local builds for distro
-set -x
+# set -x
 
 cd sandbox/win32/ffmpeg_git
   git_version=`git rev-parse --short HEAD`
@@ -9,16 +9,14 @@ date=`date +%Y-%m-%d`
 date_version="$date-g$git_version"
 
 root="sandbox/distros/$date_version"
-echo "creating $root for $date $date_version"
+echo "creating $root distros..."
 rm -rf $root
 mkdir -p "$root/32-bit"
 mkdir -p "$root/64-bit"
 
-
 copy_ffmpeg_binaries() {
   local from_dir=$1
   local to_dir=$2
-  local strip=$3
 
   # make sure git matches everywhere, otherwise zip names off :|
   cd $from_dir
@@ -39,17 +37,18 @@ do_shared() {
   local from_dir=$1
   local to_dir=$2
   local strip=$3
+
   mkdir $to_dir
 
   # XXX no git version check :|
 
   cp -r $from_dir/* $to_dir
-  #$strip $to_dir/bin/*.dll # ???? useful???
+  $strip $to_dir/bin/*.dll # ???? useful???
 }
 
 do_shareds() {
-  do_shared ./sandbox/win32/ffmpeg_git_shared.installed $root/32-bit/ffmpeg-shared ./sandbox/mingw-w64-i686/bin/i686-w64-mingw32-strip
-  do_shared ./sandbox/x86_64/ffmpeg_git_shared.installed $root/64-bit/ffmpeg-shared ./sandbox/mingw-w64-x86_64/bin/x86_64-w64-mingw32-strip
+  do_shared ./sandbox/win32/ffmpeg_git_shared.installed $root/32-bit/ffmpeg-shared ./sandbox/cross_compilers/mingw-w64-i686/bin/i686-w64-mingw32-strip
+  do_shared ./sandbox/x86_64/ffmpeg_git_shared.installed $root/64-bit/ffmpeg-shared ./sandbox/cross_compilers/mingw-w64-x86_64/bin/x86_64-w64-mingw32-strip
   cd sandbox/distros
     create_zip ffmpeg.shared.$date.32-bit.zip "$date_version/32-bit/ffmpeg-shared/*"
     create_zip ffmpeg.shared.$date.64-bit.zip "$date_version/64-bit/ffmpeg-shared/*"
