@@ -36,19 +36,17 @@ copy_ffmpeg_binaries() {
 do_shared() {
   local from_dir=$1
   local to_dir=$2
-  local strip=$3
 
   mkdir $to_dir
 
   # XXX no git version check :|
 
   cp -r $from_dir/* $to_dir
-  $strip $to_dir/bin/*.dll # ???? useful???
 }
 
 do_shareds() {
-  do_shared ./sandbox/win32/ffmpeg_git_shared.installed $root/32-bit/ffmpeg-shared ./sandbox/cross_compilers/mingw-w64-i686/bin/i686-w64-mingw32-strip
-  do_shared ./sandbox/x86_64/ffmpeg_git_shared.installed $root/64-bit/ffmpeg-shared ./sandbox/cross_compilers/mingw-w64-x86_64/bin/x86_64-w64-mingw32-strip
+  do_shared ./sandbox/win32/ffmpeg_git_shared.installed $root/32-bit/ffmpeg-shared
+  do_shared ./sandbox/x86_64/ffmpeg_git_shared.installed $root/64-bit/ffmpeg-shared
   cd sandbox/distros
     create_zip ffmpeg.shared.$date.32-bit.zip "$date_version/32-bit/ffmpeg-shared/*"
     create_zip ffmpeg.shared.$date.64-bit.zip "$date_version/64-bit/ffmpeg-shared/*"
@@ -87,8 +85,8 @@ do_statics() {
   cd ../..
 }
 
-#do_statics
-#do_high_bitdepth_and_zip
-#do_xp_compat_and_zip
+do_statics
+do_high_bitdepth_and_zip
+do_xp_compat_and_zip
 do_shareds
 
