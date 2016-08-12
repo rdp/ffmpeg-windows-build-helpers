@@ -98,7 +98,8 @@ do_shareds
 readme=./sandbox/distros/readme.txt
 local_git_v=$(git rev-parse --short HEAD)
 echo "built $date_version using ffmpeg-windows-build-helpers v$local_git_v
-see the github distro at that commit if you want to know which dependencies and their versions were used" > $readme
+see the github distro at that commit if you want to know which dependencies and their versions were used
+also see https://github.com/rdp/ffmpeg-windows-build-helpers if you need/want instructions to build your own modified version" > $readme
 echo "created file $readme"
 echo "now upload them!"
 
