@@ -1,5 +1,6 @@
 # This basically zips up some local builds for distro
 # can pass an argument like "v3.2.1"
+set -e # abort if any line fails
 
 cd sandbox/win32/ffmpeg_git
   git_version=`git rev-parse --short HEAD` # "all" of them should match this

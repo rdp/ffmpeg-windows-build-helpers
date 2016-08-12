@@ -1,4 +1,5 @@
 # can pass param like "3.1.1" for that ffmpeg release
+set -e # abort if any line fails
 
 if [[ $1 != "" ]]; then
   desired_ffmpeg_ver="--ffmpeg-git-checkout-version=n$1"
@@ -19,14 +20,14 @@ for dir in sandbox/*/ffmpeg_git*; do
 done
 
 # all are both 32 and 64 bit
-./cross_compile_ffmpeg.sh --compiler-flavors=multi --disable-nonfree=y --git-get-latest=n --build-ffmpeg-shared=y $desired_ffmpeg_ver && # normal static and shared
-./cross_compile_ffmpeg.sh --compiler-flavors=multi --disable-nonfree=y --git-get-latest=n --build-intel-qsv=n $desired_ffmpeg_ver && # windows xp static
-./cross_compile_ffmpeg.sh --compiler-flavors=multi --disable-nonfree=y --git-get-latest=y --high-bitdepth=y $desired_ffmpeg_ver # high bit depth static
+./cross_compile_ffmpeg.sh --compiler-flavors=multi --disable-nonfree=y --git-get-latest=n --build-ffmpeg-shared=n --build-ffmpeg-static=y $desired_ffmpeg_ver 
+./cross_compile_ffmpeg.sh --compiler-flavors=multi --disable-nonfree=y --git-get-latest=n --build-ffmpeg-shared=y --build-ffmpeg-static=n $desired_ffmpeg_ver
+./cross_compile_ffmpeg.sh --compiler-flavors=multi --disable-nonfree=y --git-get-latest=n --build-intel-qsv=n --build-ffmpeg-shared=n --build-ffmpeg-static=y $desired_ffmpeg_ver # windows xp :|
+./cross_compile_ffmpeg.sh --compiler-flavors=multi --disable-nonfree=y --git-get-latest=n --build-ffmpeg-static=y --build-ffmpeg-shared=n --high-bitdepth=y $desired_ffmpeg_ver
 
-rm -rf sandbox/distros # free up space from previous distros
+rm -rf sandbox/distros # free up space from any previous distros
 if [[ $1 != "" ]]; then
   prettified_ver=v$1
 fi
 
 ./patches/all_zip_distros.sh $prettified_ver
-
