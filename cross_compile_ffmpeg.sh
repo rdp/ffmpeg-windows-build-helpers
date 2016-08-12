@@ -246,8 +246,7 @@ do_git_checkout() {
   local repo_url="$1"
   local to_dir="$2"
   if [[ -z $to_dir ]]; then
-    echo "got empty to dir for git checkout?"
-    exit 1
+    to_dir=$(basename $repo_url | sed s/\.git/_git/) # http://y/abc.git -> abc_git
   fi
   local desired_branch="$3"
   if [ ! -d $to_dir ]; then
@@ -270,7 +269,7 @@ do_git_checkout() {
   old_git_version=`git rev-parse HEAD`
 
   if [[ -z $desired_branch ]]; then
-    git co master || exit 1 # in case they were on some other branch before [ex: going between ffmpeg release tag]
+    git checkout master || exit 1 # in case they were on some other branch before [ex: going between ffmpeg release tag]
     if [[ $git_get_latest = "y" ]]; then
       echo "Updating to latest $to_dir git version [origin/master]..."
       git merge origin/master || exit 1
@@ -462,7 +461,7 @@ generic_download_and_make_and_install() {
 
 do_git_checkout_and_make_install() {
   local url=$1
-  local git_checkout_name=$(basename $url | sed s/\.git/_git/) # abc.git -> abc_git
+  local git_checkout_name=$(basename $url | sed s/\.git/_git/) # http://y/abc.git -> abc_git
   do_git_checkout $url $git_checkout_name
   cd $git_checkout_name
     generic_configure_make_install
@@ -647,7 +646,7 @@ build_libx264() {
 build_librtmp() {
   #  download_and_unpack_file http://rtmpdump.mplayerhq.hu/download/rtmpdump-2.3.tgz # has some odd configure failure
 
-  do_git_checkout "http://repo.or.cz/r/rtmpdump.git" rtmpdump_git 
+  do_git_checkout "http://repo.or.cz/r/rtmpdump.git" 
   cd rtmpdump_git/librtmp
   do_make_and_make_install "CRYPTO=GNUTLS OPT=-O2 CROSS_COMPILE=$cross_prefix SHARED=no prefix=$mingw_w64_x86_64_prefix"
   #make install CRYPTO=GNUTLS OPT='-O2 -g' "CROSS_COMPILE=$cross_prefix" SHARED=no "prefix=$mingw_w64_x86_64_prefix" || exit 1
@@ -700,7 +699,7 @@ build_libsoxr() {
 
 
 build_libebur128() {
-  do_git_checkout https://github.com/jiixyj/libebur128.git lib_ebur128_git
+  do_git_checkout https://github.com/jiixyj/libebur128.git
   cd lib_ebur128_git
     sed -i.bak 's/ebur128 SHARED ebur128.c/ebur128 STATIC ebur128.c/' ebur128/CMakeLists.txt  # no option for STATIC only [?] removed shared LOL
     do_cmake_and_install "-DENABLE_INTERNAL_QUEUE_H:BOOL=ON"
@@ -775,7 +774,7 @@ build_libvpx() {
     cd libvpx-1.5.0
   else
     config_options="--enable-vp10 --enable-vp10-encoder --enable-vp10-decoder" #enable vp10 for experimental use
-    do_git_checkout https://chromium.googlesource.com/webm/libvpx "libvpx_git"
+    do_git_checkout https://chromium.googlesource.com/webm/libvpx
     cd libvpx_git
   fi
   export CROSS="$cross_prefix"
@@ -792,7 +791,7 @@ build_libvpx() {
 
 
 build_libilbc() {
-  do_git_checkout https://github.com/dekkers/libilbc.git libilbc_git
+  do_git_checkout https://github.com/dekkers/libilbc.git
   cd libilbc_git
   if [[ ! -f "configure" ]]; then
     autoreconf -fiv || exit 1 # failure here, OS X means "you need libtoolize" perhaps? http://betterlogic.com/roger/2014/12/ilbc-cross-compile-os-x-mac-woe/
@@ -879,8 +878,8 @@ build_libopencore() {
 }
 
 build_libdlfcn() {
-  do_git_checkout https://github.com/dlfcn-win32/dlfcn-win32.git dlfcn-win32 
-  cd dlfcn-win32
+  do_git_checkout https://github.com/dlfcn-win32/dlfcn-win32.git 
+  cd dlfcn-win32_git
     do_configure "--disable-shared --enable-static --cross-prefix=$cross_prefix --prefix=$mingw_w64_x86_64_prefix" # rejects some normal cross compile options so custom here
     do_make_and_make_install
   cd ..
@@ -914,7 +913,7 @@ build_libspeex() {
   #  generic_configure "LDFLAGS=-lwinmm" # speexdec.exe needs this :|
   #  do_make_and_make_install
   #cd ..
-  do_git_checkout https://github.com/xiph/speex.git speex_git
+  do_git_checkout https://github.com/xiph/speex.git
   cd speex_git
     generic_configure_make_install
   cd ..
@@ -939,7 +938,7 @@ build_libfribidi() {
     generic_configure_make_install
   cd ..
 
-  #do_git_checkout http://anongit.freedesktop.org/git/fribidi/fribidi.git fribidi_git
+  #do_git_checkout http://anongit.freedesktop.org/git/fribidi/fribidi.git
   #cd fribidi_git
   #  ./bootstrap # couldn't figure out how to make this work...
   #  generic_configure_make_install
@@ -1096,7 +1095,7 @@ build_libnvenc() {
 }
 
 build_intel_quicksync_mfx() { # i.e. qsv
-  do_git_checkout https://github.com/lu-zero/mfx_dispatch.git mfx_dispatch_git_lu_zero
+  do_git_checkout https://github.com/lu-zero/mfx_dispatch.git # whoever lu-zero is?
   cd mfx_dispatch_git_lu_zero
     if [[ ! -f "configure" ]]; then
       autoreconf -fiv || exit 1
@@ -1107,7 +1106,7 @@ build_intel_quicksync_mfx() { # i.e. qsv
 
 build_fdk_aac() {
   #generic_download_and_make_and_install https://sourceforge.net/projects/opencore-amr/files/fdk-aac/fdk-aac-0.1.0.tar.gz
-  do_git_checkout https://github.com/mstorsjo/fdk-aac.git fdk-aac_git
+  do_git_checkout https://github.com/mstorsjo/fdk-aac.git
   cd fdk-aac_git
     if [[ ! -f "configure" ]]; then
       autoreconf -fiv || exit 1
@@ -1275,8 +1274,8 @@ build_frei0r() {
 }
 
 build_vidstab() {
-  do_git_checkout https://github.com/georgmartius/vid.stab.git vid.stab "430b4cffeb" # 0.9.8
-  cd vid.stab
+  do_git_checkout https://github.com/georgmartius/vid.stab.git vid.stab_git "430b4cffeb" # 0.9.8
+  cd vid.stab_git
     sed -i.bak "s/SHARED/STATIC/g" CMakeLists.txt # static build-ify
     do_cmake_and_install
   cd ..
@@ -1306,13 +1305,13 @@ build_libhdhomerun() {
 build_dvbtee_app() {
   build_libcurl # it "can use this" so why not
 #  build_libhdhomerun # broken but dependency apparently :|
-  do_git_checkout https://github.com/mkrufky/libdvbtee.git libdvbtee
-  cd libdvbtee
+  do_git_checkout https://github.com/mkrufky/libdvbtee.git 
+  cd libdvbtee_git
     # checkout its submodule, apparently required
     if [ ! -e libdvbpsi/bootstrap ]; then
       rm -rf libdvbpsi # remove placeholder
-      do_git_checkout https://github.com/mkrufky/libdvbpsi.git libdvbpsi
-      cd libdvbpsi
+      do_git_checkout https://github.com/mkrufky/libdvbpsi.git
+      cd libdvbpsi_git
         generic_configure_make_install # library dependency submodule... TODO don't install it, just leave it local :)
       cd ..
     fi
@@ -1339,7 +1338,7 @@ build_vlc() {
   echo "not building vlc, broken dependencies or something weird"
   return
 
-  do_git_checkout https://github.com/videolan/vlc.git vlc_git
+  do_git_checkout https://github.com/videolan/vlc.git
   cd vlc_git
   # apply_patch https://raw.githubusercontent.com/rdp/ffmpeg-windows-build-helpers/master/patches/vlc_localtime_s.patch # git revision needs it...
 
@@ -1384,7 +1383,7 @@ build_mplayer() {
   build_libdvdnav
   download_and_unpack_file https://sourceforge.net/projects/mplayer-edl/files/mplayer-export-snapshot.2014-05-19.tar.bz2 mplayer-export-2014-05-19
   cd mplayer-export-2014-05-19
-  do_git_checkout https://github.com/FFmpeg/FFmpeg ffmpeg d43c303038e9bd # known to work
+  do_git_checkout https://github.com/FFmpeg/FFmpeg ffmpeg d43c303038e9bd # known compatible commit
   export LDFLAGS='-lpthread -ldvdnav -ldvdread -ldvdcss' # not compat with newer dvdread possibly? huh wuh?
   export CFLAGS=-DHAVE_DVDCSS_DVDCSS_H
   do_configure "--enable-cross-compile --host-cc=cc --cc=${cross_prefix}gcc --windres=${cross_prefix}windres --ranlib=${cross_prefix}ranlib --ar=${cross_prefix}ar --as=${cross_prefix}as --nm=${cross_prefix}nm --enable-runtime-cpudetection --extra-cflags=$CFLAGS --with-dvdnav-config=$mingw_w64_x86_64_prefix/bin/dvdnav-config --disable-dvdread-internal --disable-libdvdcss-internal --disable-w32threads --enable-pthreads --extra-libs=-lpthread --enable-debug --enable-ass-internal --enable-dvdread --enable-dvdnav --disable-libvpx-lavc" # haven't reported the ldvdcss thing, think it's to do with possibly it not using dvdread.pc [?] XXX check with trunk
@@ -1406,8 +1405,8 @@ build_mplayer() {
 build_mp4box() { # like build_gpac
   # This script only builds the gpac_static lib plus MP4Box. Other tools inside
   # specify revision until this works: https://sourceforge.net/p/gpac/discussion/287546/thread/72cf332a/
-  do_git_checkout https://github.com/gpac/gpac.git mp4box_gpac
-  cd mp4box_gpac
+  do_git_checkout https://github.com/gpac/gpac.git mp4box_gpac_git
+  cd mp4box_gpac_git
   # are these tweaks needed? If so then complain to the mp4box people about it?
   sed -i.bak "s/has_dvb4linux=\"yes\"/has_dvb4linux=\"no\"/g" configure
   sed -i.bak "s/`uname -s`/MINGW32/g" configure
