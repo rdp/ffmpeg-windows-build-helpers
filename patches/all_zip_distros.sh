@@ -1,11 +1,16 @@
 # This basically zips up some local builds for distro
-# set -x
+# can pass an argument like "v3.2.1"
 
 cd sandbox/win32/ffmpeg_git
-  git_version=`git rev-parse --short HEAD`
+  git_version=`git rev-parse --short HEAD` # "all" of them should match this
 cd ../../..
 mkdir -p sandbox/distros # -p so it doesn't warn
 date=`date +%Y-%m-%d`
+
+if [[ $1 != "" ]]; then
+  date="$date-$1" # add it here so it gets added everywhere
+fi
+
 date_version="$date-g$git_version"
 
 root="sandbox/distros/$date_version"
@@ -55,7 +60,7 @@ do_shareds() {
 
 create_zip() {
   echo "zipping $1"
-  zip -r $1 $2
+  zip -qr $1 $2 # without  -q for quiet it was kind of screen chatty
 }
 
 do_high_bitdepth_and_zip() {
@@ -89,4 +94,11 @@ do_statics
 do_high_bitdepth_and_zip
 do_xp_compat_and_zip
 do_shareds
+
+readme=./sandbox/distros/readme.txt
+local_git_v=$(`git rev-parse --short HEAD`)
+echo "built $date_version using ffmpeg-windows-build-helpers v$local_git_v
+see the github distro at that commit if you want to know which dependencies and their versions were used" > $readme
+echo "created file $readme"
+echo "now upload them!"
 

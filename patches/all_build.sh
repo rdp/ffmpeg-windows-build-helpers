@@ -1,6 +1,4 @@
 # can pass param like --ffmpeg-git-checkout-version=n3.1.1
-rm -rf sandbox/distros # free up space
-set -x
 
 # synchronize git versions, in case it's doing a git master build (the default)
 # so that packaging doesn't detect discrepancies and barf :)
@@ -21,9 +19,5 @@ done
 ./cross_compile_ffmpeg.sh --compiler-flavors=multi --disable-nonfree=y --git-get-latest=n --build-intel-qsv=n $1 && # windows xp static
 ./cross_compile_ffmpeg.sh --compiler-flavors=multi --disable-nonfree=y --git-get-latest=y --high-bitdepth=y $1 # high bit depth static
 
-./patches/collect.sh
-readme=./sandbox/distros/readme.txt
-rm -rf $readme
-touch $readme
-echo "created empty readme file $readme"
-echo "now upload them!"
+rm -rf sandbox/distros # free up space from previous distros
+./patches/all_zip_distros.sh
