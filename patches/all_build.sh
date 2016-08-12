@@ -1,7 +1,7 @@
 # can pass param like "n3.1.1"
 
 if [[ $1 != "" ]]; then
-  $1="--ffmpeg-git-checkout-version=$1"
+  desired_ffmpeg_ver="--ffmpeg-git-checkout-version=$1"
 fi
 
 # synchronize git versions, in case it's doing a git master build (the default)
@@ -19,9 +19,9 @@ for dir in sandbox/*/ffmpeg_git*; do
 done
 
 # all are both 32 and 64 bit
-./cross_compile_ffmpeg.sh --compiler-flavors=multi --disable-nonfree=y --git-get-latest=n --build-ffmpeg-shared=y $1 && # normal static and shared
-./cross_compile_ffmpeg.sh --compiler-flavors=multi --disable-nonfree=y --git-get-latest=n --build-intel-qsv=n $1 && # windows xp static
-./cross_compile_ffmpeg.sh --compiler-flavors=multi --disable-nonfree=y --git-get-latest=y --high-bitdepth=y $1 # high bit depth static
+./cross_compile_ffmpeg.sh --compiler-flavors=multi --disable-nonfree=y --git-get-latest=n --build-ffmpeg-shared=y $desired_ffmpeg_ver && # normal static and shared
+./cross_compile_ffmpeg.sh --compiler-flavors=multi --disable-nonfree=y --git-get-latest=n --build-intel-qsv=n $desired_ffmpeg_ver && # windows xp static
+./cross_compile_ffmpeg.sh --compiler-flavors=multi --disable-nonfree=y --git-get-latest=y --high-bitdepth=y $desired_ffmpeg_ver # high bit depth static
 
 rm -rf sandbox/distros # free up space from previous distros
 ./patches/all_zip_distros.sh $1
