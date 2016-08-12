@@ -1,4 +1,8 @@
-# can pass param like --ffmpeg-git-checkout-version=n3.1.1
+# can pass param like "n3.1.1"
+
+if [[ $1 != "" ]]; then
+  $1="--ffmpeg-git-checkout-version=$1"
+fi
 
 # synchronize git versions, in case it's doing a git master build (the default)
 # so that packaging doesn't detect discrepancies and barf :)
@@ -20,4 +24,4 @@ done
 ./cross_compile_ffmpeg.sh --compiler-flavors=multi --disable-nonfree=y --git-get-latest=y --high-bitdepth=y $1 # high bit depth static
 
 rm -rf sandbox/distros # free up space from previous distros
-./patches/all_zip_distros.sh
+./patches/all_zip_distros.sh $1
