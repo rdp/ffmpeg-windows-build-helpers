@@ -233,7 +233,7 @@ do_svn_checkout() {
 update_to_desired_git_branch_or_revision() {
   local to_dir="$1"
   local desired_branch="$2" # or tag or whatever...
-  if [ -n "$desired_branch" ]; then
+  if [ ! -z "$desired_branch" ]; then
     pushd $to_dir
       echo "git checkout'ing $desired_branch"
       git checkout "$desired_branch" || exit 1 # if this fails, nuke the directory first...
@@ -253,43 +253,42 @@ do_git_checkout() {
   if [ ! -d $to_dir ]; then
     echo "Downloading (via git clone) $to_dir from $repo_url"
     rm -rf $to_dir.tmp # just in case it was interrupted previously...
-    # prevent partial checkouts by renaming it only after success
     git clone $repo_url $to_dir.tmp || exit 1
+    # prevent partial checkouts by renaming it only after success
     mv $to_dir.tmp $to_dir
-    echo "done downloading $to_dir"
-    update_to_desired_git_branch_or_revision $to_dir $desired_branch
+    echo "done git cloning to $to_dir"
+    cd $to_dir
   else
     cd $to_dir
-    old_git_version=`git rev-parse HEAD`
-
-    if [[ -z $desired_branch ]]; then
-      if [[ $git_get_latest = "y" ]]; then
-        echo "Updating to latest $to_dir git version [origin/master]..."
-        git fetch
-        git merge origin/master || exit 1
-      else
-        echo "not doing git get latest pull for latest code $to_dir"
-      fi
+    if [[ $git_get_latest = "y" ]]; then
+      git fetch # need this no matter what
     else
-      if [[ $git_get_latest = "y" ]]; then
-        echo "Doing git fetch $to_dir in case it affects the desired branch [$desired_branch]"
-        git fetch
-        # I think unneeded, and it caused the annoying merge commit message commit pop up when tracking branches...maybe needed a checkout first?
-        # git merge $desired_branch || exit 1
-      else
-        echo "not doing git fetch $to_dir to see if it affected desired branch [$desired_branch]"
-      fi
+      echo "not doing git get latest pull for latest code $to_dir"
     fi
-    update_to_desired_git_branch_or_revision "." $desired_branch
-    new_git_version=`git rev-parse HEAD`
-    if [[ "$old_git_version" != "$new_git_version" ]]; then
-      echo "got upstream changes, forcing re-configure."
-      rm -f already*
-    else
-      echo "got no new upstream changes, not forcing re-configure..."
-    fi 
-    cd ..
   fi
+
+  old_git_version=`git rev-parse HEAD`
+
+  if [[ -z $desired_branch ]]; then
+    git co master || exit 1 # in case they were on some other branch before [ex: going between ffmpeg release tag]
+    if [[ $git_get_latest = "y" ]]; then
+      echo "Updating to latest $to_dir git version [origin/master]..."
+      git merge origin/master || exit 1
+    fi
+  else
+    echo "git checkout'ing $desired_branch"
+    git checkout "$desired_branch" || exit 1
+    git merge "$desired_branch" || exit 1 # get incoming changes to a branch 
+  fi
+
+  new_git_version=`git rev-parse HEAD`
+  if [[ "$old_git_version" != "$new_git_version" ]]; then
+    echo "got upstream changes, forcing re-configure."
+    rm -f already*
+  else
+    echo "got no code changes, not forcing reconfigure for that..."
+  fi 
+  cd ..
 }
 
 get_small_touchfile_name() { # have to call with assignment like a=$(get_small...)

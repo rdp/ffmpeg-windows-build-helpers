@@ -1,16 +1,19 @@
 # can pass param like --ffmpeg-git-checkout-version=n3.1.1
 rm -rf sandbox/distros # free up space
+set -x
 
 # synchronize git versions, in case it's doing a git master build (the default)
 # so that packaging doesn't detect discrepancies and barf :)
 for dir in sandbox/*/ffmpeg_git*; do
-  cd $dir
-  if [[ $1 == "" ]]; then
-    git pull
-  fi 
-  # else don't do git pull as it resets the git hash so forces a rebuild even if it's already previously built to that hash, ex: release build
-  rm -f already*
-  cd ../../.. 
+  if [[ -d $dir ]]; then # else there were none, and it passes through the string "sandbox/*..." <sigh>
+    cd $dir
+    if [[ $1 == "" ]]; then
+      git pull
+    fi 
+    # else don't do git pull as it resets the git hash so forces a rebuild even if it's already previously built to that hash, ex: release build
+    rm -f already*
+    cd ../../.. 
+  fi
 done
 
 # all are both 32 and 64 bit
@@ -19,7 +22,8 @@ done
 ./cross_compile_ffmpeg.sh --compiler-flavors=multi --disable-nonfree=y --git-get-latest=y --high-bitdepth=y $1 # high bit depth static
 
 ./patches/collect.sh
-rm ./sandbox/distros/readme.txt
-touch ./sandbox/distros/readme.txt
-echo "created empty readme file sandbox/distros/readme.txt"
+readme=./sandbox/distros/readme.txt
+rm -rf $readme
+touch $readme
+echo "created empty readme file $readme"
 echo "now upload them!"
