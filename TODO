@@ -1,5 +1,7 @@
 == actual todos ==
 
+zip lgpl (shared+static) and release plz
+
 fix vlc... :| then patch for DVD :)
 poor audio sdl ffplay something?
 try more march, does it really even matter?
@@ -18,6 +20,8 @@ release fei0r filters once
 distro mp4box/anything else vaguely useful :|
 
 == maybe/never do, more on the never... ==
+release 7z options too? :)
+
 release "real" static libs: http://stackoverflow.com/questions/11701635/use-ffmpeg-in-visual-studio
 
 XP mingwex?
