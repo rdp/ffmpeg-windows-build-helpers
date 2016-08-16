@@ -700,7 +700,7 @@ build_libsoxr() {
 
 build_libebur128() {
   do_git_checkout https://github.com/jiixyj/libebur128.git
-  cd lib_ebur128_git
+  cd libebur128_git
     sed -i.bak 's/ebur128 SHARED ebur128.c/ebur128 STATIC ebur128.c/' ebur128/CMakeLists.txt  # no option for STATIC only [?] removed shared LOL
     do_cmake_and_install "-DENABLE_INTERNAL_QUEUE_H:BOOL=ON"
     # can't add -lspeexdsp to its .pc file, it doesn't have one, so just add to ffmpeg configure flags <sigh> XXXX remove once ebur bumped and it doesn't have that dependency as much [?]
@@ -1095,8 +1095,8 @@ build_libnvenc() {
 }
 
 build_intel_quicksync_mfx() { # i.e. qsv
-  do_git_checkout https://github.com/lu-zero/mfx_dispatch.git # whoever lu-zero is?
-  cd mfx_dispatch_git_lu_zero
+  do_git_checkout https://github.com/lu-zero/mfx_dispatch.git # lu-zero??
+  cd mfx_dispatch_git
     if [[ ! -f "configure" ]]; then
       autoreconf -fiv || exit 1
     fi
