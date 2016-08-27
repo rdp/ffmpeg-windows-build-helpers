@@ -696,7 +696,7 @@ std_compile 'mpfr' "$mpfr_release_ver" "http://ftp.gnu.org/gnu/mpfr/mpfr-$mpfr_r
 std_compile 'mpc' "$mpc_release_ver" "http://ftp.gnu.org/gnu/mpc/mpc-$mpc_release_ver.tar.gz" "../source/mpc-$mpc_release_ver/configure" --build="$system_type" --prefix="$mpc_prefix" --with-gmp="$gmp_prefix" --with-mpfr="$mpfr_prefix" --disable-shared --enable-static
 
 #build isl
-std_compile 'isl' "$isl_ver" "ftp://gcc.gnu.org/pub/gcc/infrastructure/isl-$isl_ver.tar.bz2" "../source/isl-$isl_ver/configure" --prefix="$isl_prefix" --build="$system_type" --enable-static --disable-shared --with-gmp-prefix="$gmp_prefix" --with-piplib=no --with-clang=no
+std_compile 'isl' "$isl_ver" "http://ftp.mirrorservice.org/sites/sourceware.org/pub/gcc/infrastructure/isl-$isl_ver.tar.bz2" "../source/isl-$isl_ver/configure" --prefix="$isl_prefix" --build="$system_type" --enable-static --disable-shared --with-gmp-prefix="$gmp_prefix" --with-piplib=no --with-clang=no
 
 #build cloog
 if [[ "$gcc_ver" = "$gcc_old_release_ver" ]]; then
