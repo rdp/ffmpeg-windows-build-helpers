@@ -314,7 +314,7 @@ do_configure() {
     if [ -f bootstrap ]; then
       ./bootstrap # some need this to create ./configure :|
     fi
-    if [ -f bootstrap.sh ]; then
+    if [ ! -f $configure_name && -f bootstrap.sh ]; then # fftw wants to only run this if no configure :|
       ./bootstrap.sh
     fi
     if [[ ! -f $configure_name ]]; then
