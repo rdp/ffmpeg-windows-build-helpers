@@ -700,7 +700,7 @@ std_compile 'isl' "$isl_ver" "http://ftp.mirrorservice.org/sites/sourceware.org/
 
 #build cloog
 if [[ "$gcc_ver" = "$gcc_old_release_ver" ]]; then
-  std_compile 'cloog' "$cloog_ver" "ftp://gcc.gnu.org/pub/gcc/infrastructure/cloog-$cloog_ver.tar.gz" "../source/cloog-$cloog_ver/configure" --prefix="$cloog_prefix" --build="$system_type" --enable-static --disable-shared --with-bits=gmp --with-isl=bundled --with-gmp-prefix="$gmp_prefix"
+  std_compile 'cloog' "$cloog_ver" "http://ftp.mirrorservice.org/sites/sourceware.org/pub/gcc/infrastructure/cloog-$cloog_ver.tar.gz" "../source/cloog-$cloog_ver/configure" --prefix="$cloog_prefix" --build="$system_type" --enable-static --disable-shared --with-bits=gmp --with-isl=bundled --with-gmp-prefix="$gmp_prefix"
 fi
 
 export CC="$old_cc"
