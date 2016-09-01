@@ -402,7 +402,7 @@ apply_patch() {
    if [[ -f $patch_name ]]; then
      rm $patch_name || exit 1 # remove old version in case it has been since updated
    fi
-   curl -4 $url -O --fail || exit 1
+   curl -4 --retry 5 $url -O --fail || exit 1
    echo "applying patch $patch_name"
    patch $patch_type < "$patch_name" || exit 1
    touch $patch_done_name || exit 1
@@ -432,7 +432,7 @@ download_and_unpack_file() {
     #  this option tells curl to resolve names to IPv4 addresses only.
     #  avoid a "network unreachable" error in certain [broken Ubuntu] configurations a user ran into once
 
-    curl -4 "$url" -O -L --fail || curl -4 "$url" -O -L --fail || exit 1 # retry once :) -L means "allow redirection" or some odd :|
+    curl -4 "$url" --retry 5 -O -L --fail || exit 1 # -L means "allow redirection" or some odd :|
     tar -xf "$output_name" || unzip "$output_name" || exit 1
     touch "$output_dir/unpacked.successfully" || exit 1
     rm "$output_name" || exit 1
@@ -1085,7 +1085,7 @@ build_libnvenc() {
     mkdir nvenc
     cd nvenc
       echo "installing nvenc [nvidia gpu assisted encoder]"
-      curl -4 http://developer.download.nvidia.com/assets/cuda/files/nvidia_video_sdk_6.0.1.zip -O -L --fail || exit 1
+      curl --retry 5 -4 http://developer.download.nvidia.com/assets/cuda/files/nvidia_video_sdk_6.0.1.zip -O -L --fail || exit 1
       unzip nvidia_video_sdk_6.0.1.zip
       cp nvidia_video_sdk_6.0.1/Samples/common/inc/* $mingw_w64_x86_64_prefix/include
     cd ..
