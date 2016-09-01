@@ -804,9 +804,9 @@ build_libflite() {
   download_and_unpack_file http://www.speech.cs.cmu.edu/flite/packed/flite-1.4/flite-1.4-release.tar.bz2
   cd flite-1.4-release
    apply_patch https://raw.githubusercontent.com/rdp/ffmpeg-windows-build-helpers/master/patches/flite_64.diff
-   sed -i.bak "s|i386-mingw32-|$cross_prefix|" configure*
+   sed -i.bak "s|i386-mingw32-|$cross_prefix|" configure
    generic_configure
-   cpu_count=1 # can't handle it
+   cpu_count=1 # can't handle it :|
    do_make
    cpu_count=$original_cpu_count
    # make install # it fails in error...
@@ -988,7 +988,7 @@ build_libschroedinger() {
 }
 
 build_gnutls() {
-  download_and_unpack_file ftp://ftp.gnutls.org/gcrypt/gnutls/v3.4/gnutls-3.4.14.tar.xz
+  download_and_unpack_file http://www.mirrorservice.org/sites/ftp.gnupg.org/gcrypt/gnutls/v3.4/gnutls-3.4.14.tar.xz
   cd gnutls-3.4.14
     sed -i.bak 's/mkstemp(tmpfile)/ -1 /g' src/danetool.c # fix x86_64 absent? but danetool is just an exe AFAICT so this hack should be ok...
     # --disable-cxx don't need the c++ version, in an effort to cut down on size... XXXX test size difference... 
