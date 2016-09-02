@@ -1079,21 +1079,6 @@ build_openssl() {
   cd ..
 }
 
-build_libnvenc() {
-  if [[ ! -f $mingw_w64_x86_64_prefix/include/nvEncodeAPI.h ]]; then
-    rm -rf nvenc # just in case :)
-    mkdir nvenc
-    cd nvenc
-      echo "installing nvenc [nvidia gpu assisted encoder]"
-      curl -4 http://developer.download.nvidia.com/assets/cuda/files/nvidia_video_sdk_6.0.1.zip -O -L --fail || exit 1
-      unzip nvidia_video_sdk_6.0.1.zip
-      cp nvidia_video_sdk_6.0.1/Samples/common/inc/* $mingw_w64_x86_64_prefix/include
-    cd ..
-  else
-    echo "already installed nvenc"
-  fi
-}
-
 build_intel_quicksync_mfx() { # i.e. qsv
   do_git_checkout https://github.com/lu-zero/mfx_dispatch.git # lu-zero??
   cd mfx_dispatch_git
@@ -1504,7 +1489,7 @@ build_ffmpeg() {
   fi
 
   init_options="--arch=$arch --target-os=mingw32 --cross-prefix=$cross_prefix --pkg-config=pkg-config --disable-w32threads"
-  config_options="$init_options --enable-libsoxr --enable-fontconfig --enable-libass --enable-libbluray --enable-iconv --enable-libtwolame --extra-cflags=-DLIBTWOLAME_STATIC --enable-libzvbi --enable-libcaca --enable-libmodplug --extra-libs=-lstdc++ --extra-libs=-lpng --enable-decklink --extra-libs=-loleaut32  --enable-libmp3lame --enable-version3 --enable-zlib --enable-librtmp --enable-libvorbis --enable-libtheora --enable-libspeex --enable-libopenjpeg --enable-gnutls --enable-libgsm --enable-libfreetype --enable-libopus --enable-bzlib --enable-libopencore-amrnb --enable-libopencore-amrwb --enable-libvo-amrwbenc --enable-libschroedinger --enable-libvpx --enable-libilbc --enable-libwavpack --enable-libwebp --enable-libgme --enable-dxva2 --enable-avisynth --enable-gray --enable-libopenh264 --enable-nvenc --enable-libebur128 --enable-netcdf  --enable-libflite --enable-lzma --enable-libsnappy --enable-libzimg"
+  config_options="$init_options --enable-libsoxr --enable-fontconfig --enable-libass --enable-libbluray --enable-iconv --enable-libtwolame --extra-cflags=-DLIBTWOLAME_STATIC --enable-libzvbi --enable-libcaca --enable-libmodplug --extra-libs=-lstdc++ --extra-libs=-lpng --enable-decklink --extra-libs=-loleaut32  --enable-libmp3lame --enable-version3 --enable-zlib --enable-librtmp --enable-libvorbis --enable-libtheora --enable-libspeex --enable-libopenjpeg --enable-gnutls --enable-libgsm --enable-libfreetype --enable-libopus --enable-bzlib --enable-libopencore-amrnb --enable-libopencore-amrwb --enable-libvo-amrwbenc --enable-libschroedinger --enable-libvpx --enable-libilbc --enable-libwavpack --enable-libwebp --enable-libgme --enable-dxva2 --enable-avisynth --enable-gray --enable-libopenh264 --enable-libebur128 --enable-netcdf  --enable-libflite --enable-lzma --enable-libsnappy --enable-libzimg"
   if [[ $enable_gpl == 'y' ]]; then
     config_options="$config_options --enable-gpl --enable-libx264 --enable-libx265 --enable-frei0r --enable-filter=frei0r --enable-librubberband --enable-libvidstab --enable-libxavs --enable-libxvid"
   fi
@@ -1637,7 +1622,6 @@ build_dependencies() {
   build_libfribidi
   build_libass # needs freetype, needs fribidi, needs fontconfig
   build_libopenjpeg
-  build_libnvenc
   if [[ $build_intel_qsv = y ]]; then
     build_intel_quicksync_mfx
   fi
