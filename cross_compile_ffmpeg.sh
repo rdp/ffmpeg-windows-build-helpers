@@ -402,7 +402,7 @@ apply_patch() {
    if [[ -f $patch_name ]]; then
      rm $patch_name || exit 1 # remove old version in case it has been since updated
    fi
-   curl -4 $url -O --fail || exit 1
+   curl -4 --retry 5 $url -O --fail || exit 1
    echo "applying patch $patch_name"
    patch $patch_type < "$patch_name" || exit 1
    touch $patch_done_name || exit 1
@@ -432,7 +432,7 @@ download_and_unpack_file() {
     #  this option tells curl to resolve names to IPv4 addresses only.
     #  avoid a "network unreachable" error in certain [broken Ubuntu] configurations a user ran into once
 
-    curl -4 "$url" -O -L --fail || curl -4 "$url" -O -L --fail || exit 1 # retry once :) -L means "allow redirection" or some odd :|
+    curl -4 "$url" --retry 5 -O -L --fail || exit 1 # -L means "allow redirection" or some odd :|
     tar -xf "$output_name" || unzip "$output_name" || exit 1
     touch "$output_dir/unpacked.successfully" || exit 1
     rm "$output_name" || exit 1
@@ -804,9 +804,9 @@ build_libflite() {
   download_and_unpack_file http://www.speech.cs.cmu.edu/flite/packed/flite-1.4/flite-1.4-release.tar.bz2
   cd flite-1.4-release
    apply_patch https://raw.githubusercontent.com/rdp/ffmpeg-windows-build-helpers/master/patches/flite_64.diff
-   sed -i.bak "s|i386-mingw32-|$cross_prefix|" configure*
+   sed -i.bak "s|i386-mingw32-|$cross_prefix|" configure
    generic_configure
-   cpu_count=1 # can't handle it
+   cpu_count=1 # can't handle it :|
    do_make
    cpu_count=$original_cpu_count
    # make install # it fails in error...
@@ -988,7 +988,7 @@ build_libschroedinger() {
 }
 
 build_gnutls() {
-  download_and_unpack_file ftp://ftp.gnutls.org/gcrypt/gnutls/v3.4/gnutls-3.4.14.tar.xz
+  download_and_unpack_file http://www.mirrorservice.org/sites/ftp.gnupg.org/gcrypt/gnutls/v3.4/gnutls-3.4.14.tar.xz
   cd gnutls-3.4.14
     sed -i.bak 's/mkstemp(tmpfile)/ -1 /g' src/danetool.c # fix x86_64 absent? but danetool is just an exe AFAICT so this hack should be ok...
     # --disable-cxx don't need the c++ version, in an effort to cut down on size... XXXX test size difference... 

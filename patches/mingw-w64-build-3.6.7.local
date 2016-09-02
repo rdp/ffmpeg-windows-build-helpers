@@ -911,7 +911,7 @@ cd "$pkgs_dir" || print_error
 create_pkg_dirs 'pthread-w32' || print_error
 
 if [[ "$pthreads_w32_ver" = "$pthreads_w32_release_ver" ]]; then
-  download_extract "ftp://sourceware.org/pub/pthreads-win32/pthreads-w32-$pthreads_w32_release_ver-release.tar.gz"
+  download_extract "http://mirrors.kernel.org/sourceware/pthreads-win32/pthreads-w32-$pthreads_w32_release_ver-release.tar.gz"
   if [[ ! -d "pthreads-w32-$pthreads_w32_release_ver" ]]; then
     mv "pthreads-w32-$pthreads_w32_release_ver-release" "pthreads-w32-$pthreads_w32_release_ver" || print_error
   fi
