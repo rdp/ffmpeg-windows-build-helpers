@@ -432,7 +432,7 @@ download_and_unpack_file() {
     #  this option tells curl to resolve names to IPv4 addresses only.
     #  avoid a "network unreachable" error in certain [broken Ubuntu] configurations a user ran into once
 
-    curl -4 "$url" --retry 50-O -L --fail || exit 1 # -L means "allow redirection" or some odd :|
+    curl -4 "$url" --retry 50 -O -L --fail || exit 1 # -L means "allow redirection" or some odd :|
     tar -xf "$output_name" || unzip "$output_name" || exit 1
     touch "$output_dir/unpacked.successfully" || exit 1
     rm "$output_name" || exit 1
