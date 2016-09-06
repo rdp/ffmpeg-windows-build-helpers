@@ -1272,7 +1272,7 @@ build_libcurl() {
 
 build_netcdf() {
   # used for sofalizer filter
-  download_and_unpack_file ftp://ftp.unidata.ucar.edu/pub/netcdf/netcdf-4.4.1.tar.gz
+  download_and_unpack_file http://gfd-dennou.org/arch/ucar/unidata/pub/netcdf/netcdf-4.4.1.tar.gz
   cd netcdf-4.4.1
     generic_configure --disable-netcdf-4 --disable-dap # its dependencies were *hard* LOL
     do_make_and_make_install
