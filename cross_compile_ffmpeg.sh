@@ -63,8 +63,8 @@ check_missing_packages () {
 
   function version { echo "$@" | awk -F. '{ printf("%d%03d%03d%03d\n", $1,$2,$3,$4); }'; }
 
-  if [[ $(version $version_have)  < $(version '2.8.10') ]]; then
-    echo "your cmake version is too old $version_have wanted 2.8.10"
+  if [[ $(version $version_have)  < $(version '2.8.12') ]]; then
+    echo "your cmake version is too old $version_have wanted 2.8.12"
     exit 1
   fi
 
