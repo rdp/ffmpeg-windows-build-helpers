@@ -1507,7 +1507,7 @@ build_ffmpeg() {
   config_options="$config_options $postpend_configure_opts"
 
   if [[ "$non_free" = "y" ]]; then
-    config_options="$config_options --enable-nonfree --enable-libfdk-aac --disable-libfaac " 
+    config_options="$config_options --enable-nonfree --enable-libfdk-aac " 
     # libfaac deemed too poor quality and becomes the default if included -- add it in and uncomment the build_faac line to include it, if anybody ever wants it... 
     # To use fdk-aac in VLC, we need to change FFMPEG's default (aac), but I haven't found how to do that... So I disabled it. This could be an new option for the script? (was --disable-decoder=aac )
     # other possible options: --enable-openssl [unneeded since we use gnutls] 
