@@ -1143,6 +1143,22 @@ build_sdl() {
   rmdir temp
 }
 
+build_sdl2() {
+  # apparently ffmpeg expects prefix-sdl-config not sdl-config that they give us, so rename...
+  export CFLAGS=-DDECLSPEC=  # avoid SDL trac tickets 939 and 282, and not worried about optimizing yet...
+  generic_download_and_make_and_install http://libsdl.org/release/SDL2-2.0.5.tar.gz
+  reset_cflags
+  mkdir -p temp
+  cd temp # so paths will work out right
+  local prefix=$(basename $cross_prefix)
+  local bin_dir=$(dirname $cross_prefix)
+  sed -i.bak "s/-mwindows//" "$PKG_CONFIG_PATH/sdl2.pc" # allow ffmpeg to output anything to console :|
+  sed -i.bak "s/-mwindows//" "$mingw_w64_x86_64_prefix/bin/sdl2-config" # update this one too for good measure, FFmpeg can use either, not sure which one it defaults to...
+  cp "$mingw_w64_x86_64_prefix/bin/sdl2-config" "$bin_dir/${prefix}sdl2-config" # this is the only mingw dir in the PATH so use it for now [though FFmpeg doesn't use it?]
+  cd ..
+  rmdir temp
+}
+
 build_faac() {
   generic_download_and_make_and_install https://downloads.sourceforge.net/faac/faac-1.28.tar.gz faac-1.28 "--with-mp4v2=no"
 }
@@ -1581,7 +1597,8 @@ build_dependencies() {
   build_libwebp
   build_libflite # not for now till after rubberband
   build_libgsm
-  build_sdl # needed for ffplay to be created
+  build_sdl 
+  build_sdl2 # needed for ffplay to be created
   build_libopus
   build_libopencore
   build_libogg
