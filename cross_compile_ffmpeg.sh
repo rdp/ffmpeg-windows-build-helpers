@@ -269,6 +269,7 @@ do_git_checkout() {
   old_git_version=`git rev-parse HEAD`
 
   if [[ -z $desired_branch ]]; then
+    echo "doing git co master"
     git checkout master || exit 1 # in case they were on some other branch before [ex: going between ffmpeg release tag]
     if [[ $git_get_latest = "y" ]]; then
       echo "Updating to latest $to_dir git version [origin/master]..."
@@ -469,7 +470,7 @@ do_git_checkout_and_make_install() {
 }
 
 build_libzimg() {
-  do_git_checkout_and_make_install  https://github.com/sekrit-twc/zimg.git 
+  do_git_checkout_and_make_install https://github.com/sekrit-twc/zimg.git
 }
 
 generic_configure_make_install() {
@@ -701,7 +702,7 @@ build_libsoxr() {
 build_libebur128() {
   do_git_checkout https://github.com/jiixyj/libebur128.git
   cd libebur128_git
-    sed -i.bak 's/ebur128 SHARED ebur128.c/ebur128 STATIC ebur128.c/' ebur128/CMakeLists.txt  # no option for STATIC only [?] removed shared LOL
+    sed -i.bak 's/ SHARED / STATIC /' ebur128/CMakeLists.txt # no option for STATIC only [?] so removed shared LOL
     do_cmake_and_install "-DENABLE_INTERNAL_QUEUE_H:BOOL=ON"
     # can't add -lspeexdsp to its .pc file, it doesn't have one, so just add to ffmpeg configure flags <sigh> XXXX remove once ebur bumped and it doesn't have that dependency as much [?]
   cd ..
