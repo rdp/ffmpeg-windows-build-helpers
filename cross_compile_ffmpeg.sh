@@ -478,6 +478,14 @@ generic_configure_make_install() {
   do_make_and_make_install
 }
 
+build_lsmash() {
+  do_git_checkout https://github.com/l-smash/l-smash.git l-smash
+  cd l-smash
+  do_configure "--prefix=$mingw_w64_x86_64_prefix --cross-prefix=$cross_prefix" 
+  do_make_and_make_install
+  cd ..
+}
+
 build_libx265() {
   # the only one that uses mercurial, so there's some extra initial junk in this method... XXX needs some cleanup :|
   local checkout_dir=x265
@@ -1515,6 +1523,11 @@ build_ffmpeg() {
   if [[ $build_intel_qsv = y ]]; then
     config_options="$config_options --enable-libmfx" # [note, not windows xp friendly]
   fi
+  # L-Smash Work requires avresample
+  if [[ $build_lsw = y ]]; then
+    config_option="$config_options --enable-avresample"
+  fi
+  
   config_options="$config_options --extra-libs=-lpsapi" # dlfcn [frei0r?] requires this, has no .pc file should put in frei0r.pc? ...
   config_options="$config_options --extra-libs=-lspeexdsp" # libebur :|
   for i in $CFLAGS; do
@@ -1563,10 +1576,30 @@ build_ffmpeg() {
   cd ..
 }
 
+build_lsw() {
+# Build L-Smash Works
+   echo "Cloning L-Smash Works Repo"
+   do_git_checkout https://github.com/VFR-maniac/L-SMASH-Works.git lsw
+   cd lsw/VapourSynth
+   echo "Building LSW VapourSynth plugin"
+   do_configure "--prefix=$mingw_w64_x86_64_prefix --cross-prefix=$cross_prefix"
+   do_make_and_make_install
+   # AviUtl is 32bit-only
+   if [ "$bits_target" = "32" ];
+   then
+     cd ../AviUtl
+     echo "Building LSW AviUtl plugin"
+     do_configure "--prefix=$mingw_w64_x86_64_prefix --cross-prefix=$cross_prefix"
+     do_make
+   fi
+   cd ../..
+}
+
+
 find_all_build_exes() {
   local found=""
 # NB that we're currently in the sandbox dir...
-  for file in `find . -name ffmpeg.exe` `find . -name ffmpeg_g.exe` `find . -name ffplay.exe` `find . -name MP4Box.exe` `find . -name mplayer.exe` `find . -name mencoder.exe` `find . -name avconv.exe` `find . -name avprobe.exe` `find . -name x264.exe` `find . -name writeavidmxf.exe` `find . -name writeaviddv50.exe` `find . -name rtmpdump.exe` `find . -name x265.exe` `find . -name ismindex.exe` `find . -name dvbtee.exe`; do
+  for file in `find . -name ffmpeg.exe` `find . -name ffmpeg_g.exe` `find . -name ffplay.exe` `find . -name MP4Box.exe` `find . -name mplayer.exe` `find . -name mencoder.exe` `find . -name avconv.exe` `find . -name avprobe.exe` `find . -name x264.exe` `find . -name writeavidmxf.exe` `find . -name writeaviddv50.exe` `find . -name rtmpdump.exe` `find . -name x265.exe` `find . -name ismindex.exe` `find . -name dvbtee.exe` `find . -name boxdumper.exe` `find . -name muxer.exe ` `find . -name remuxer.exe` `find . -name timelineeditor.exe` `find . -name lwcolor.auc` `find . -name lwdumper.auf` `find . -name lwinput.aui` `find . -name lwmuxer.auf`; do
     found="$found $(readlink -f $file)"
   done
 
@@ -1640,6 +1673,7 @@ build_dependencies() {
   build_libfribidi
   build_libass # needs freetype, needs fribidi, needs fontconfig
   build_libopenjpeg
+  build_lsmash
   if [[ $build_intel_qsv = y ]]; then
     build_intel_quicksync_mfx
   fi
@@ -1675,6 +1709,9 @@ build_apps() {
   if [[ $build_vlc = "y" ]]; then
     build_vlc
   fi
+  if [[ $build_lsw = "y" ]]; then
+    build_lsw
+  fi  
 }
 
 # set some parameters initial values
@@ -1709,6 +1746,7 @@ build_libmxf=n
 build_mp4box=n
 build_mplayer=n
 build_vlc=n
+build_lsw=n
 git_get_latest=y
 prefer_stable=y
 build_intel_qsv=y
@@ -1736,6 +1774,7 @@ while true; do
       --build-mp4box=n [builds MP4Box.exe from the gpac project] 
       --build-mplayer=n [builds mplayer.exe and mencoder.exe] 
       --build-vlc=n [builds a [rather bloated] vlc.exe] 
+      --build-lsw=n [builds L-Smash Works VapourSynth and AviUtl plugins]
       --build-ismindex=n [builds ffmpeg utility ismindex.exe]
       -a 'build all' builds ffmpeg, mplayer, vlc, etc. with all fixings turned on
       --build-dvbtee=n [build dvbtee.exe a DVB profiler]
@@ -1761,9 +1800,10 @@ while true; do
     --cflags=* ) 
        original_cflags="${1#*=}"; echo "setting cflags as $original_cflags"; shift ;;
     --build-vlc=* ) build_vlc="${1#*=}"; shift ;;
+    --build-lsw=* ) build_lsw="${1#*=}"; shift ;;
     --build-dvbtee=* ) build_dvbtee="${1#*=}"; shift ;;
     --disable-nonfree=* ) disable_nonfree="${1#*=}"; shift ;;
-    -a         ) compiler_flavors="multi"; build_mplayer=y; build_libmxf=y; build_mp4box=y; build_vlc=y; build_ffmpeg_shared=y; high_bitdepth=y; build_ffmpeg_static=y; 
+    -a         ) compiler_flavors="multi"; build_mplayer=y; build_libmxf=y; build_mp4box=y; build_vlc=y; build_lsw=y; build_ffmpeg_shared=y; high_bitdepth=y; build_ffmpeg_static=y; 
                  disable_nonfree=n; git_get_latest=y; sandbox_ok="y"; build_intel_qsv="y"; build_dvbtee="y"; build_x264_with_libav="y"; shift ;;
        # this doesn't build everything, like 10 bit free ffmpeg, but it does exercise the "non default" code I suppose...
     -d         ) gcc_cpu_count=$cpu_count; disable_nonfree="y"; sandbox_ok="y"; compiler_flavors="win32"; git_get_latest="n"; shift ;;
