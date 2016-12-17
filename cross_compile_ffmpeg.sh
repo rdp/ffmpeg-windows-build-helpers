@@ -237,7 +237,7 @@ update_to_desired_git_branch_or_revision() {
     pushd $to_dir
       echo "git checkout'ing $desired_branch"
       git checkout "$desired_branch" || exit 1 # if this fails, nuke the directory first...
-      git merge "$desired_branch" || exit 1 # this would satisfy the case if they want to checkout a revision number, not a branch...
+      git merge "$desired_branch" -X theirs || exit 1 # this would satisfy the case if they want to checkout a revision number, not a branch... somehow this was forcing a merge message for zimg once, so add force option [and what the heck??]
     popd # in case it's a cd to ., don't want to cd to .. here...since sometimes we call it with a '.'
   fi
 }
