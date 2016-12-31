@@ -392,16 +392,16 @@ do_cmake_and_install() {
 }
 
 apply_patch() {
- local url=$1
+ local url=$1 # if you want it to use a local file instead of a url one [i.e. local file with local modifications] specify it like file://localhost/full/path/to/filename.patch
  local patch_type=$2
  if [[ -z $patch_type ]]; then
-   patch_type="-p0"
+   patch_type="-p0" # some are -p1 unfortunately, git's default
  fi
  local patch_name=$(basename $url)
  local patch_done_name="$patch_name.done"
  if [[ ! -e $patch_done_name ]]; then
    if [[ -f $patch_name ]]; then
-     rm $patch_name || exit 1 # remove old version in case it has been since updated
+     rm $patch_name || exit 1 # remove old version in case it has been since updated on the server...
    fi
    curl -4 --retry 5 $url -O --fail || exit 1
    echo "applying patch $patch_name"
@@ -607,7 +607,7 @@ build_libx264() {
     checkout_dir="${checkout_dir}_normal_bitdepth"
   fi
   
-  do_git_checkout "http://repo.or.cz/r/x264.git" $checkout_dir "origin/stable"
+  do_git_checkout "http://repo.or.cz/r/x264.git" $checkout_dir "origin/stable" # guess we always prefer stable here...
   cd $checkout_dir
 
   local configure_flags="--host=$host_target --enable-static --cross-prefix=$cross_prefix --prefix=$mingw_w64_x86_64_prefix --enable-strip" # --enable-win32thread --enable-debug is another useful option here?
@@ -777,22 +777,18 @@ build_libopenjpeg() {
 }
 
 build_libvpx() {
-  local config_options=""
-  if [[ true || $prefer_stable = "y" ]]; then # unstable is just messed :|
-    download_and_unpack_file https://storage.googleapis.com/downloads.webmproject.org/releases/webm/libvpx-1.5.0.tar.bz2
-    cd libvpx-1.5.0
+  local checkout_dir="libvpx_git"
+
+  do_git_checkout https://chromium.googlesource.com/webm/libvpx $checkout_dir v1.6.0 # [had probs with master once...so only a stable option presently] 
+  cd $checkout_dir
+  apply_patch https://raw.githubusercontent.com/rdp/ffmpeg-windows-build-helpers/master/patches/vpx_160_semaphore.patch -p1 # perhaps someday can remove this after 1.6.0 or mingw fixes it LOL
+  if [[ "$bits_target" = "32" ]]; then
+    local config_options="--target=x86-win32-gcc"
   else
-    config_options="--enable-vp10 --enable-vp10-encoder --enable-vp10-decoder" #enable vp10 for experimental use
-    do_git_checkout https://chromium.googlesource.com/webm/libvpx
-    cd libvpx_git
+    local config_options="--target=x86_64-win64-gcc"
   fi
   export CROSS="$cross_prefix"
-  if [[ "$bits_target" = "32" ]]; then
-    config_options="--target=x86-win32-gcc --prefix=$mingw_w64_x86_64_prefix --enable-static --disable-shared $config_options"
-  else
-    config_options="--target=x86_64-win64-gcc --prefix=$mingw_w64_x86_64_prefix --enable-static --disable-shared $config_options"
-  fi
-  do_configure "$config_options"
+  do_configure "$config_options --prefix=$mingw_w64_x86_64_prefix --enable-static --disable-shared --enable-vp9-highbitdepth"
   do_make_and_make_install
   unset CROSS
   cd ..
