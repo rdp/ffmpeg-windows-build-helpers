@@ -1504,9 +1504,9 @@ build_ffmpeg() {
   cd $output_dir
   
   if [ "$bits_target" = "32" ]; then
-   local arch=x86
+    local arch=x86
   else
-   local arch=x86_64
+    local arch=x86_64
   fi
 
   init_options="--arch=$arch --target-os=mingw32 --cross-prefix=$cross_prefix --pkg-config=pkg-config --disable-w32threads"
@@ -1519,10 +1519,7 @@ build_ffmpeg() {
   if [[ $build_intel_qsv = y ]]; then
     config_options="$config_options --enable-libmfx" # [note, not windows xp friendly]
   fi
-  # L-Smash Work requires avresample
-  if [[ $build_lsw = y ]]; then
-    config_options="$config_options --enable-avresample"
-  fi
+  config_options="$config_options --enable-avresample" # guess this is some kind of libav specific thing (the FFmpeg fork) but L-Smash needs it so why not always build it :)
   
   config_options="$config_options --extra-libs=-lpsapi" # dlfcn [frei0r?] requires this, has no .pc file should put in frei0r.pc? ...
   config_options="$config_options --extra-libs=-lspeexdsp" # libebur :|
@@ -1562,7 +1559,14 @@ build_ffmpeg() {
     make tools/ismindex.exe || exit 1
   fi
 
-  sed -i.bak 's/-lavutil -lm.*/-lavutil -lm -lpthread/' "$PKG_CONFIG_PATH/libavutil.pc" # XXX patch ffmpeg itself...
+  # XXX really ffmpeg should have set this up right but doesn't, patch FFmpeg itself instead...
+  if [[ $build_intel_qsv = y ]]; then
+#    sed -i.bak 's/-lavutil -lm.*/-lavutil -lm -mfx -lpthread/' "$PKG_CONFIG_PATH/libavutil.pc"
+    sed -i.bak 's/-lavutil -lm.*/-lavutil -lm -lpthread/' "$PKG_CONFIG_PATH/libavutil.pc"
+  else
+    sed -i.bak 's/-lavutil -lm.*/-lavutil -lm -lpthread/' "$PKG_CONFIG_PATH/libavutil.pc"
+  fi
+
   sed -i.bak 's/-lswresample -lm.*/-lswresample -lm -lsoxr/' "$PKG_CONFIG_PATH/libswresample.pc" # XXX patch ffmpeg
   echo "Done! You will find $bits_target bit $shared_or_static non_free=$non_free binaries in $(pwd)/*.exe"
   if [[ $shared_or_static == "shared" ]]; then
