@@ -69,7 +69,7 @@ check_missing_packages () {
   fi
 
   if [[ ! -f /usr/include/zlib.h ]]; then
-    echo "warning: you may need to install zlib development headers first if you want to build mp4box [on ubuntu: $ apt-get install zlib1g-dev]" # XXX do like configure does and attempt to compile and include zlib.h instead?
+    echo "warning: you may need to install zlib development headers first if you want to build mp4-box [on ubuntu: $ apt-get install zlib1g-dev]" # XXX do like configure does and attempt to compile and include zlib.h instead?
     sleep 1
   fi
 
@@ -1417,7 +1417,8 @@ build_mp4box() { # like build_gpac
   sed -i.bak "s/has_dvb4linux=\"yes\"/has_dvb4linux=\"no\"/g" configure
   sed -i.bak "s/`uname -s`/MINGW32/g" configure
   # XXX do I want to disable more things here?
-  generic_configure "--static-mp4box --enable-static-bin --disable-oss-audio --extra-ldflags=-municode"
+  # ./sandbox/cross_compilers/mingw-w64-i686/bin/i686-w64-mingw32-sdl-config
+  generic_configure "--static-mp4box --enable-static-bin --disable-oss-audio --extra-ldflags=-municode --disable-x11 --sdl-cfg=${cross_prefix}sdl-config"
   # I seem unable to pass 3 libs into the same config line so do it with sed...
   sed -i.bak "s/EXTRALIBS=.*/EXTRALIBS=-lws2_32 -lwinmm -lz/g" config.mak
   cd src
@@ -1577,7 +1578,8 @@ build_ffmpeg() {
 }
 
 build_lsw() {
-# Build L-Smash Works
+   # Build L-Smash Works
+   build_ffmpeg # dependency, I think it wants static... :)
    echo "Cloning L-Smash Works Repo"
    do_git_checkout https://github.com/VFR-maniac/L-SMASH-Works.git lsw
    cd lsw/VapourSynth
@@ -1585,8 +1587,7 @@ build_lsw() {
    do_configure "--prefix=$mingw_w64_x86_64_prefix --cross-prefix=$cross_prefix"
    do_make_and_make_install
    # AviUtl is 32bit-only
-   if [ "$bits_target" = "32" ];
-   then
+   if [ "$bits_target" = "32" ]; then
      cd ../AviUtl
      echo "Building LSW AviUtl plugin"
      do_configure "--prefix=$mingw_w64_x86_64_prefix --cross-prefix=$cross_prefix"
@@ -1594,7 +1595,6 @@ build_lsw() {
    fi
    cd ../..
 }
-
 
 find_all_build_exes() {
   local found=""
@@ -1852,7 +1852,7 @@ if [[ $compiler_flavors == "multi" || $compiler_flavors == "win32" ]]; then
   export PATH="$path_addition:$original_path"
   export PKG_CONFIG_PATH="$cur_dir/cross_compilers/mingw-w64-i686/i686-w64-mingw32/lib/pkgconfig"
   bits_target=32
-  cross_prefix="$cur_dir/cross_compilers/mingw-w64-i686/bin/i686-w64-mingw32-"
+  cross_prefix="$path_addition/i686-w64-mingw32-"
   make_prefix_options="CC=${cross_prefix}gcc AR=${cross_prefix}ar PREFIX=$mingw_w64_x86_64_prefix RANLIB=${cross_prefix}ranlib LD=${cross_prefix}ld STRIP=${cross_prefix}strip CXX=${cross_prefix}g++"
   mkdir -p win32
   cd win32
@@ -1871,7 +1871,7 @@ if [[ $compiler_flavors == "multi" || $compiler_flavors == "win64" ]]; then
   export PKG_CONFIG_PATH="$cur_dir/cross_compilers/mingw-w64-x86_64/x86_64-w64-mingw32/lib/pkgconfig"
   mkdir -p x86_64
   bits_target=64
-  cross_prefix="$cur_dir/cross_compilers/mingw-w64-x86_64/bin/x86_64-w64-mingw32-"
+  cross_prefix="$path_addition/bin/x86_64-w64-mingw32-"
   make_prefix_options="CC=${cross_prefix}gcc AR=${cross_prefix}ar PREFIX=$mingw_w64_x86_64_prefix RANLIB=${cross_prefix}ranlib LD=${cross_prefix}ld STRIP=${cross_prefix}strip CXX=${cross_prefix}g++"
   cd x86_64
   build_dependencies
