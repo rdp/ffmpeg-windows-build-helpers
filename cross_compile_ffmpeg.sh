@@ -1521,7 +1521,7 @@ build_ffmpeg() {
   fi
   # L-Smash Work requires avresample
   if [[ $build_lsw = y ]]; then
-    config_option="$config_options --enable-avresample"
+    config_options="$config_options --enable-avresample"
   fi
   
   config_options="$config_options --extra-libs=-lpsapi" # dlfcn [frei0r?] requires this, has no .pc file should put in frei0r.pc? ...
