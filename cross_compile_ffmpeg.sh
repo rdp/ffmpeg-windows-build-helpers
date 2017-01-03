@@ -230,18 +230,6 @@ do_svn_checkout() {
   fi
 }
 
-update_to_desired_git_branch_or_revision() {
-  local to_dir="$1"
-  local desired_branch="$2" # or tag or whatever...
-  if [ ! -z "$desired_branch" ]; then
-    pushd $to_dir
-      echo "git checkout'ing $desired_branch"
-      git checkout "$desired_branch" || exit 1 # if this fails, nuke the directory first...
-      git merge "$desired_branch" -X theirs || exit 1 # this would satisfy the case if they want to checkout a revision number, not a branch... somehow this was forcing a merge message for zimg once, so add force option [and what the heck??]
-    popd # in case it's a cd to ., don't want to cd to .. here...since sometimes we call it with a '.'
-  fi
-}
-
 do_git_checkout() {
   local repo_url="$1"
   local to_dir="$2"
@@ -269,8 +257,8 @@ do_git_checkout() {
   old_git_version=`git rev-parse HEAD`
 
   if [[ -z $desired_branch ]]; then
-    echo "doing git co master"
-    git checkout master || exit 1 # in case they were on some other branch before [ex: going between ffmpeg release tag]
+    echo "doing git checkout master"
+    git checkout master || exit 1 # in case they were on some other branch before [ex: going between ffmpeg release tags]
     if [[ $git_get_latest = "y" ]]; then
       echo "Updating to latest $to_dir git version [origin/master]..."
       git merge origin/master || exit 1
@@ -1580,16 +1568,13 @@ build_lsw() {
    # Build L-Smash-Works, which are plugins based on lsmash
    #build_ffmpeg static # dependency, assume already built
    build_lsmash # dependency
-   echo "Cloning L-Smash Works Repo"
    do_git_checkout https://github.com/VFR-maniac/L-SMASH-Works.git lsw
    cd lsw/VapourSynth
-   echo "Building LSW VapourSynth plugin"
    do_configure "--prefix=$mingw_w64_x86_64_prefix --cross-prefix=$cross_prefix --target-os=mingw"
    do_make_and_make_install
    # AviUtl is 32bit-only
    if [ "$bits_target" = "32" ]; then
      cd ../AviUtl
-     echo "Building LSW AviUtl plugin"
      do_configure "--prefix=$mingw_w64_x86_64_prefix --cross-prefix=$cross_prefix"
      do_make
    fi
