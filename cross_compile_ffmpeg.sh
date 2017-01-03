@@ -311,7 +311,7 @@ do_configure() {
   if [ ! -f "$touch_name" ]; then
     # make uninstall # does weird things when run under ffmpeg src so disabled for now...
 
-    echo "configuring $english_name ($PWD) as $ PATH=$path_addition:$original_path $configure_name $configure_options" # say it now in case bootstrap fails etc.
+    echo "configuring $english_name ($PWD) as $ PKG_CONFIG_PATH=$PKG_CONFIG_PATH PATH=$path_addition:$original_path $configure_name $configure_options" # say it now in case bootstrap fails etc.
     if [ -f bootstrap ]; then
       ./bootstrap # some need this to create ./configure :|
     fi
@@ -478,7 +478,7 @@ generic_configure_make_install() {
   do_make_and_make_install
 }
 
-build_lsmash() {
+build_lsmash() { # an MP4 library
   do_git_checkout https://github.com/l-smash/l-smash.git l-smash
   cd l-smash
   do_configure "--prefix=$mingw_w64_x86_64_prefix --cross-prefix=$cross_prefix" 
@@ -993,8 +993,8 @@ build_libschroedinger() {
 }
 
 build_gnutls() {
-  download_and_unpack_file http://www.mirrorservice.org/sites/ftp.gnupg.org/gcrypt/gnutls/v3.4/gnutls-3.4.14.tar.xz
-  cd gnutls-3.4.14
+  download_and_unpack_file http://www.mirrorservice.org/sites/ftp.gnupg.org/gcrypt/gnutls/v3.4/gnutls-3.4.17.tar.xz
+  cd gnutls-3.4.17
     sed -i.bak 's/mkstemp(tmpfile)/ -1 /g' src/danetool.c # fix x86_64 absent? but danetool is just an exe AFAICT so this hack should be ok...
     # --disable-cxx don't need the c++ version, in an effort to cut down on size... XXXX test size difference... 
     # --enable-local-libopts to allow building with local autogen installed, 
@@ -1562,8 +1562,7 @@ build_ffmpeg() {
 
   # XXX really ffmpeg should have set this up right but doesn't, patch FFmpeg itself instead...
   if [[ $build_intel_qsv = y ]]; then
-#    sed -i.bak 's/-lavutil -lm.*/-lavutil -lm -mfx -lpthread/' "$PKG_CONFIG_PATH/libavutil.pc"
-    sed -i.bak 's/-lavutil -lm.*/-lavutil -lm -lpthread/' "$PKG_CONFIG_PATH/libavutil.pc"
+    sed -i.bak 's/-lavutil -lm.*/-lavutil -lm -lmfx -lstdc++ -lpthread/' "$PKG_CONFIG_PATH/libavutil.pc"
   else
     sed -i.bak 's/-lavutil -lm.*/-lavutil -lm -lpthread/' "$PKG_CONFIG_PATH/libavutil.pc"
   fi
@@ -1578,8 +1577,9 @@ build_ffmpeg() {
 }
 
 build_lsw() {
-   # Build L-Smash Works
-   #build_ffmpeg # dependency, I think it wants static... :)
+   # Build L-Smash-Works, which are plugins based on lsmash
+   #build_ffmpeg static # dependency, assume already built
+   build_lsmash # dependency
    echo "Cloning L-Smash Works Repo"
    do_git_checkout https://github.com/VFR-maniac/L-SMASH-Works.git lsw
    cd lsw/VapourSynth
@@ -1673,7 +1673,6 @@ build_dependencies() {
   build_libfribidi
   build_libass # needs freetype, needs fribidi, needs fontconfig
   build_libopenjpeg
-  build_lsmash
   if [[ $build_intel_qsv = y ]]; then
     build_intel_quicksync_mfx
   fi
@@ -1739,6 +1738,7 @@ else
   gcc_cpu_count=1 # compatible low RAM...
 fi
 
+# variables with their defaults
 build_ffmpeg_static=y
 build_ffmpeg_shared=n
 build_dvbtee=n
