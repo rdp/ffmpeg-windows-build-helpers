@@ -299,7 +299,7 @@ do_configure() {
   if [ ! -f "$touch_name" ]; then
     # make uninstall # does weird things when run under ffmpeg src so disabled for now...
 
-    echo "configuring $english_name ($PWD) as $ PKG_CONFIG_PATH=$PKG_CONFIG_PATH PATH=$path_addition:$original_path $configure_name $configure_options" # say it now in case bootstrap fails etc.
+    echo "configuring $english_name ($PWD) as $ PKG_CONFIG_PATH=$PKG_CONFIG_PATH PATH=$mingw_bin_path:\$PATH $configure_name $configure_options" # say it now in case bootstrap fails etc.
     if [ -f bootstrap ]; then
       ./bootstrap # some need this to create ./configure :|
     fi
@@ -326,7 +326,7 @@ do_make() {
 
   if [ ! -f $touch_name ]; then
     echo
-    echo "making $cur_dir2 as $ PATH=$path_addition:\$PATH make $extra_make_options"
+    echo "making $cur_dir2 as $ PATH=$mingw_bin_path:\$PATH make $extra_make_options"
     echo
     if [ ! -f configure ]; then
       nice make clean -j $cpu_count # just in case helpful if old junk left around and this is a 're make' and wasn't cleaned at reconfigure time
@@ -354,7 +354,7 @@ do_make_install() {
   fi
   local touch_name=$(get_small_touchfile_name already_ran_make_install "$make_install_options")
   if [ ! -f $touch_name ]; then
-    echo "make installing $(pwd) as $ PATH=$path_addition:\$PATH make $make_install_options"
+    echo "make installing $(pwd) as $ PATH=$mingw_bin_path:\$PATH make $make_install_options"
     nice make $make_install_options || exit 1
     touch $touch_name || exit 1
   fi
@@ -367,7 +367,7 @@ do_cmake() {
   if [ ! -f $touch_name ]; then
     rm -f already_* # reset so that make will run again if option just changed
     local cur_dir2=$(pwd)
-    echo doing cmake in $cur_dir2 with PATH=$path_addition:\$PATH with extra_args=$extra_args like this:
+    echo doing cmake in $cur_dir2 with PATH=$mingw_bin_path:\$PATH with extra_args=$extra_args like this:
     echo cmake –G”Unix Makefiles” . -DENABLE_STATIC_RUNTIME=1 -DCMAKE_SYSTEM_NAME=Windows -DCMAKE_RANLIB=${cross_prefix}ranlib -DCMAKE_C_COMPILER=${cross_prefix}gcc -DCMAKE_CXX_COMPILER=${cross_prefix}g++ -DCMAKE_RC_COMPILER=${cross_prefix}windres -DCMAKE_INSTALL_PREFIX=$mingw_w64_x86_64_prefix $extra_args
     cmake –G”Unix Makefiles” . -DENABLE_STATIC_RUNTIME=1 -DCMAKE_SYSTEM_NAME=Windows -DCMAKE_RANLIB=${cross_prefix}ranlib -DCMAKE_C_COMPILER=${cross_prefix}gcc -DCMAKE_CXX_COMPILER=${cross_prefix}g++ -DCMAKE_RC_COMPILER=${cross_prefix}windres -DCMAKE_INSTALL_PREFIX=$mingw_w64_x86_64_prefix $extra_args || exit 1
     touch $touch_name || exit 1
@@ -1833,16 +1833,16 @@ if [[ $compiler_flavors == "multi" || $compiler_flavors == "win32" ]]; then
   echo "Starting 32-bit builds..."
   host_target='i686-w64-mingw32'
   mingw_w64_x86_64_prefix="$cur_dir/cross_compilers/mingw-w64-i686/$host_target"
-  path_addition="$cur_dir/cross_compilers/mingw-w64-i686/bin"
-  export PATH="$path_addition:$original_path"
+  mingw_bin_path="$cur_dir/cross_compilers/mingw-w64-i686/bin"
   export PKG_CONFIG_PATH="$cur_dir/cross_compilers/mingw-w64-i686/i686-w64-mingw32/lib/pkgconfig"
+  export PATH="$mingw_bin_path:$original_path"
   bits_target=32
-  cross_prefix="$cur_dir/cross_compilers/mingw-w64-i686/bin/i686-w64-mingw32-"
+  cross_prefix="$mingw_bin_path/i686-w64-mingw32-"
   make_prefix_options="CC=${cross_prefix}gcc AR=${cross_prefix}ar PREFIX=$mingw_w64_x86_64_prefix RANLIB=${cross_prefix}ranlib LD=${cross_prefix}ld STRIP=${cross_prefix}strip CXX=${cross_prefix}g++"
   mkdir -p win32
   cd win32
-  build_dependencies
-  build_apps
+    build_dependencies
+    build_apps
   cd ..
 fi
 
@@ -1851,16 +1851,16 @@ if [[ $compiler_flavors == "multi" || $compiler_flavors == "win64" ]]; then
   echo "**************Starting 64-bit builds..." # make it have a bit easier to you can see when 32 bit is done 
   host_target='x86_64-w64-mingw32'
   mingw_w64_x86_64_prefix="$cur_dir/cross_compilers/mingw-w64-x86_64/$host_target"
-  path_addition="$cur_dir/cross_compilers/mingw-w64-x86_64/bin"
-  export PATH="$path_addition:$original_path"
+  mingw_bin_path="$cur_dir/cross_compilers/mingw-w64-x86_64/bin"
+  export PATH="$mingw_bin_path:$original_path"
   export PKG_CONFIG_PATH="$cur_dir/cross_compilers/mingw-w64-x86_64/x86_64-w64-mingw32/lib/pkgconfig"
-  mkdir -p x86_64
   bits_target=64
-  cross_prefix="$cur_dir/cross_compilers/mingw-w64-x86_64/bin/x86_64-w64-mingw32-"
+  cross_prefix="$mingw_bin_path/x86_64-w64-mingw32-"
   make_prefix_options="CC=${cross_prefix}gcc AR=${cross_prefix}ar PREFIX=$mingw_w64_x86_64_prefix RANLIB=${cross_prefix}ranlib LD=${cross_prefix}ld STRIP=${cross_prefix}strip CXX=${cross_prefix}g++"
+  mkdir -p x86_64
   cd x86_64
-  build_dependencies
-  build_apps
+    build_dependencies
+    build_apps
   cd ..
 fi
 
