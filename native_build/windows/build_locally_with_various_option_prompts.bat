@@ -12,12 +12,12 @@ ECHO.
 if not exist ffmpeg_local_builds\cygwin_local_install mkdir ffmpeg_local_builds\cygwin_local_install
 @rem cd to it so that cygwin install logs etc. go there
 cd ffmpeg_local_builds\cygwin_local_install
-ECHO Downloading cygwin setup executable...some error warning messages are expected from the cygwin install...
+ECHO Downloading cygwin setup executable...some error warning messages are expected from the cygwin install...watch this window for eventual "succeeded entirely" or not message
 @rem setup exe name either setup-x86_64.exe or setup-x86.exe 64 bit "blew up" on libtheora or something <sigh>
 @powershell -command "$clnt = new-object System.Net.WebClient; $clnt.DownloadFile(\"https://www.cygwin.com/setup-x86.exe\", \"setup-x86.exe\")"
 
 @rem forced to hard select a mirror here apparently...
-start /min /wait setup-x86.exe ^
+start /wait setup-x86.exe ^
 --quiet-mode ^
 --no-admin ^
 --no-startmenu ^
@@ -26,9 +26,10 @@ start /min /wait setup-x86.exe ^
 --site http://mirrors.xmission.com/cygwin/ ^
 --root %cd% ^
 --packages ^
-ed,curl,wget,subversion,texinfo,gcc-g++,bison,flex,cvs,yasm,automake,libtool,autoconf,gcc-core,cmake,git,make,pkg-config,zlib1g-dev,mercurial,unzip,pax,ncurses,patch,gettext-devel,nasm
+ed,curl,libcurl4,wget,subversion,texinfo,gcc-g++,bison,flex,cvs,yasm,automake,libtool,autoconf,gcc-core,cmake,git,make,pkg-config,zlib1g-dev,mercurial,unzip,pax,ncurses,patch,gettext-devel,nasm
 @rem wget for the initial script download as well as zeranoe's uses it
 @rem curl is used in our script all over
+@rem libcurl4 is apparently required so that updating curl doesn't bwork it, reported as a bug to cygwin :|
 @rem ncurses for the "clear" command yikes!
 @rem gettext-dev is for 64 bit cygwin which doesn't install it but binutils links against it and needs it...
 
