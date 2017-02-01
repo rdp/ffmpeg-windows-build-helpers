@@ -1139,7 +1139,13 @@ build_sdl() {
 build_sdl2() {
   # apparently ffmpeg expects prefix-sdl-config not sdl-config that they give us, so rename...
   export CFLAGS=-DDECLSPEC=  # avoid SDL trac tickets 939 and 282, and not worried about optimizing yet...
-  generic_download_and_make_and_install http://libsdl.org/release/SDL2-2.0.5.tar.gz
+  download_and_unpack_file http://libsdl.org/release/SDL2-2.0.5.tar.gz
+
+  cd SDL2-2.0.5
+     generic_configure
+     apply_patch https://raw.githubusercontent.com/rdp/ffmpeg-windows-build-helpers/master/patches/sdl2.xinput.diff
+     do_make_and_make_install 
+  cd ..
   reset_cflags
   mkdir -p temp
   cd temp # so paths will work out right
