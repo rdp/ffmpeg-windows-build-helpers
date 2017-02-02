@@ -767,7 +767,7 @@ build_libopenjpeg() {
 build_libvpx() {
   local checkout_dir="libvpx_git"
 
-  do_git_checkout https://chromium.googlesource.com/webm/libvpx $checkout_dir v1.6.0 # [had probs with master once...so only a stable option presently] 
+  do_git_checkout https://chromium.googlesource.com/webm/libvpx $checkout_dir v1.6.1 # [had probs with master once...so only a stable option presently] 
   cd $checkout_dir
   apply_patch https://raw.githubusercontent.com/rdp/ffmpeg-windows-build-helpers/master/patches/vpx_160_semaphore.patch -p1 # perhaps someday can remove this after 1.6.0 or mingw fixes it LOL
   if [[ "$bits_target" = "32" ]]; then
@@ -1143,7 +1143,7 @@ build_sdl2() {
 
   cd SDL2-2.0.5
      generic_configure
-     apply_patch https://raw.githubusercontent.com/rdp/ffmpeg-windows-build-helpers/master/patches/sdl2.xinput.diff
+     #apply_patch https://raw.githubusercontent.com/rdp/ffmpeg-windows-build-helpers/master/patches/sdl2.xinput.diff
      do_make_and_make_install 
   cd ..
   reset_cflags
