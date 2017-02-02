@@ -30,7 +30,7 @@ Next run one of the "`native_build/build_locally_XXX.bat`" file.
   
 You can build the project on Linux with a cross compiler toolchain, and this process is much faster, taking about 2 hours for the "options" build. Deploy a Linux VM on the host with a hypervisor of your choice, or natively on an extra computer or a dual boot system, and also, you could even create a VM temporarily, on a hosting provider such as Digital Ocean. 
 
-NB: works with Ubuntu 16.04 but not 16.10 yet.
+NB: works with Ubuntu distros that uses gcc 5.x but not 6.x (yet) (i.e. 16.10 it will not work yet).
 
 Download the script by cloning this repository via git:
 
