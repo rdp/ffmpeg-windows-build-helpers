@@ -5,15 +5,15 @@ This helper script lets you cross compile a windows-based 32 or 64-bit version o
 Note that I do offer custom builds, typically $200. Ping me at rogerdpack@gmail.com and I'll do the work for you :) 
 
 The script allows the user to either build on Windows via cygwin (as documented below), or on a Linux host (which uses cross compiles to build windows binaries).
-Building on linux takes less time overall.
-Update: On Windows 10, you can use the bash shell (provided that you've installed the Windows Subsystem for Linux as explained [here](http://www.howtogeek.com/249966/how-to-install-and-use-the-linux-bash-shell-on-windows-10/).
+Building on linux takes less time overall. On Windows 10, you can use the bash shell (provided that you've installed the Windows Subsystem for Linux as explained [here](http://www.howtogeek.com/249966/how-to-install-and-use-the-linux-bash-shell-on-windows-10/).
 Building in windows takes considerably longer but avoids the need of deploying a  Linux installation for the same purpose.
 I do have some "distribution release builds" of running the script here: https://sourceforge.net/projects/ffmpegwindowsbi/files
 
-To build in windows (uses the native'ish cygwin):
+** Windows Cmd  **
+
+To build in windows without a VM (uses the native'ish cygwin):
 
 Obtain the repository by downloading and unzipping the archive below: 
-      
        
 https://github.com/rdp/ffmpeg-windows-build-helpers/archive/master.zip
        
@@ -26,11 +26,11 @@ Next run one of the "`native_build/build_locally_XXX.bat`" file.
 * `build_locally_with_various_option_prompts`: This will build FFmpeg and extra dependencies and  libraries.  It will prompt whether you'd like to also include fdk/nvenc libraries, 32 and/or 64 bit executables, etc.  This build will take 6 hours or more.
 * `build_locally_gpl_32_bit_option`: Same as option prompts above, but selects 32bit non-fdk automatically.
 
-  **Cross-compiling from a Linux environment:**
+**Cross-compiling from a Linux environment:**
   
 You can build the project on Linux with a cross compiler toolchain, and this process is much faster, taking about 2 hours for the "options" build. Deploy a Linux VM on the host with a hypervisor of your choice, or natively on an extra computer or a dual boot system, and also, you could even create a VM temporarily, on a hosting provider such as Digital Ocean. 
 
-**Instructions:**
+NB: works with Ubuntu 16.04 but not 16.10 yet.
 
 Download the script by cloning this repository via git:
 
