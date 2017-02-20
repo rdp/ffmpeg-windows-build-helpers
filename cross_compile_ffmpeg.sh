@@ -1143,7 +1143,7 @@ build_sdl2() {
 
   cd SDL2-2.0.5
      generic_configure
-     apply_patch https://raw.githubusercontent.com/rdp/ffmpeg-windows-build-helpers/master/patches/sdl2.xinput.diff
+     #apply_patch https://raw.githubusercontent.com/rdp/ffmpeg-windows-build-helpers/master/patches/sdl2.xinput.diff
      do_make_and_make_install 
   cd ..
   reset_cflags
@@ -1325,6 +1325,8 @@ build_vlc() {
   # call out dependencies here since it's a lot, plus hierarchical FTW!
   # should be ffmpeg 1.1.1 or some odd?
 
+  echo "not building vlc, broken dependencies or something weird"
+  return
   # vlc's own dependencies:
   build_lua
   build_libdvdread
@@ -1335,8 +1337,6 @@ build_vlc() {
   build_qt
 
   # currently vlc itself currently broken :|
-  echo "not building vlc, broken dependencies or something weird"
-  return
 
   do_git_checkout https://github.com/videolan/vlc.git
   cd vlc_git
