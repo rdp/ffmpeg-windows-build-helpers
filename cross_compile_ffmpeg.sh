@@ -1143,7 +1143,7 @@ build_sdl2() {
 
   cd SDL2-2.0.5
      generic_configure
-     #apply_patch https://raw.githubusercontent.com/rdp/ffmpeg-windows-build-helpers/master/patches/sdl2.xinput.diff
+     apply_patch https://raw.githubusercontent.com/rdp/ffmpeg-windows-build-helpers/master/patches/sdl2.xinput.diff
      do_make_and_make_install 
   cd ..
   reset_cflags
