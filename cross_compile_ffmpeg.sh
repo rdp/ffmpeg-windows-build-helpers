@@ -502,8 +502,6 @@ build_libx265() {
     fi
     cd source
 
-    # hg checkout 9b0c9b # no longer needed, but once was...left here so I know how :)
-
     local new_hg_version=`hg --debug id -i`  
     if [[ "$old_hg_version" != "$new_hg_version" ]]; then
       echo "got upstream hg changes, forcing rebuild...x265"
@@ -512,7 +510,7 @@ build_libx265() {
       echo "still at hg $new_hg_version x265"
     fi
   else
-    # prefer_stable == "y" TODO clean this up...
+    # i.e. prefer_stable == "y" TODO clean this up these two branches are pretty similar...
     local old_hg_version
     if [[ -d $checkout_dir ]]; then
       cd $checkout_dir
@@ -533,8 +531,6 @@ build_libx265() {
     fi
     cd source
 
-    # hg checkout 9b0c9b # no longer needed, but once was...
-
     local new_hg_version=`hg --debug id -i`  
     if [[ "$old_hg_version" != "$new_hg_version" ]]; then
       echo "got upstream hg changes, forcing rebuild...x265"
@@ -542,7 +538,7 @@ build_libx265() {
     else
       echo "still at hg $new_hg_version x265"
     fi
-  fi
+  fi # dont with prefer_stable = [y|n]
   
   local cmake_params="-DENABLE_SHARED=OFF"
   if [[ $high_bitdepth == "y" ]]; then
