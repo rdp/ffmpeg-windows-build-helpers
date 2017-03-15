@@ -1049,9 +1049,9 @@ build_openssl() {
   # warning, this is a very old version of openssl since we don't really use it anymore hasn't been updated in awhile...
   download_and_unpack_file https://www.openssl.org/source/openssl-1.0.1q.tar.gz
   cd openssl-1.0.1q
-  #export CC="${cross_prefix}gcc"
-  #export AR="${cross_prefix}ar"
-  #export RANLIB="${cross_prefix}ranlib"
+  export CC="${cross_prefix}gcc"
+  export AR="${cross_prefix}ar"
+  export RANLIB="${cross_prefix}ranlib"
   #XXXX do we need no-asm here?
   if [ "$bits_target" = "32" ]; then
     do_configure "--prefix=$mingw_w64_x86_64_prefix no-shared no-asm mingw" ./Configure
@@ -1059,7 +1059,7 @@ build_openssl() {
     do_configure "--prefix=$mingw_w64_x86_64_prefix no-shared no-asm mingw64" ./Configure
   fi
   cpu_count=1
-  do_make_and_make_install "$make_prefix_options"
+  do_make_and_make_install #"$make_prefix_options"
   cpu_count=$original_cpu_count
   unset cross
   unset CC
