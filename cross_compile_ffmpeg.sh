@@ -1047,16 +1047,15 @@ build_fontconfig() {
 
 build_openssl() {
   # warning, this is a very old version of openssl since we don't really use it anymore hasn't been updated in awhile...
-  download_and_unpack_file https://www.openssl.org/source/openssl-1.0.1q.tar.gz
-  cd openssl-1.0.1q
+  download_and_unpack_file https://www.openssl.org/source/openssl-1.1.0e.tar.gz
+  cd openssl-1.1.0e
   export CC="${cross_prefix}gcc"
   export AR="${cross_prefix}ar"
   export RANLIB="${cross_prefix}ranlib"
-  #XXXX do we need no-asm here?
   if [ "$bits_target" = "32" ]; then
-    do_configure "--prefix=$mingw_w64_x86_64_prefix no-shared no-asm mingw" ./Configure
+    do_configure "--prefix=$mingw_w64_x86_64_prefix no-shared mingw" ./Configure
   else
-    do_configure "--prefix=$mingw_w64_x86_64_prefix no-shared no-asm mingw64" ./Configure
+    do_configure "--prefix=$mingw_w64_x86_64_prefix no-shared mingw64" ./Configure
   fi
   cpu_count=1
   do_make_and_make_install #"$make_prefix_options"
@@ -1501,7 +1500,7 @@ build_ffmpeg() {
   fi
 
   init_options="--arch=$arch --target-os=mingw32 --cross-prefix=$cross_prefix --pkg-config=pkg-config --disable-w32threads"
-  config_options="$init_options --enable-libsoxr --enable-fontconfig --enable-libass --enable-libbluray --enable-iconv --enable-libtwolame --extra-cflags=-DLIBTWOLAME_STATIC --enable-libzvbi --enable-libcaca --enable-libmodplug --extra-libs=-lstdc++ --extra-libs=-lpng --enable-decklink --extra-libs=-loleaut32  --enable-libmp3lame --enable-version3 --enable-zlib --enable-librtmp --enable-libvorbis --enable-libtheora --enable-libspeex --enable-libopenjpeg --enable-gnutls --enable-libgsm --enable-libfreetype --enable-libopus --enable-bzlib --enable-libopencore-amrnb --enable-libopencore-amrwb --enable-libvo-amrwbenc --enable-libschroedinger --enable-libvpx --enable-libilbc --enable-libwavpack --enable-libwebp --enable-libgme --enable-dxva2 --enable-avisynth --enable-gray --enable-libopenh264 --enable-netcdf  --enable-libflite --enable-lzma --enable-libsnappy --enable-libzimg"
+  config_options="$init_options --enable-libsoxr --enable-fontconfig --enable-libass --enable-libbluray --enable-iconv --enable-libtwolame --extra-cflags=-DLIBTWOLAME_STATIC --enable-libzvbi --enable-libcaca --enable-libmodplug --extra-libs=-lstdc++ --extra-libs=-lpng --enable-decklink --extra-libs=-loleaut32  --enable-libmp3lame --enable-version3 --enable-zlib --enable-librtmp --enable-libvorbis --enable-libtheora --enable-libspeex --enable-libopenjpeg --enable-openssl --enable-nonfree --enable-libgsm --enable-libfreetype --enable-libopus --enable-bzlib --enable-libopencore-amrnb --enable-libopencore-amrwb --enable-libvo-amrwbenc --enable-libschroedinger --enable-libvpx --enable-libilbc --enable-libwavpack --enable-libwebp --enable-libgme --enable-dxva2 --enable-avisynth --enable-gray --enable-libopenh264 --enable-netcdf  --enable-libflite --enable-lzma --enable-libsnappy --enable-libzimg"
   if [[ $enable_gpl == 'y' ]]; then
     config_options="$config_options --enable-gpl --enable-libx264 --enable-libx265 --enable-frei0r --enable-filter=frei0r --enable-librubberband --enable-libvidstab --enable-libxavs --enable-libxvid"
   fi
@@ -1667,7 +1666,7 @@ build_dependencies() {
     build_fdk_aac
     # build_faac # not included for now, too poor quality output :)
   fi
-  # build_openssl # hopefully do not need it anymore, since we use gnutls everywhere, so just don't even build it anymore...
+  build_openssl # hopefully do not need it anymore, since we use gnutls everywhere, so just don't even build it anymore...
   build_librtmp # needs gnutls [or openssl...]
   build_libx264 # at bottom as it might build an ffmpeg which needs all the above deps...
 }
