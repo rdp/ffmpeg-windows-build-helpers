@@ -548,9 +548,9 @@ build_libx265() {
     fi
   fi
 
-  #if [ "$bits_target" = "32" ]; then
+  if [ "$bits_target" == "32" ]; then
     cmake_params="$cmake_params -DWINXP_SUPPORT:BOOL=TRUE" # enable windows xp support apparently
-  #fi
+  fi
 
   do_cmake "$cmake_params"
   do_make
