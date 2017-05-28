@@ -491,6 +491,20 @@ build_dlfcn() {
   cd ..
 }
 
+build_bzip2() {
+  download_and_unpack_file http://www.bzip.org/1.0.6/bzip2-1.0.6.tar.gz
+  cd bzip2-1.0.6
+    apply_patch file://$patch_dir/bzip2-1.0.6_brokenstuff.diff
+    if [[ ! -f $mingw_w64_x86_64_prefix/lib/libbz2.a ]]; then # Library only.
+      do_make "$make_prefix_options libbz2.a"
+      install -m644 libbz2.a $mingw_w64_x86_64_prefix/lib/libbz2.a
+      install -m644 bzlib.h $mingw_w64_x86_64_prefix/include/bzlib.h
+    else
+      echo "already made bzip2-1.0.6"
+    fi
+  cd ..
+}
+
 build_lsmash() { # an MP4 library
   do_git_checkout https://github.com/l-smash/l-smash.git l-smash
   cd l-smash
@@ -996,14 +1010,6 @@ build_libnettle() {
   cd nettle-3.1
     generic_configure "--disable-openssl --with-included-libtasn1" # in case we have both gnutls and openssl, just use gnutls [except that gnutls uses this so...huh? https://github.com/rdp/ffmpeg-windows-build-helpers/issues/25#issuecomment-28158515
     do_make_and_make_install
-  cd ..
-}
-
-build_bzlib2() {
-  download_and_unpack_file https://fossies.org/linux/misc/bzip2-1.0.6.tar.gz
-  cd bzip2-1.0.6
-    apply_patch https://raw.githubusercontent.com/rdp/ffmpeg-windows-build-helpers/master/patches/bzip2_cross_compile.diff
-    do_make "$make_prefix_options libbz2.a bzip2 bzip2recover install"
   cd ..
 }
 
@@ -1591,8 +1597,8 @@ find_all_build_exes() {
 
 build_dependencies() {
   build_dlfcn
+  build_bzip2 # Bzlib (bzip2) in FFMpeg is autodetected.
   build_zlib # rtmp depends on it [as well as ffmpeg's optional but handy --enable-zlib]
-  build_bzlib2 # in case someone wants it [ffmpeg uses it]
   build_liblzma
   build_libzimg
   build_libsnappy
