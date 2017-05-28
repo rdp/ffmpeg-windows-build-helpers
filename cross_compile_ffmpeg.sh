@@ -505,6 +505,14 @@ build_bzip2() {
   cd ..
 }
 
+build_liblzma() {
+  download_and_unpack_file https://sourceforge.net/projects/lzmautils/files/xz-5.2.3.tar.xz
+  cd xz-5.2.3
+    generic_configure "--disable-xz --disable-xzdec --disable-lzmadec --disable-lzmainfo --disable-scripts --disable-doc --disable-nls"
+    do_make_and_make_install
+  cd ..
+}
+
 build_lsmash() { # an MP4 library
   do_git_checkout https://github.com/l-smash/l-smash.git l-smash
   cd l-smash
@@ -753,10 +761,6 @@ build_libgme_game_music_emu() {
     sed -i.bak "s|SHARED|STATIC|" gme/CMakeLists.txt
     do_cmake_and_install
   cd ..
-}
-
-build_liblzma() {
-  generic_download_and_make_and_install http://tukaani.org/xz/xz-5.2.2.tar.bz2
 }
 
 build_libsnappy() {
@@ -1598,8 +1602,8 @@ find_all_build_exes() {
 build_dependencies() {
   build_dlfcn
   build_bzip2 # Bzlib (bzip2) in FFMpeg is autodetected.
+  build_liblzma # Lzma in FFMpeg is autodetected. Uses dlfcn.
   build_zlib # rtmp depends on it [as well as ffmpeg's optional but handy --enable-zlib]
-  build_liblzma
   build_libzimg
   build_libsnappy
   build_libpng # for openjpeg, needs zlib
