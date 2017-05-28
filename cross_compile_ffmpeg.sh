@@ -469,6 +469,28 @@ generic_configure_make_install() {
   do_make_and_make_install
 }
 
+gen_ld_script() {
+  lib=$mingw_w64_x86_64_prefix/lib/$1
+  lib_s="${1:3:-2}_s"
+  if [[ ! -f $mingw_w64_x86_64_prefix/lib/lib$lib_s.a ]]; then
+    echo "Generating linker script $lib: $2"
+    mv -f $lib $mingw_w64_x86_64_prefix/lib/lib$lib_s.a
+    echo "GROUP ( -l$lib_s $2 )" > $lib
+  fi
+}
+
+build_dlfcn() {
+  do_git_checkout https://github.com/dlfcn-win32/dlfcn-win32.git
+  cd dlfcn-win32_git
+    if [[ ! -f Makefile.bak ]]; then # Change CFLAGS.
+      sed -i.bak "s/-O3/-O2/" Makefile
+    fi
+    do_configure "--prefix=$mingw_w64_x86_64_prefix --cross-prefix=$cross_prefix" # rejects some normal cross compile options so custom here
+    do_make_and_make_install
+    gen_ld_script libdl.a -lpsapi # dlfcn-win32's 'README.md': "If you are linking to the static 'dl.lib' or 'libdl.a', then you would need to explicitly add 'psapi.lib' or '-lpsapi' to your linking command, depending on if MinGW is used."
+  cd ..
+}
+
 build_lsmash() { # an MP4 library
   do_git_checkout https://github.com/l-smash/l-smash.git l-smash
   cd l-smash
@@ -850,14 +872,6 @@ build_libdvdcss() {
 build_libopencore() {
   generic_download_and_make_and_install https://sourceforge.net/projects/opencore-amr/files/opencore-amr/opencore-amr-0.1.3.tar.gz
   generic_download_and_make_and_install https://sourceforge.net/projects/opencore-amr/files/vo-amrwbenc/vo-amrwbenc-0.1.2.tar.gz
-}
-
-build_libdlfcn() {
-  do_git_checkout https://github.com/dlfcn-win32/dlfcn-win32.git 
-  cd dlfcn-win32_git
-    do_configure "--disable-shared --enable-static --cross-prefix=$cross_prefix --prefix=$mingw_w64_x86_64_prefix" # rejects some normal cross compile options so custom here
-    do_make_and_make_install
-  cd ..
 }
 
 build_libjpeg_turbo() {
@@ -1576,7 +1590,7 @@ find_all_build_exes() {
 }
 
 build_dependencies() {
-  build_libdlfcn # ffmpeg's frei0r implentation needs this <sigh>
+  build_dlfcn
   build_zlib # rtmp depends on it [as well as ffmpeg's optional but handy --enable-zlib]
   build_bzlib2 # in case someone wants it [ffmpeg uses it]
   build_liblzma
