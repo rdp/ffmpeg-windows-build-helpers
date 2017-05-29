@@ -582,6 +582,16 @@ build_libzimg() {
   cd ..
 }
 
+build_libopenjpeg() {
+  do_git_checkout https://github.com/uclouvain/openjpeg.git
+  cd openjpeg_git
+    if [[ ! -f CMakeLists.txt.bak ]]; then # Library only.
+      sed -i.bak "/#.*OPENJPEGTargets/,/#.*/d" CMakeLists.txt
+    fi
+    do_cmake_and_install "-DBUILD_SHARED_LIBS=0 -DBUILD_CODEC=0"
+  cd ..
+}
+
 build_lsmash() { # an MP4 library
   do_git_checkout https://github.com/l-smash/l-smash.git l-smash
   cd l-smash
@@ -843,16 +853,6 @@ build_libwebp() {
 build_libpng() {
   # generic_download_and_make_and_install https://download.sourceforge.net/libpng/libpng-1.6.12.tar.xz 
   generic_download_and_make_and_install https://download.sourceforge.net/libpng/libpng-1.5.26.tar.xz  # libtheora can't take 1.6.x :|
-}
-
-build_libopenjpeg() {
-  # does openjpeg 2.0 work with ffmpeg? possibly not yet...
-  download_and_unpack_file https://sourceforge.net/projects/openjpeg.mirror/files/1.5.2/openjpeg-1.5.2.tar.gz
-  cd openjpeg-1.5.2
-    export CFLAGS="$CFLAGS -DOPJ_STATIC" # see https://github.com/rdp/ffmpeg-windows-build-helpers/issues/37
-    generic_configure_make_install
-    reset_cflags
-  cd ..
 }
 
 build_libvpx() {
@@ -1500,6 +1500,10 @@ build_ffmpeg() {
 
   do_git_checkout $git_url $output_dir $ffmpeg_git_checkout_version 
   cd $output_dir
+    apply_patch file://$patch_dir/libopenjpeg_support-v2.2.diff
+    if [[ ! -f configure.bak ]]; then # Changes being made to 'configure' are done with 'sed', because 'configure' gets updated a lot.
+      sed -i.bak "/enabled libopenjpeg/s/{ check/{ check_lib libopenjpeg openjpeg-2.2\/openjpeg.h opj_version -lopenjp2 -DOPJ_STATIC \&\& add_cppflags -DOPJ_STATIC; } ||\n                               &/;/openjpeg_2_1_openjpeg_h/i\    openjpeg_2_2_openjpeg_h" configure # Add support for LibOpenJPEG v2.2.
+    fi
   
   if [ "$bits_target" = "32" ]; then
     local arch=x86
@@ -1616,6 +1620,7 @@ build_dependencies() {
     build_intel_quicksync_mfx
   fi
   build_libzimg # Uses dlfcn.
+  build_libopenjpeg
   build_libsnappy
   build_libpng # for openjpeg, needs zlib
   build_gmp # for libnettle
@@ -1668,7 +1673,6 @@ build_dependencies() {
   build_fontconfig # needs expat, needs freetype (at least uses it if available), can use iconv, but I believe doesn't currently
   build_libfribidi
   build_libass # needs freetype, needs fribidi, needs fontconfig
-  build_libopenjpeg
   if [[ "$non_free" = "y" ]]; then
     build_fdk_aac
     build_libdecklink
