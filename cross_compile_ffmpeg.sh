@@ -525,6 +525,14 @@ build_zlib() {
   cd ..
 }
 
+build_iconv() {
+  download_and_unpack_file https://ftp.gnu.org/pub/gnu/libiconv/libiconv-1.15.tar.gz
+  cd libiconv-1.15
+    generic_configure "--disable-nls"
+    do_make "install-lib" # No need for 'do_make_install', because 'install-lib' already has install-instructions.
+  cd ..
+}
+
 build_lsmash() { # an MP4 library
   do_git_checkout https://github.com/l-smash/l-smash.git l-smash
   cd l-smash
@@ -1106,15 +1114,6 @@ build_libexpat() {
   generic_download_and_make_and_install https://sourceforge.net/projects/expat/files/expat/2.1.0/expat-2.1.0.tar.gz
 }
 
-build_iconv() {
-  download_and_unpack_file https://ftp.gnu.org/pub/gnu/libiconv/libiconv-1.14.tar.gz 
-  cd libiconv-1.14
-    export CFLAGS=-O2 # ??
-    generic_configure_make_install
-    reset_cflags
-  cd ..
-}
-
 build_freetype() {
   download_and_unpack_file https://download.videolan.org/contrib/freetype2/freetype-2.6.3.tar.gz
   cd freetype-2.6.3
@@ -1608,12 +1607,12 @@ build_dependencies() {
   build_bzip2 # Bzlib (bzip2) in FFMpeg is autodetected.
   build_liblzma # Lzma in FFMpeg is autodetected. Uses dlfcn.
   build_zlib # Zlib in FFMpeg is autodetected.
+  build_iconv # Iconv in FFMpeg is autodetected. Uses dlfcn.
   build_libzimg
   build_libsnappy
   build_libpng # for openjpeg, needs zlib
   build_gmp # for libnettle
   build_libnettle # needs gmp
-  build_iconv # mplayer I think needs it for freetype [just it though], vlc also wants it.  looks like ffmpeg can use it too...not sure what for :)
   build_gnutls # needs libnettle, can use iconv it appears
 
   build_frei0r
