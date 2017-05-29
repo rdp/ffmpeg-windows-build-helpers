@@ -513,6 +513,18 @@ build_liblzma() {
   cd ..
 }
 
+build_zlib() {
+  download_and_unpack_file https://github.com/madler/zlib/archive/v1.2.11.tar.gz zlib-1.2.11
+  cd zlib-1.2.11
+    if [[ ! -f Makefile.in.bak ]]; then # Library only.
+      sed -i.bak "/man3dir/d" Makefile.in
+    fi
+    do_configure "--prefix=$mingw_w64_x86_64_prefix --static"
+    #do_make_and_make_install "$make_prefix_options ARFLAGS=rcs" # What's 'ARFLAGS=rcs' needed for?
+    do_make_and_make_install "$make_prefix_options"
+  cd ..
+}
+
 build_lsmash() { # an MP4 library
   do_git_checkout https://github.com/l-smash/l-smash.git l-smash
   cd l-smash
@@ -1014,14 +1026,6 @@ build_libnettle() {
   cd nettle-3.1
     generic_configure "--disable-openssl --with-included-libtasn1" # in case we have both gnutls and openssl, just use gnutls [except that gnutls uses this so...huh? https://github.com/rdp/ffmpeg-windows-build-helpers/issues/25#issuecomment-28158515
     do_make_and_make_install
-  cd ..
-}
-
-build_zlib() {
-  download_and_unpack_file https://sourceforge.net/projects/libpng/files/zlib/1.2.8/zlib-1.2.8.tar.gz
-  cd zlib-1.2.8
-    do_configure "--static --prefix=$mingw_w64_x86_64_prefix"
-    do_make_and_make_install "$make_prefix_options ARFLAGS=rcs"
   cd ..
 }
 
@@ -1603,7 +1607,7 @@ build_dependencies() {
   build_dlfcn
   build_bzip2 # Bzlib (bzip2) in FFMpeg is autodetected.
   build_liblzma # Lzma in FFMpeg is autodetected. Uses dlfcn.
-  build_zlib # rtmp depends on it [as well as ffmpeg's optional but handy --enable-zlib]
+  build_zlib # Zlib in FFMpeg is autodetected.
   build_libzimg
   build_libsnappy
   build_libpng # for openjpeg, needs zlib
