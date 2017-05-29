@@ -533,6 +533,39 @@ build_iconv() {
   cd ..
 }
 
+build_sdl() {
+  download_and_unpack_file https://www.libsdl.org/release/SDL-1.2.15.tar.gz
+  cd SDL-1.2.15
+    if [[ ! -f Makefile.in.bak ]]; then
+      sed -i.bak "/^install:/s/ install-man//;/aclocal/d" Makefile.in # Library only.
+      #sed -i.bak "/#ifndef DECLSPEC/i\#define DECLSPEC" include/begin_code.h # Static library. Not needed it seems.
+      sed -i.bak "s/ -mwindows//" configure # Allow ffmpeg to output anything to console.
+    fi
+    generic_configure "--bindir=$mingw_bin_path --disable-stdio-redirect"
+    do_make_and_make_install
+    if [[ ! -f $mingw_bin_path/$host_target-sdl-config ]]; then
+      mv "$mingw_bin_path/sdl-config" "$mingw_bin_path/$host_target-sdl-config" # At the moment FFMpeg's 'configure' doesn't use 'sdl-config', because it gives priority to 'sdl.pc', but when it does, it expects 'i686-w64-mingw32-sdl-config' in 'cross_compilers/mingw-w64-i686/bin'.
+    fi
+  cd ..
+}
+
+build_sdl2() {
+  download_and_unpack_file http://libsdl.org/release/SDL2-2.0.5.tar.gz
+  cd SDL2-2.0.5
+    #apply_patch file://$patch_dir/sdl2.xinput.diff # mingw-w64 master needs it?
+    if [[ ! -f Makefile.in.bak ]]; then
+      sed -i.bak "/aclocal/d;/\/cmake/d" Makefile.in # Library only.
+      #sed -i.bak "/#ifndef DECLSPEC/i\#define DECLSPEC" include/begin_code.h # Static library. Not needed it seems.
+      sed -i.bak "s/ -mwindows//" configure # Allow ffmpeg to output anything to console.
+    fi
+    generic_configure "--bindir=$mingw_bin_path"
+    do_make_and_make_install
+    if [[ ! -f $mingw_bin_path/$host_target-sdl2-config ]]; then
+      mv "$mingw_bin_path/sdl2-config" "$mingw_bin_path/$host_target-sdl2-config" # At the moment FFMpeg's 'configure' doesn't use 'sdl2-config', because it gives priority to 'sdl2.pc', but when it does, it expects 'i686-w64-mingw32-sdl2-config' in 'cross_compilers/mingw-w64-i686/bin'.
+    fi
+  cd ..
+}
+
 build_lsmash() { # an MP4 library
   do_git_checkout https://github.com/l-smash/l-smash.git l-smash
   cd l-smash
@@ -1128,44 +1161,6 @@ build_freetype() {
   cd ..
 }
 
-build_sdl() {
-  # apparently ffmpeg expects prefix-sdl-config not sdl-config that they give us, so rename...
-  export CFLAGS=-DDECLSPEC=  # avoid SDL trac tickets 939 and 282, and not worried about optimizing yet...
-  generic_download_and_make_and_install https://www.libsdl.org/release/SDL-1.2.15.tar.gz
-  reset_cflags
-  mkdir -p temp
-  cd temp # so paths will work out right
-  local prefix=$(basename $cross_prefix)
-  local bin_dir=$(dirname $cross_prefix)
-  sed -i.bak "s/-mwindows//" "$PKG_CONFIG_PATH/sdl.pc" # allow ffmpeg to output anything to console :|
-  sed -i.bak "s/-mwindows//" "$mingw_w64_x86_64_prefix/bin/sdl-config" # update this one too for good measure, FFmpeg can use either, not sure which one it defaults to...
-  cp "$mingw_w64_x86_64_prefix/bin/sdl-config" "$bin_dir/${prefix}sdl-config" # this is the only mingw dir in the PATH so use it for now [though FFmpeg doesn't use it?]
-  cd ..
-  rmdir temp
-}
-
-build_sdl2() {
-  # apparently ffmpeg expects prefix-sdl-config not sdl-config that they give us, so rename...
-  export CFLAGS=-DDECLSPEC=  # avoid SDL trac tickets 939 and 282, and not worried about optimizing yet...
-  download_and_unpack_file http://libsdl.org/release/SDL2-2.0.5.tar.gz
-
-  cd SDL2-2.0.5
-     generic_configure
-     # apply_patch https://raw.githubusercontent.com/rdp/ffmpeg-windows-build-helpers/master/patches/sdl2.xinput.diff mingw-w64 master needs it?
-     do_make_and_make_install 
-  cd ..
-  reset_cflags
-  mkdir -p temp
-  cd temp # so paths will work out right
-  local prefix=$(basename $cross_prefix)
-  local bin_dir=$(dirname $cross_prefix)
-  sed -i.bak "s/-mwindows//" "$PKG_CONFIG_PATH/sdl2.pc" # allow ffmpeg to output anything to console :|
-  sed -i.bak "s/-mwindows//" "$mingw_w64_x86_64_prefix/bin/sdl2-config" # update this one too for good measure, FFmpeg can use either, not sure which one it defaults to...
-  cp "$mingw_w64_x86_64_prefix/bin/sdl2-config" "$bin_dir/${prefix}sdl2-config" # this is the only mingw dir in the PATH so use it for now [though FFmpeg doesn't use it?]
-  cd ..
-  rmdir temp
-}
-
 build_lame() {
   download_and_unpack_file https://sourceforge.net/projects/lame/files/lame/3.99/lame-3.99.5.tar.gz
   cd lame-3.99.5
@@ -1490,9 +1485,10 @@ build_ffmpeg() {
     output_dir=${output_dir}_shared
     final_install_dir=`pwd`/${output_dir}.installed
     postpend_configure_opts="--enable-shared --disable-static $postpend_configure_opts"
-    # avoid installing this to system?
+    init_options="--pkg-config=pkg-config"
     postpend_configure_opts="$postpend_configure_opts --prefix=$final_install_dir --disable-libgme" # gme broken for shared as of yet TODO...
   else
+    init_options="--pkg-config=pkg-config --pkg-config-flags=--static"
     postpend_configure_opts="--enable-static --disable-shared $postpend_configure_opts --prefix=$mingw_w64_x86_64_prefix"
   fi
 
@@ -1505,7 +1501,7 @@ build_ffmpeg() {
     local arch=x86_64
   fi
 
-  init_options="--arch=$arch --target-os=mingw32 --cross-prefix=$cross_prefix --pkg-config=pkg-config --disable-w32threads"
+  init_options="--arch=$arch --target-os=mingw32 --cross-prefix=$cross_prefix $init_options --disable-w32threads"
   config_options="$init_options --enable-libsoxr --enable-fontconfig --enable-libass --enable-libbluray --enable-iconv --enable-libtwolame --extra-cflags=-DLIBTWOLAME_STATIC --enable-libzvbi --enable-libcaca --enable-libmodplug --extra-libs=-lstdc++ --extra-libs=-lpng --extra-libs=-loleaut32  --enable-libmp3lame --enable-version3 --enable-zlib --enable-librtmp --enable-libvorbis --enable-libtheora --enable-libspeex --enable-libopenjpeg --enable-gnutls  --enable-libgsm --enable-libfreetype --enable-libopus --enable-bzlib --enable-libopencore-amrnb --enable-libopencore-amrwb --enable-libvo-amrwbenc --enable-libschroedinger --enable-libvpx --enable-libilbc --enable-libwavpack --enable-libwebp --enable-libgme --enable-dxva2 --enable-gray --enable-libopenh264 --enable-netcdf  --enable-libflite --enable-lzma --enable-libsnappy --enable-libzimg --enable-libbs2b"
   if [[ $enable_gpl == 'y' ]]; then
     config_options="$config_options --enable-gpl --enable-libx264 --enable-libx265 --enable-frei0r --enable-filter=frei0r --enable-librubberband --enable-libvidstab --enable-libxavs --enable-libxvid --enable-avisynth"
@@ -1608,6 +1604,8 @@ build_dependencies() {
   build_liblzma # Lzma in FFMpeg is autodetected. Uses dlfcn.
   build_zlib # Zlib in FFMpeg is autodetected.
   build_iconv # Iconv in FFMpeg is autodetected. Uses dlfcn.
+  #build_sdl # Sdl in FFMpeg is autodetected. Only needed for libtheora's 'player_example.exe'. Not needed for FFPlay and thus not needed at all.
+  build_sdl2 # Sdl2 in FFMpeg is autodetected. Needed to build FFPlay. Uses iconv and dlfcn.
   build_libzimg
   build_libsnappy
   build_libpng # for openjpeg, needs zlib
@@ -1623,8 +1621,6 @@ build_dependencies() {
   build_libwebp
   build_libflite # not for now till after rubberband
   build_libgsm
-  build_sdl 
-  build_sdl2 # needed for ffplay to be created
   build_libopus
   build_libopencore
   build_libogg
