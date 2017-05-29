@@ -460,10 +460,6 @@ do_git_checkout_and_make_install() {
   cd ..
 }
 
-build_libzimg() {
-  do_git_checkout_and_make_install https://github.com/sekrit-twc/zimg.git
-}
-
 generic_configure_make_install() {
   generic_configure # no parameters, force myself to break it up :)
   do_make_and_make_install
@@ -563,6 +559,26 @@ build_sdl2() {
     if [[ ! -f $mingw_bin_path/$host_target-sdl2-config ]]; then
       mv "$mingw_bin_path/sdl2-config" "$mingw_bin_path/$host_target-sdl2-config" # At the moment FFMpeg's 'configure' doesn't use 'sdl2-config', because it gives priority to 'sdl2.pc', but when it does, it expects 'i686-w64-mingw32-sdl2-config' in 'cross_compilers/mingw-w64-i686/bin'.
     fi
+  cd ..
+}
+
+build_intel_quicksync_mfx() { # i.e. qsv
+  do_git_checkout https://github.com/lu-zero/mfx_dispatch.git # lu-zero??
+  cd mfx_dispatch_git
+    if [[ ! -f "configure" ]]; then
+      autoreconf -fiv || exit 1
+    fi
+    generic_configure_make_install
+  cd ..
+}
+
+build_libzimg() {
+  do_git_checkout https://github.com/sekrit-twc/zimg.git
+  cd zimg_git
+    if [[ ! -f Makefile.am.bak ]]; then # Library only.
+      sed -i.bak "/dist_doc_DATA/,+19d" Makefile.am
+    fi
+    generic_configure_make_install
   cd ..
 }
 
@@ -1122,16 +1138,6 @@ build_openssl() {
   cd ..
 }
 
-build_intel_quicksync_mfx() { # i.e. qsv
-  do_git_checkout https://github.com/lu-zero/mfx_dispatch.git # lu-zero??
-  cd mfx_dispatch_git
-    if [[ ! -f "configure" ]]; then
-      autoreconf -fiv || exit 1
-    fi
-    generic_configure_make_install
-  cd ..
-}
-
 build_fdk_aac() {
   #generic_download_and_make_and_install https://sourceforge.net/projects/opencore-amr/files/fdk-aac/fdk-aac-0.1.0.tar.gz
   do_git_checkout https://github.com/mstorsjo/fdk-aac.git
@@ -1606,7 +1612,10 @@ build_dependencies() {
   build_iconv # Iconv in FFMpeg is autodetected. Uses dlfcn.
   #build_sdl # Sdl in FFMpeg is autodetected. Only needed for libtheora's 'player_example.exe'. Not needed for FFPlay and thus not needed at all.
   build_sdl2 # Sdl2 in FFMpeg is autodetected. Needed to build FFPlay. Uses iconv and dlfcn.
-  build_libzimg
+  if [[ $build_intel_qsv = y ]]; then
+    build_intel_quicksync_mfx
+  fi
+  build_libzimg # Uses dlfcn.
   build_libsnappy
   build_libpng # for openjpeg, needs zlib
   build_gmp # for libnettle
@@ -1660,9 +1669,6 @@ build_dependencies() {
   build_libfribidi
   build_libass # needs freetype, needs fribidi, needs fontconfig
   build_libopenjpeg
-  if [[ $build_intel_qsv = y ]]; then
-    build_intel_quicksync_mfx
-  fi
   if [[ "$non_free" = "y" ]]; then
     build_fdk_aac
     build_libdecklink
