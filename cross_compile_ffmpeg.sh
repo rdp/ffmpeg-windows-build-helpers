@@ -616,6 +616,22 @@ build_libwebp() {
   cd ..
 }
 
+build_freetype() {
+  download_and_unpack_file https://sourceforge.net/projects/freetype/files/freetype2/2.7.1/freetype-2.7.1.tar.bz2
+  cd freetype-2.7.1
+    if [[ ! -f builds/unix/install.mk.bak ]]; then # Library only.
+      sed -i.bak "/bindir) /s/\s*\\\//;/aclocal/d;/man1/d;/BUILD_DIR/d;/docs/d" builds/unix/install.mk
+    fi
+    if [[ `uname -s` == CYGWIN* ]]; then
+      generic_configure "--build=i686-pc-cygwin --with-bzip2" # hard to believe but needed...
+      # 'configure' can't detect bzip2 without '--with-bzip2', because there's no 'bzip2.pc'.
+    else
+      generic_configure "--with-bzip2"
+    fi
+    do_make_and_make_install
+  cd ..
+}
+
 build_lsmash() { # an MP4 library
   do_git_checkout https://github.com/l-smash/l-smash.git l-smash
   cd l-smash
@@ -1168,20 +1184,6 @@ build_libexpat() {
   generic_download_and_make_and_install https://sourceforge.net/projects/expat/files/expat/2.1.0/expat-2.1.0.tar.gz
 }
 
-build_freetype() {
-  download_and_unpack_file https://download.videolan.org/contrib/freetype2/freetype-2.6.3.tar.gz
-  cd freetype-2.6.3
-    if [[ `uname -s` == CYGWIN* ]]; then
-      generic_configure "--build=i686-pc-cygwin --with-png=no"  # hard to believe but needed...
-    else
-      generic_configure "--with-png=no"
-    fi
-    do_make_and_make_install
-    sed -i.bak 's/Libs: -L${libdir} -lfreetype.*/Libs: -L${libdir} -lfreetype -lexpat -lz -lbz2/' "$PKG_CONFIG_PATH/freetype2.pc" # this should not need expat, but...I think maybe people use fontconfig's wrong and that needs expat? huh wuh? or dependencies are setup wrong in some .pc file?
-    # possibly don't need the bz2 in there [bluray adds its own]...
-  cd ..
-}
-
 build_lame() {
   download_and_unpack_file https://sourceforge.net/projects/lame/files/lame/3.99/lame-3.99.5.tar.gz
   cd lame-3.99.5
@@ -1638,6 +1640,7 @@ build_dependencies() {
   build_libopenjpeg
   build_libpng # Needs zlib >= 1.0.4. Uses dlfcn.
   build_libwebp # Uses dlfcn.
+  build_freetype # Uses zlib, bzip2, and libpng.
   build_libsnappy
   build_gmp # for libnettle
   build_libnettle # needs gmp
@@ -1659,7 +1662,6 @@ build_dependencies() {
   build_libtheora # needs libvorbis, libogg
   build_orc
   build_libschroedinger # needs orc
-  build_freetype # uses bz2/zlib seemingly
   build_libexpat
   build_libxml2
   build_libbluray # needs libxml2, freetype
