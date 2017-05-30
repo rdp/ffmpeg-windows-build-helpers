@@ -654,6 +654,19 @@ build_libexpat() {
   cd ..
 }
 
+build_fontconfig() {
+  download_and_unpack_file https://www.freedesktop.org/software/fontconfig/release/fontconfig-2.12.1.tar.gz
+  cd fontconfig-2.12.1
+    if [[ ! -f Makefile.in.bak ]]; then # Library only.
+      sed -i.bak "/^SUBDIRS/s/fc.*/src/;438,439d;/^install-data-am/s/:.*/: install-pkgconfigDATA/;/\tinstall-xmlDATA$/d" Makefile.in
+    fi
+    #export CFLAGS= # compile fails with -march=sandybridge ... with mingw 4.0.6 at least ...
+    generic_configure "--enable-iconv --enable-libxml2 --disable-docs --with-libiconv" # Use Libxml2 instead of Expat.
+    do_make_and_make_install
+    #reset_cflags
+  cd ..
+}
+
 build_lsmash() { # an MP4 library
   do_git_checkout https://github.com/l-smash/l-smash.git l-smash
   cd l-smash
@@ -1153,17 +1166,6 @@ build_libxvid() {
   fi
 }
 
-build_fontconfig() {
-  download_and_unpack_file https://www.freedesktop.org/software/fontconfig/release/fontconfig-2.11.94.tar.gz 
-  cd fontconfig-2.11.94
-    export CFLAGS= # compile fails with -march=sandybridge ... with mingw 4.0.6 at least ...
-    generic_configure --disable-docs
-    do_make_and_make_install
-    reset_cflags
-  cd .. 
-  sed -i.bak 's/-L${libdir} -lfontconfig[^l]*$/-L${libdir} -lfontconfig -lfreetype -lexpat/' "$PKG_CONFIG_PATH/fontconfig.pc"
-}
-
 
 build_openssl() {
   # warning, this is a very old version of openssl since we don't really use it anymore hasn't been updated in awhile...
@@ -1657,6 +1659,7 @@ build_dependencies() {
   build_freetype # Uses zlib, bzip2, and libpng.
   build_libxml2 # Uses zlib, liblzma, iconv and dlfcn.
   #build_libexpat # Uses dlfcn. Superseded by LibXML2.
+  build_fontconfig # Needs freetype and libxml >= 2.6 (or expat). Uses iconv and dlfcn.
   build_libsnappy
   build_gmp # for libnettle
   build_libnettle # needs gmp
@@ -1701,7 +1704,6 @@ build_dependencies() {
   build_zvbi
   build_libvpx
   build_libilbc
-  build_fontconfig # needs expat, needs freetype (at least uses it if available), can use iconv, but I believe doesn't currently
   build_libfribidi
   build_libass # needs freetype, needs fribidi, needs fontconfig
   if [[ "$non_free" = "y" ]]; then
