@@ -632,6 +632,28 @@ build_freetype() {
   cd ..
 }
 
+build_libxml2() {
+  download_and_unpack_file http://xmlsoft.org/sources/libxml2-2.9.4.tar.gz libxml2-2.9.4
+  cd libxml2-2.9.4
+    if [[ ! -f Makefile.in.bak ]]; then # Library only.
+      sed -i.bak "/^PROGRAMS/s/=.*/=/;/^SUBDIRS/s/ doc.*//;/^install-data-am/s/:.*/: install-pkgconfigDATA/;/\tinstall-m4dataDATA/d;/^install-exec-am/s/:.*/: install-libLTLIBRARIES/;/install-confexecDATA install-libLTLIBRARIES/d" Makefile.in
+    fi
+    if [[ ! -f libxml.h.bak ]]; then # Otherwise you'll get "libxml.h:...: warning: "LIBXML_STATIC" redefined". Not an error, but still.
+      sed -i.bak "/NOLIBTOOL/s/.*/& \&\& !defined(LIBXML_STATIC)/" libxml.h
+    fi
+    generic_configure "--with-ftp=no --with-http=no --with-python=no"
+    do_make_and_make_install
+  cd ..
+}
+
+build_libexpat() {
+  download_and_unpack_file https://sourceforge.net/projects/expat/files/expat/2.2.0/expat-2.2.0.tar.bz2
+  cd expat-2.2.0
+    generic_configure
+    do_make "installlib" # No need for 'do_make_install', because 'installlib' already has install-instructions.
+  cd ..
+}
+
 build_lsmash() { # an MP4 library
   do_git_checkout https://github.com/l-smash/l-smash.git l-smash
   cd l-smash
@@ -1074,10 +1096,6 @@ build_orc() {
   generic_download_and_make_and_install https://download.videolan.org/contrib/orc-0.4.18.tar.gz
 }
 
-build_libxml2() {
-  generic_download_and_make_and_install http://xmlsoft.org/sources/libxml2-2.9.4.tar.gz libxml2-2.9.4 "--without-python"
-}
-
 build_libbluray() {
   # higher versions require java, which is a bit trickier...
   generic_download_and_make_and_install http://ftp.videolan.org/pub/videolan/libbluray/0.7.0/libbluray-0.7.0.tar.bz2
@@ -1178,10 +1196,6 @@ build_fdk_aac() {
     fi
     generic_configure_make_install
   cd ..
-}
-
-build_libexpat() {
-  generic_download_and_make_and_install https://sourceforge.net/projects/expat/files/expat/2.1.0/expat-2.1.0.tar.gz
 }
 
 build_lame() {
@@ -1641,6 +1655,8 @@ build_dependencies() {
   build_libpng # Needs zlib >= 1.0.4. Uses dlfcn.
   build_libwebp # Uses dlfcn.
   build_freetype # Uses zlib, bzip2, and libpng.
+  build_libxml2 # Uses zlib, liblzma, iconv and dlfcn.
+  #build_libexpat # Uses dlfcn. Superseded by LibXML2.
   build_libsnappy
   build_gmp # for libnettle
   build_libnettle # needs gmp
@@ -1662,8 +1678,6 @@ build_dependencies() {
   build_libtheora # needs libvorbis, libogg
   build_orc
   build_libschroedinger # needs orc
-  build_libexpat
-  build_libxml2
   build_libbluray # needs libxml2, freetype
   # build_libjpeg_turbo # mplayer can use this, VLC qt might need it? [replaces libjpeg]
   build_libxvid
