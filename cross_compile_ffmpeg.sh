@@ -603,6 +603,19 @@ build_libpng() {
   cd ..
 }
 
+build_libwebp() {
+  do_git_checkout https://chromium.googlesource.com/webm/libwebp.git
+  cd libwebp_git
+    if [[ ! -f Makefile.am.bak ]]; then # Library only.
+      sed -i.bak "/^SUBDIRS/s/=.*/= src/" Makefile.am
+    fi
+    export LIBPNG_CONFIG="$mingw_w64_x86_64_prefix/bin/libpng-config --static" # LibPNG somehow doesn't get autodetected.
+    generic_configure "--disable-wic"
+    do_make_and_make_install
+    unset LIBPNG_CONFIG
+  cd ..
+}
+
 build_lsmash() { # an MP4 library
   do_git_checkout https://github.com/l-smash/l-smash.git l-smash
   cd l-smash
@@ -855,10 +868,6 @@ build_libgme_game_music_emu() {
 
 build_libsnappy() {
   generic_download_and_make_and_install https://sourceforge.net/projects/ffmpegwindowsbi/files/dependency_libraries/google-snappy-1.1.3-14-g32d6d7d.tar.gz google-snappy-32d6d7d
-}
-
-build_libwebp() {
-  generic_download_and_make_and_install http://downloads.webmproject.org/releases/webp/libwebp-0.5.0.tar.gz
 }
 
 build_libvpx() {
@@ -1628,6 +1637,7 @@ build_dependencies() {
   build_libzimg # Uses dlfcn.
   build_libopenjpeg
   build_libpng # Needs zlib >= 1.0.4. Uses dlfcn.
+  build_libwebp # Uses dlfcn.
   build_libsnappy
   build_gmp # for libnettle
   build_libnettle # needs gmp
@@ -1638,7 +1648,6 @@ build_dependencies() {
   build_libbs2b # needs libsndfile
   build_wavpack
   build_libgme_game_music_emu
-  build_libwebp
   build_libflite # not for now till after rubberband
   build_libgsm
   build_libopus
