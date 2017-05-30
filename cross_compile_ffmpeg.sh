@@ -592,6 +592,17 @@ build_libopenjpeg() {
   cd ..
 }
 
+build_libpng() {
+  do_git_checkout https://github.com/glennrp/libpng.git
+  cd libpng_git
+    generic_configure
+    if [[ ! -f Makefile.bak ]]; then # Library only.
+      sed -i.bak "/^install-data-am/s/ install-man//;/^install-exec-am/s/ install-binPROGRAMS//" Makefile
+    fi
+    do_make_and_make_install
+  cd ..
+}
+
 build_lsmash() { # an MP4 library
   do_git_checkout https://github.com/l-smash/l-smash.git l-smash
   cd l-smash
@@ -848,11 +859,6 @@ build_libsnappy() {
 
 build_libwebp() {
   generic_download_and_make_and_install http://downloads.webmproject.org/releases/webp/libwebp-0.5.0.tar.gz
-}
-
-build_libpng() {
-  # generic_download_and_make_and_install https://download.sourceforge.net/libpng/libpng-1.6.12.tar.xz 
-  generic_download_and_make_and_install https://download.sourceforge.net/libpng/libpng-1.5.26.tar.xz  # libtheora can't take 1.6.x :|
 }
 
 build_libvpx() {
@@ -1621,8 +1627,8 @@ build_dependencies() {
   fi
   build_libzimg # Uses dlfcn.
   build_libopenjpeg
+  build_libpng # Needs zlib >= 1.0.4. Uses dlfcn.
   build_libsnappy
-  build_libpng # for openjpeg, needs zlib
   build_gmp # for libnettle
   build_libnettle # needs gmp
   build_gnutls # needs libnettle, can use iconv it appears
