@@ -682,6 +682,17 @@ build_gmp() {
   cd ..
 }
 
+build_libnettle() {
+  download_and_unpack_file https://ftp.gnu.org/gnu/nettle/nettle-3.3.tar.gz
+  cd nettle-3.3
+    if [[ ! -f Makefile.in.bak ]]; then # Library only
+      sed -i.bak "/^SUBDIRS/s/=.*/=/" Makefile.in
+    fi
+    generic_configure "--disable-openssl --disable-documentation" # in case we have both gnutls and openssl, just use gnutls [except that gnutls uses this so...huh? https://github.com/rdp/ffmpeg-windows-build-helpers/issues/25#issuecomment-28158515
+    do_make_and_make_install # What's up with "Configured with: ... --with-gmp=/cygdrive/d/ffmpeg-windows-build-helpers-master/native_build/windows/ffmpeg_local_builds/sandbox/cross_compilers/pkgs/gmp/gmp-6.1.2-i686" in 'config.log'? Isn't the 'gmp-6.1.2' above being used?
+  cd ..
+}
+
 build_lsmash() { # an MP4 library
   do_git_checkout https://github.com/l-smash/l-smash.git l-smash
   cd l-smash
@@ -1141,14 +1152,6 @@ build_gnutls() {
     do_make_and_make_install
   cd ..
   sed -i.bak 's/-lgnutls *$/-lgnutls -lnettle -lhogweed -lgmp -lcrypt32 -lws2_32 -liconv/' "$PKG_CONFIG_PATH/gnutls.pc"
-}
-
-build_libnettle() {
-  download_and_unpack_file https://ftp.gnu.org/gnu/nettle/nettle-3.1.tar.gz
-  cd nettle-3.1
-    generic_configure "--disable-openssl --with-included-libtasn1" # in case we have both gnutls and openssl, just use gnutls [except that gnutls uses this so...huh? https://github.com/rdp/ffmpeg-windows-build-helpers/issues/25#issuecomment-28158515
-    do_make_and_make_install
-  cd ..
 }
 
 build_libxvid() {
@@ -1664,8 +1667,8 @@ build_dependencies() {
   #build_libexpat # Uses dlfcn. Superseded by LibXML2.
   build_fontconfig # Needs freetype and libxml >= 2.6 (or expat). Uses iconv and dlfcn.
   build_gmp # For rtmp support configure FFMpeg with '--enable-gmp'. Uses dlfcn.
+  build_libnettle # Needs gmp >= 3.0. Uses dlfcn.
   build_libsnappy
-  build_libnettle # needs gmp
   build_gnutls # needs libnettle, can use iconv it appears
 
   build_frei0r
