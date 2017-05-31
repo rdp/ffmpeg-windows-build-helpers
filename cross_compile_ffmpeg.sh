@@ -693,6 +693,22 @@ build_libnettle() {
   cd ..
 }
 
+build_gnutls() {
+  download_and_unpack_file https://www.mirrorservice.org/sites/ftp.gnupg.org/gcrypt/gnutls/v3.5/gnutls-3.5.12.tar.xz
+  cd gnutls-3.5.12
+    # --disable-cxx don't need the c++ version, in an effort to cut down on size... XXXX test size difference...
+    # --enable-local-libopts to allow building with local autogen installed,
+    # --disable-guile is so that if it finds guile installed (cygwin did/does) it won't try and link/build to it and fail...
+    # libtasn1 is some dependency, appears provided is an option [see also build_libnettle]
+    # pks #11 hopefully we don't need kit
+    if [[ ! -f lib/gnutls.pc.in.bak ]]; then # Somehow FFMpeg's 'configure' needs '-lcrypt32'. Otherwise you'll get "undefined reference to `_imp__Cert...'" and "ERROR: gnutls not found using pkg-config".
+      sed -i.bak "/privat/s/.*/& -lcrypt32/" lib/gnutls.pc.in
+    fi
+    generic_configure "--disable-doc --disable-tools --disable-cxx --disable-tests --disable-gtk-doc-html --disable-libdane --disable-nls --enable-local-libopts --disable-guile --with-included-libtasn1 --with-included-unistring --without-p11-kit"
+    do_make_and_make_install
+  cd ..
+}
+
 build_lsmash() { # an MP4 library
   do_git_checkout https://github.com/l-smash/l-smash.git l-smash
   cd l-smash
@@ -1137,21 +1153,6 @@ build_libschroedinger() {
     do_make_and_make_install
     sed -i.bak 's/-lschroedinger-1.0$/-lschroedinger-1.0 -lorc-0.4/' "$PKG_CONFIG_PATH/schroedinger-1.0.pc" # yikes!
   cd ..
-}
-
-build_gnutls() {
-  download_and_unpack_file http://www.mirrorservice.org/sites/ftp.gnupg.org/gcrypt/gnutls/v3.5/gnutls-3.5.9.tar.xz
-  cd gnutls-3.5.9
-    sed -i.bak 's/mkstemp(tmpfile)/ -1 /g' src/danetool.c # fix x86_64 absent? but danetool is just an exe AFAICT so this hack should be ok...
-    # --disable-cxx don't need the c++ version, in an effort to cut down on size... XXXX test size difference... 
-    # --enable-local-libopts to allow building with local autogen installed, 
-    # --disable-guile is so that if it finds guile installed (cygwin did/does) it won't try and link/build to it and fail...
-    # libtasn1 is some dependency, appears provided is an option [see also build_libnettle]
-    # pks #11 hopefully we don't need kit
-    generic_configure "--disable-cxx --disable-doc --enable-local-libopts --disable-guile -with-included-libtasn1 --without-p11-kit --with-included-unistring" 
-    do_make_and_make_install
-  cd ..
-  sed -i.bak 's/-lgnutls *$/-lgnutls -lnettle -lhogweed -lgmp -lcrypt32 -lws2_32 -liconv/' "$PKG_CONFIG_PATH/gnutls.pc"
 }
 
 build_libxvid() {
@@ -1668,8 +1669,8 @@ build_dependencies() {
   build_fontconfig # Needs freetype and libxml >= 2.6 (or expat). Uses iconv and dlfcn.
   build_gmp # For rtmp support configure FFMpeg with '--enable-gmp'. Uses dlfcn.
   build_libnettle # Needs gmp >= 3.0. Uses dlfcn.
+  build_gnutls # Needs nettle >= 3.1, hogweed (nettle) >= 3.1. Uses zlib and dlfcn.
   build_libsnappy
-  build_gnutls # needs libnettle, can use iconv it appears
 
   build_frei0r
   build_libsndfile
