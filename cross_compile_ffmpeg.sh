@@ -667,6 +667,21 @@ build_fontconfig() {
   cd ..
 }
 
+build_gmp() {
+  download_and_unpack_file https://gmplib.org/download/gmp/gmp-6.1.2.tar.xz
+  cd gmp-6.1.2
+    if [[ ! -f Makefile.in.bak ]]; then # Library only.
+      sed -i.bak "/^SUBDIRS/c\SUBDIRS = mpn mpz mpq mpf printf scanf rand cxx tune" Makefile.in
+    fi
+    #export CC_FOR_BUILD=/usr/bin/gcc # Are these needed?
+    #export CPP_FOR_BUILD=usr/bin/cpp
+    generic_configure "ABI=$bits_target"
+    #unset CC_FOR_BUILD
+    #unset CPP_FOR_BUILD
+    do_make_and_make_install
+  cd ..
+}
+
 build_lsmash() { # an MP4 library
   do_git_checkout https://github.com/l-smash/l-smash.git l-smash
   cd l-smash
@@ -1091,18 +1106,6 @@ build_libass() {
   generic_download_and_make_and_install https://github.com/libass/libass/releases/download/0.13.1/libass-0.13.1.tar.gz 
   # fribidi, fontconfig, freetype throw them all in there for good measure, trying to help mplayer once though it didn't help [FFmpeg needed a change for fribidi here though I believe]
   sed -i.bak 's/-lass -lm/-lass -lfribidi -lfontconfig -lfreetype -lexpat -lm/' "$PKG_CONFIG_PATH/libass.pc"
-}
-
-build_gmp() {
-  download_and_unpack_file https://gmplib.org/download/gmp/gmp-6.0.0a.tar.xz gmp-6.0.0
-  cd gmp-6.0.0
-    export CC_FOR_BUILD=/usr/bin/gcc
-    export CPP_FOR_BUILD=usr/bin/cpp
-    generic_configure "ABI=$bits_target"
-    unset CC_FOR_BUILD
-    unset CPP_FOR_BUILD
-    do_make_and_make_install
-  cd .. 
 }
 
 build_orc() {
@@ -1660,8 +1663,8 @@ build_dependencies() {
   build_libxml2 # Uses zlib, liblzma, iconv and dlfcn.
   #build_libexpat # Uses dlfcn. Superseded by LibXML2.
   build_fontconfig # Needs freetype and libxml >= 2.6 (or expat). Uses iconv and dlfcn.
+  build_gmp # For rtmp support configure FFMpeg with '--enable-gmp'. Uses dlfcn.
   build_libsnappy
-  build_gmp # for libnettle
   build_libnettle # needs gmp
   build_gnutls # needs libnettle, can use iconv it appears
 
