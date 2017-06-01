@@ -944,6 +944,21 @@ build_libgme() {
   cd ..
 }
 
+build_libbluray() {
+  do_git_checkout https://git.videolan.org/git/libbluray.git
+  cd libbluray_git
+    if [[ ! -f .gitmodules.bak ]]; then
+      sed -i.bak "s|git.*|https://git.videolan.org/git/libudfread.git|" .gitmodules
+    fi
+    git submodule update --init # For UDF support [default=enabled], which strangely enough is in another repository.
+    if [[ ! -f contrib/libudfread/src/udfread.c.bak ]]; then
+      sed -i.bak "/WIN32$/,+4d" contrib/libudfread/src/udfread.c # Fix WinXP incompatibility.
+    fi
+    generic_configure "--disable-examples --disable-bdjava-jar"
+    do_make_and_make_install
+  cd ..
+}
+
 build_lsmash() { # an MP4 library
   do_git_checkout https://github.com/l-smash/l-smash.git l-smash
   cd l-smash
@@ -1267,12 +1282,6 @@ build_libass() {
 
 build_orc() {
   generic_download_and_make_and_install https://download.videolan.org/contrib/orc-0.4.18.tar.gz
-}
-
-build_libbluray() {
-  # higher versions require java, which is a bit trickier...
-  generic_download_and_make_and_install http://ftp.videolan.org/pub/videolan/libbluray/0.7.0/libbluray-0.7.0.tar.bz2
-  sed -i.bak 's/-lbluray.*$/-lbluray -lfreetype -lexpat -lz -lbz2 -lxml2 -lws2_32 -liconv/' "$PKG_CONFIG_PATH/libbluray.pc" # not sure...is this a blu-ray bug, or VLC's problem in not pulling freetype's .pc file? or our problem with not using pkg-config --static ...
 }
 
 build_libschroedinger() {
@@ -1768,6 +1777,7 @@ build_dependencies() {
   build_libgsm
   build_libmodplug # Uses dlfcn.
   build_libgme
+  build_libbluray # Needs libxml >= 2.6, freetype, fontconfig. Uses dlfcn.
   build_libsnappy
 
   build_frei0r
@@ -1776,7 +1786,6 @@ build_dependencies() {
   build_libflite # not for now till after rubberband
   build_orc
   build_libschroedinger # needs orc
-  build_libbluray # needs libxml2, freetype
   # build_libjpeg_turbo # mplayer can use this, VLC qt might need it? [replaces libjpeg]
   build_libxvid
   build_libxavs
