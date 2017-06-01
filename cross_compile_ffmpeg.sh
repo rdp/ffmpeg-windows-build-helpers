@@ -903,6 +903,16 @@ build_libopencore() {
   generic_download_and_make_and_install https://sourceforge.net/projects/opencore-amr/files/vo-amrwbenc/vo-amrwbenc-0.1.3.tar.gz
 }
 
+build_libilbc() {
+  do_git_checkout https://github.com/TimothyGu/libilbc.git
+  cd libilbc_git
+    if [[ ! -f Makefile.am.bak ]]; then # Library only.
+      sed -i.bak "/dist_doc/,+3d" Makefile.am
+    fi
+    generic_configure_make_install
+  cd ..
+}
+
 build_lsmash() { # an MP4 library
   do_git_checkout https://github.com/l-smash/l-smash.git l-smash
   cd l-smash
@@ -1150,17 +1160,6 @@ build_libvpx() {
   do_configure "$config_options --prefix=$mingw_w64_x86_64_prefix --enable-static --disable-shared --enable-vp9-highbitdepth"
   do_make_and_make_install
   unset CROSS
-  cd ..
-}
-
-
-build_libilbc() {
-  do_git_checkout https://github.com/dekkers/libilbc.git
-  cd libilbc_git
-  if [[ ! -f "configure" ]]; then
-    autoreconf -fiv || exit 1 # failure here, OS X means "you need libtoolize" perhaps? http://betterlogic.com/roger/2014/12/ilbc-cross-compile-os-x-mac-woe/
-  fi
-  generic_configure_make_install
   cd ..
 }
 
@@ -1767,6 +1766,7 @@ build_dependencies() {
   build_twolame # Uses libsndfile >= 1.0.0 and dlfcn.
   build_fdk-aac # Uses dlfcn.
   build_libopencore # Uses dlfcn.
+  build_libilbc # Uses dlfcn.
   build_libsnappy
 
   build_frei0r
@@ -1796,7 +1796,6 @@ build_dependencies() {
   build_libmodplug # ffmepg and vlc can use this
   build_zvbi
   build_libvpx
-  build_libilbc
   build_libfribidi
   build_libass # needs freetype, needs fribidi, needs fontconfig
   if [[ "$non_free" = "y" ]]; then
