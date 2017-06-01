@@ -959,6 +959,16 @@ build_libbluray() {
   cd ..
 }
 
+build_libbs2b() {
+  download_and_unpack_file https://downloads.sourceforge.net/project/bs2b/libbs2b/3.1.0/libbs2b-3.1.0.tar.gz
+  cd libbs2b-3.1.0
+    if [[ ! -f src/Makefile.in.bak ]]; then
+      sed -i.bak "/^bin_PROGRAMS/s/=.*/=/" src/Makefile.in # Library only.
+    fi
+    generic_configure_make_install
+  cd ..
+}
+
 build_lsmash() { # an MP4 library
   do_git_checkout https://github.com/l-smash/l-smash.git l-smash
   cd l-smash
@@ -1171,12 +1181,6 @@ build_libxavs() {
     do_make_and_make_install "$make_prefix_options"
     rm -f NUL # cygwin causes windows explorer to not be able to delete this folder if it has this oddly named file in it...
   cd ..
-}
-
-build_libbs2b() {
-  export ac_cv_func_malloc_0_nonnull=yes # rp_alloc compile failure yikes
-  generic_download_and_make_and_install https://downloads.sourceforge.net/project/bs2b/libbs2b/3.1.0/libbs2b-3.1.0.tar.gz
-  unset ac_cv_func_malloc_0_nonnull
 }
 
 build_libsnappy() {
@@ -1778,10 +1782,10 @@ build_dependencies() {
   build_libmodplug # Uses dlfcn.
   build_libgme
   build_libbluray # Needs libxml >= 2.6, freetype, fontconfig. Uses dlfcn.
+  build_libbs2b # Needs libsndfile. Uses dlfcn.
   build_libsnappy
 
   build_frei0r
-  build_libbs2b # needs libsndfile
   build_wavpack
   build_libflite # not for now till after rubberband
   build_orc
