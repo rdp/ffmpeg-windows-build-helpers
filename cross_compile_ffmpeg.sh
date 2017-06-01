@@ -1004,6 +1004,19 @@ build_libsnappy() {
   cd ..
 }
 
+build_orc() {
+  do_git_checkout https://github.com/GStreamer/orc.git
+  cd orc_git
+    if [[ ! -f Makefile.am.bak ]]; then # Library only (Libschroedinger needs 'tools/orcc.exe').
+      sed -i.bak "/^SUBDIRS/s/orc-test.*/tools/;/ACLOCAL/,\$d" Makefile.am
+      sed -i.bak "/PROGRAMS/,\$d" orc/Makefile.am
+      sed -i.bak "s/orcc.*/orcc/;/orc_/d" tools/Makefile.am
+    fi
+    generic_configure "--disable-gtk-doc-html"
+    do_make_and_make_install
+  cd ..
+}
+
 build_lsmash() { # an MP4 library
   do_git_checkout https://github.com/l-smash/l-smash.git l-smash
   cd l-smash
@@ -1286,10 +1299,6 @@ build_libass() {
   generic_download_and_make_and_install https://github.com/libass/libass/releases/download/0.13.1/libass-0.13.1.tar.gz 
   # fribidi, fontconfig, freetype throw them all in there for good measure, trying to help mplayer once though it didn't help [FFmpeg needed a change for fribidi here though I believe]
   sed -i.bak 's/-lass -lm/-lass -lfribidi -lfontconfig -lfreetype -lexpat -lm/' "$PKG_CONFIG_PATH/libass.pc"
-}
-
-build_orc() {
-  generic_download_and_make_and_install https://download.videolan.org/contrib/orc-0.4.18.tar.gz
 }
 
 build_libschroedinger() {
@@ -1790,10 +1799,9 @@ build_dependencies() {
   build_libsoxr
   build_libflite
   build_libsnappy # Uses zlib (only for unittests [disabled]) and dlfcn.
-
+  #build_orc # Uses dlfcn.
   build_frei0r
   build_wavpack
-  build_orc
   build_libschroedinger # needs orc
   # build_libjpeg_turbo # mplayer can use this, VLC qt might need it? [replaces libjpeg]
   build_libxvid
