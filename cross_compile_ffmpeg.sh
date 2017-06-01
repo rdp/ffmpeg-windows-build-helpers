@@ -994,6 +994,16 @@ build_libflite() {
   cd ..
 }
 
+build_libsnappy() {
+  do_git_checkout https://github.com/google/snappy.git
+  cd snappy_git
+    if [[ ! -f Makefile.am.bak ]]; then # Library only.
+      sed -i.bak "/# Unit/,+7d;/^dist/s/=.*/=/" Makefile.am
+    fi
+    generic_configure_make_install
+  cd ..
+}
+
 build_lsmash() { # an MP4 library
   do_git_checkout https://github.com/l-smash/l-smash.git l-smash
   cd l-smash
@@ -1199,10 +1209,6 @@ build_libxavs() {
     do_make_and_make_install "$make_prefix_options"
     rm -f NUL # cygwin causes windows explorer to not be able to delete this folder if it has this oddly named file in it...
   cd ..
-}
-
-build_libsnappy() {
-  generic_download_and_make_and_install https://sourceforge.net/projects/ffmpegwindowsbi/files/dependency_libraries/google-snappy-1.1.3-14-g32d6d7d.tar.gz google-snappy-32d6d7d
 }
 
 build_libvpx() {
@@ -1783,7 +1789,7 @@ build_dependencies() {
   build_libbs2b # Needs libsndfile. Uses dlfcn.
   build_libsoxr
   build_libflite
-  build_libsnappy
+  build_libsnappy # Uses zlib (only for unittests [disabled]) and dlfcn.
 
   build_frei0r
   build_wavpack
