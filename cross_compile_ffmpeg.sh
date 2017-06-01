@@ -828,6 +828,19 @@ build_libspeex() {
   cd ..
 }
 
+build_libtheora() {
+  do_git_checkout https://github.com/xiph/theora.git
+  cd theora_git
+    if [[ ! -f Makefile.am.bak ]]; then # Library only.
+      sed -i.bak "s/ doc.*//" Makefile.am
+      #sed -i.bak "s/double rint/&_disabled/" examples/encoder_example.c # double define issue [?] # For if you want to build examples. Untested.
+    fi
+    generic_configure "--disable-doc --disable-oggtest --disable-vorbistest --disable-examples"
+    # 'examples/encoder_example.c' would otherwise cause problems; "encoder_example.c:56:15: error: static declaration of 'rint' follows non-static declaration". No more issues with latest libpng either.
+    do_make_and_make_install
+  cd ..
+}
+
 build_lsmash() { # an MP4 library
   do_git_checkout https://github.com/l-smash/l-smash.git l-smash
   cd l-smash
@@ -1170,16 +1183,6 @@ build_libjpeg_turbo() {
     do_make_and_make_install
     sed -i.bak 's/typedef long INT32/typedef long XXINT32/' "$mingw_w64_x86_64_prefix/include/jmorecfg.h" # breaks VLC build without this...freaky...theoretically using cmake instead would be enough, but that installs .dll.a file... XXXX maybe no longer needed :|
   cd ..
-}
-
-build_libtheora() {
-  cpu_count=1 # can't handle it
-  download_and_unpack_file http://downloads.xiph.org/releases/theora/libtheora-1.2.0alpha1.tar.gz 
-  cd libtheora-1.2.0alpha1
-    sed -i.bak 's/double rint/double rint_disabled/' examples/encoder_example.c # double define issue [?]
-    generic_configure_make_install 
-  cd ..
-  cpu_count=$original_cpu_count
 }
 
 build_libfribidi() {
@@ -1726,6 +1729,7 @@ build_dependencies() {
   build_libopus # Uses dlfcn.
   build_libspeexdsp # Needs libogg for examples. Uses dlfcn.
   build_libspeex # Uses libspeexdsp and dlfcn.
+  build_libtheora # Needs libogg >= 1.1. Needs libvorbis >= 1.0.1, sdl and libpng for test, programs and examples [disabled]. Uses dlfcn.
   build_libsnappy
 
   build_frei0r
@@ -1736,7 +1740,6 @@ build_dependencies() {
   build_libflite # not for now till after rubberband
   build_libgsm
   build_libopencore
-  build_libtheora # needs libvorbis, libogg
   build_orc
   build_libschroedinger # needs orc
   build_libbluray # needs libxml2, freetype
