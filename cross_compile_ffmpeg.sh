@@ -930,6 +930,10 @@ build_libgsm() {
   cd ..
 }
 
+build_libmodplug() {
+  do_git_checkout_and_make_install https://github.com/Konstanty/libmodplug.git
+}
+
 build_lsmash() { # an MP4 library
   do_git_checkout https://github.com/l-smash/l-smash.git l-smash
   cd l-smash
@@ -1344,14 +1348,6 @@ build_zvbi() {
   cd ..
 }
 
-build_libmodplug() {
-  generic_download_and_make_and_install https://sourceforge.net/projects/modplug-xmms/files/libmodplug/0.8.8.5/libmodplug-0.8.8.5.tar.gz
-  # unfortunately this sed isn't enough, though I think it should be [so we add --extra-libs=-lstdc++ to FFmpegs configure] http://trac.ffmpeg.org/ticket/1539
-  sed -i.bak 's/-lmodplug.*/-lmodplug -lstdc++/' "$PKG_CONFIG_PATH/libmodplug.pc" # huh ?? c++?
-  sed -i.bak 's/__declspec(dllexport)//' "$mingw_w64_x86_64_prefix/include/libmodplug/modplug.h" #strip DLL import/export directives
-  sed -i.bak 's/__declspec(dllimport)//' "$mingw_w64_x86_64_prefix/include/libmodplug/modplug.h"
-}
-
 build_libcaca() {
   # beta19 and git were non xp friendly
   download_and_unpack_file http://pkgs.fedoraproject.org/repo/extras/libcaca/libcaca-0.99.beta18.tar.gz/93d35dbdb0527d4c94df3e9a02e865cc/libcaca-0.99.beta18.tar.gz 
@@ -1622,7 +1618,7 @@ build_ffmpeg() {
     if [[ ! -f configure.bak ]]; then # Changes being made to 'configure' are done with 'sed', because 'configure' gets updated a lot.
       sed -i.bak "/enabled libopenjpeg/s/{ check/{ check_lib libopenjpeg openjpeg-2.2\/openjpeg.h opj_version -lopenjp2 -DOPJ_STATIC \&\& add_cppflags -DOPJ_STATIC; } ||\n                               &/;/openjpeg_2_1_openjpeg_h/i\    openjpeg_2_2_openjpeg_h" configure # Add support for LibOpenJPEG v2.2.
       sed -i "/enabled libfdk_aac/s/&.*/\&\& { check_header fdk-aac\/aacenc_lib.h || die \"ERROR: aacenc_lib.h not found\"; }/;/require libfdk_aac/,/without pkg-config/d;/    libfdk_aac/d;/    libflite/i\    libfdk_aac" configure # Load 'libfdk-aac-1.dll' dynamically.
-      sed -i "/enabled libtwolame/s/&&$/-DLIBTWOLAME_STATIC \&\& add_cppflags -DLIBTWOLAME_STATIC \&\&/" configure # Add '-Dxxx_STATIC' to LibTwoLAME. FFMpeg should change this upstream, just like they did with libopenjpeg.
+      sed -i "/enabled libtwolame/s/&&$/-DLIBTWOLAME_STATIC \&\& add_cppflags -DLIBTWOLAME_STATIC \&\&/;/enabled libmodplug/s/.*/& -DMODPLUG_STATIC \&\& add_cppflags -DMODPLUG_STATIC/" configure # Add '-Dxxx_STATIC' to LibTwoLAME and LibModplug. FFMpeg should change this upstream, just like they did with libopenjpeg.
     fi
   
   if [ "$bits_target" = "32" ]; then
@@ -1768,6 +1764,7 @@ build_dependencies() {
   build_libopencore # Uses dlfcn.
   build_libilbc # Uses dlfcn.
   build_libgsm
+  build_libmodplug # Uses dlfcn.
   build_libsnappy
 
   build_frei0r
@@ -1793,7 +1790,6 @@ build_dependencies() {
   build_vidstab
   build_netcdf
   build_libcaca
-  build_libmodplug # ffmepg and vlc can use this
   build_zvbi
   build_libvpx
   build_libfribidi
