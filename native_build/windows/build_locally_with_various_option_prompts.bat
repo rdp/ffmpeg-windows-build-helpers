@@ -9,6 +9,7 @@ ECHO on how to run it again with more advanced options.
 ECHO.
 ECHO Starting Cygwin install/update.
 ECHO.
+SETLOCAL ENABLEDELAYEDEXPANSION
 IF NOT EXIST ffmpeg_local_builds\cygwin_local_install (
 	MKDIR ffmpeg_local_builds\cygwin_local_install
 	REM cd to it so that Cygwin install, logs, etc. go there
@@ -28,7 +29,7 @@ IF NOT EXIST ffmpeg_local_builds\cygwin_local_install (
 			--no-shortcuts ^
 			--no-desktop ^
 			--site http://cygwin-xp.portfolis.net/cygwin ^
-			--root %cd% ^
+			--root !cd! ^
 			--packages ^
 			ed,curl,libcurl4,wget,subversion,texinfo,gcc-g++,bison,flex,cvs,yasm,automake,libtool,autoconf,gcc-core,cmake,git,make,pkg-config,zlib1g-dev,mercurial,unzip,pax,ncurses,patch,gettext-devel,nasm,p7zip
 		) ELSE (
@@ -40,7 +41,7 @@ IF NOT EXIST ffmpeg_local_builds\cygwin_local_install (
 			--no-shortcuts ^
 			--no-desktop ^
 			--site http://mirrors.xmission.com/cygwin/ ^
-			--root %cd% ^
+			--root !cd! ^
 			--packages ^
 			ed,curl,libcurl4,wget,subversion,texinfo,gcc-g++,bison,flex,cvs,yasm,automake,libtool,autoconf,gcc-core,cmake,git,make,pkg-config,zlib1g-dev,mercurial,unzip,pax,ncurses,patch,gettext-devel,nasm,p7zip
 		)
@@ -58,7 +59,6 @@ IF NOT EXIST ffmpeg_local_builds\cygwin_local_install (
 ECHO.
 REM want wget etc. so override path here by prepending. Probably need/want to do this anyway...
 REM since we're messing with the PATH
-SETLOCAL ENABLEDELAYEDEXPANSION
 SET PATH=%cd%\ffmpeg_local_builds\cygwin_local_install\bin;%PATH%
 
 CD ffmpeg_local_builds
