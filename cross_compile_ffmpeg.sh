@@ -898,6 +898,11 @@ build_fdk-aac() {
   cd ..
 }
 
+build_libopencore() {
+  generic_download_and_make_and_install https://sourceforge.net/projects/opencore-amr/files/opencore-amr/opencore-amr-0.1.5.tar.gz
+  generic_download_and_make_and_install https://sourceforge.net/projects/opencore-amr/files/vo-amrwbenc/vo-amrwbenc-0.1.3.tar.gz
+}
+
 build_lsmash() { # an MP4 library
   do_git_checkout https://github.com/l-smash/l-smash.git l-smash
   cd l-smash
@@ -1221,11 +1226,6 @@ build_libdvdnav() {
 
 build_libdvdcss() {
   generic_download_and_make_and_install https://download.videolan.org/pub/videolan/libdvdcss/1.2.13/libdvdcss-1.2.13.tar.bz2
-}
-
-build_libopencore() {
-  generic_download_and_make_and_install https://sourceforge.net/projects/opencore-amr/files/opencore-amr/opencore-amr-0.1.3.tar.gz
-  generic_download_and_make_and_install https://sourceforge.net/projects/opencore-amr/files/vo-amrwbenc/vo-amrwbenc-0.1.2.tar.gz
 }
 
 build_libjpeg_turbo() {
@@ -1766,6 +1766,7 @@ build_dependencies() {
   build_lame # Uses dlfcn.
   build_twolame # Uses libsndfile >= 1.0.0 and dlfcn.
   build_fdk-aac # Uses dlfcn.
+  build_libopencore # Uses dlfcn.
   build_libsnappy
 
   build_frei0r
@@ -1774,7 +1775,6 @@ build_dependencies() {
   build_libgme_game_music_emu
   build_libflite # not for now till after rubberband
   build_libgsm
-  build_libopencore
   build_orc
   build_libschroedinger # needs orc
   build_libbluray # needs libxml2, freetype
