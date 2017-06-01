@@ -769,6 +769,27 @@ build_librtmp() {
   cd ..
 }
 
+build_libogg() {
+  do_git_checkout https://github.com/xiph/ogg.git
+  cd ogg_git
+    if [[ ! -f Makefile.am.bak ]]; then # Library only.
+      sed -i.bak "s/ doc//;/m4data/,+2d" Makefile.am
+    fi
+    generic_configure_make_install
+  cd ..
+}
+
+build_libvorbis() {
+  do_git_checkout https://github.com/xiph/vorbis.git
+  cd vorbis_git
+    if [[ ! -f Makefile.am.bak ]]; then # Library only.
+      sed -i.bak "s/ test.*//;/m4data/,+2d" Makefile.am
+    fi
+    generic_configure "--disable-docs --disable-examples --disable-oggtest"
+    do_make_and_make_install
+  cd ..
+}
+
 build_lsmash() { # an MP4 library
   do_git_checkout https://github.com/l-smash/l-smash.git l-smash
   cd l-smash
@@ -1119,14 +1140,6 @@ build_libjpeg_turbo() {
     do_make_and_make_install
     sed -i.bak 's/typedef long INT32/typedef long XXINT32/' "$mingw_w64_x86_64_prefix/include/jmorecfg.h" # breaks VLC build without this...freaky...theoretically using cmake instead would be enough, but that installs .dll.a file... XXXX maybe no longer needed :|
   cd ..
-}
-
-build_libogg() {
-  generic_download_and_make_and_install http://downloads.xiph.org/releases/ogg/libogg-1.3.1.tar.gz
-}
-
-build_libvorbis() {
-  generic_download_and_make_and_install http://downloads.xiph.org/releases/vorbis/libvorbis-1.3.4.tar.gz
 }
 
 build_libspeexdsp() {
@@ -1694,6 +1707,8 @@ build_dependencies() {
   #  build_openssl-1.1.0 # Nonfree alternative to GnuTLS. Can't be used with LibRTMP.
   #fi
   #build_librtmp # Needs GnuTLS, or OpenSSL <= 1.0.2k. Superseded by GMP.
+  build_libogg # Uses dlfcn.
+  build_libvorbis # Needs libogg >= 1.0. Uses dlfcn.
   build_libsnappy
 
   build_frei0r
@@ -1705,10 +1720,8 @@ build_dependencies() {
   build_libgsm
   build_libopus
   build_libopencore
-  build_libogg
   build_libspeexdsp # needs libogg for exe's
   build_libspeex # needs libspeexdsp
-  build_libvorbis # needs libogg
   build_libtheora # needs libvorbis, libogg
   build_orc
   build_libschroedinger # needs orc
