@@ -790,6 +790,18 @@ build_libvorbis() {
   cd ..
 }
 
+build_libopus() {
+  do_git_checkout https://github.com/xiph/opus.git
+  cd opus_git
+    #apply_patch file://$patch_dir/opus_git_shared.diff # Needed for building a shared library? Untested.
+    if [[ ! -f Makefile.am.bak ]]; then # Library only.
+      sed -i.bak "/m4data/,+2d;/install-data-local/,+2d" Makefile.am
+    fi
+    generic_configure "--disable-doc --disable-extra-programs"
+    do_make_and_make_install
+  cd ..
+}
+
 build_lsmash() { # an MP4 library
   do_git_checkout https://github.com/l-smash/l-smash.git l-smash
   cd l-smash
@@ -1089,14 +1101,6 @@ build_libgsm() {
     else
       echo "already installed gsm"
     fi
-  cd ..
-}
-
-build_libopus() {
-  download_and_unpack_file http://downloads.xiph.org/releases/opus/opus-1.1.tar.gz 
-  cd opus-1.1
-    apply_patch https://raw.githubusercontent.com/rdp/ffmpeg-windows-build-helpers/master/patches/opus11.patch # allow it to work with shared builds
-    generic_configure_make_install 
   cd ..
 }
 
@@ -1709,6 +1713,7 @@ build_dependencies() {
   #build_librtmp # Needs GnuTLS, or OpenSSL <= 1.0.2k. Superseded by GMP.
   build_libogg # Uses dlfcn.
   build_libvorbis # Needs libogg >= 1.0. Uses dlfcn.
+  build_libopus # Uses dlfcn.
   build_libsnappy
 
   build_frei0r
@@ -1718,7 +1723,6 @@ build_dependencies() {
   build_libgme_game_music_emu
   build_libflite # not for now till after rubberband
   build_libgsm
-  build_libopus
   build_libopencore
   build_libspeexdsp # needs libogg for exe's
   build_libspeex # needs libspeexdsp
