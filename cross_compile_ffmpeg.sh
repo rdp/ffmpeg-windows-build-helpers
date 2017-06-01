@@ -969,6 +969,16 @@ build_libbs2b() {
   cd ..
 }
 
+build_libsoxr() {
+  do_git_checkout https://git.code.sf.net/p/soxr/code soxr_git
+  cd soxr_git
+    if [[ ! -f CMakeLists.txt.bak ]]; then # Library only.
+      sed -i.bak "/^install/,+5d" CMakeLists.txt
+    fi
+    do_cmake_and_install "-DBUILD_SHARED_LIBS=0 -DHAVE_WORDS_BIGENDIAN_EXITCODE=0 -DWITH_OPENMP=0 -DBUILD_TESTS=0 -DBUILD_EXAMPLES=0"
+  cd ..
+}
+
 build_lsmash() { # an MP4 library
   do_git_checkout https://github.com/l-smash/l-smash.git l-smash
   cd l-smash
@@ -1163,13 +1173,6 @@ build_qt() {
     sed -i.bak 's/Libs: -L${libdir} -lQtGui/Libs: -L${libdir} -lcomctl32 -lqjpeg -lqtaccessiblewidgets -lQtGui/' "$PKG_CONFIG_PATH/QtGui.pc" # sniff
   cd ..
   reset_cflags
-}
-
-build_libsoxr() {
-  download_and_unpack_file https://sourceforge.net/projects/soxr/files/soxr-0.1.2-Source.tar.xz 
-  cd soxr-0.1.2-Source
-    do_cmake_and_install "-DHAVE_WORDS_BIGENDIAN_EXITCODE=0  -DBUILD_SHARED_LIBS:bool=off -DBUILD_TESTS:BOOL=OFF"
-  cd ..
 }
 
 build_libxavs() {
@@ -1783,6 +1786,7 @@ build_dependencies() {
   build_libgme
   build_libbluray # Needs libxml >= 2.6, freetype, fontconfig. Uses dlfcn.
   build_libbs2b # Needs libsndfile. Uses dlfcn.
+  build_libsoxr
   build_libsnappy
 
   build_frei0r
@@ -1793,7 +1797,6 @@ build_dependencies() {
   # build_libjpeg_turbo # mplayer can use this, VLC qt might need it? [replaces libjpeg]
   build_libxvid
   build_libxavs
-  build_libsoxr
   #build_libebur128 # needs speex # Now included in ffmpeg as internal library
   build_libx265
   build_libopenh264
