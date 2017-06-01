@@ -913,6 +913,23 @@ build_libilbc() {
   cd ..
 }
 
+build_libgsm() {
+  download_and_unpack_file http://www.quut.com/gsm/gsm-1.0.16.tar.gz gsm-1.0-pl16
+  cd gsm-1.0-pl16
+    #apply_patch file://$patch_dir/libgsm.patch # patch for openssl to work with it, I think? # OpenSSL? Needed?
+    if [[ ! -f Makefile.bak ]]; then # Ignore nonexistent files.
+      sed -i.bak "/^RMFLAGS/s/.*/& -f/" Makefile
+    fi
+    if [[ ! -f $mingw_w64_x86_64_prefix/lib/libgsm.a ]]; then
+      make $make_prefix_options lib/libgsm.a # 'src/toast(_xxx).c' would otherwise cause problems with lots of 'undefined reference to ...'-errors.
+      install -m644 lib/libgsm.a $mingw_w64_x86_64_prefix/lib/libgsm.a
+      install -m644 -D inc/gsm.h $mingw_w64_x86_64_prefix/include/gsm/gsm.h
+    else
+      echo "already made gsm-1.0-pl16 ..."
+    fi
+  cd ..
+}
+
 build_lsmash() { # an MP4 library
   do_git_checkout https://github.com/l-smash/l-smash.git l-smash
   cd l-smash
@@ -1180,23 +1197,6 @@ build_libflite() {
    else
      cp ./build/x86_64-mingw32/lib/*.a $mingw_w64_x86_64_prefix/lib || exit 1
    fi
-  cd ..
-}
-
-build_libgsm() {
-  download_and_unpack_file http://www.quut.com/gsm/gsm-1.0.14.tar.gz gsm-1.0-pl14
-  cd gsm-1.0-pl14
-    # patch for openssl to work with it, I think?
-    apply_patch https://raw.githubusercontent.com/rdp/ffmpeg-windows-build-helpers/master/patches/libgsm.patch
-    if [[ ! -f $mingw_w64_x86_64_prefix/include/gsm/gsm.h ]]; then
-      # not do_make here since this actually fails [wrongly]
-      make $make_prefix_options INSTALL_ROOT=${mingw_w64_x86_64_prefix}
-      cp lib/libgsm.a $mingw_w64_x86_64_prefix/lib || exit 1
-      mkdir -p $mingw_w64_x86_64_prefix/include/gsm
-      cp inc/gsm.h $mingw_w64_x86_64_prefix/include/gsm || exit 1
-    else
-      echo "already installed gsm"
-    fi
   cd ..
 }
 
@@ -1767,6 +1767,7 @@ build_dependencies() {
   build_fdk-aac # Uses dlfcn.
   build_libopencore # Uses dlfcn.
   build_libilbc # Uses dlfcn.
+  build_libgsm
   build_libsnappy
 
   build_frei0r
@@ -1774,7 +1775,6 @@ build_dependencies() {
   build_wavpack
   build_libgme_game_music_emu
   build_libflite # not for now till after rubberband
-  build_libgsm
   build_orc
   build_libschroedinger # needs orc
   build_libbluray # needs libxml2, freetype
