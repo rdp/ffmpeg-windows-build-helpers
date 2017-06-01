@@ -874,6 +874,30 @@ build_twolame() {
   cd ..
 }
 
+build_fdk-aac() {
+  do_git_checkout https://github.com/mstorsjo/fdk-aac.git
+  cd fdk-aac_git
+    if [[ ! -f "configure" ]]; then
+      autoreconf -fiv || exit 1
+    fi
+    do_configure "--host=$host_target --prefix=$mingw_w64_x86_64_prefix --disable-static" # Build shared library ('libfdk-aac-1.dll').
+    do_make_and_make_install
+
+    mkdir -p $cur_dir/redist # Strip and pack shared library.
+    if [ $bits_target = 32 ]; then
+      local arch=x86
+    else
+      local arch=x86_64
+    fi
+    archive="$cur_dir/redist/libfdk-aac-${arch}-$(git describe --tags).7z"
+    if [[ ! -f $archive ]]; then
+      ${cross_prefix}strip $mingw_w64_x86_64_prefix/bin/libfdk-aac-1.dll
+      sed "s/$/\r/" NOTICE > NOTICE.txt
+      7z a -mx=9 $archive $mingw_w64_x86_64_prefix/bin/libfdk-aac-1.dll NOTICE.txt && rm -fr NOTICE.txt
+    fi
+  cd ..
+}
+
 build_lsmash() { # an MP4 library
   do_git_checkout https://github.com/l-smash/l-smash.git l-smash
   cd l-smash
@@ -1274,17 +1298,6 @@ build_libxvid() {
   fi
 }
 
-build_fdk_aac() {
-  #generic_download_and_make_and_install https://sourceforge.net/projects/opencore-amr/files/fdk-aac/fdk-aac-0.1.0.tar.gz
-  do_git_checkout https://github.com/mstorsjo/fdk-aac.git
-  cd fdk-aac_git
-    if [[ ! -f "configure" ]]; then
-      autoreconf -fiv || exit 1
-    fi
-    generic_configure_make_install
-  cd ..
-}
-
 build_vamp_plugin() { 
   download_and_unpack_file https://sourceforge.net/projects/ffmpegwindowsbi/files/dependency_libraries/vamp-plugin-sdk-2.6.tar.gz
   cd vamp-plugin-sdk-2.6
@@ -1606,8 +1619,10 @@ build_ffmpeg() {
   do_git_checkout $git_url $output_dir $ffmpeg_git_checkout_version 
   cd $output_dir
     apply_patch file://$patch_dir/libopenjpeg_support-v2.2.diff
+    apply_patch file://$patch_dir/libfdk-aac_load-shared-library-dynamically.diff
     if [[ ! -f configure.bak ]]; then # Changes being made to 'configure' are done with 'sed', because 'configure' gets updated a lot.
       sed -i.bak "/enabled libopenjpeg/s/{ check/{ check_lib libopenjpeg openjpeg-2.2\/openjpeg.h opj_version -lopenjp2 -DOPJ_STATIC \&\& add_cppflags -DOPJ_STATIC; } ||\n                               &/;/openjpeg_2_1_openjpeg_h/i\    openjpeg_2_2_openjpeg_h" configure # Add support for LibOpenJPEG v2.2.
+      sed -i "/enabled libfdk_aac/s/&.*/\&\& { check_header fdk-aac\/aacenc_lib.h || die \"ERROR: aacenc_lib.h not found\"; }/;/require libfdk_aac/,/without pkg-config/d;/    libfdk_aac/d;/    libflite/i\    libfdk_aac" configure # Load 'libfdk-aac-1.dll' dynamically.
       sed -i "/enabled libtwolame/s/&&$/-DLIBTWOLAME_STATIC \&\& add_cppflags -DLIBTWOLAME_STATIC \&\&/" configure # Add '-Dxxx_STATIC' to LibTwoLAME. FFMpeg should change this upstream, just like they did with libopenjpeg.
     fi
   
@@ -1750,6 +1765,7 @@ build_dependencies() {
   build_libsndfile # Needs libogg >= 1.1.3 and libvorbis >= 1.2.3 for external support [disabled]. Uses dlfcn.
   build_lame # Uses dlfcn.
   build_twolame # Uses libsndfile >= 1.0.0 and dlfcn.
+  build_fdk-aac # Uses dlfcn.
   build_libsnappy
 
   build_frei0r
@@ -1784,7 +1800,6 @@ build_dependencies() {
   build_libfribidi
   build_libass # needs freetype, needs fribidi, needs fontconfig
   if [[ "$non_free" = "y" ]]; then
-    build_fdk_aac
     build_libdecklink
     # build_faac # not included for now, too poor quality output :)
   fi
