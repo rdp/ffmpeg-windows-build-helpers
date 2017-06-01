@@ -979,6 +979,21 @@ build_libsoxr() {
   cd ..
 }
 
+build_libflite() {
+  download_and_unpack_file http://www.festvox.org/flite/packed/flite-2.0/flite-2.0.0-release.tar.bz2
+  cd flite-2.0.0-release
+    if [[ ! -f configure.bak ]]; then
+      sed -i.bak "s|i386-mingw32-|$cross_prefix|" configure
+      #sed -i.bak "/define const/i\#include <windows.h>" tools/find_sts_main.c # Needed for x86_64? Untested.
+      sed -i.bak "128,134d" main/Makefile # Library only.
+    fi
+    generic_configure
+    cpu_count=1 # can't handle it :|
+    do_make_and_make_install
+    cpu_count=$original_cpu_count
+  cd ..
+}
+
 build_lsmash() { # an MP4 library
   do_git_checkout https://github.com/l-smash/l-smash.git l-smash
   cd l-smash
@@ -1205,26 +1220,6 @@ build_libvpx() {
   do_configure "$config_options --prefix=$mingw_w64_x86_64_prefix --enable-static --disable-shared --enable-vp9-highbitdepth"
   do_make_and_make_install
   unset CROSS
-  cd ..
-}
-
-build_libflite() {
-  download_and_unpack_file http://www.speech.cs.cmu.edu/flite/packed/flite-1.4/flite-1.4-release.tar.bz2
-  cd flite-1.4-release
-   apply_patch https://raw.githubusercontent.com/rdp/ffmpeg-windows-build-helpers/master/patches/flite_64.diff
-   sed -i.bak "s|i386-mingw32-|$cross_prefix|" configure
-   generic_configure
-   cpu_count=1 # can't handle it :|
-   do_make
-   cpu_count=$original_cpu_count
-   # make install # it fails in error...
-   mkdir -p  $mingw_w64_x86_64_prefix/include/flite
-   cp include/*  $mingw_w64_x86_64_prefix/include/flite
-   if [[ "$bits_target" = "32" ]]; then
-     cp ./build/i386-mingw32/lib/*.a $mingw_w64_x86_64_prefix/lib || exit 1
-   else
-     cp ./build/x86_64-mingw32/lib/*.a $mingw_w64_x86_64_prefix/lib || exit 1
-   fi
   cd ..
 }
 
@@ -1787,11 +1782,11 @@ build_dependencies() {
   build_libbluray # Needs libxml >= 2.6, freetype, fontconfig. Uses dlfcn.
   build_libbs2b # Needs libsndfile. Uses dlfcn.
   build_libsoxr
+  build_libflite
   build_libsnappy
 
   build_frei0r
   build_wavpack
-  build_libflite # not for now till after rubberband
   build_orc
   build_libschroedinger # needs orc
   # build_libjpeg_turbo # mplayer can use this, VLC qt might need it? [replaces libjpeg]
