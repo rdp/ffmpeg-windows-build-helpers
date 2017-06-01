@@ -1017,6 +1017,16 @@ build_orc() {
   cd ..
 }
 
+build_libschroedinger() {
+  download_and_unpack_file https://download.videolan.org/contrib/schroedinger-1.0.11.tar.gz
+  cd schroedinger-1.0.11
+    if [[ ! -f Makefile.in.bak ]]; then # Library only.
+      sed -i.bak "/^SUBDIRS/s/ doc.*//" Makefile.in
+    fi
+    generic_configure_make_install
+  cd ..
+}
+
 build_lsmash() { # an MP4 library
   do_git_checkout https://github.com/l-smash/l-smash.git l-smash
   cd l-smash
@@ -1299,16 +1309,6 @@ build_libass() {
   generic_download_and_make_and_install https://github.com/libass/libass/releases/download/0.13.1/libass-0.13.1.tar.gz 
   # fribidi, fontconfig, freetype throw them all in there for good measure, trying to help mplayer once though it didn't help [FFmpeg needed a change for fribidi here though I believe]
   sed -i.bak 's/-lass -lm/-lass -lfribidi -lfontconfig -lfreetype -lexpat -lm/' "$PKG_CONFIG_PATH/libass.pc"
-}
-
-build_libschroedinger() {
-  download_and_unpack_file https://download.videolan.org/contrib/schroedinger-1.0.11.tar.gz
-  cd schroedinger-1.0.11
-    generic_configure
-    sed -i.bak 's/testsuite//' Makefile
-    do_make_and_make_install
-    sed -i.bak 's/-lschroedinger-1.0$/-lschroedinger-1.0 -lorc-0.4/' "$PKG_CONFIG_PATH/schroedinger-1.0.pc" # yikes!
-  cd ..
 }
 
 build_libxvid() {
@@ -1800,9 +1800,9 @@ build_dependencies() {
   build_libflite
   build_libsnappy # Uses zlib (only for unittests [disabled]) and dlfcn.
   #build_orc # Uses dlfcn.
+  #build_libschroedinger # Needs orc >= 0.4. Uses dlfcn. Disabled, because FFmpeg has stopped support (see https://github.com/FFmpeg/FFmpeg/commit/220b24c7c97dc033ceab1510549f66d0e7b52ef1).
   build_frei0r
   build_wavpack
-  build_libschroedinger # needs orc
   # build_libjpeg_turbo # mplayer can use this, VLC qt might need it? [replaces libjpeg]
   build_libxvid
   build_libxavs
