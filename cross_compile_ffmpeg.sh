@@ -756,6 +756,19 @@ build_openssl-1.1.0() {
   cd ..
 }
 
+build_librtmp() {
+  do_git_checkout "https://git.ffmpeg.org/rtmpdump.git"
+  cd rtmpdump_git
+    apply_patch file://$patch_dir/librtmp_git_lib-only.diff
+    #do_make_and_make_install "SYS=mingw CROSS_COMPILE=$cross_prefix SHARED= prefix=$mingw_w64_x86_64_prefix" # Build all with OpenSSL 1.0.2k.
+    #do_make_and_make_install "SYS=mingw CRYPTO=GNUTLS CROSS_COMPILE=$cross_prefix SHARED= prefix=$mingw_w64_x86_64_prefix" # Build all with GnuTLS.
+    cd librtmp
+      #do_make_and_make_install "SYS=mingw CROSS_COMPILE=$cross_prefix SHARED= prefix=$mingw_w64_x86_64_prefix" # Library only with OpenSSL 1.0.2k.
+      do_make_and_make_install "SYS=mingw CRYPTO=GNUTLS CROSS_COMPILE=$cross_prefix SHARED= prefix=$mingw_w64_x86_64_prefix" # Library only with GnuTLS.
+    cd ..
+  cd ..
+}
+
 build_lsmash() { # an MP4 library
   do_git_checkout https://github.com/l-smash/l-smash.git l-smash
   cd l-smash
@@ -924,24 +937,6 @@ build_libx264() {
   unset LAVF_CFLAGS
   unset SWSCALE_LIBS 
   cd ..
-}
-
-build_librtmp() {
-  #  download_and_unpack_file http://rtmpdump.mplayerhq.hu/download/rtmpdump-2.3.tgz # has some odd configure failure
-
-  do_git_checkout "http://repo.or.cz/r/rtmpdump.git" 
-  cd rtmpdump_git/librtmp
-  do_make_and_make_install "CRYPTO=GNUTLS OPT=-O2 CROSS_COMPILE=$cross_prefix SHARED=no prefix=$mingw_w64_x86_64_prefix"
-  #make install CRYPTO=GNUTLS OPT='-O2 -g' "CROSS_COMPILE=$cross_prefix" SHARED=no "prefix=$mingw_w64_x86_64_prefix" || exit 1
-  sed -i.bak 's/-lrtmp -lz/-lrtmp -lwinmm -lz/' "$PKG_CONFIG_PATH/librtmp.pc"
-  # also build .exe's for fun:
-  cd ..
-   if [[ ! -f rtmpsuck.exe ]]; then # hacky not do it twice
-     # TODO do_make here instead...not easy since it doesn't seem to accept env. variable for LIB_GNUTLS...
-     make SYS=mingw CRYPTO=GNUTLS OPT=-O2 CROSS_COMPILE=$cross_prefix SHARED=no LIB_GNUTLS="`pkg-config --libs gnutls` -lz" || exit 1 # NB not multi process here so we can ensure existence of rtmpsuck.exe means "we made it all the way to the end"
-   fi
-  cd ..
-
 }
 
 build_qt() {
@@ -1698,6 +1693,7 @@ build_dependencies() {
   #  build_openssl-1.0.2 # Nonfree alternative to GnuTLS.
   #  build_openssl-1.1.0 # Nonfree alternative to GnuTLS. Can't be used with LibRTMP.
   #fi
+  #build_librtmp # Needs GnuTLS, or OpenSSL <= 1.0.2k. Superseded by GMP.
   build_libsnappy
 
   build_frei0r
@@ -1746,7 +1742,6 @@ build_dependencies() {
     build_libdecklink
     # build_faac # not included for now, too poor quality output :)
   fi
-  build_librtmp # needs gnutls [or openssl...]
   build_libx264 # at bottom as it might build an ffmpeg which needs all the above deps...
 }
 
