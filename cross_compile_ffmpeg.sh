@@ -934,6 +934,16 @@ build_libmodplug() {
   do_git_checkout_and_make_install https://github.com/Konstanty/libmodplug.git
 }
 
+build_libgme() {
+  do_git_checkout https://bitbucket.org/mpyne/game-music-emu.git
+  cd game-music-emu_git
+    if [[ ! -f CMakeLists.txt.bak ]]; then # Library only.
+      sed -i.bak "101,102s/.*/#&/" CMakeLists.txt
+    fi
+    do_cmake_and_install "-DBUILD_SHARED_LIBS=0 -DENABLE_UBSAN=0"
+  cd ..
+}
+
 build_lsmash() { # an MP4 library
   do_git_checkout https://github.com/l-smash/l-smash.git l-smash
   cd l-smash
@@ -1152,14 +1162,6 @@ build_libbs2b() {
   export ac_cv_func_malloc_0_nonnull=yes # rp_alloc compile failure yikes
   generic_download_and_make_and_install https://downloads.sourceforge.net/project/bs2b/libbs2b/3.1.0/libbs2b-3.1.0.tar.gz
   unset ac_cv_func_malloc_0_nonnull
-}
-
-build_libgme_game_music_emu() {
-  download_and_unpack_file https://sourceforge.net/projects/ffmpegwindowsbi/files/dependency_libraries/game-music-emu-0.6.0.tar.bz2 # was bitbucket, but cygwin curl didn't like it :|
-  cd game-music-emu-0.6.0
-    sed -i.bak "s|SHARED|STATIC|" gme/CMakeLists.txt
-    do_cmake_and_install
-  cd ..
 }
 
 build_libsnappy() {
@@ -1765,12 +1767,12 @@ build_dependencies() {
   build_libilbc # Uses dlfcn.
   build_libgsm
   build_libmodplug # Uses dlfcn.
+  build_libgme
   build_libsnappy
 
   build_frei0r
   build_libbs2b # needs libsndfile
   build_wavpack
-  build_libgme_game_music_emu
   build_libflite # not for now till after rubberband
   build_orc
   build_libschroedinger # needs orc
