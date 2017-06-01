@@ -841,6 +841,17 @@ build_libtheora() {
   cd ..
 }
 
+build_libsndfile() {
+  do_git_checkout https://github.com/erikd/libsndfile.git
+  cd libsndfile_git
+    if [[ ! -f Makefile.am.bak ]]; then # Library only.
+      sed -i.bak "/^SUBDIRS/s/=.*/= src/" Makefile.am
+    fi
+    generic_configure "--disable-sqlite --disable-external-libs --disable-full-suite"
+    do_make_and_make_install
+  cd ..
+}
+
 build_lsmash() { # an MP4 library
   do_git_checkout https://github.com/l-smash/l-smash.git l-smash
   cd l-smash
@@ -1053,10 +1064,6 @@ build_libxavs() {
     do_make_and_make_install "$make_prefix_options"
     rm -f NUL # cygwin causes windows explorer to not be able to delete this folder if it has this oddly named file in it...
   cd ..
-}
-
-build_libsndfile() {
-  generic_download_and_make_and_install http://www.mega-nerd.com/libsndfile/files/libsndfile-1.0.25.tar.gz
 }
 
 build_libbs2b() {
@@ -1730,10 +1737,10 @@ build_dependencies() {
   build_libspeexdsp # Needs libogg for examples. Uses dlfcn.
   build_libspeex # Uses libspeexdsp and dlfcn.
   build_libtheora # Needs libogg >= 1.1. Needs libvorbis >= 1.0.1, sdl and libpng for test, programs and examples [disabled]. Uses dlfcn.
+  build_libsndfile # Needs libogg >= 1.1.3 and libvorbis >= 1.2.3 for external support [disabled]. Uses dlfcn.
   build_libsnappy
 
   build_frei0r
-  build_libsndfile
   build_libbs2b # needs libsndfile
   build_wavpack
   build_libgme_game_music_emu
