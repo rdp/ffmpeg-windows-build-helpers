@@ -802,6 +802,32 @@ build_libopus() {
   cd ..
 }
 
+build_libspeexdsp() {
+  do_git_checkout https://github.com/xiph/speexdsp.git
+  cd speexdsp_git
+    if [[ ! -f Makefile.am.bak ]]; then # Library only.
+      sed -i.bak "s/ doc.*//" Makefile.am
+    fi
+    generic_configure "--disable-examples"
+    do_make_and_make_install
+  cd ..
+}
+
+build_libspeex() {
+  do_git_checkout https://github.com/xiph/speex.git
+  cd speex_git
+    if [[ ! -f Makefile.am.bak ]]; then # Library only.
+      sed -i.bak "/m4data/,+2d;/^SUBDIRS/s/ doc.*//" Makefile.am
+    fi
+    export SPEEXDSP_CFLAGS="-I$mingw_w64_x86_64_prefix/include"
+    export SPEEXDSP_LIBS="-L$mingw_w64_x86_64_prefix/lib -lspeexdsp" # 'configure' somehow can't find SpeexDSP with 'pkg-config'.
+    generic_configure "--disable-binaries" # If you do want the libraries, then 'speexdec.exe' needs 'LDFLAGS=-lwinmm'.
+    do_make_and_make_install
+    unset SPEEXDSP_CFLAGS
+    unset SPEEXDSP_LIBS
+  cd ..
+}
+
 build_lsmash() { # an MP4 library
   do_git_checkout https://github.com/l-smash/l-smash.git l-smash
   cd l-smash
@@ -1145,22 +1171,6 @@ build_libjpeg_turbo() {
     sed -i.bak 's/typedef long INT32/typedef long XXINT32/' "$mingw_w64_x86_64_prefix/include/jmorecfg.h" # breaks VLC build without this...freaky...theoretically using cmake instead would be enough, but that installs .dll.a file... XXXX maybe no longer needed :|
   cd ..
 }
-
-build_libspeexdsp() {
-  generic_download_and_make_and_install http://downloads.xiph.org/releases/speex/speexdsp-1.2rc3.tar.gz
-}
-
-build_libspeex() {
-  #download_and_unpack_file http://downloads.xiph.org/releases/speex/speex-1.2rc2.tar.gz
-  #cd speex-1.2rc2
-  #  generic_configure "LDFLAGS=-lwinmm" # speexdec.exe needs this :|
-  #  do_make_and_make_install
-  #cd ..
-  do_git_checkout https://github.com/xiph/speex.git
-  cd speex_git
-    generic_configure_make_install
-  cd ..
-}  
 
 build_libtheora() {
   cpu_count=1 # can't handle it
@@ -1714,6 +1724,8 @@ build_dependencies() {
   build_libogg # Uses dlfcn.
   build_libvorbis # Needs libogg >= 1.0. Uses dlfcn.
   build_libopus # Uses dlfcn.
+  build_libspeexdsp # Needs libogg for examples. Uses dlfcn.
+  build_libspeex # Uses libspeexdsp and dlfcn.
   build_libsnappy
 
   build_frei0r
@@ -1724,8 +1736,6 @@ build_dependencies() {
   build_libflite # not for now till after rubberband
   build_libgsm
   build_libopencore
-  build_libspeexdsp # needs libogg for exe's
-  build_libspeex # needs libspeexdsp
   build_libtheora # needs libvorbis, libogg
   build_orc
   build_libschroedinger # needs orc
