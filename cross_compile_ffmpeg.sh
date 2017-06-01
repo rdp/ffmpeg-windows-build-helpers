@@ -709,6 +709,53 @@ build_gnutls() {
   cd ..
 }
 
+build_openssl-1.0.2() {
+  download_and_unpack_file https://www.openssl.org/source/openssl-1.0.2k.tar.gz
+  cd openssl-1.0.2k
+    apply_patch file://$patch_dir/openssl-1.0.2k_lib-only.diff
+    export CC="${cross_prefix}gcc"
+    export AR="${cross_prefix}ar"
+    export RANLIB="${cross_prefix}ranlib"
+    if [ "$bits_target" = "32" ]; then
+      #do_configure "--prefix=$mingw_w64_x86_64_prefix zlib shared mingw" ./Configure # Build shared library ('libeay32.dll' and 'ssleay32.dll').
+      do_configure "--prefix=$mingw_w64_x86_64_prefix zlib no-shared no-dso mingw" ./Configure
+    else
+      do_configure "--prefix=$mingw_w64_x86_64_prefix zlib no-shared no-dso mingw64" ./Configure
+    fi
+    if [[ ! -f Makefile_1 ]]; then
+      sed -i_1 "s/-O3/-O2/" Makefile # Change CFLAGS (OpenSSL's 'Configure' already creates a 'Makefile.bak').
+    fi
+    do_make_and_make_install
+    unset CC
+    unset AR
+    unset RANLIB
+  cd ..
+}
+
+build_openssl-1.1.0() {
+  download_and_unpack_file https://www.openssl.org/source/openssl-1.1.0e.tar.gz
+  cd openssl-1.1.0e
+    export CC="${cross_prefix}gcc"
+    export AR="${cross_prefix}ar"
+    export RANLIB="${cross_prefix}ranlib"
+    if [ "$bits_target" = "32" ]; then
+      #do_configure "--prefix=$mingw_w64_x86_64_prefix zlib shared no-engine no-async mingw" ./Configure # Build shared library ('libcrypto-1_1.dll' and 'libssl-1_1.dll').
+      do_configure "--prefix=$mingw_w64_x86_64_prefix zlib no-shared no-dso no-engine no-async mingw" ./Configure
+      # "Note: on older OSes, like CentOS 5, BSD 5, and Windows XP or Vista, you will need to configure with no-async when building OpenSSL 1.1.0 and above. The configuration system does not detect lack of the Posix feature on the platforms." (https://wiki.openssl.org/index.php/Compilation_and_Installation)
+    else
+      do_configure "--prefix=$mingw_w64_x86_64_prefix zlib no-shared no-dso no-engine mingw64" ./Configure
+    fi
+    if [[ ! -f Makefile.bak ]]; then # Change CFLAGS.
+      sed -i.bak "s/-O3/-O2/" Makefile
+    fi
+    do_make "build_libs"
+    do_make_install "" "install_dev"
+    unset CC
+    unset AR
+    unset RANLIB
+  cd ..
+}
+
 build_lsmash() { # an MP4 library
   do_git_checkout https://github.com/l-smash/l-smash.git l-smash
   cd l-smash
@@ -1171,29 +1218,6 @@ build_libxvid() {
     rm $mingw_w64_x86_64_prefix/lib/xvidcore.dll.a || exit 1
     mv $mingw_w64_x86_64_prefix/lib/xvidcore.a $mingw_w64_x86_64_prefix/lib/libxvidcore.a || exit 1
   fi
-}
-
-
-build_openssl() {
-  # warning, this is a very old version of openssl since we don't really use it anymore hasn't been updated in awhile...
-  download_and_unpack_file https://www.openssl.org/source/openssl-1.1.0e.tar.gz
-  cd openssl-1.1.0e
-  export CC="${cross_prefix}gcc"
-  export AR="${cross_prefix}ar"
-  export RANLIB="${cross_prefix}ranlib"
-  if [ "$bits_target" = "32" ]; then
-    do_configure "--prefix=$mingw_w64_x86_64_prefix no-shared mingw" ./Configure
-  else
-    do_configure "--prefix=$mingw_w64_x86_64_prefix no-shared mingw64" ./Configure
-  fi
-  cpu_count=1
-  do_make_and_make_install #"$make_prefix_options"
-  cpu_count=$original_cpu_count
-  unset cross
-  unset CC
-  unset AR
-  unset RANLIB
-  cd ..
 }
 
 build_fdk_aac() {
@@ -1670,6 +1694,10 @@ build_dependencies() {
   build_gmp # For rtmp support configure FFMpeg with '--enable-gmp'. Uses dlfcn.
   build_libnettle # Needs gmp >= 3.0. Uses dlfcn.
   build_gnutls # Needs nettle >= 3.1, hogweed (nettle) >= 3.1. Uses zlib and dlfcn.
+  #if [[ "$non_free" = "y" ]]; then
+  #  build_openssl-1.0.2 # Nonfree alternative to GnuTLS.
+  #  build_openssl-1.1.0 # Nonfree alternative to GnuTLS. Can't be used with LibRTMP.
+  #fi
   build_libsnappy
 
   build_frei0r
@@ -1718,7 +1746,6 @@ build_dependencies() {
     build_libdecklink
     # build_faac # not included for now, too poor quality output :)
   fi
-  # build_openssl # hopefully do not need it anymore, since we use gnutls everywhere, so just don't even build it anymore...
   build_librtmp # needs gnutls [or openssl...]
   build_libx264 # at bottom as it might build an ffmpeg which needs all the above deps...
 }
