@@ -852,6 +852,28 @@ build_libsndfile() {
   cd ..
 }
 
+build_lame() {
+  do_git_checkout https://github.com/rbrito/lame.git
+  cd lame_git
+    #apply_patch file://$patch_dir/lame3.patch # Needed?
+    if [[ ! -f Makefile.in.bak ]]; then # Library only.
+      sed -i.bak "/^SUBDIRS/s/ frontend//;/^SUBDIRS/s/ doc//" Makefile.in
+    fi
+    generic_configure "--enable-nasm --disable-decoder --disable-frontend"
+    do_make_and_make_install
+  cd ..
+}
+
+build_twolame() {
+  do_git_checkout https://github.com/njh/twolame.git
+  cd twolame_git
+    if [[ ! -f Makefile.am.bak ]]; then # Library only.
+      sed -i.bak "/^SUBDIRS/s/ frontend.*//" Makefile.am
+    fi
+    generic_configure_make_install
+  cd ..
+}
+
 build_lsmash() { # an MP4 library
   do_git_checkout https://github.com/l-smash/l-smash.git l-smash
   cd l-smash
@@ -1263,15 +1285,6 @@ build_fdk_aac() {
   cd ..
 }
 
-build_lame() {
-  download_and_unpack_file https://sourceforge.net/projects/lame/files/lame/3.99/lame-3.99.5.tar.gz
-  cd lame-3.99.5
-    apply_patch https://raw.githubusercontent.com/rdp/ffmpeg-windows-build-helpers/master/patches/lame3.patch
-    generic_configure --enable-nasm
-    do_make_and_make_install
-  cd ..
-}
-
 build_vamp_plugin() { 
   download_and_unpack_file https://sourceforge.net/projects/ffmpegwindowsbi/files/dependency_libraries/vamp-plugin-sdk-2.6.tar.gz
   cd vamp-plugin-sdk-2.6
@@ -1359,10 +1372,6 @@ build_lua() {
     do_make_install "INSTALL_TOP=$mingw_w64_x86_64_prefix" "generic install"
     cp etc/lua.pc $PKG_CONFIG_PATH
   cd ..
-}
-
-build_twolame() {
-  generic_download_and_make_and_install https://sourceforge.net/projects/twolame/files/twolame/0.3.13/twolame-0.3.13.tar.gz twolame-0.3.13 "CPPFLAGS=-DLIBTWOLAME_STATIC"
 }
 
 build_frei0r() {
@@ -1599,6 +1608,7 @@ build_ffmpeg() {
     apply_patch file://$patch_dir/libopenjpeg_support-v2.2.diff
     if [[ ! -f configure.bak ]]; then # Changes being made to 'configure' are done with 'sed', because 'configure' gets updated a lot.
       sed -i.bak "/enabled libopenjpeg/s/{ check/{ check_lib libopenjpeg openjpeg-2.2\/openjpeg.h opj_version -lopenjp2 -DOPJ_STATIC \&\& add_cppflags -DOPJ_STATIC; } ||\n                               &/;/openjpeg_2_1_openjpeg_h/i\    openjpeg_2_2_openjpeg_h" configure # Add support for LibOpenJPEG v2.2.
+      sed -i "/enabled libtwolame/s/&&$/-DLIBTWOLAME_STATIC \&\& add_cppflags -DLIBTWOLAME_STATIC \&\&/" configure # Add '-Dxxx_STATIC' to LibTwoLAME. FFMpeg should change this upstream, just like they did with libopenjpeg.
     fi
   
   if [ "$bits_target" = "32" ]; then
@@ -1738,6 +1748,8 @@ build_dependencies() {
   build_libspeex # Uses libspeexdsp and dlfcn.
   build_libtheora # Needs libogg >= 1.1. Needs libvorbis >= 1.0.1, sdl and libpng for test, programs and examples [disabled]. Uses dlfcn.
   build_libsndfile # Needs libogg >= 1.1.3 and libvorbis >= 1.2.3 for external support [disabled]. Uses dlfcn.
+  build_lame # Uses dlfcn.
+  build_twolame # Uses libsndfile >= 1.0.0 and dlfcn.
   build_libsnappy
 
   build_frei0r
@@ -1762,9 +1774,6 @@ build_dependencies() {
   build_fftw
   build_libsamplerate
   build_librubberband # needs libsndfile, vamp_plugin [though it never uses it], fftw, libsamplerate [some of which it doesn't have to use, but configure require they be installed, so we use them anyway...gah]
-
-  build_lame
-  build_twolame
   build_vidstab
   build_netcdf
   build_libcaca
