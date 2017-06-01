@@ -1,0 +1,16 @@
+diff -ur include/opus_defines.h.bak include/opus_defines.h
+--- include/opus_defines.h.bak	2017-04-16 15:39:29.921875000 +0200
++++ /include/opus_defines.h	2017-04-16 15:41:10.625000000 +0200
+@@ -65,11 +65,7 @@
+ 
+ #ifndef OPUS_EXPORT
+ # if defined(WIN32)
+-#  if defined(OPUS_BUILD) && defined(DLL_EXPORT)
+-#   define OPUS_EXPORT __declspec(dllexport)
+-#  else
+-#   define OPUS_EXPORT
+-#  endif
++#  define OPUS_EXPORT
+ # elif defined(__GNUC__) && defined(OPUS_BUILD)
+ #  define OPUS_EXPORT __attribute__ ((visibility ("default")))
+ # else
