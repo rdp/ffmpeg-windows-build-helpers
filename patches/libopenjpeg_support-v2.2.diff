@@ -21,7 +21,7 @@ diff -ur libavcodec/libopenjpegdec.c.bak libavcodec/libopenjpegdec.c
  #  define OPENJPEG_MAJOR_VERSION 2
  #  define OPJ(x) OPJ_##x
  #else
-@@ -431,7 +431,9 @@
+@@ -429,7 +431,9 @@
      opj_stream_set_read_function(stream, stream_read);
      opj_stream_set_skip_function(stream, stream_skip);
      opj_stream_set_seek_function(stream, stream_seek);
@@ -55,7 +55,7 @@ diff -ur libavcodec/libopenjpegenc.c.bak libavcodec/libopenjpegenc.c
  #  define OPENJPEG_MAJOR_VERSION 2
  #  define OPJ(x) OPJ_##x
  #else
-@@ -307,7 +307,7 @@
+@@ -305,7 +307,7 @@
  
      opj_set_default_encoder_parameters(&ctx->enc_params);
  
@@ -64,7 +64,7 @@ diff -ur libavcodec/libopenjpegenc.c.bak libavcodec/libopenjpegenc.c
      switch (ctx->cinema_mode) {
      case OPJ_CINEMA2K_24:
          ctx->enc_params.rsiz = OPJ_PROFILE_CINEMA_2K;
-@@ -771,7 +771,9 @@
+@@ -769,7 +771,9 @@
      opj_stream_set_write_function(stream, stream_write);
      opj_stream_set_skip_function(stream, stream_skip);
      opj_stream_set_seek_function(stream, stream_seek);
