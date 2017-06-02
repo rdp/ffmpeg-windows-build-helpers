@@ -1070,6 +1070,52 @@ build_librubberband() {
   cd ..
 }
 
+build_frei0r() {
+  do_git_checkout https://github.com/dyne/frei0r.git
+  cd frei0r_git
+    do_cmake_and_install
+
+    mkdir -p $cur_dir/redist # Strip and pack shared libraries.
+    if [ $bits_target = 32 ]; then
+      local arch=x86
+    else
+      local arch=x86_64
+    fi
+    archive="$cur_dir/redist/frei0r-plugins-${arch}-$(git describe --tags).7z"
+    if [[ ! -f $archive ]]; then
+      for sharedlib in $mingw_w64_x86_64_prefix/lib/frei0r-1/*.dll; do
+        ${cross_prefix}strip $sharedlib
+      done
+      for doc in AUTHORS ChangeLog COPYING README.md; do
+        sed "s/$/\r/" $doc > $mingw_w64_x86_64_prefix/lib/frei0r-1/$doc.txt
+      done
+      7z a -mx=9 $archive $mingw_w64_x86_64_prefix/lib/frei0r-1 && rm -fr $mingw_w64_x86_64_prefix/lib/frei0r-1/*.txt
+    fi
+  cd ..
+}
+
+build_vidstab() {
+  do_git_checkout https://github.com/georgmartius/vid.stab.git vid.stab_git
+  cd vid.stab_git
+    if [[ ! -f CMakeLists.txt.bak ]]; then # Change CFLAGS.
+      sed -i.bak "s/O3/O2/;s/ -fPIC//" CMakeLists.txt
+    fi
+    do_cmake_and_install "-DBUILD_SHARED_LIBS=0 -DUSE_OMP=0" # '-DUSE_OMP' is on by default, but somehow libgomp ('cygwin_local_install/lib/gcc/i686-pc-cygwin/5.4.0/include/omp.h') can't be found, so '-DUSE_OMP=0' to prevent a compilation error.
+  cd ..
+}
+
+build_netcdf() {
+  #do_git_checkout https://github.com/Unidata/netcdf-c.git # Building 'ffmpeg_g.exe' fails with "undefined reference to `_imp__nc_utf8proc_iterate'" (see https://github.com/Unidata/netcdf-c/issues/404).
+  do_git_checkout https://github.com/Unidata/netcdf-c.git netcdf-c_git "c35e47e4f9" # 4.4.1.1
+  cd netcdf-c_git
+    if [[ ! -f libsrc/Makefile.in.bak ]]; then # Library only.
+      sed -i.bak "/^install-man:/s/:.*/:/" libsrc/Makefile.in
+    fi
+    generic_configure "--disable-netcdf-4 --disable-dap --disable-examples --disable-utilities --disable-testsets"
+    do_make_and_make_install
+  cd ..
+}
+
 build_lsmash() { # an MP4 library
   do_git_checkout https://github.com/l-smash/l-smash.git l-smash
   cd l-smash
@@ -1422,51 +1468,8 @@ build_lua() {
   cd ..
 }
 
-build_frei0r() {
-  do_git_checkout https://github.com/dyne/frei0r.git
-  cd frei0r_git
-    do_cmake_and_install
-
-    mkdir -p $cur_dir/redist # Strip and pack shared libraries.
-    if [ $bits_target = 32 ]; then
-      local arch=x86
-    else
-      local arch=x86_64
-    fi
-    archive="$cur_dir/redist/frei0r-plugins-${arch}-$(git describe --tags).7z"
-    if [[ ! -f $archive ]]; then
-      for sharedlib in $mingw_w64_x86_64_prefix/lib/frei0r-1/*.dll; do
-        ${cross_prefix}strip $sharedlib
-      done
-      for doc in AUTHORS ChangeLog COPYING README.md; do
-        sed "s/$/\r/" $doc > $mingw_w64_x86_64_prefix/lib/frei0r-1/$doc.txt
-      done
-      7z a -mx=9 $archive $mingw_w64_x86_64_prefix/lib/frei0r-1 && rm -fr $mingw_w64_x86_64_prefix/lib/frei0r-1/*.txt
-    fi
-  cd ..
-}
-
-build_vidstab() {
-  do_git_checkout https://github.com/georgmartius/vid.stab.git vid.stab_git
-  cd vid.stab_git
-    if [[ ! -f CMakeLists.txt.bak ]]; then # Change CFLAGS.
-      sed -i.bak "s/O3/O2/;s/ -fPIC//" CMakeLists.txt
-    fi
-    do_cmake_and_install "-DBUILD_SHARED_LIBS=0 -DUSE_OMP=0" # '-DUSE_OMP' is on by default, but somehow libgomp ('cygwin_local_install/lib/gcc/i686-pc-cygwin/5.4.0/include/omp.h') can't be found, so '-DUSE_OMP=0' to prevent a compilation error.
-  cd ..
-}
-
 build_libcurl() {
   generic_download_and_make_and_install https://curl.haxx.se/download/curl-7.46.0.tar.gz
-}
-
-build_netcdf() {
-  # used for sofalizer filter
-  download_and_unpack_file http://gfd-dennou.org/arch/ucar/unidata/pub/netcdf/netcdf-4.4.1.tar.gz
-  cd netcdf-4.4.1
-    generic_configure --disable-netcdf-4 --disable-dap # its dependencies were *hard* LOL
-    do_make_and_make_install
-  cd ..
 }
 
 build_libhdhomerun() {
@@ -1838,11 +1841,11 @@ build_dependencies() {
   build_librubberband # Needs libsamplerate, libsndfile, fftw and vamp_plugin. 'configure' will fail otherwise. Eventhough librubberband doesn't necessarily need them (libsndfile only for 'rubberband.exe' and vamp_plugin only for "Vamp audio analysis plugin"). How to use the bundled libraries '-DUSE_SPEEX' and '-DUSE_KISSFFT'?
   build_frei0r # Needs dlfcn.
   build_vidstab
+  build_netcdf # Needed for FFMpeg's SOFAlizer filter (https://ffmpeg.org/ffmpeg-filters.html#sofalizer). Uses dlfcn.
   build_libxvid
   build_libxavs
   build_libx265
   build_libopenh264
-  build_netcdf
   build_libcaca
   build_zvbi
   build_libvpx
