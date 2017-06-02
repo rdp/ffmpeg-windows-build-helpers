@@ -1129,6 +1129,32 @@ build_libcaca() {
   cd ..
 }
 
+build_libdecklink() {
+  if [[ ! -f $mingw_w64_x86_64_prefix/include/DeckLinkAPIVersion.h ]]; then
+    # smaller files don't worry about partials for now, plus we only care about the last file anyway here...
+    curl -4 file://$patch_dir/DeckLinkAPI.h --fail > $mingw_w64_x86_64_prefix/include/DeckLinkAPI.h || exit 1
+    curl -4 file://$patch_dir/DeckLinkAPI_i.c --fail > $mingw_w64_x86_64_prefix/include/DeckLinkAPI_i.c.tmp || exit 1
+    mv $mingw_w64_x86_64_prefix/include/DeckLinkAPI_i.c.tmp $mingw_w64_x86_64_prefix/include/DeckLinkAPI_i.c
+    curl -4 file://$patch_dir/DeckLinkAPIVersion.h --fail > $mingw_w64_x86_64_prefix/include/DeckLinkAPIVersion.h || exit 1
+  fi
+}
+
+build_zvbi() {
+  download_and_unpack_file https://sourceforge.net/projects/zapping/files/zvbi/0.2.35/zvbi-0.2.35.tar.bz2
+  cd zvbi-0.2.35
+    apply_patch file://$patch_dir/zvbi-win32.patch
+    #apply_patch file://$patch_dir/zvbi-ioctl.patch # Concerns 'contrib/ntsc-cc.c', but subdir 'contrib' doesn't get built, because it isn't needed for 'libzvbi.a'.
+    if [[ ! -f Makefile.in.bak ]]; then # Library only.
+      sed -i.bak "/^SUBDIRS/s/\\\/src/;/\tm4/,/\tdoc/d" Makefile.in
+    fi
+    # 'contrib/ntsc-cc.c' (with 'zvbi-ioctl.patch' applied) would otherwise cause problems; "ntsc-cc.c:1330:4: error: unknown type name 'fd_set'".
+    # It probably needs '#include <sys/select.h>', because 'fd_set' is defined in 'cygwin_local_install/lib/gcc/i686-pc-cygwin/5.4.0/include/select.h'. It still fails though after having done so.
+    generic_configure " --disable-dvb --disable-bktr --disable-proxy --disable-nls --without-doxygen --without-libiconv-prefix"
+    # Without '--without-libiconv-prefix' 'configure' would otherwise search for and only accept a shared Libiconv library.
+    do_make_and_make_install
+  cd ..
+}
+
 build_lsmash() { # an MP4 library
   do_git_checkout https://github.com/l-smash/l-smash.git l-smash
   cd l-smash
@@ -1431,22 +1457,6 @@ build_libxvid() {
   fi
 }
 
-build_zvbi() {
-  download_and_unpack_file https://sourceforge.net/projects/zapping/files/zvbi/0.2.35/zvbi-0.2.35.tar.bz2
-  cd zvbi-0.2.35
-    apply_patch https://raw.githubusercontent.com/rdp/ffmpeg-windows-build-helpers/master/patches/zvbi-win32.patch
-    apply_patch https://raw.githubusercontent.com/rdp/ffmpeg-windows-build-helpers/master/patches/zvbi-ioctl.patch
-    export LIBS=-lpng
-    generic_configure " --disable-dvb --disable-bktr --disable-nls --disable-proxy --without-doxygen" # thanks vlc contribs!
-    unset LIBS
-    cd src
-      do_make_and_make_install 
-    cd ..
-#   there is no .pc for zvbi, so we add --extra-libs=-lpng to FFmpegs configure TODO there is a .pc file it just doesn't get installed [?]
-#   sed -i.bak 's/-lzvbi *$/-lzvbi -lpng/' "$PKG_CONFIG_PATH/zvbi.pc"
-  cd ..
-}
-
 build_libproxy() {
   # NB this lacks a .pc file still
   download_and_unpack_file https://libproxy.googlecode.com/files/libproxy-0.4.11.tar.gz
@@ -1618,16 +1628,6 @@ build_libMXF() {
     #cp libMXF/examples/writeaviddv50/writeaviddv50.exe $mingw_w64_x86_64_prefix/bin/writeaviddv50.exe
     #cp libMXF/examples/writeavidmxf/writeavidmxf.exe $mingw_w64_x86_64_prefix/bin/writeavidmxf.exe
   cd ..
-}
-
-build_libdecklink() {
-  if [[ ! -f $mingw_w64_x86_64_prefix/include/DeckLinkAPIVersion.h ]]; then
-    # smaller files don't worry about partials for now, plus we only care about the last file anyway here...
-    curl -4 file://$patch_dir/DeckLinkAPI.h --fail > $mingw_w64_x86_64_prefix/include/DeckLinkAPI.h || exit 1
-    curl -4 file://$patch_dir/DeckLinkAPI_i.c --fail > $mingw_w64_x86_64_prefix/include/DeckLinkAPI_i.c.tmp || exit 1
-    mv $mingw_w64_x86_64_prefix/include/DeckLinkAPI_i.c.tmp $mingw_w64_x86_64_prefix/include/DeckLinkAPI_i.c
-    curl -4 file://$patch_dir/DeckLinkAPIVersion.h --fail > $mingw_w64_x86_64_prefix/include/DeckLinkAPIVersion.h || exit 1
-  fi
 }
 
 build_ffmpeg() {
@@ -1842,17 +1842,17 @@ build_dependencies() {
   build_vidstab
   build_netcdf # Needed for FFMpeg's SOFAlizer filter (https://ffmpeg.org/ffmpeg-filters.html#sofalizer). Uses dlfcn.
   build_libcaca # Uses zlib and dlfcn.
+  if [[ "$non_free" = "y" ]]; then
+    build_libdecklink
+  fi
+  build_zvbi # Uses iconv, libpng and dlfcn.
   build_libxvid
   build_libxavs
   build_libx265
   build_libopenh264
-  build_zvbi
   build_libvpx
   build_libfribidi
   build_libass # needs freetype, needs fribidi, needs fontconfig
-  if [[ "$non_free" = "y" ]]; then
-    build_libdecklink
-  fi
   build_libx264 # at bottom as it might build an ffmpeg which needs all the above deps...
 }
 
