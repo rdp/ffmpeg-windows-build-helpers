@@ -1155,6 +1155,17 @@ build_zvbi() {
   cd ..
 }
 
+build_fribidi() {
+  do_git_checkout https://github.com/behdad/fribidi.git
+  cd fribidi_git
+    if [[ ! -f Makefile.am.bak ]]; then # Library only and disable regeneration of 'configure' (which screws with the CPPFLAGS).
+      sed -i.bak "s/ bin.*//;40s/ \\\//;41d" Makefile.am
+    fi
+    generic_configure "--disable-debug --disable-deprecated"
+    do_make_and_make_install
+  cd ..
+}
+
 build_lsmash() { # an MP4 library
   do_git_checkout https://github.com/l-smash/l-smash.git l-smash
   cd l-smash
@@ -1415,22 +1426,6 @@ build_libjpeg_turbo() {
     do_make_and_make_install
     sed -i.bak 's/typedef long INT32/typedef long XXINT32/' "$mingw_w64_x86_64_prefix/include/jmorecfg.h" # breaks VLC build without this...freaky...theoretically using cmake instead would be enough, but that installs .dll.a file... XXXX maybe no longer needed :|
   cd ..
-}
-
-build_libfribidi() {
-  # generic_download_and_make_and_install http://fribidi.org/download/fribidi-0.19.5.tar.bz2 fribidi-0.19.5 # got report of still failing?
-  download_and_unpack_file http://fribidi.org/download/fribidi-0.19.4.tar.bz2
-  cd fribidi-0.19.4
-    # make it export symbols right...
-    apply_patch https://raw.githubusercontent.com/rdp/ffmpeg-windows-build-helpers/master/patches/fribidi.diff
-    generic_configure_make_install
-  cd ..
-
-  #do_git_checkout http://anongit.freedesktop.org/git/fribidi/fribidi.git
-  #cd fribidi_git
-  #  ./bootstrap # couldn't figure out how to make this work...
-  #  generic_configure_make_install
-  #cd ..
 }
 
 build_libass() {
@@ -1846,12 +1841,12 @@ build_dependencies() {
     build_libdecklink
   fi
   build_zvbi # Uses iconv, libpng and dlfcn.
+  build_fribidi # Uses dlfcn.
   build_libxvid
   build_libxavs
   build_libx265
   build_libopenh264
   build_libvpx
-  build_libfribidi
   build_libass # needs freetype, needs fribidi, needs fontconfig
   build_libx264 # at bottom as it might build an ffmpeg which needs all the above deps...
 }
