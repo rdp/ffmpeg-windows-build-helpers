@@ -1214,14 +1214,6 @@ build_libvpx() {
   cd ..
 }
 
-build_lsmash() { # an MP4 library
-  do_git_checkout https://github.com/l-smash/l-smash.git l-smash
-  cd l-smash
-    do_configure "--prefix=$mingw_w64_x86_64_prefix --cross-prefix=$cross_prefix" 
-    do_make_and_make_install
-  cd ..
-}
-
 build_libx265() {
   # the only one that uses mercurial, so there's some extra initial junk in this method... XXX needs some cleanup :|
   local checkout_dir=x265
@@ -1250,7 +1242,7 @@ build_libx265() {
     fi
     cd source
 
-    local new_hg_version=`hg --debug id -i`  
+    local new_hg_version=`hg --debug id -i`
     if [[ "$old_hg_version" != "$new_hg_version" ]]; then
       echo "got upstream hg changes, forcing rebuild...x265"
       rm -f already*
@@ -1279,7 +1271,7 @@ build_libx265() {
     fi
     cd source
 
-    local new_hg_version=`hg --debug id -i`  
+    local new_hg_version=`hg --debug id -i`
     if [[ "$old_hg_version" != "$new_hg_version" ]]; then
       echo "got upstream hg changes, forcing rebuild...x265"
       rm -f already*
@@ -1287,25 +1279,29 @@ build_libx265() {
       echo "still at hg $new_hg_version x265"
     fi
   fi # dont with prefer_stable = [y|n]
-  
-  local cmake_params="-DENABLE_SHARED=OFF"
-  if [[ $high_bitdepth == "y" ]]; then
-    cmake_params="$cmake_params -DHIGH_BIT_DEPTH=ON" # Enable 10 bits (main10) and 12 bits (???) per pixels profiles.
-    if [ "$bits_target" = "32" ]; then
-      cmake_params="$cmake_params -DENABLE_ASSEMBLY=OFF" # apparently required or build fails
-    fi
-  fi
 
-  #if [ "$bits_target" = "32" ]; then
-    cmake_params="$cmake_params -DWINXP_SUPPORT:BOOL=TRUE" # enable windows xp support apparently
-  #fi
+  local cmake_params="-DENABLE_SHARED=0 -DENABLE_CLI=0" # Library only.
+  if [ "$bits_target" = "32" ]; then
+    cmake_params+=" -DWINXP_SUPPORT=1" # enable windows xp/vista compatibility in x86 build
+  fi
+  if [[ $high_bitdepth == "y" ]]; then
+    cmake_params+=" -DHIGH_BIT_DEPTH=1" # Enable 10 bits (main10) and 12 bits (???) per pixels profiles.
+  fi
 
   do_cmake "$cmake_params"
   do_make
   echo force reinstall in case bit depth changed at all :|
-  rm already_ran_make_install* 
+  rm already_ran_make_install*
   do_make_install
   cd ../..
+}
+
+build_lsmash() { # an MP4 library
+  do_git_checkout https://github.com/l-smash/l-smash.git l-smash
+  cd l-smash
+    do_configure "--prefix=$mingw_w64_x86_64_prefix --cross-prefix=$cross_prefix" 
+    do_make_and_make_install
+  cd ..
 }
 
 build_libopenh264() {
