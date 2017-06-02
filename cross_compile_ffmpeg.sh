@@ -1195,6 +1195,25 @@ build_libxvid() {
   cd ../../..
 }
 
+build_libvpx() {
+  do_git_checkout https://chromium.googlesource.com/webm/libvpx.git
+  cd libvpx_git
+    if [[ ! -f vp8/common/threading.h.bak ]]; then
+      sed -i.bak "/<semaphore.h/i\#include <sys/types.h>" vp8/common/threading.h
+    fi
+    # 'cross_compilers/mingw-w64-i686/include/semaphore.h' would otherwise cause problems; "semaphore.h:152:8: error: unknown type name 'mode_t'".
+    if [[ "$bits_target" = "32" ]]; then
+      local config_options="--target=x86-win32-gcc"
+    else
+      local config_options="--target=x86_64-win64-gcc"
+    fi
+    export CROSS="$cross_prefix"
+    do_configure "$config_options --prefix=$mingw_w64_x86_64_prefix --enable-static --disable-shared --disable-examples --disable-tools --disable-docs --disable-unit-tests --enable-vp9-highbitdepth"
+    do_make_and_make_install
+    unset CROSS
+  cd ..
+}
+
 build_lsmash() { # an MP4 library
   do_git_checkout https://github.com/l-smash/l-smash.git l-smash
   cd l-smash
@@ -1389,24 +1408,6 @@ build_qt() {
     sed -i.bak 's/Libs: -L${libdir} -lQtGui/Libs: -L${libdir} -lcomctl32 -lqjpeg -lqtaccessiblewidgets -lQtGui/' "$PKG_CONFIG_PATH/QtGui.pc" # sniff
   cd ..
   reset_cflags
-}
-
-build_libvpx() {
-  local checkout_dir="libvpx_git"
-
-  do_git_checkout https://chromium.googlesource.com/webm/libvpx $checkout_dir v1.6.1 # [had probs with master once...so only a stable option presently] 
-  cd $checkout_dir
-  apply_patch https://raw.githubusercontent.com/rdp/ffmpeg-windows-build-helpers/master/patches/vpx_160_semaphore.patch -p1 # perhaps someday can remove this after 1.6.0 or mingw fixes it LOL
-  if [[ "$bits_target" = "32" ]]; then
-    local config_options="--target=x86-win32-gcc"
-  else
-    local config_options="--target=x86_64-win64-gcc"
-  fi
-  export CROSS="$cross_prefix"
-  do_configure "$config_options --prefix=$mingw_w64_x86_64_prefix --enable-static --disable-shared --enable-vp9-highbitdepth"
-  do_make_and_make_install
-  unset CROSS
-  cd ..
 }
 
 build_libdvdread() {
@@ -1839,9 +1840,9 @@ build_dependencies() {
   build_libass # Needs freetype >= 9.10.3 (see https://bugs.launchpad.net/ubuntu/+source/freetype1/+bug/78573 o_O) and fribidi >= 0.19.0. Uses fontconfig >= 2.10.92, iconv and dlfcn.
   build_libxavs
   build_libxvid # FFMpeg now has native support, but libxvid still provides a better image.
+  build_libvpx
   build_libx265
   build_libopenh264
-  build_libvpx
   build_libx264 # at bottom as it might build an ffmpeg which needs all the above deps...
 }
 
