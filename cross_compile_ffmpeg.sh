@@ -1166,6 +1166,10 @@ build_fribidi() {
   cd ..
 }
 
+build_libass() {
+  do_git_checkout_and_make_install https://github.com/libass/libass.git
+}
+
 build_lsmash() { # an MP4 library
   do_git_checkout https://github.com/l-smash/l-smash.git l-smash
   cd l-smash
@@ -1426,12 +1430,6 @@ build_libjpeg_turbo() {
     do_make_and_make_install
     sed -i.bak 's/typedef long INT32/typedef long XXINT32/' "$mingw_w64_x86_64_prefix/include/jmorecfg.h" # breaks VLC build without this...freaky...theoretically using cmake instead would be enough, but that installs .dll.a file... XXXX maybe no longer needed :|
   cd ..
-}
-
-build_libass() {
-  generic_download_and_make_and_install https://github.com/libass/libass/releases/download/0.13.1/libass-0.13.1.tar.gz 
-  # fribidi, fontconfig, freetype throw them all in there for good measure, trying to help mplayer once though it didn't help [FFmpeg needed a change for fribidi here though I believe]
-  sed -i.bak 's/-lass -lm/-lass -lfribidi -lfontconfig -lfreetype -lexpat -lm/' "$PKG_CONFIG_PATH/libass.pc"
 }
 
 build_libxvid() {
@@ -1842,12 +1840,12 @@ build_dependencies() {
   fi
   build_zvbi # Uses iconv, libpng and dlfcn.
   build_fribidi # Uses dlfcn.
+  build_libass # Needs freetype >= 9.10.3 (see https://bugs.launchpad.net/ubuntu/+source/freetype1/+bug/78573 o_O) and fribidi >= 0.19.0. Uses fontconfig >= 2.10.92, iconv and dlfcn.
   build_libxvid
   build_libxavs
   build_libx265
   build_libopenh264
   build_libvpx
-  build_libass # needs freetype, needs fribidi, needs fontconfig
   build_libx264 # at bottom as it might build an ffmpeg which needs all the above deps...
 }
 
