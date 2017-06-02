@@ -1296,24 +1296,26 @@ build_libx265() {
   cd ../..
 }
 
+build_libopenh264() {
+  do_git_checkout "https://github.com/cisco/openh264.git"
+  cd openh264_git
+    if [[ ! -f Makefile.bak ]]; then # Change CFLAGS and Library only.
+      sed -i.bak "s/O3/O2/;/^all:/s/ binaries//" Makefile
+    fi
+    if [ $bits_target = 32 ]; then
+      local arch=i686 # or x86?
+    else
+      local arch=x86_64
+    fi
+    do_make "$make_prefix_options OS=mingw_nt ARCH=$arch ASM=yasm install-static" # No need for 'do_make_install', because 'install-static' already has install-instructions.
+  cd ..
+}
+
 build_lsmash() { # an MP4 library
   do_git_checkout https://github.com/l-smash/l-smash.git l-smash
   cd l-smash
     do_configure "--prefix=$mingw_w64_x86_64_prefix --cross-prefix=$cross_prefix" 
     do_make_and_make_install
-  cd ..
-}
-
-build_libopenh264() {
-  do_git_checkout "https://github.com/cisco/openh264.git" openh264 24916a652ee5d3 # need this to match ffmpeg's apparently or openh264v1.4 [this is last commit before 1.5 AFAICT]
-  cd openh264
-    if [ $bits_target = 32 ]; then
-      local arch=i686 # or x86? 
-    else
-      local arch=x86_64
-    fi
-    do_make "$make_prefix_options OS=mingw_nt ARCH=$arch ASM=yasm"
-    do_make_install "" "$make_prefix_options OS=mingw_nt install-static"
   cd ..
 }
 
