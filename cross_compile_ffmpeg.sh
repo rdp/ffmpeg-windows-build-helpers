@@ -1423,11 +1423,26 @@ build_lua() {
 }
 
 build_frei0r() {
-  # theoretically we could get by with just copying a .h file in, but why not build the .dll's here anyway, for fun, and in case useful? :)
-  download_and_unpack_file https://files.dyne.org/frei0r/releases/frei0r-plugins-1.4.tar.gz
-  cd frei0r-plugins-1.4
-    sed -i.bak "s/find_package (Cairo)//g" CMakeLists.txt
+  do_git_checkout https://github.com/dyne/frei0r.git
+  cd frei0r_git
     do_cmake_and_install
+
+    mkdir -p $cur_dir/redist # Strip and pack shared libraries.
+    if [ $bits_target = 32 ]; then
+      local arch=x86
+    else
+      local arch=x86_64
+    fi
+    archive="$cur_dir/redist/frei0r-plugins-${arch}-$(git describe --tags).7z"
+    if [[ ! -f $archive ]]; then
+      for sharedlib in $mingw_w64_x86_64_prefix/lib/frei0r-1/*.dll; do
+        ${cross_prefix}strip $sharedlib
+      done
+      for doc in AUTHORS ChangeLog COPYING README.md; do
+        sed "s/$/\r/" $doc > $mingw_w64_x86_64_prefix/lib/frei0r-1/$doc.txt
+      done
+      7z a -mx=9 $archive $mingw_w64_x86_64_prefix/lib/frei0r-1 && rm -fr $mingw_w64_x86_64_prefix/lib/frei0r-1/*.txt
+    fi
   cd ..
 }
 
@@ -1655,6 +1670,7 @@ build_ffmpeg() {
   cd $output_dir
     apply_patch file://$patch_dir/libopenjpeg_support-v2.2.diff
     apply_patch file://$patch_dir/libfdk-aac_load-shared-library-dynamically.diff
+    apply_patch file://$patch_dir/frei0r_load-shared-libraries-dynamically.diff
     if [[ ! -f configure.bak ]]; then # Changes being made to 'configure' are done with 'sed', because 'configure' gets updated a lot.
       sed -i.bak "/enabled libopenjpeg/s/{ check/{ check_lib libopenjpeg openjpeg-2.2\/openjpeg.h opj_version -lopenjp2 -DOPJ_STATIC \&\& add_cppflags -DOPJ_STATIC; } ||\n                               &/;/openjpeg_2_1_openjpeg_h/i\    openjpeg_2_2_openjpeg_h" configure # Add support for LibOpenJPEG v2.2.
       sed -i "/enabled libfdk_aac/s/&.*/\&\& { check_header fdk-aac\/aacenc_lib.h || die \"ERROR: aacenc_lib.h not found\"; }/;/require libfdk_aac/,/without pkg-config/d;/    libfdk_aac/d;/    libflite/i\    libfdk_aac" configure # Load 'libfdk-aac-1.dll' dynamically.
@@ -1817,7 +1833,7 @@ build_dependencies() {
   build_fftw # Uses dlfcn.
   build_libsamplerate # Needs libsndfile >= 1.0.6 and fftw >= 0.15.0 for tests. Uses dlfcn.
   build_librubberband # Needs libsamplerate, libsndfile, fftw and vamp_plugin. 'configure' will fail otherwise. Eventhough librubberband doesn't necessarily need them (libsndfile only for 'rubberband.exe' and vamp_plugin only for "Vamp audio analysis plugin"). How to use the bundled libraries '-DUSE_SPEEX' and '-DUSE_KISSFFT'?
-  build_frei0r
+  build_frei0r # Needs dlfcn.
   build_wavpack
   # build_libjpeg_turbo # mplayer can use this, VLC qt might need it? [replaces libjpeg]
   build_libxvid
