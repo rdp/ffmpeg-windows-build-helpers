@@ -1116,6 +1116,19 @@ build_netcdf() {
   cd ..
 }
 
+build_libcaca() {
+  do_git_checkout https://github.com/cacalabs/libcaca.git
+  cd libcaca_git
+    apply_patch file://$patch_dir/libcaca_git_stdio-cruft.diff # Fix WinXP incompatibility.
+    if [[ ! -f Makefile.am.bak ]]; then # Library only.
+      sed -i.bak "/^SUBDIRS/s/ src.*//;/cxx.*doc/d" Makefile.am
+      sed -i.bak "/^SUBDIRS/s/ t//" caca/Makefile.am
+    fi
+    generic_configure "--libdir=$mingw_w64_x86_64_prefix/lib --disable-csharp --disable-java --disable-cxx --disable-python --disable-ruby --disable-doc"
+    do_make_and_make_install
+  cd ..
+}
+
 build_lsmash() { # an MP4 library
   do_git_checkout https://github.com/l-smash/l-smash.git l-smash
   cd l-smash
@@ -1434,20 +1447,6 @@ build_zvbi() {
   cd ..
 }
 
-build_libcaca() {
-  # beta19 and git were non xp friendly
-  download_and_unpack_file http://pkgs.fedoraproject.org/repo/extras/libcaca/libcaca-0.99.beta18.tar.gz/93d35dbdb0527d4c94df3e9a02e865cc/libcaca-0.99.beta18.tar.gz 
-  cd libcaca-0.99.beta18
-    cd caca
-      sed -i.bak "s/int vsnprintf/int vnsprintf_disabled/" *.c # doesn't compile with this in it double defined uh guess
-      sed -i.bak "s/__declspec(dllexport)//g" *.h # get rid of the declspec lines otherwise the build will fail for undefined symbols
-      sed -i.bak "s/__declspec(dllimport)//g" *.h 
-    cd ..
-    generic_configure "--libdir=$mingw_w64_x86_64_prefix/lib --disable-cxx --disable-csharp --disable-java --disable-python --disable-ruby --disable-imlib2 --disable-doc"
-    do_make_and_make_install
-  cd ..
-}
-
 build_libproxy() {
   # NB this lacks a .pc file still
   download_and_unpack_file https://libproxy.googlecode.com/files/libproxy-0.4.11.tar.gz
@@ -1679,7 +1678,7 @@ build_ffmpeg() {
     if [[ ! -f configure.bak ]]; then # Changes being made to 'configure' are done with 'sed', because 'configure' gets updated a lot.
       sed -i.bak "/enabled libopenjpeg/s/{ check/{ check_lib libopenjpeg openjpeg-2.2\/openjpeg.h opj_version -lopenjp2 -DOPJ_STATIC \&\& add_cppflags -DOPJ_STATIC; } ||\n                               &/;/openjpeg_2_1_openjpeg_h/i\    openjpeg_2_2_openjpeg_h" configure # Add support for LibOpenJPEG v2.2.
       sed -i "/enabled libfdk_aac/s/&.*/\&\& { check_header fdk-aac\/aacenc_lib.h || die \"ERROR: aacenc_lib.h not found\"; }/;/require libfdk_aac/,/without pkg-config/d;/    libfdk_aac/d;/    libflite/i\    libfdk_aac" configure # Load 'libfdk-aac-1.dll' dynamically.
-      sed -i "/enabled libtwolame/s/&&$/-DLIBTWOLAME_STATIC \&\& add_cppflags -DLIBTWOLAME_STATIC \&\&/;/enabled libmodplug/s/.*/& -DMODPLUG_STATIC \&\& add_cppflags -DMODPLUG_STATIC/" configure # Add '-Dxxx_STATIC' to LibTwoLAME and LibModplug. FFMpeg should change this upstream, just like they did with libopenjpeg.
+      sed -i "/enabled libtwolame/s/&&$/-DLIBTWOLAME_STATIC \&\& add_cppflags -DLIBTWOLAME_STATIC \&\&/;/enabled libmodplug/s/.*/& -DMODPLUG_STATIC \&\& add_cppflags -DMODPLUG_STATIC/;/enabled libcaca/s/.*/& -DCACA_STATIC \&\& add_cppflags -DCACA_STATIC/" configure # Add '-Dxxx_STATIC' to LibTwoLAME, LibModplug and Libcaca. FFMpeg should change this upstream, just like they did with libopenjpeg.
     fi
   
   if [ "$bits_target" = "32" ]; then
@@ -1842,11 +1841,11 @@ build_dependencies() {
   build_frei0r # Needs dlfcn.
   build_vidstab
   build_netcdf # Needed for FFMpeg's SOFAlizer filter (https://ffmpeg.org/ffmpeg-filters.html#sofalizer). Uses dlfcn.
+  build_libcaca # Uses zlib and dlfcn.
   build_libxvid
   build_libxavs
   build_libx265
   build_libopenh264
-  build_libcaca
   build_zvbi
   build_libvpx
   build_libfribidi

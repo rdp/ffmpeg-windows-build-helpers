@@ -1,0 +1,96 @@
+diff -ur caca/figfont.c.bak caca/figfont.c
+--- caca/figfont.c.bak	2017-05-13 22:44:04.812500000 +0200
++++ caca/figfont.c	2017-05-13 22:52:57.375000000 +0200
+@@ -637,31 +637,6 @@
+ }
+ 
+ /*
+- * Functions for the mingw32 runtime
+- */
+-
+-#if defined _WIN32 && defined __GNUC__ && __GNUC__ >= 3
+-#   if !HAVE_SPRINTF_S
+-int sprintf_s(char *s, size_t n, const char *fmt, ...)
+-{
+-    va_list args;
+-    int ret;
+-    va_start(args, fmt);
+-    ret = vsnprintf(s, n, fmt, args);
+-    va_end(args);
+-    return ret;
+-}
+-#   endif
+-
+-#   if !HAVE_VSNPRINTF
+-int vsnprintf(char *s, size_t n, const char *fmt, va_list ap)
+-{
+-    return 0;
+-}
+-#   endif
+-#endif
+-
+-/*
+  * XXX: The following functions are aliases.
+  */
+ 
+diff -ur caca/string.c.bak caca/string.c
+--- caca/string.c.bak	2017-05-13 22:44:04.859375000 +0200
++++ caca/string.c	2017-05-13 22:53:04.890625000 +0200
+@@ -36,16 +36,6 @@
+ #include "caca.h"
+ #include "caca_internals.h"
+ 
+-#if defined _WIN32 && defined __GNUC__ && __GNUC__ >= 3
+-#   if !HAVE_VSNPRINTF_S
+-int vsnprintf_s(char *s, size_t n, size_t c,
+-                const char *fmt, va_list ap) CACA_WEAK;
+-#   endif
+-#   if !HAVE_VSNPRINTF
+-int vsnprintf(char *s, size_t n, const char *fmt, va_list ap) CACA_WEAK;
+-#   endif
+-#endif
+-
+ /** \brief Set cursor position.
+  *
+  *  Put the cursor at the given coordinates. Functions making use of the
+@@ -349,13 +339,7 @@
+         buf = malloc(bufsize);
+     }
+ 
+-#if defined(HAVE_VSNPRINTF_S)
+-    vsnprintf_s(buf, bufsize, _TRUNCATE, format, args);
+-#elif defined(HAVE_VSNPRINTF)
+-    vsnprintf(buf, bufsize, format, args);
+-#else
+     vsprintf(buf, format, args);
+-#endif
+     buf[bufsize - 1] = '\0';
+ 
+     ret = caca_put_str(cv, x, y, buf);
+@@ -611,26 +595,6 @@
+ }
+ 
+ /*
+- * Functions for the mingw32 runtime
+- */
+-
+-#if defined _WIN32 && defined __GNUC__ && __GNUC__ >= 3
+-#   if !HAVE_VSNPRINTF_S
+-int vsnprintf_s(char *s, size_t n, size_t c, const char *fmt, va_list ap)
+-{
+-    return vsnprintf(s, n, fmt, ap);
+-}
+-#   endif
+-
+-#   if !HAVE_VSNPRINTF
+-int vsnprintf(char *s, size_t n, const char *fmt, va_list ap)
+-{
+-    return 0;
+-}
+-#   endif
+-#endif
+-
+-/*
+  * XXX: The following functions are aliases.
+  */
+ 
