@@ -1447,10 +1447,12 @@ build_frei0r() {
 }
 
 build_vidstab() {
-  do_git_checkout https://github.com/georgmartius/vid.stab.git vid.stab_git "430b4cffeb" # 0.9.8
+  do_git_checkout https://github.com/georgmartius/vid.stab.git vid.stab_git
   cd vid.stab_git
-    sed -i.bak "s/SHARED/STATIC/g" CMakeLists.txt # static build-ify
-    do_cmake_and_install
+    if [[ ! -f CMakeLists.txt.bak ]]; then # Change CFLAGS.
+      sed -i.bak "s/O3/O2/;s/ -fPIC//" CMakeLists.txt
+    fi
+    do_cmake_and_install "-DBUILD_SHARED_LIBS=0 -DUSE_OMP=0" # '-DUSE_OMP' is on by default, but somehow libgomp ('cygwin_local_install/lib/gcc/i686-pc-cygwin/5.4.0/include/omp.h') can't be found, so '-DUSE_OMP=0' to prevent a compilation error.
   cd ..
 }
 
@@ -1793,6 +1795,7 @@ build_dependencies() {
   fi
   build_libzimg # Uses dlfcn.
   build_libopenjpeg
+  #build_libjpeg_turbo # mplayer can use this, VLC qt might need it? [replaces libjpeg]
   build_libpng # Needs zlib >= 1.0.4. Uses dlfcn.
   build_libwebp # Uses dlfcn.
   build_freetype # Uses zlib, bzip2, and libpng.
@@ -1834,14 +1837,11 @@ build_dependencies() {
   build_libsamplerate # Needs libsndfile >= 1.0.6 and fftw >= 0.15.0 for tests. Uses dlfcn.
   build_librubberband # Needs libsamplerate, libsndfile, fftw and vamp_plugin. 'configure' will fail otherwise. Eventhough librubberband doesn't necessarily need them (libsndfile only for 'rubberband.exe' and vamp_plugin only for "Vamp audio analysis plugin"). How to use the bundled libraries '-DUSE_SPEEX' and '-DUSE_KISSFFT'?
   build_frei0r # Needs dlfcn.
-  build_wavpack
-  # build_libjpeg_turbo # mplayer can use this, VLC qt might need it? [replaces libjpeg]
+  build_vidstab
   build_libxvid
   build_libxavs
-  #build_libebur128 # needs speex # Now included in ffmpeg as internal library
   build_libx265
   build_libopenh264
-  build_vidstab
   build_netcdf
   build_libcaca
   build_zvbi
@@ -1850,7 +1850,6 @@ build_dependencies() {
   build_libass # needs freetype, needs fribidi, needs fontconfig
   if [[ "$non_free" = "y" ]]; then
     build_libdecklink
-    # build_faac # not included for now, too poor quality output :)
   fi
   build_libx264 # at bottom as it might build an ffmpeg which needs all the above deps...
 }
