@@ -1170,6 +1170,19 @@ build_libass() {
   do_git_checkout_and_make_install https://github.com/libass/libass.git
 }
 
+build_libxavs() {
+  do_svn_checkout https://svn.code.sf.net/p/xavs/code/trunk xavs_svn
+  cd xavs_svn
+    if [[ ! -f Makefile.bak ]]; then
+      sed -i.bak "/^install/s/:.*/:/;/install xavs/d" Makefile # Library only.
+      sed -i.bak "s/O4/O2/" configure # Change CFLAGS.
+    fi
+    do_configure "--host=$host_target --prefix=$mingw_w64_x86_64_prefix --cross-prefix=$cross_prefix" # see https://github.com/rdp/ffmpeg-windows-build-helpers/issues/3
+    do_make_and_make_install "$make_prefix_options"
+    rm -f NUL # cygwin causes windows explorer to not be able to delete this folder if it has this oddly named file in it...
+  cd ..
+}
+
 build_lsmash() { # an MP4 library
   do_git_checkout https://github.com/l-smash/l-smash.git l-smash
   cd l-smash
@@ -1364,17 +1377,6 @@ build_qt() {
     sed -i.bak 's/Libs: -L${libdir} -lQtGui/Libs: -L${libdir} -lcomctl32 -lqjpeg -lqtaccessiblewidgets -lQtGui/' "$PKG_CONFIG_PATH/QtGui.pc" # sniff
   cd ..
   reset_cflags
-}
-
-build_libxavs() {
-  do_svn_checkout https://svn.code.sf.net/p/xavs/code/trunk xavs
-  cd xavs
-    export LDFLAGS='-lm'
-    generic_configure "--cross-prefix=$cross_prefix" # see https://github.com/rdp/ffmpeg-windows-build-helpers/issues/3
-    unset LDFLAGS
-    do_make_and_make_install "$make_prefix_options"
-    rm -f NUL # cygwin causes windows explorer to not be able to delete this folder if it has this oddly named file in it...
-  cd ..
 }
 
 build_libvpx() {
@@ -1841,8 +1843,8 @@ build_dependencies() {
   build_zvbi # Uses iconv, libpng and dlfcn.
   build_fribidi # Uses dlfcn.
   build_libass # Needs freetype >= 9.10.3 (see https://bugs.launchpad.net/ubuntu/+source/freetype1/+bug/78573 o_O) and fribidi >= 0.19.0. Uses fontconfig >= 2.10.92, iconv and dlfcn.
-  build_libxvid
   build_libxavs
+  build_libxvid
   build_libx265
   build_libopenh264
   build_libvpx
