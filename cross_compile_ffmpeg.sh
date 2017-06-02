@@ -1061,6 +1061,15 @@ build_libsamplerate() {
   cd ..
 }
 
+build_librubberband() {
+  do_git_checkout https://github.com/breakfastquay/rubberband.git
+  cd rubberband_git
+    apply_patch file://$patch_dir/rubberband_git_static-lib.diff
+    do_configure "--host=$host_target --prefix=$mingw_w64_x86_64_prefix"
+    do_make "install-static" # No need for 'do_make_install', because 'install-static' already has install-instructions.
+  cd ..
+}
+
 build_lsmash() { # an MP4 library
   do_git_checkout https://github.com/l-smash/l-smash.git l-smash
   cd l-smash
@@ -1361,21 +1370,6 @@ build_libxvid() {
     rm $mingw_w64_x86_64_prefix/lib/xvidcore.dll.a || exit 1
     mv $mingw_w64_x86_64_prefix/lib/xvidcore.a $mingw_w64_x86_64_prefix/lib/libxvidcore.a || exit 1
   fi
-}
-
-build_librubberband() {
-  download_and_unpack_file http://code.breakfastquay.com/attachments/download/34/rubberband-1.8.1.tar.bz2
-  cd rubberband-1.8.1
-    generic_configure 
-    mkdir -p lib # seems needed ? :|
-    do_make "static $make_prefix_options"  # make default target is "all" which includes weird other plugins
-    # make install tries to "build all" then install, so fails. manual for now :|
-    cp lib/* $mingw_w64_x86_64_prefix/lib
-    cp -r rubberband $mingw_w64_x86_64_prefix/include
-    cp rubberband.pc.in $PKG_CONFIG_PATH/rubberband.pc
-    sed -i.bak "s|%PREFIX%|$mingw_w64_x86_64_prefix|" $PKG_CONFIG_PATH/rubberband.pc
-    sed -i.bak 's/-lrubberband *$/-lrubberband -lfftw3 -lsamplerate -lstdc++/' $PKG_CONFIG_PATH/rubberband.pc
-  cd ..
 }
 
 build_zvbi() {
@@ -1822,6 +1816,7 @@ build_dependencies() {
   build_vamp_plugin # Needs libsndfile for 'vamp-simple-host.exe' [disabled].
   build_fftw # Uses dlfcn.
   build_libsamplerate # Needs libsndfile >= 1.0.6 and fftw >= 0.15.0 for tests. Uses dlfcn.
+  build_librubberband # Needs libsamplerate, libsndfile, fftw and vamp_plugin. 'configure' will fail otherwise. Eventhough librubberband doesn't necessarily need them (libsndfile only for 'rubberband.exe' and vamp_plugin only for "Vamp audio analysis plugin"). How to use the bundled libraries '-DUSE_SPEEX' and '-DUSE_KISSFFT'?
   build_frei0r
   build_wavpack
   # build_libjpeg_turbo # mplayer can use this, VLC qt might need it? [replaces libjpeg]
@@ -1830,7 +1825,6 @@ build_dependencies() {
   #build_libebur128 # needs speex # Now included in ffmpeg as internal library
   build_libx265
   build_libopenh264
-  build_librubberband # needs libsndfile, vamp_plugin [though it never uses it], fftw, libsamplerate [some of which it doesn't have to use, but configure require they be installed, so we use them anyway...gah]
   build_vidstab
   build_netcdf
   build_libcaca

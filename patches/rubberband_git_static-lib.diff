@@ -1,0 +1,31 @@
+diff -ur Makefile.in.bak Makefile.in
+--- Makefile.in.bak	2017-04-27 15:44:27.859375000 +0200
++++ Makefile.in	2017-05-23 23:10:31.531250000 +0200
+@@ -166,6 +166,15 @@
+ lib:
+ 	$(MKDIR) $@
+ 
++install-static:	lib static
++	$(MKDIR) -p $(DESTDIR)$(INSTALL_INCDIR)
++	$(MKDIR) -p $(DESTDIR)$(INSTALL_LIBDIR)
++	$(MKDIR) -p $(DESTDIR)$(INSTALL_PKGDIR)
++	cp $(PUBLIC_INCLUDES) $(DESTDIR)$(INSTALL_INCDIR)
++	cp $(STATIC_TARGET) $(DESTDIR)$(INSTALL_LIBDIR)
++	sed "s,%PREFIX%,$(PREFIX),;s,%LIBRARY_LIBS%,$(LIBRARY_LIBS)," rubberband.pc.in \
++	  > $(DESTDIR)$(INSTALL_PKGDIR)/rubberband.pc
++
+ install:	all
+ 	$(MKDIR) -p $(DESTDIR)$(INSTALL_BINDIR)
+ 	$(MKDIR) -p $(DESTDIR)$(INSTALL_INCDIR)
+diff -ur rubberband.pc.in.bak rubberband.pc.in
+--- rubberband.pc.in.bak	2017-05-21 23:35:23.515625000 +0200
++++ rubberband.pc.in	2017-05-23 23:05:01.156250000 +0200
+@@ -5,6 +5,7 @@
+ 
+ Name: rubberband
+ Version: 1.8.1
+-Description: 
++Description: An audio time-stretching and pitch-shifting library and utility program
+ Libs: -L${libdir} -lrubberband
++Libs.private: %LIBRARY_LIBS%
+ Cflags: -I${includedir} 
