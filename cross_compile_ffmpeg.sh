@@ -1027,6 +1027,18 @@ build_libschroedinger() {
   cd ..
 }
 
+build_vamp_plugin() {
+  download_and_unpack_file https://code.soundsoftware.ac.uk/attachments/download/2206/vamp-plugin-sdk-2.7.1.tar.gz
+  cd vamp-plugin-sdk-2.7.1
+    apply_patch file://$patch_dir/vamp-plugin-sdk-2.7.1_static-lib.diff
+    if [[ ! -f configure.bak ]]; then # Fix for "'M_PI' was not declared in this scope" (see https://stackoverflow.com/a/29264536).
+      sed -i.bak "s/c++98/gnu++98/" configure
+    fi
+    do_configure "--host=$host_target --prefix=$mingw_w64_x86_64_prefix --disable-programs"
+    do_make "install-static" # No need for 'do_make_install', because 'install-static' already has install-instructions.
+  cd ..
+}
+
 build_lsmash() { # an MP4 library
   do_git_checkout https://github.com/l-smash/l-smash.git l-smash
   cd l-smash
@@ -1327,14 +1339,6 @@ build_libxvid() {
     rm $mingw_w64_x86_64_prefix/lib/xvidcore.dll.a || exit 1
     mv $mingw_w64_x86_64_prefix/lib/xvidcore.a $mingw_w64_x86_64_prefix/lib/libxvidcore.a || exit 1
   fi
-}
-
-build_vamp_plugin() { 
-  download_and_unpack_file https://sourceforge.net/projects/ffmpegwindowsbi/files/dependency_libraries/vamp-plugin-sdk-2.6.tar.gz
-  cd vamp-plugin-sdk-2.6
-    generic_configure
-    do_make_and_make_install "$make_prefix_options sdkstatic"
-  cd ..
 }
 
 build_fftw() {
@@ -1801,6 +1805,7 @@ build_dependencies() {
   build_libsnappy # Uses zlib (only for unittests [disabled]) and dlfcn.
   #build_orc # Uses dlfcn.
   #build_libschroedinger # Needs orc >= 0.4. Uses dlfcn. Disabled, because FFmpeg has stopped support (see https://github.com/FFmpeg/FFmpeg/commit/220b24c7c97dc033ceab1510549f66d0e7b52ef1).
+  build_vamp_plugin # Needs libsndfile for 'vamp-simple-host.exe' [disabled].
   build_frei0r
   build_wavpack
   # build_libjpeg_turbo # mplayer can use this, VLC qt might need it? [replaces libjpeg]
@@ -1810,7 +1815,6 @@ build_dependencies() {
   build_libx265
   build_libopenh264
 
-  build_vamp_plugin # requires libsndfile
   build_fftw
   build_libsamplerate
   build_librubberband # needs libsndfile, vamp_plugin [though it never uses it], fftw, libsamplerate [some of which it doesn't have to use, but configure require they be installed, so we use them anyway...gah]
