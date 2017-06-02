@@ -1050,6 +1050,17 @@ build_fftw() {
   cd ..
 }
 
+build_libsamplerate() {
+  do_git_checkout https://github.com/erikd/libsamplerate.git
+  cd libsamplerate_git
+    if [[ ! -f Makefile.am.bak ]]; then # Library only.
+      sed -i.bak "s/M4.*/src/" Makefile.am
+    fi
+    # 'examples/audio_out.c' would otherwise cause problems; "audio_out.c:715:2: warning: return from incompatible pointer type, return (WIN32_AUDIO_OUT *) win32_out ;".
+    generic_configure_make_install
+  cd ..
+}
+
 build_lsmash() { # an MP4 library
   do_git_checkout https://github.com/l-smash/l-smash.git l-smash
   cd l-smash
@@ -1350,10 +1361,6 @@ build_libxvid() {
     rm $mingw_w64_x86_64_prefix/lib/xvidcore.dll.a || exit 1
     mv $mingw_w64_x86_64_prefix/lib/xvidcore.a $mingw_w64_x86_64_prefix/lib/libxvidcore.a || exit 1
   fi
-}
-
-build_libsamplerate() {
-  generic_download_and_make_and_install http://www.mega-nerd.com/SRC/libsamplerate-0.1.8.tar.gz # can use this, but uses speex bundled by default [any difference?]
 }
 
 build_librubberband() {
@@ -1814,6 +1821,7 @@ build_dependencies() {
   #build_libschroedinger # Needs orc >= 0.4. Uses dlfcn. Disabled, because FFmpeg has stopped support (see https://github.com/FFmpeg/FFmpeg/commit/220b24c7c97dc033ceab1510549f66d0e7b52ef1).
   build_vamp_plugin # Needs libsndfile for 'vamp-simple-host.exe' [disabled].
   build_fftw # Uses dlfcn.
+  build_libsamplerate # Needs libsndfile >= 1.0.6 and fftw >= 0.15.0 for tests. Uses dlfcn.
   build_frei0r
   build_wavpack
   # build_libjpeg_turbo # mplayer can use this, VLC qt might need it? [replaces libjpeg]
@@ -1822,7 +1830,6 @@ build_dependencies() {
   #build_libebur128 # needs speex # Now included in ffmpeg as internal library
   build_libx265
   build_libopenh264
-  build_libsamplerate
   build_librubberband # needs libsndfile, vamp_plugin [though it never uses it], fftw, libsamplerate [some of which it doesn't have to use, but configure require they be installed, so we use them anyway...gah]
   build_vidstab
   build_netcdf
