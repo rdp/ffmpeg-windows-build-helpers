@@ -1039,6 +1039,17 @@ build_vamp_plugin() {
   cd ..
 }
 
+build_fftw() {
+  download_and_unpack_file http://fftw.org/fftw-3.3.6-pl2.tar.gz
+  cd fftw-3.3.6-pl2
+    if [[ ! -f Makefile.in.bak ]]; then # Library only.
+      sed -i.bak "/^SUBDIRS/s/api.*/api/;/^libbench2/d" Makefile.in
+    fi
+    generic_configure "--disable-doc"
+    do_make_and_make_install
+  cd ..
+}
+
 build_lsmash() { # an MP4 library
   do_git_checkout https://github.com/l-smash/l-smash.git l-smash
   cd l-smash
@@ -1339,10 +1350,6 @@ build_libxvid() {
     rm $mingw_w64_x86_64_prefix/lib/xvidcore.dll.a || exit 1
     mv $mingw_w64_x86_64_prefix/lib/xvidcore.a $mingw_w64_x86_64_prefix/lib/libxvidcore.a || exit 1
   fi
-}
-
-build_fftw() {
-  generic_download_and_make_and_install http://www.fftw.org/fftw-3.3.5.tar.gz # said to make it "double precision-er"
 }
 
 build_libsamplerate() {
@@ -1806,6 +1813,7 @@ build_dependencies() {
   #build_orc # Uses dlfcn.
   #build_libschroedinger # Needs orc >= 0.4. Uses dlfcn. Disabled, because FFmpeg has stopped support (see https://github.com/FFmpeg/FFmpeg/commit/220b24c7c97dc033ceab1510549f66d0e7b52ef1).
   build_vamp_plugin # Needs libsndfile for 'vamp-simple-host.exe' [disabled].
+  build_fftw # Uses dlfcn.
   build_frei0r
   build_wavpack
   # build_libjpeg_turbo # mplayer can use this, VLC qt might need it? [replaces libjpeg]
@@ -1814,8 +1822,6 @@ build_dependencies() {
   #build_libebur128 # needs speex # Now included in ffmpeg as internal library
   build_libx265
   build_libopenh264
-
-  build_fftw
   build_libsamplerate
   build_librubberband # needs libsndfile, vamp_plugin [though it never uses it], fftw, libsamplerate [some of which it doesn't have to use, but configure require they be installed, so we use them anyway...gah]
   build_vidstab
