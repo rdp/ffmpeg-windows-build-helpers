@@ -1311,17 +1311,9 @@ build_libopenh264() {
   cd ..
 }
 
-build_lsmash() { # an MP4 library
-  do_git_checkout https://github.com/l-smash/l-smash.git l-smash
-  cd l-smash
-    do_configure "--prefix=$mingw_w64_x86_64_prefix --cross-prefix=$cross_prefix" 
-    do_make_and_make_install
-  cd ..
-}
-
 build_libx264() {
   local checkout_dir="x264"
-  if [[ $build_x264_with_libav == y ]]; then
+  if [[ $build_x264_with_libav == "y" ]]; then
     build_ffmpeg static --disable-libx264 ffmpeg_git_pre_x264 # installs libav locally so we can use it within x264.exe FWIW...
     checkout_dir="${checkout_dir}_with_libav"
     # they don't know how to use a normal pkg-config when cross compiling, so specify some manually: (see their mailing list for a request...)
@@ -1336,76 +1328,60 @@ build_libx264() {
   else
     checkout_dir="${checkout_dir}_normal_bitdepth"
   fi
-  
-  do_git_checkout "http://repo.or.cz/r/x264.git" $checkout_dir "origin/stable" # guess we always prefer stable here...
+
+  #if [[ $prefer_stable = "n" ]]; then
+  #  do_git_checkout "http://git.videolan.org/git/x264.git" $checkout_dir "origin/master" # During 'configure': "Found no assembler. Minimum version is nasm-2.13".
+  #else
+    do_git_checkout "http://git.videolan.org/git/x264.git" $checkout_dir "origin/stable"
+  #fi
   cd $checkout_dir
+    if [[ ! -f configure.bak ]]; then # Change CFLAGS.
+      sed -i.bak "s/O3 -/O2 -/" configure
+    fi
 
-  local configure_flags="--host=$host_target --enable-static --cross-prefix=$cross_prefix --prefix=$mingw_w64_x86_64_prefix --enable-strip" # --enable-win32thread --enable-debug is another useful option here?
+    local configure_flags="--host=$host_target --enable-static --cross-prefix=$cross_prefix --prefix=$mingw_w64_x86_64_prefix --enable-strip --disable-cli" # --enable-win32thread --enable-debug is another useful option here? # Library only.
+    if [[ $build_x264_with_libav == "n" ]]; then
+      configure_flags+=" --disable-lavf" # lavf stands for libavformat, there is no --enable-lavf option, either auto or disable...
+    fi
+    if [[ $high_bitdepth == "y" ]]; then
+      configure_flags+=" --bit-depth=10" # Enable 10 bits (main10) per pixels profile. possibly affects other profiles as well (?)
+    fi
+    for i in $CFLAGS; do
+      configure_flags+=" --extra-cflags=$i" # needs it this way seemingly :|
+    done
 
-  if [[ $build_x264_with_libav == y ]]; then
-    configure_flags="$configure_flags" # lavf stands for libavformat, there is no --enable-lavf option, either auto or disable...
-  else
-    configure_flags="$configure_flags --disable-lavf"
-  fi
+    if [[ $x264_profile_guided = y ]]; then
+      # I wasn't able to figure out how/if this gave any speedup...
+      # TODO more march=native here?
+      # TODO profile guided here option, with wine?
+      do_configure "$configure_flags"
+      curl -4 http://samples.mplayerhq.hu/yuv4mpeg2/example.y4m.bz2 -O --fail || exit 1
+      rm -f example.y4m # in case it exists already...
+      bunzip2 example.y4m.bz2 || exit 1
+      # XXX does this kill git updates? maybe a more general fix, since vid.stab does also?
+      sed -i.bak "s_\\, ./x264_, wine ./x264_" Makefile # in case they have wine auto-run disabled http://askubuntu.com/questions/344088/how-to-ensure-wine-does-not-auto-run-exe-files
+      do_make_and_make_install "fprofiled VIDS=example.y4m" # guess it has its own make fprofiled, so we don't need to manually add -fprofile-generate here...
+    else
+      # normal path
+      do_configure "$configure_flags"
+      do_make
+      echo force reinstall in case bit depth changed at all :|
+      rm already_ran_make_install*
+      do_make_install
+    fi
 
-  if [[ $high_bitdepth == "y" ]]; then
-    configure_flags="$configure_flags --bit-depth=10" # Enable 10 bits (main10) per pixels profile. possibly affects other profiles as well (?)
-  fi
-
-  for i in $CFLAGS; do
-    configure_flags="$configure_flags --extra-cflags=$i" # needs it this way seemingly :|
-  done
-  
-  if [[ $x264_profile_guided = y ]]; then
-    # I wasn't able to figure out how/if this gave any speedup...
-    # TODO more march=native here?
-    # TODO profile guided here option, with wine?
-    do_configure "$configure_flags"
-    curl -4 http://samples.mplayerhq.hu/yuv4mpeg2/example.y4m.bz2 -O --fail || exit 1
-    rm -f example.y4m # in case it exists already...
-    bunzip2 example.y4m.bz2 || exit 1
-    # XXX does this kill git updates? maybe a more general fix, since vid.stab does also?
-    sed -i.bak "s_\\, ./x264_, wine ./x264_" Makefile # in case they have wine auto-run disabled http://askubuntu.com/questions/344088/how-to-ensure-wine-does-not-auto-run-exe-files
-    do_make_and_make_install "fprofiled VIDS=example.y4m" # guess it has its own make fprofiled, so we don't need to manually add -fprofile-generate here...
-  else 
-    # normal path
-    do_configure "$configure_flags"
-    do_make
-    echo force reinstall in case bit depth changed at all :|
-    rm already_ran_make_install* 
-    do_make_install
-  fi
-
-  unset LAVF_LIBS
-  unset LAVF_CFLAGS
-  unset SWSCALE_LIBS 
+    unset LAVF_LIBS
+    unset LAVF_CFLAGS
+    unset SWSCALE_LIBS
   cd ..
 }
 
-build_qt() {
-  build_libjpeg_turbo # libjpeg a dependency [?]
-  unset CFLAGS # it makes something of its own first, which runs locally, so can't use a foreign arch, or maybe it can, but not important enough: http://stackoverflow.com/a/18775859/32453 XXXX could look at this
-  #download_and_unpack_file http://pkgs.fedoraproject.org/repo/pkgs/qt/qt-everywhere-opensource-src-4.8.7.tar.gz/d990ee66bf7ab0c785589776f35ba6ad/qt-everywhere-opensource-src-4.8.7.tar.gz # untested
-  #cd qt-everywhere-opensource-src-4.8.7
-  # download_and_unpack_file http://download.qt-project.org/official_releases/qt/5.1/5.1.1/submodules/qtbase-opensource-src-5.1.1.tar.xz qtbase-opensource-src-5.1.1 # not officially supported seems...so didn't try it
-  download_and_unpack_file http://pkgs.fedoraproject.org/repo/pkgs/qt/qt-everywhere-opensource-src-4.8.5.tar.gz/1864987bdbb2f58f8ae8b350dfdbe133/qt-everywhere-opensource-src-4.8.5.tar.gz
-  cd qt-everywhere-opensource-src-4.8.5
-    apply_patch file://$patch_dir/imageformats.patch
-    apply_patch file://$patch_dir/qt-win64.patch
-    # vlc's configure options...mostly
-    do_configure "-static -release -fast -no-exceptions -no-stl -no-sql-sqlite -no-qt3support -no-gif -no-libmng -qt-libjpeg -no-libtiff -no-qdbus -no-openssl -no-webkit -sse -no-script -no-multimedia -no-phonon -opensource -no-scripttools -no-opengl -no-script -no-scripttools -no-declarative -no-declarative-debug -opensource -no-s60 -host-little-endian -confirm-license -xplatform win32-g++ -device-option CROSS_COMPILE=$cross_prefix -prefix $mingw_w64_x86_64_prefix -prefix-install -nomake examples"
-    if [ ! -f 'already_qt_maked_k' ]; then
-      make sub-src -j $cpu_count
-      make install sub-src # let it fail, baby, it still installs a lot of good stuff before dying on mng...? huh wuh?
-      cp ./plugins/imageformats/libqjpeg.a $mingw_w64_x86_64_prefix/lib || exit 1 # I think vlc's install is just broken to need this [?]
-      cp ./plugins/accessible/libqtaccessiblewidgets.a  $mingw_w64_x86_64_prefix/lib || exit 1 # this feels wrong...
-      # do_make_and_make_install "sub-src" # sub-src might make the build faster? # complains on mng? huh?
-      touch 'already_qt_maked_k'
-    fi
-    # vlc needs an adjust .pc file? huh wuh?
-    sed -i.bak 's/Libs: -L${libdir} -lQtGui/Libs: -L${libdir} -lcomctl32 -lqjpeg -lqtaccessiblewidgets -lQtGui/' "$PKG_CONFIG_PATH/QtGui.pc" # sniff
+build_lsmash() { # an MP4 library
+  do_git_checkout https://github.com/l-smash/l-smash.git l-smash
+  cd l-smash
+    do_configure "--prefix=$mingw_w64_x86_64_prefix --cross-prefix=$cross_prefix"
+    do_make_and_make_install
   cd ..
-  reset_cflags
 }
 
 build_libdvdread() {
@@ -1493,6 +1469,32 @@ build_dvbtee_app() {
     generic_configure
     do_make # not install since don't have a dependency on the library
   cd ..
+}
+
+build_qt() {
+  build_libjpeg_turbo # libjpeg a dependency [?]
+  unset CFLAGS # it makes something of its own first, which runs locally, so can't use a foreign arch, or maybe it can, but not important enough: http://stackoverflow.com/a/18775859/32453 XXXX could look at this
+  #download_and_unpack_file http://pkgs.fedoraproject.org/repo/pkgs/qt/qt-everywhere-opensource-src-4.8.7.tar.gz/d990ee66bf7ab0c785589776f35ba6ad/qt-everywhere-opensource-src-4.8.7.tar.gz # untested
+  #cd qt-everywhere-opensource-src-4.8.7
+  # download_and_unpack_file http://download.qt-project.org/official_releases/qt/5.1/5.1.1/submodules/qtbase-opensource-src-5.1.1.tar.xz qtbase-opensource-src-5.1.1 # not officially supported seems...so didn't try it
+  download_and_unpack_file http://pkgs.fedoraproject.org/repo/pkgs/qt/qt-everywhere-opensource-src-4.8.5.tar.gz/1864987bdbb2f58f8ae8b350dfdbe133/qt-everywhere-opensource-src-4.8.5.tar.gz
+  cd qt-everywhere-opensource-src-4.8.5
+    apply_patch file://$patch_dir/imageformats.patch
+    apply_patch file://$patch_dir/qt-win64.patch
+    # vlc's configure options...mostly
+    do_configure "-static -release -fast -no-exceptions -no-stl -no-sql-sqlite -no-qt3support -no-gif -no-libmng -qt-libjpeg -no-libtiff -no-qdbus -no-openssl -no-webkit -sse -no-script -no-multimedia -no-phonon -opensource -no-scripttools -no-opengl -no-script -no-scripttools -no-declarative -no-declarative-debug -opensource -no-s60 -host-little-endian -confirm-license -xplatform win32-g++ -device-option CROSS_COMPILE=$cross_prefix -prefix $mingw_w64_x86_64_prefix -prefix-install -nomake examples"
+    if [ ! -f 'already_qt_maked_k' ]; then
+      make sub-src -j $cpu_count
+      make install sub-src # let it fail, baby, it still installs a lot of good stuff before dying on mng...? huh wuh?
+      cp ./plugins/imageformats/libqjpeg.a $mingw_w64_x86_64_prefix/lib || exit 1 # I think vlc's install is just broken to need this [?]
+      cp ./plugins/accessible/libqtaccessiblewidgets.a  $mingw_w64_x86_64_prefix/lib || exit 1 # this feels wrong...
+      # do_make_and_make_install "sub-src" # sub-src might make the build faster? # complains on mng? huh?
+      touch 'already_qt_maked_k'
+    fi
+    # vlc needs an adjust .pc file? huh wuh?
+    sed -i.bak 's/Libs: -L${libdir} -lQtGui/Libs: -L${libdir} -lcomctl32 -lqjpeg -lqtaccessiblewidgets -lQtGui/' "$PKG_CONFIG_PATH/QtGui.pc" # sniff
+  cd ..
+  reset_cflags
 }
 
 build_vlc() {
@@ -1841,7 +1843,7 @@ build_dependencies() {
   build_libvpx
   build_libx265
   build_libopenh264
-  build_libx264 # at bottom as it might build an ffmpeg which needs all the above deps...
+  build_libx264 # at bottom as it might build a ffmpeg which needs all the above deps...
 }
 
 build_apps() {
@@ -1911,7 +1913,7 @@ git_get_latest=y
 prefer_stable=y # Only for x264 and x265.
 build_intel_qsv=n # Set to 'n' for WinXP compatibility.
 #disable_nonfree=n # have no value by default to force user selection
-#original_cflags='-mtune=generic -O3' #  be careful, these override lots of stuff in makesfiles :| can't use mtune=core2 since it bworks it for some cpu's
+#original_cflags='-mtune=generic -O3' # be careful, these override lots of stuff in makesfiles :| can't use mtune=core2 since it bworks it for some cpu's
 original_cflags='-march=pentium3 -mtune=pentium3 -O2 -mfpmath=sse -msse' # For non-SSE2 cpus (like my Athlon XP 3200+). See https://gcc.gnu.org/onlinedocs/gcc/x86-Options.html, https://gcc.gnu.org/onlinedocs/gcc/Optimize-Options.html and https://stackoverflow.com/questions/19689014/gcc-difference-between-o3-and-os.
 # if you specify a march it needs to first so x264's configure will use it :|
 ffmpeg_git_checkout_version=
