@@ -1183,6 +1183,18 @@ build_libxavs() {
   cd ..
 }
 
+build_libxvid() {
+  download_and_unpack_file http://downloads.xvid.org/downloads/xvidcore-1.3.4.tar.gz xvidcore
+  cd xvidcore/build/generic
+    apply_patch file://$patch_dir/xvidcore-1.3.4_static-lib.diff
+    do_configure "--host=$host_target --prefix=$mingw_w64_x86_64_prefix" # no static option...
+    #sed -i.bak "s/-mno-cygwin//" platform.inc # remove old compiler flag that now apparently breaks us # Not needed for static library, but neither anymore for shared library (see 'configure#L5010').
+    cpu_count=1 # possibly can't build this multi-thread ? http://betterlogic.com/roger/2014/02/xvid-build-woe/
+    do_make_and_make_install
+    cpu_count=$original_cpu_count
+  cd ../../..
+}
+
 build_lsmash() { # an MP4 library
   do_git_checkout https://github.com/l-smash/l-smash.git l-smash
   cd l-smash
@@ -1432,24 +1444,6 @@ build_libjpeg_turbo() {
     do_make_and_make_install
     sed -i.bak 's/typedef long INT32/typedef long XXINT32/' "$mingw_w64_x86_64_prefix/include/jmorecfg.h" # breaks VLC build without this...freaky...theoretically using cmake instead would be enough, but that installs .dll.a file... XXXX maybe no longer needed :|
   cd ..
-}
-
-build_libxvid() {
-  download_and_unpack_file http://downloads.xvid.org/downloads/xvidcore-1.3.3.tar.gz xvidcore
-  cd xvidcore/build/generic
-  do_configure "--host=$host_target --prefix=$mingw_w64_x86_64_prefix $config_opts" # no static option...
-  sed -i.bak "s/-mno-cygwin//" platform.inc # remove old compiler flag that now apparently breaks us
-
-  cpu_count=1 # possibly can't build this multi-thread ? http://betterlogic.com/roger/2014/02/xvid-build-woe/
-  do_make_and_make_install
-  cpu_count=$original_cpu_count
-  cd ../../..
-
-  # force a static build after the fact by only leaving the .a file, not the .dll.a file
-  if [[ -f "$mingw_w64_x86_64_prefix/lib/xvidcore.dll.a" ]]; then
-    rm $mingw_w64_x86_64_prefix/lib/xvidcore.dll.a || exit 1
-    mv $mingw_w64_x86_64_prefix/lib/xvidcore.a $mingw_w64_x86_64_prefix/lib/libxvidcore.a || exit 1
-  fi
 }
 
 build_libproxy() {
@@ -1844,7 +1838,7 @@ build_dependencies() {
   build_fribidi # Uses dlfcn.
   build_libass # Needs freetype >= 9.10.3 (see https://bugs.launchpad.net/ubuntu/+source/freetype1/+bug/78573 o_O) and fribidi >= 0.19.0. Uses fontconfig >= 2.10.92, iconv and dlfcn.
   build_libxavs
-  build_libxvid
+  build_libxvid # FFMpeg now has native support, but libxvid still provides a better image.
   build_libx265
   build_libopenh264
   build_libvpx

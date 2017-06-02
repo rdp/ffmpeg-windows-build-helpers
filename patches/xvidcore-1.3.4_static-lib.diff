@@ -1,0 +1,90 @@
+diff -ur configure.bak configure
+--- configure.bak	2015-06-21 16:21:32.000000000 +0200
++++ configure	2017-04-24 21:53:57.687500000 +0200
+@@ -4386,9 +4386,6 @@
+ 	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: ok" >&5
+ $as_echo "ok" >&6; }
+ 	STATIC_LIB="xvidcore.\$(STATIC_EXTENSION)"
+-	SHARED_LIB="xvidcore.\$(SHARED_EXTENSION)"
+-	SPECIFIC_LDFLAGS="-shared -Wl,--dll,--out-implib,\$@.a libxvidcore.def"
+-	SPECIFIC_CFLAGS="-mno-cygwin"
+ 	;;
+      darwin*)
+ 	STATIC_LIB="libxvidcore.\$(STATIC_EXTENSION)"
+diff -ur Makefile.bak Makefile
+--- Makefile.bak	2015-06-21 16:21:32.000000000 +0200
++++ Makefile	2017-04-24 21:57:39.875000000 +0200
+@@ -70,7 +70,7 @@
+ 
+ .SUFFIXES: .$(OBJECT_EXTENSION) .$(ASSEMBLY_EXTENSION) .c
+ 
+-all: info $(STATIC_LIB) $(SHARED_LIB)
++all: info $(STATIC_LIB)
+ 	@echo
+ 	@echo "---------------------------------------------------------------"
+ 	@echo " Xvid has been successfully built."
+@@ -116,31 +116,10 @@
+ 	@cd $(BUILD_DIR) && $(AR) rc $(@F) $(OBJECTS) && $(RANLIB) $(@F)
+ 
+ #-----------------------------------------------------------------------------
+-# Shared Library
+-#
+-# NB: This rule is used a nasty way by the MacOSX module build process
+-#     In this only case, it uses the SPECIFIC_LDFLAGS to append an additionnal
+-#     linking step:
+-#      1/ it links a pre shared lib (libxvidcore.so-temp.4)
+-#      2/ it links that pre shared lib outputing the real shared lib (module)
+-#     In all other cases this rule is straight forward and simple.
+-#     PRE_SHARED_LIB == SHARED_LIB and no nasty command appending.
+-#
+-# NB': we copy the def file for the win32 target, the file is unused on other
+-#      platforms
+-#-----------------------------------------------------------------------------
+-
+-$(SHARED_LIB): $(BUILD_DIR) $(OBJECTS)
+-	@echo "  L: $(@F)"
+-	@$(INSTALL) -m 644 libxvidcore.def $(BUILD_DIR)/libxvidcore.def
+-	@$(INSTALL) -m 644 libxvidcore.ld $(BUILD_DIR)/libxvidcore.ld
+-	@cd $(BUILD_DIR) && $(CC) $(LDFLAGS) $(OBJECTS) -o $(PRE_SHARED_LIB) $(SPECIFIC_LDFLAGS)
+-
+-#-----------------------------------------------------------------------------
+ # Installation
+ #-----------------------------------------------------------------------------
+ 
+-install: $(BUILD_DIR)/$(STATIC_LIB) $(BUILD_DIR)/$(SHARED_LIB)
++install: $(BUILD_DIR)/$(STATIC_LIB)
+ 	@echo "  D: $(includedir)"
+ 	@$(INSTALL) -d $(DESTDIR)$(includedir)
+ 	@echo "  I: $(includedir)/xvid.h"
+@@ -148,22 +127,7 @@
+ 	@echo "  D: $(libdir)"
+ 	@$(INSTALL) -d $(DESTDIR)$(libdir)
+ 	@echo "  I: $(libdir)/$(STATIC_LIB)"
+-	@$(INSTALL) -m 644 $(BUILD_DIR)/$(STATIC_LIB) $(DESTDIR)$(libdir)/$(STATIC_LIB)
+-ifeq ($(SHARED_EXTENSION),dll)
+-	@echo "  I: $(libdir)/$(SHARED_LIB).a"
+-	@$(INSTALL) -m 644 $(BUILD_DIR)/$(SHARED_LIB).a $(DESTDIR)$(libdir)/$(SHARED_LIB).a
+-	@echo "  D: $(bindir)"
+-	@$(INSTALL) -d $(DESTDIR)$(bindir)
+-	@echo "  I: $(bindir)/$(SHARED_LIB)"
+-	@$(INSTALL) -m 755 $(BUILD_DIR)/$(SHARED_LIB) $(DESTDIR)$(bindir)/$(SHARED_LIB)
+-else
+-	@echo "  I: $(libdir)/$(SHARED_LIB)"
+-	@$(INSTALL) -m 644 $(BUILD_DIR)/$(SHARED_LIB) $(DESTDIR)$(libdir)/$(SHARED_LIB)
+-	@test -z "$(SO_API_MAJOR_LINK)" || \
+-		$(LN_S) $(SHARED_LIB) $(DESTDIR)$(libdir)/$(SO_API_MAJOR_LINK)
+-	@test -z "$(SO_LINK)" || \
+-		$(LN_S) $(SHARED_LIB) $(DESTDIR)$(libdir)/$(SO_LINK)
+-endif
++	@$(INSTALL) -m 644 $(BUILD_DIR)/$(STATIC_LIB) $(DESTDIR)$(libdir)/libxvidcore.a
+ 
+ #-----------------------------------------------------------------------------
+ # Platorm specific file -- dumb rules for people executing make before
+@@ -218,7 +182,6 @@
+ 	@echo "Target Libraries"
+ 	@echo "---------------------------------------------------------------"
+ 	@echo
+-	@echo Shared library: $(SHARED_LIB)
+ 	@echo Static library: $(STATIC_LIB)
+ 	@echo
+ 
