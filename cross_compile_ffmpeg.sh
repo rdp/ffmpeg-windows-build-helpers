@@ -716,16 +716,42 @@ build_openssl-1.0.2() {
     export CC="${cross_prefix}gcc"
     export AR="${cross_prefix}ar"
     export RANLIB="${cross_prefix}ranlib"
-    if [ "$bits_target" = "32" ]; then
-      #do_configure "--prefix=$mingw_w64_x86_64_prefix zlib shared mingw" ./Configure # Build shared library ('libeay32.dll' and 'ssleay32.dll').
-      do_configure "--prefix=$mingw_w64_x86_64_prefix zlib no-shared no-dso mingw" ./Configure
+    local config_options="--prefix=$mingw_w64_x86_64_prefix zlib "
+    if [ "$1" != "dllonly" ]; then
+      if [ "$bits_target" = "32" ]; then
+        config_options+="no-shared no-dso mingw"
+      else
+        config_options+="no-shared no-dso mingw64"
+      fi
+      do_configure "$config_options" ./Configure
+      if [[ ! -f Makefile_1 ]]; then
+        sed -i_1 "s/-O3/-O2/" Makefile # Change CFLAGS (OpenSSL's 'Configure' already creates a 'Makefile.bak').
+      fi
+      do_make_and_make_install
     else
-      do_configure "--prefix=$mingw_w64_x86_64_prefix zlib no-shared no-dso mingw64" ./Configure
+      if [ "$bits_target" = "32" ]; then
+        config_options+="shared mingw" # Build shared libraries ('libeay32.dll' and 'ssleay32.dll').
+        local arch=x86
+      else
+        config_options+="shared mingw64" # Build shared libraries ('libeay64.dll' and 'ssleay64.dll').
+        local arch=x86_64
+      fi
+      do_configure "$config_options" ./Configure
+      if [[ ! -f Makefile_1 ]]; then
+        sed -i_1 "s/-O3/-O2/" Makefile
+      fi
+      do_make "build_libs"
+
+      mkdir -p $cur_dir/redist # Strip and pack shared libraries.
+      archive="$cur_dir/redist/openssl-${arch}-v1.0.2k.7z"
+      if [[ ! -f $archive ]]; then
+        for sharedlib in *.dll; do
+          ${cross_prefix}strip $sharedlib
+        done
+        sed "s/$/\r/" LICENSE > LICENSE.txt
+        7z a -mx=9 $archive *.dll LICENSE.txt && rm -f LICENSE.txt
+      fi
     fi
-    if [[ ! -f Makefile_1 ]]; then
-      sed -i_1 "s/-O3/-O2/" Makefile # Change CFLAGS (OpenSSL's 'Configure' already creates a 'Makefile.bak').
-    fi
-    do_make_and_make_install
     unset CC
     unset AR
     unset RANLIB
@@ -1808,7 +1834,7 @@ build_dependencies() {
   build_libnettle # Needs gmp >= 3.0. Uses dlfcn.
   build_gnutls # Needs nettle >= 3.1, hogweed (nettle) >= 3.1. Uses zlib and dlfcn.
   #if [[ "$non_free" = "y" ]]; then
-  #  build_openssl-1.0.2 # Nonfree alternative to GnuTLS.
+  #  build_openssl-1.0.2 # Nonfree alternative to GnuTLS. 'build_openssl-1.0.2 "dllonly"' to build shared libraries only.
   #  build_openssl-1.1.0 # Nonfree alternative to GnuTLS. Can't be used with LibRTMP.
   #fi
   #build_librtmp # Needs GnuTLS, or OpenSSL <= 1.0.2k. Superseded by GMP.
