@@ -184,7 +184,7 @@ install_cross_compiler() {
     if [[ ($compiler_flavors == "win32" || $compiler_flavors == "multi") && ! -f ../$win32_gcc ]]; then
       echo "building win32 cross compiler..."
       download_gcc_build_script $zeranoe_script_name
-      if [[ `uname -s` =~ "5.1" ]]; then # Avoid using secure API functions for compatibility with msvcrt.dll on Windows XP.
+      if [[ `uname` =~ "5.1" ]]; then # Avoid using secure API functions for compatibility with msvcrt.dll on Windows XP.
         sed -i "s/--enable-secure-api //" $zeranoe_script_name
       fi
       nice ./$zeranoe_script_name $zeranoe_script_options --build-type=win32 || exit 1
@@ -261,7 +261,7 @@ do_git_checkout() {
 
   if [[ -z $desired_branch ]]; then
     echo "doing git checkout master"
-    git checkout master || exit 1 # in case they were on some other branch before [ex: going between ffmpeg release tags]
+    git checkout -f master || exit 1 # in case they were on some other branch before [ex: going between ffmpeg release tags]. # Checkout even if the working tree differs from HEAD.
     if [[ $git_get_latest = "y" ]]; then
       echo "Updating to latest $to_dir git version [origin/master]..."
       git merge origin/master || exit 1
@@ -275,7 +275,7 @@ do_git_checkout() {
   new_git_version=`git rev-parse HEAD`
   if [[ "$old_git_version" != "$new_git_version" ]]; then
     echo "got upstream changes, forcing re-configure."
-    rm -f already*
+    git clean -f # Throw away local changes; 'already_*' and bak-files for instance.
   else
     echo "got no code changes, not forcing reconfigure for that..."
   fi
@@ -893,7 +893,7 @@ build_fdk-aac() {
     if [[ ! -f $archive ]]; then
       ${cross_prefix}strip $mingw_w64_x86_64_prefix/bin/libfdk-aac-1.dll
       sed "s/$/\r/" NOTICE > NOTICE.txt
-      7z a -mx=9 $archive $mingw_w64_x86_64_prefix/bin/libfdk-aac-1.dll NOTICE.txt && rm -fr NOTICE.txt
+      7z a -mx=9 $archive $mingw_w64_x86_64_prefix/bin/libfdk-aac-1.dll NOTICE.txt && rm -f NOTICE.txt
     fi
   cd ..
 }
@@ -1099,7 +1099,7 @@ build_frei0r() {
       for doc in AUTHORS ChangeLog COPYING README.md; do
         sed "s/$/\r/" $doc > $mingw_w64_x86_64_prefix/lib/frei0r-1/$doc.txt
       done
-      7z a -mx=9 $archive $mingw_w64_x86_64_prefix/lib/frei0r-1 && rm -fr $mingw_w64_x86_64_prefix/lib/frei0r-1/*.txt
+      7z a -mx=9 $archive $mingw_w64_x86_64_prefix/lib/frei0r-1 && rm -f $mingw_w64_x86_64_prefix/lib/frei0r-1/*.txt
     fi
   cd ..
 }
