@@ -947,13 +947,23 @@ build_libgme() {
 build_libbluray() {
   do_git_checkout https://git.videolan.org/git/libbluray.git
   cd libbluray_git
-    if [[ ! -f .gitmodules.bak ]]; then
-      sed -i.bak "s|git.*|https://git.videolan.org/git/libudfread.git|" .gitmodules
+    if [[ ! -d .git/modules ]]; then
+      git submodule update --init --remote # For UDF support [default=enabled], which strangely enough is in another repository.
+    else
+      local local_git_version=`git --git-dir=.git/modules/contrib/libudfread rev-parse HEAD`
+      local remote_git_version=`git ls-remote -h git://git.videolan.org/libudfread.git | sed "s/\s.*//"`
+      if [[ "$local_git_version" != "$remote_git_version" ]]; then
+        git clean -f # Throw away local changes; 'already_*' in this case.
+        git submodule foreach -q 'git clean -f' # Throw away local changes; 'already_configured_*' and 'udfread.c.bak' in this case.
+        git submodule update --remote -f # Checkout even if the working tree differs from HEAD.
+      fi
     fi
-    git submodule update --init # For UDF support [default=enabled], which strangely enough is in another repository.
-    if [[ ! -f contrib/libudfread/src/udfread.c.bak ]]; then
-      sed -i.bak "/WIN32$/,+4d" contrib/libudfread/src/udfread.c # Fix WinXP incompatibility.
-    fi
+    cd contrib/libudfread
+      if [[ ! -f src/udfread.c.bak ]]; then
+        sed -i.bak "/WIN32$/,+4d" src/udfread.c # Fix WinXP incompatibility.
+      fi
+      generic_configure # Generate 'udfread-version.h', or building Libbluray fails otherwise.
+    cd ../..
     generic_configure "--disable-examples --disable-bdjava-jar"
     do_make_and_make_install
   cd ..
