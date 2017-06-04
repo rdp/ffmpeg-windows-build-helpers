@@ -764,18 +764,51 @@ build_openssl-1.1.0() {
     export CC="${cross_prefix}gcc"
     export AR="${cross_prefix}ar"
     export RANLIB="${cross_prefix}ranlib"
-    if [ "$bits_target" = "32" ]; then
-      #do_configure "--prefix=$mingw_w64_x86_64_prefix zlib shared no-engine no-async mingw" ./Configure # Build shared library ('libcrypto-1_1.dll' and 'libssl-1_1.dll').
-      do_configure "--prefix=$mingw_w64_x86_64_prefix zlib no-shared no-dso no-engine no-async mingw" ./Configure
-      # "Note: on older OSes, like CentOS 5, BSD 5, and Windows XP or Vista, you will need to configure with no-async when building OpenSSL 1.1.0 and above. The configuration system does not detect lack of the Posix feature on the platforms." (https://wiki.openssl.org/index.php/Compilation_and_Installation)
+    local config_options="--prefix=$mingw_w64_x86_64_prefix zlib "
+    if [ "$1" != "dllonly" ]; then
+      config_options+="no-shared no-dso no-engine "
+      if [[ `uname` =~ "5.1" ]] || [[ `uname` =~ "6.0" ]]; then
+        config_options+="no-async " # "Note: on older OSes, like CentOS 5, BSD 5, and Windows XP or Vista, you will need to configure with no-async when building OpenSSL 1.1.0 and above. The configuration system does not detect lack of the Posix feature on the platforms." (https://wiki.openssl.org/index.php/Compilation_and_Installation)
+      fi
+      if [ "$bits_target" = "32" ]; then
+        config_options+="mingw"
+      else
+        config_options+="mingw64"
+      fi
+      do_configure "$config_options" ./Configure
+      if [[ ! -f Makefile.bak ]]; then # Change CFLAGS.
+        sed -i.bak "s/-O3/-O2/" Makefile
+      fi
+      do_make "build_libs"
+      do_make_install "" "install_dev"
     else
-      do_configure "--prefix=$mingw_w64_x86_64_prefix zlib no-shared no-dso no-engine mingw64" ./Configure
+      config_options+="shared no-engine "
+      if [[ `uname` =~ "5.1" ]] || [[ `uname` =~ "6.0" ]]; then
+        config_options+="no-async "
+      fi
+      if [ "$bits_target" = "32" ]; then
+        config_options+="mingw" # Build shared libraries ('libcrypto-1_1.dll' and 'libssl-1_1.dll').
+        local arch=x86
+      else
+        config_options+="mingw64" # Build shared libraries ('libcrypto-1_1-x64.dll' and 'libssl-1_1-x64.dll').
+        local arch=x86_64
+      fi
+      do_configure "$config_options" ./Configure
+      if [[ ! -f Makefile.bak ]]; then # Change CFLAGS.
+        sed -i.bak "s/-O3/-O2/" Makefile
+      fi
+      do_make "build_libs"
+
+      mkdir -p $cur_dir/redist # Strip and pack shared libraries.
+      archive="$cur_dir/redist/openssl-${arch}-v1.1.0e.7z"
+      if [[ ! -f $archive ]]; then
+        for sharedlib in *.dll; do
+          ${cross_prefix}strip $sharedlib
+        done
+        sed "s/$/\r/" LICENSE > LICENSE.txt
+        7z a -mx=9 $archive *.dll LICENSE.txt && rm -f LICENSE.txt
+      fi
     fi
-    if [[ ! -f Makefile.bak ]]; then # Change CFLAGS.
-      sed -i.bak "s/-O3/-O2/" Makefile
-    fi
-    do_make "build_libs"
-    do_make_install "" "install_dev"
     unset CC
     unset AR
     unset RANLIB
@@ -1835,7 +1868,7 @@ build_dependencies() {
   build_gnutls # Needs nettle >= 3.1, hogweed (nettle) >= 3.1. Uses zlib and dlfcn.
   #if [[ "$non_free" = "y" ]]; then
   #  build_openssl-1.0.2 # Nonfree alternative to GnuTLS. 'build_openssl-1.0.2 "dllonly"' to build shared libraries only.
-  #  build_openssl-1.1.0 # Nonfree alternative to GnuTLS. Can't be used with LibRTMP.
+  #  build_openssl-1.1.0 # Nonfree alternative to GnuTLS. Can't be used with LibRTMP. 'build_openssl-1.1.0 "dllonly"' to build shared libraries only.
   #fi
   #build_librtmp # Needs GnuTLS, or OpenSSL <= 1.0.2k. Superseded by GMP.
   build_libogg # Uses dlfcn.
