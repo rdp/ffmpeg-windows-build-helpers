@@ -1690,46 +1690,39 @@ build_libMXF() {
 }
 
 build_ffmpeg() {
-  # the real kahuna
   local shared_or_static=$1
   local extra_postpend_configure_options=$2
-  local git_url="https://github.com/FFmpeg/FFmpeg.git"
   local output_dir=$3
   if [[ -z $output_dir ]]; then
     output_dir="ffmpeg_git"
   fi
-
   if [[ "$non_free" = "y" ]]; then
-    output_dir="${output_dir}_with_fdk_aac"
+    output_dir+="_with_fdk_aac"
   fi
-
   if [[ $high_bitdepth == "y" ]]; then
-    output_dir="${output_dir}_x26x_high_bitdepth"
+    output_dir+="_x26x_high_bitdepth"
   fi
-
   if [[ $build_intel_qsv == "n" ]]; then
-    output_dir="${output_dir}_xp_compat"
+    output_dir+="_xp_compat"
   fi
-
   if [[ $enable_gpl == 'n' ]]; then
-    output_dir="${output_dir}_lgpl"
+    output_dir+="_lgpl"
   fi
 
   local postpend_configure_opts=""
 
   # can't mix and match --enable-static --enable-shared unfortunately, or the final executable seems to just use shared if the're both present
   if [[ $shared_or_static == "shared" ]]; then
-    output_dir=${output_dir}_shared
+    output_dir+="_shared"
     final_install_dir=`pwd`/${output_dir}.installed
-    postpend_configure_opts="--enable-shared --disable-static $postpend_configure_opts"
     init_options="--pkg-config=pkg-config"
-    postpend_configure_opts="$postpend_configure_opts --prefix=$final_install_dir --disable-libgme" # gme broken for shared as of yet TODO...
+    postpend_configure_opts="--enable-shared --disable-static --prefix=$final_install_dir --disable-libgme" # gme broken for shared as of yet TODO...
   else
     init_options="--pkg-config=pkg-config --pkg-config-flags=--static"
-    postpend_configure_opts="--enable-static --disable-shared $postpend_configure_opts --prefix=$mingw_w64_x86_64_prefix"
+    postpend_configure_opts="--enable-static --disable-shared --prefix=$mingw_w64_x86_64_prefix"
   fi
 
-  do_git_checkout $git_url $output_dir $ffmpeg_git_checkout_version 
+  do_git_checkout https://github.com/FFmpeg/FFmpeg.git $output_dir $ffmpeg_git_checkout_version
   cd $output_dir
     apply_patch file://$patch_dir/libopenjpeg_support-v2.2.diff
     apply_patch file://$patch_dir/libfdk-aac_load-shared-library-dynamically.diff
@@ -1738,77 +1731,100 @@ build_ffmpeg() {
       sed -i.bak "/enabled libopenjpeg/s/{ check/{ check_lib libopenjpeg openjpeg-2.2\/openjpeg.h opj_version -lopenjp2 -DOPJ_STATIC \&\& add_cppflags -DOPJ_STATIC; } ||\n                               &/;/openjpeg_2_1_openjpeg_h/i\    openjpeg_2_2_openjpeg_h" configure # Add support for LibOpenJPEG v2.2.
       sed -i "/enabled libfdk_aac/s/&.*/\&\& { check_header fdk-aac\/aacenc_lib.h || die \"ERROR: aacenc_lib.h not found\"; }/;/require libfdk_aac/,/without pkg-config/d;/    libfdk_aac/d;/    libflite/i\    libfdk_aac" configure # Load 'libfdk-aac-1.dll' dynamically.
       sed -i "/enabled libtwolame/s/&&$/-DLIBTWOLAME_STATIC \&\& add_cppflags -DLIBTWOLAME_STATIC \&\&/;/enabled libmodplug/s/.*/& -DMODPLUG_STATIC \&\& add_cppflags -DMODPLUG_STATIC/;/enabled libcaca/s/.*/& -DCACA_STATIC \&\& add_cppflags -DCACA_STATIC/" configure # Add '-Dxxx_STATIC' to LibTwoLAME, LibModplug and Libcaca. FFMpeg should change this upstream, just like they did with libopenjpeg.
+      sed -i.bak "s/ install-data//" Makefile # Binary only (don't install 'DATA_FILES' and 'EXAMPLES_FILES').
     fi
-  
-  if [ "$bits_target" = "32" ]; then
-    local arch=x86
-  else
-    local arch=x86_64
-  fi
 
-  init_options="--arch=$arch --target-os=mingw32 --cross-prefix=$cross_prefix $init_options --disable-w32threads"
-  config_options="$init_options --enable-libsoxr --enable-fontconfig --enable-libass --enable-libbluray --enable-iconv --enable-libtwolame --extra-cflags=-DLIBTWOLAME_STATIC --enable-libzvbi --enable-libcaca --enable-libmodplug --extra-libs=-lstdc++ --extra-libs=-lpng --extra-libs=-loleaut32  --enable-libmp3lame --enable-version3 --enable-zlib --enable-librtmp --enable-libvorbis --enable-libtheora --enable-libspeex --enable-libopenjpeg --enable-gnutls  --enable-libgsm --enable-libfreetype --enable-libopus --enable-bzlib --enable-libopencore-amrnb --enable-libopencore-amrwb --enable-libvo-amrwbenc --enable-libschroedinger --enable-libvpx --enable-libilbc --enable-libwavpack --enable-libwebp --enable-libgme --enable-dxva2 --enable-gray --enable-libopenh264 --enable-netcdf  --enable-libflite --enable-lzma --enable-libsnappy --enable-libzimg --enable-libbs2b"
-  if [[ $enable_gpl == 'y' ]]; then
-    config_options="$config_options --enable-gpl --enable-libx264 --enable-libx265 --enable-frei0r --enable-filter=frei0r --enable-librubberband --enable-libvidstab --enable-libxavs --enable-libxvid --enable-avisynth"
-  fi
-  # other possibilities (you'd need to also uncomment the call to their build method): 
-  #   --enable-w32threads # [worse UDP than pthreads, so not using that] 
-  if [[ $build_intel_qsv = y ]]; then
-    config_options="$config_options --enable-libmfx" # [note, not windows xp friendly]
-  fi
-  config_options="$config_options --enable-avresample" # guess this is some kind of libav specific thing (the FFmpeg fork) but L-Smash needs it so why not always build it :)
-  
-  config_options="$config_options --extra-libs=-lpsapi" # dlfcn [frei0r?] requires this, has no .pc file should put in frei0r.pc? ...
-  config_options="$config_options --extra-libs=-lspeexdsp" # libebur :|
-  for i in $CFLAGS; do
-    config_options="$config_options --extra-cflags=$i" # --extra-cflags may not be needed here, but adds it to the final console output which I like for debugging purposes
-  done
+    if [ "$bits_target" = "32" ]; then
+      local arch=x86
+    else
+      local arch=x86_64
+    fi
 
-  config_options="$config_options $postpend_configure_opts"
+    init_options="--arch=$arch --target-os=mingw32 --cross-prefix=$cross_prefix $init_options --extra-version=Reino --disable-debug --disable-doc --disable-htmlpages --disable-manpages --disable-podpages --disable-txtpages --disable-w32threads"
+    if [[ `uname` =~ "5.1" ]]; then
+      init_options+=" --disable-schannel"
+      # Fix WinXP incompatibility by disabling Microsoft's Secure Channel, because Windows XP doesn't support TLS 1.1 and 1.2, but with GnuTLS or OpenSSL it does. The main reason I started this journey!
+    fi
+    config_options="$init_options --enable-fontconfig --enable-gmp --enable-gnutls --enable-gray --enable-libass --enable-libbluray --enable-libbs2b --enable-libcaca --enable-libfdk-aac --enable-libflite --enable-libfreetype --enable-libgme --enable-libgsm --enable-libilbc --enable-libmodplug --enable-libmp3lame --enable-libopencore-amrnb --enable-libopencore-amrwb --enable-libopenh264 --enable-libopenjpeg --enable-libopus --enable-libsnappy --enable-libsoxr --enable-libspeex --enable-libtheora --enable-libtwolame --enable-libvo-amrwbenc --enable-libvorbis --enable-libvpx --enable-libwebp --enable-libzimg --enable-libzvbi --enable-netcdf --enable-version3"
+    # With the changes being made to 'configure' above and with '--pkg-config-flags=--static' there's no need anymore for '--extra-cflags=' and '--extra-libs='.
+    if [[ $enable_gpl == 'y' ]]; then
+      config_options+=" --enable-gpl --enable-avisynth --enable-frei0r --enable-filter=frei0r --enable-librubberband --enable-libvidstab --enable-libx264 --enable-libx265 --enable-libxavs --enable-libxvid"
+    fi
+    # other possibilities (you'd need to also uncomment the call to their build method):
+    #   --enable-w32threads # [worse UDP than pthreads, so not using that]
+    if [[ $build_intel_qsv = y ]]; then
+      config_options+=" --enable-libmfx" # [note, not windows xp friendly]
+    fi
+    config_options+=" --enable-avresample" # guess this is some kind of libav specific thing (the FFmpeg fork) but L-Smash needs it so why not always build it :)
 
-  if [[ "$non_free" = "y" ]]; then
-    config_options="$config_options --enable-nonfree --enable-libfdk-aac  --enable-decklink " 
-    # libfaac deemed too poor quality and becomes the default if included -- add it in and uncomment the build_faac line to include it, if anybody ever wants it... 
-    # To use fdk-aac in VLC, we need to change FFMPEG's default (aac), but I haven't found how to do that... So I disabled it. This could be an new option for the script? (was --disable-decoder=aac )
-    # other possible options: --enable-openssl [unneeded since we use gnutls] 
-  fi
-   # apply_patch https://raw.githubusercontent.com/rdp/ffmpeg-windows-build-helpers/master/patches/nvresize2.patch "-p1" # uncomment if you want to test nvresize filter [et al] http://ffmpeg.org/pipermail/ffmpeg-devel/2015-November/182781.html patch worked with 7ab37cae34b3845
+    #config_options+=" --extra-libs=-lpsapi" # dlfcn [frei0r?] requires this, has no .pc file should put in frei0r.pc? ... # Solved with 'gen_ld_script libdl.a -lpsapi' and thus not needed.
+    #config_options+=" --extra-libs=-lspeexdsp" # libebur :|
+    for i in $CFLAGS; do
+      config_options+=" --extra-cflags=$i" # --extra-cflags may not be needed here, but adds it to the final console output which I like for debugging purposes
+    done
 
-  config_options="$config_options --enable-runtime-cpudetect" # not sure what this even does but this is the most compatible
+    config_options+=" $postpend_configure_opts"
 
-  do_debug_build=n # if you need one for backtraces/examining segfaults using gdb.exe ... change this to y :) XXXX make it affect x264 too...and make it param
-  if [[ "$do_debug_build" = "y" ]]; then
-    # not sure how many of these are actually needed/useful...possibly none LOL
-    config_options="$config_options --disable-optimizations --extra-cflags=-Og --extra-cflags=-fno-omit-frame-pointer --enable-debug=3 --extra-cflags=-fno-inline $postpend_configure_opts"
-    # this one kills gdb workability for static build? ai ai [?] XXXX
-    config_options="$config_options --disable-libgme"
-  fi
-  config_options="$config_options $extra_postpend_configure_options"
- 
-  do_configure "$config_options"
-  rm -f */*.a */*.dll *.exe # just in case some dependency library has changed, force it to re-link even if the ffmpeg source hasn't changed...
-  rm -f already_ran_make*
-  echo "doing ffmpeg make $(pwd)"
-  do_make_and_make_install # install ffmpeg to get libavcodec libraries to be used as dependencies for other things, like vlc [XXX make this a parameter?] or install shared to a local dir
+    if [[ "$non_free" = "y" ]]; then
+      config_options+=" --enable-nonfree --enable-decklink"
+      # To use fdk-aac in VLC, we need to change FFMPEG's default (aac), but I haven't found how to do that... So I disabled it. This could be an new option for the script? (was --disable-decoder=aac )
+      # other possible options: --enable-openssl [unneeded since we use gnutls]
+    fi
+    #apply_patch file://$patch_dir/nvresize2.patch "-p1" # uncomment if you want to test nvresize filter [et al] http://ffmpeg.org/pipermail/ffmpeg-devel/2015-November/182781.html patch worked with 7ab37cae34b3845
 
-  # build ismindex.exe, too, just for fun 
-  if [[ $build_ismindex == "y" ]]; then
-    make tools/ismindex.exe || exit 1
-  fi
+    #config_options+=" --enable-runtime-cpudetect" # Enabled by default nowadays and '--disable-runtime-cpudetect' to disable.
 
-  # XXX really ffmpeg should have set this up right but doesn't, patch FFmpeg itself instead...
-  if [[ $build_intel_qsv = y ]]; then
-    sed -i.bak 's/-lavutil -lm.*/-lavutil -lm -lmfx -lstdc++ -lpthread/' "$PKG_CONFIG_PATH/libavutil.pc"
-  else
-    sed -i.bak 's/-lavutil -lm.*/-lavutil -lm -lpthread/' "$PKG_CONFIG_PATH/libavutil.pc"
-  fi
+    do_debug_build=n # if you need one for backtraces/examining segfaults using gdb.exe ... change this to y :) XXXX make it affect x264 too...and make it param
+    if [[ "$do_debug_build" = "y" ]]; then
+      # not sure how many of these are actually needed/useful...possibly none LOL
+      config_options+=" --disable-optimizations --extra-cflags=-Og --extra-cflags=-fno-omit-frame-pointer --enable-debug=3 --extra-cflags=-fno-inline $postpend_configure_opts"
+      # this one kills gdb workability for static build? ai ai [?] XXXX
+      config_options+=" --disable-libgme"
+    fi
+    config_options+=" $extra_postpend_configure_options"
 
-  sed -i.bak 's/-lswresample -lm.*/-lswresample -lm -lsoxr/' "$PKG_CONFIG_PATH/libswresample.pc" # XXX patch ffmpeg
-  echo "Done! You will find $bits_target bit $shared_or_static non_free=$non_free binaries in $(pwd)/*.exe"
-  if [[ $shared_or_static == "shared" ]]; then
-    echo "installed shared build to $final_install_dir" # this one actually got installed somewhere real LOL
-  fi
-  echo `date`
+    do_configure "$config_options"
+    rm -f */*.a */*.dll *.exe # just in case some dependency library has changed, force it to re-link even if the ffmpeg source hasn't changed...
+    rm -f already_ran_make*
+    echo "doing ffmpeg make $(pwd)"
+    do_make_and_make_install # install ffmpeg to get libavcodec libraries to be used as dependencies for other things, like vlc [XXX make this a parameter?] or install shared to a local dir
+
+    # build ismindex.exe, too, just for fun
+    if [[ $build_ismindex == "y" ]]; then
+      make tools/ismindex.exe || exit 1
+    fi
+
+    # XXX really ffmpeg should have set this up right but doesn't, patch FFmpeg itself instead...
+    if [[ $build_intel_qsv = y ]]; then
+      sed -i.bak 's/-lavutil -lm.*/-lavutil -lm -lmfx -lstdc++ -lpthread/' "$PKG_CONFIG_PATH/libavutil.pc"
+    else
+      sed -i.bak 's/-lavutil -lm.*/-lavutil -lm -lpthread/' "$PKG_CONFIG_PATH/libavutil.pc"
+    fi
+
+    sed -i.bak 's/-lswresample -lm.*/-lswresample -lm -lsoxr/' "$PKG_CONFIG_PATH/libswresample.pc" # XXX patch ffmpeg
+
+    if [[ $non_free == "y" ]]; then
+      echo "Done! You will find $bits_target bit $shared_or_static non-redistributable binaries in $(pwd)/*.exe."
+    else    
+      mkdir -p $cur_dir/redist
+      archive="$cur_dir/redist/ffmpeg-$(git describe --tags --match N)-win$bits_target-$1"
+      if [[ $original_cflags =~ "pentium3" ]]; then
+        archive+="_legacy"
+      fi
+      if [[ ! -f $archive.7z ]]; then
+        sed "s/$/\r/" COPYING.GPLv3 > COPYING.GPLv3.txt
+        7z a -mx=9 $archive.7z ffmpeg.exe ffplay.exe ffprobe.exe COPYING.GPLv3.txt && rm -fr COPYING.GPLv3.txt
+      fi
+      echo "Done! You will find $bits_target bit $shared_or_static binaries in $(pwd)/*.exe."
+    fi
+    if [[ -d $cur_dir/redist ]]; then
+      echo "You will find redistributable archives in $cur_dir/redist."
+    fi
+    echo 
+    if [[ $shared_or_static == "shared" ]]; then
+      echo "Installed shared build to $final_install_dir." # this one actually got installed somewhere real LOL
+    fi
+    echo `date`
   cd ..
 }
 
@@ -1930,7 +1946,7 @@ build_apps() {
     build_mplayer
   fi
   if [[ $build_ffmpeg_static = "y" ]]; then
-    build_ffmpeg 
+    build_ffmpeg static
   fi
   if [[ $build_ffmpeg_shared = "y" ]]; then
     build_ffmpeg shared
