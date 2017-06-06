@@ -75,12 +75,12 @@ gcc='gcc'
 gcc_host=''
 
 ## Versions
-mingw_w64_release_ver='5.0.1'
-gcc_release_ver='6.3.0'
+mingw_w64_release_ver='5.0.2'
+gcc_release_ver='7.1.0'
 gcc_old_release_ver='4.9.3'
 mpfr_release_ver='3.1.5'
 mpc_release_ver='1.0.3'
-binutils_release_ver='2.27'
+binutils_release_ver='2.28'
 gmp_release_ver='6.1.2'
 isl_release_ver='0.16.1'
 pthreads_w32_release_ver='2-9-1'
@@ -520,7 +520,10 @@ cd 'build' || print_error
 git_dl () {
 local pkg="$1"
 local git_url="$2"
-shift 2
+local git_branch="${3:-master}"
+local pkg_postfix
+[ -z $3 ] && pkg_postfix="git" || pkg_postfix="branch-$3"
+shift 3
 
 if cd "$pkg" 2>/dev/null; then
   read -r _ orig_git_commit < <(git log --date=iso | head -1)
@@ -534,7 +537,7 @@ if cd "$pkg" 2>/dev/null; then
 else
 
   build_progress "$pkg" 'Downloading'
-  git clone "$git_url" "$pkg-git" > >(build_log) 2>&1 || print_error
+  git clone -b "$git_branch" "$git_url" "$pkg-$pkg_postfix" > >(build_log) 2>&1 || print_error
   build_progress 'done'
 fi
 }
@@ -852,6 +855,8 @@ system_type="$(sh config.guess)"
 cd "$mingw_w64_source_dir" || print_error
 if [[ "$mingw_w64_ver" = 'git' ]]; then
   git_dl "mingw-w64" "git://git.code.sf.net/p/mingw-w64/mingw-w64"
+elif [[ "$mingw_w64_ver" = branch* ]]; then
+  git_dl "mingw-w64" "git://git.code.sf.net/p/mingw-w64/mingw-w64" "${mingw_w64_ver:7}"
 else
   if [[ -d "mingw-w64-$mingw_w64_release_ver" && "$allow_overwrite" != 'yes' &&  "$prefix_present" = 'yes' ]]; then
     if ! yes_no_sel "MinGW-w64 is already the latest version, continue with the build anyway? You can set this option with: '--allow-overwrite', see '--help' for more information."; then
@@ -1036,7 +1041,7 @@ completed_build "$arch"
 
 test_opt () {
 test_valid_opt 'build_type' 'win32' 'win64' 'multi'
-test_valid_opt 'mingw_w64_ver' "$mingw_w64_release_ver" 'git'
+test_valid_opt 'mingw_w64_ver' "$mingw_w64_release_ver" 'git' 'branch-v5.x'
 test_valid_opt 'thread_lib' 'winpthreads' 'pthreads-w32' 'disable'
 test_valid_opt 'pthreads_w32_ver' "$pthreads_w32_release_ver" 'cvs'
 if [[ -n "$pthreads_w32_ver" ]]; then
