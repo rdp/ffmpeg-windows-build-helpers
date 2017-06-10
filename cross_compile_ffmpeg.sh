@@ -1280,12 +1280,18 @@ build_libcurl() {
   generic_download_and_make_and_install https://curl.haxx.se/download/curl-7.46.0.tar.gz
 }
 
-build_netcdf() {
-  # used for sofalizer filter
-  download_and_unpack_file http://gfd-dennou.org/arch/ucar/unidata/pub/netcdf/netcdf-4.4.1.tar.gz
-  cd netcdf-4.4.1
-    generic_configure --disable-netcdf-4 --disable-dap # its dependencies were *hard* LOL
-    do_make_and_make_install
+# build_netcdf() { # Not used in ffmpeg anymore, got replaced by libmysofa, See: https://git.ffmpeg.org/gitweb/ffmpeg.git/commit/2336c76b224628f20ed0ef8a683ad602ed1739c3
+#   # used for sofalizer filter
+#   download_and_unpack_file http://gfd-dennou.org/arch/ucar/unidata/pub/netcdf/netcdf-4.4.1.tar.gz
+#   cd netcdf-4.4.1
+#     generic_configure --disable-netcdf-4 --disable-dap # its dependencies were *hard* LOL
+#     do_make_and_make_install
+#   cd ..
+# }
+build_libmysofa() {
+  do_git_checkout https://github.com/hoene/libmysofa.git
+  cd libmysofa_git 
+    do_cmake_and_install "-DBUILD_SHARED_LIBS:bool=off -DBUILD_TESTS=no" # tests fail to compile.
   cd ..
 }
 
@@ -1648,7 +1654,7 @@ build_dependencies() {
   build_lame
   build_twolame
   build_vidstab
-  build_netcdf
+  build_libmysofa
   build_libcaca
   build_libmodplug # ffmepg and vlc can use this
   build_zvbi
