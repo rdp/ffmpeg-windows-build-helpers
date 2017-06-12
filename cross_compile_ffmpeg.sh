@@ -1914,10 +1914,24 @@ build_vlc=n
 build_lsw=n # To build x264 with L-Smash-Works.
 git_get_latest=y
 prefer_stable=y # Only for x264 and x265.
-build_intel_qsv=n # Set to 'n' for WinXP compatibility.
+if [[ `uname` =~ "5.1" ]]; then # Disable when WinXP is detected, or you'll get "The procedure entry point _wfopen_s could not be located in the dynamic link library msvcrt.dll".
+  build_intel_qsv=n
+else
+  build_intel_qsv=y
+fi
 #disable_nonfree=n # have no value by default to force user selection
-#original_cflags='-mtune=generic -O3' # be careful, these override lots of stuff in makesfiles :| can't use mtune=core2 since it bworks it for some cpu's
-original_cflags='-march=pentium3 -mtune=pentium3 -O2 -mfpmath=sse -msse' # For non-SSE2 cpus (like my Athlon XP 3200+). See https://gcc.gnu.org/onlinedocs/gcc/x86-Options.html, https://gcc.gnu.org/onlinedocs/gcc/Optimize-Options.html and https://stackoverflow.com/questions/19689014/gcc-difference-between-o3-and-os.
+flags=$(cat /proc/cpuinfo | grep flags)
+if [[ $flags =~ "ssse3" ]]; then # See https://gcc.gnu.org/onlinedocs/gcc/x86-Options.html, https://gcc.gnu.org/onlinedocs/gcc/Optimize-Options.html and https://stackoverflow.com/questions/19689014/gcc-difference-between-o3-and-os.
+  original_cflags='-march=core2 -O2'
+elif [[ $flags =~ "sse3" ]]; then
+  original_cflags='-march=prescott -O2'
+elif [[ $flags =~ "sse2" ]]; then
+  original_cflags='-march=pentium4 -O2'
+elif [[ $flags =~ "sse" ]]; then
+  original_cflags='-march=pentium3 -O2 -mfpmath=sse -msse'
+else
+  original_cflags='-mtune=generic -O2'
+fi
 # if you specify a march it needs to first so x264's configure will use it :|
 ffmpeg_git_checkout_version=
 build_ismindex=n
