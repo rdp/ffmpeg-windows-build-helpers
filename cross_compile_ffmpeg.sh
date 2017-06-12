@@ -1173,15 +1173,13 @@ build_vidstab() {
   cd ..
 }
 
-build_netcdf() {
-  #do_git_checkout https://github.com/Unidata/netcdf-c.git # Building 'ffmpeg_g.exe' fails with "undefined reference to `_imp__nc_utf8proc_iterate'" (see https://github.com/Unidata/netcdf-c/issues/404).
-  do_git_checkout https://github.com/Unidata/netcdf-c.git netcdf-c_git "c35e47e4f9" # 4.4.1.1
-  cd netcdf-c_git
-    if [[ ! -f libsrc/Makefile.in.bak ]]; then # Library only.
-      sed -i.bak "/^install-man:/s/:.*/:/" libsrc/Makefile.in
+build_libmysofa() {
+  do_git_checkout https://github.com/hoene/libmysofa.git
+  cd libmysofa_git
+    if [[ ! -f CMakeLists.txt.bak ]]; then # Library only.
+      sed -i.bak "/^install/,+1d" CMakeLists.txt
     fi
-    generic_configure "--disable-netcdf-4 --disable-dap --disable-examples --disable-utilities --disable-testsets"
-    do_make_and_make_install
+    do_cmake_and_install "-DBUILD_SHARED_LIBS=0 -DBUILD_TESTS=0"
   cd ..
 }
 
@@ -1745,7 +1743,7 @@ build_ffmpeg() {
       init_options+=" --disable-schannel"
       # Fix WinXP incompatibility by disabling Microsoft's Secure Channel, because Windows XP doesn't support TLS 1.1 and 1.2, but with GnuTLS or OpenSSL it does. The main reason I started this journey!
     fi
-    config_options="$init_options --enable-fontconfig --enable-gmp --enable-gnutls --enable-gray --enable-libass --enable-libbluray --enable-libbs2b --enable-libcaca --enable-libfdk-aac --enable-libflite --enable-libfreetype --enable-libgme --enable-libgsm --enable-libilbc --enable-libmodplug --enable-libmp3lame --enable-libopencore-amrnb --enable-libopencore-amrwb --enable-libopenh264 --enable-libopenjpeg --enable-libopus --enable-libsnappy --enable-libsoxr --enable-libspeex --enable-libtheora --enable-libtwolame --enable-libvo-amrwbenc --enable-libvorbis --enable-libvpx --enable-libwebp --enable-libzimg --enable-libzvbi --enable-netcdf --enable-version3"
+    config_options="$init_options --enable-fontconfig --enable-gmp --enable-gnutls --enable-gray --enable-libass --enable-libbluray --enable-libbs2b --enable-libcaca --enable-libfdk-aac --enable-libflite --enable-libfreetype --enable-libgme --enable-libgsm --enable-libilbc --enable-libmodplug --enable-libmp3lame --enable-libmysofa --enable-libopencore-amrnb --enable-libopencore-amrwb --enable-libopenh264 --enable-libopenjpeg --enable-libopus --enable-libsnappy --enable-libsoxr --enable-libspeex --enable-libtheora --enable-libtwolame --enable-libvo-amrwbenc --enable-libvorbis --enable-libvpx --enable-libwebp --enable-libzimg --enable-libzvbi --enable-version3"
     # With the changes being made to 'configure' above and with '--pkg-config-flags=--static' there's no need anymore for '--extra-cflags=' and '--extra-libs='.
     if [[ $enable_gpl == 'y' ]]; then
       config_options+=" --enable-gpl --enable-avisynth --enable-frei0r --enable-filter=frei0r --enable-librubberband --enable-libvidstab --enable-libx264 --enable-libx265 --enable-libxavs --enable-libxvid"
@@ -1915,7 +1913,7 @@ build_dependencies() {
   build_librubberband # Needs libsamplerate, libsndfile, fftw and vamp_plugin. 'configure' will fail otherwise. Eventhough librubberband doesn't necessarily need them (libsndfile only for 'rubberband.exe' and vamp_plugin only for "Vamp audio analysis plugin"). How to use the bundled libraries '-DUSE_SPEEX' and '-DUSE_KISSFFT'?
   build_frei0r # Needs dlfcn.
   build_vidstab
-  build_netcdf # Needed for FFMpeg's SOFAlizer filter (https://ffmpeg.org/ffmpeg-filters.html#sofalizer). Uses dlfcn.
+  build_libmysofa # Needed for FFMpeg's SOFAlizer filter (https://ffmpeg.org/ffmpeg-filters.html#sofalizer). Uses dlfcn.
   build_libcaca # Uses zlib and dlfcn.
   if [[ "$non_free" = "y" ]]; then
     build_libdecklink
