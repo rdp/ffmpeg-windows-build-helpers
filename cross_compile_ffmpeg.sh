@@ -102,6 +102,10 @@ EOL
   fi
   mkdir -p "$cur_dir"
   cd "$cur_dir"
+  if [[ ! $build_ffmpeg_static ]]; then
+    yes_no_sel "Would you like to build static- or shared FFmpeg binaries [Y/n]?" "y"
+    build_ffmpeg_static="$user_input"
+  fi
   if [[ $disable_nonfree = "y" ]]; then
     non_free="n"
   else
@@ -541,7 +545,7 @@ build_sdl2() {
     generic_configure "--bindir=$mingw_bin_path"
     do_make_and_make_install
     if [[ ! -f $mingw_bin_path/$host_target-sdl2-config ]]; then
-      mv "$mingw_bin_path/sdl2-config" "$mingw_bin_path/$host_target-sdl2-config" # At the moment FFMpeg's 'configure' doesn't use 'sdl2-config', because it gives priority to 'sdl2.pc', but when it does, it expects 'i686-w64-mingw32-sdl2-config' in 'cross_compilers/mingw-w64-i686/bin'.
+      mv "$mingw_bin_path/sdl2-config" "$mingw_bin_path/$host_target-sdl2-config" # At the moment FFmpeg's 'configure' doesn't use 'sdl2-config', because it gives priority to 'sdl2.pc', but when it does, it expects 'i686-w64-mingw32-sdl2-config' in 'cross_compilers/mingw-w64-i686/bin'.
     fi
   cd ..
 }
@@ -677,7 +681,7 @@ build_gnutls() {
     # --disable-guile is so that if it finds guile installed (cygwin did/does) it won't try and link/build to it and fail...
     # libtasn1 is some dependency, appears provided is an option [see also build_libnettle]
     # pks #11 hopefully we don't need kit
-    if [[ ! -f lib/gnutls.pc.in.bak ]]; then # Somehow FFMpeg's 'configure' needs '-lcrypt32'. Otherwise you'll get "undefined reference to `_imp__Cert...'" and "ERROR: gnutls not found using pkg-config".
+    if [[ ! -f lib/gnutls.pc.in.bak ]]; then # Somehow FFmpeg's 'configure' needs '-lcrypt32'. Otherwise you'll get "undefined reference to `_imp__Cert...'" and "ERROR: gnutls not found using pkg-config".
       sed -i.bak "/privat/s/.*/& -lcrypt32/" lib/gnutls.pc.in
     fi
     generic_configure "--disable-doc --disable-tools --disable-cxx --disable-tests --disable-gtk-doc-html --disable-libdane --disable-nls --enable-local-libopts --disable-guile --with-included-libtasn1 --with-included-unistring --without-p11-kit"
@@ -1638,22 +1642,21 @@ build_ffmpeg() {
   if [[ $shared_or_static == "shared" ]]; then
     output_dir+="_shared"
     final_install_dir=`pwd`/${output_dir}.installed
-    init_options="--pkg-config=pkg-config"
-    postpend_configure_opts="--enable-shared --disable-static --prefix=$final_install_dir --disable-libgme" # gme broken for shared as of yet TODO...
+    postpend_configure_opts="--enable-shared --disable-static --prefix=$final_install_dir"
   else
-    init_options="--pkg-config=pkg-config --pkg-config-flags=--static"
     postpend_configure_opts="--enable-static --disable-shared --prefix=$mingw_w64_x86_64_prefix"
   fi
 
   do_git_checkout https://github.com/FFmpeg/FFmpeg.git $output_dir $ffmpeg_git_checkout_version
   cd $output_dir
+    git clean -f # Throw away local changes; 'already_*', diff-, done- and bak-files. Somehow the patched files get back to their original state when doing a rerun.
     apply_patch file://$patch_dir/libopenjpeg_support-v2.2.diff
     apply_patch file://$patch_dir/libfdk-aac_load-shared-library-dynamically.diff
     apply_patch file://$patch_dir/frei0r_load-shared-libraries-dynamically.diff
     if [[ ! -f configure.bak ]]; then # Changes being made to 'configure' are done with 'sed', because 'configure' gets updated a lot.
       sed -i.bak "/enabled libopenjpeg/s/{ check/{ check_lib libopenjpeg openjpeg-2.2\/openjpeg.h opj_version -lopenjp2 -DOPJ_STATIC \&\& add_cppflags -DOPJ_STATIC; } ||\n                               &/;/openjpeg_2_1_openjpeg_h/i\    openjpeg_2_2_openjpeg_h" configure # Add support for LibOpenJPEG v2.2.
       sed -i "/enabled libfdk_aac/s/&.*/\&\& { check_header fdk-aac\/aacenc_lib.h || die \"ERROR: aacenc_lib.h not found\"; }/;/require libfdk_aac/,/without pkg-config/d;/    libfdk_aac/d;/    libflite/i\    libfdk_aac" configure # Load 'libfdk-aac-1.dll' dynamically.
-      sed -i "/enabled libtwolame/s/&&$/-DLIBTWOLAME_STATIC \&\& add_cppflags -DLIBTWOLAME_STATIC \&\&/;/enabled libmodplug/s/.*/& -DMODPLUG_STATIC \&\& add_cppflags -DMODPLUG_STATIC/;/enabled libcaca/s/.*/& -DCACA_STATIC \&\& add_cppflags -DCACA_STATIC/" configure # Add '-Dxxx_STATIC' to LibTwoLAME, LibModplug and Libcaca. FFMpeg should change this upstream, just like they did with libopenjpeg.
+      sed -i "/enabled libtwolame/s/&&$/-DLIBTWOLAME_STATIC \&\& add_cppflags -DLIBTWOLAME_STATIC \&\&/;/enabled libmodplug/s/.*/& -DMODPLUG_STATIC \&\& add_cppflags -DMODPLUG_STATIC/;/enabled libcaca/s/.*/& -DCACA_STATIC \&\& add_cppflags -DCACA_STATIC/" configure # Add '-Dxxx_STATIC' to LibTwoLAME, LibModplug and Libcaca. FFmpeg should change this upstream, just like they did with libopenjpeg.
       sed -i.bak "s/ install-data//" Makefile # Binary only (don't install 'DATA_FILES' and 'EXAMPLES_FILES').
     fi
 
@@ -1663,7 +1666,7 @@ build_ffmpeg() {
       local arch=x86_64
     fi
 
-    init_options="--arch=$arch --target-os=mingw32 --cross-prefix=$cross_prefix $init_options --extra-version=Reino --disable-debug --disable-doc --disable-htmlpages --disable-manpages --disable-podpages --disable-txtpages --disable-w32threads"
+    init_options="--arch=$arch --target-os=mingw32 --cross-prefix=$cross_prefix --pkg-config=pkg-config --pkg-config-flags=--static --extra-version=Reino --disable-debug --disable-doc --disable-htmlpages --disable-manpages --disable-podpages --disable-txtpages --disable-w32threads"
     if [[ `uname` =~ "5.1" ]]; then
       init_options+=" --disable-schannel"
       # Fix WinXP incompatibility by disabling Microsoft's Secure Channel, because Windows XP doesn't support TLS 1.1 and 1.2, but with GnuTLS or OpenSSL it does. The main reason I started this journey!
@@ -1784,11 +1787,11 @@ find_all_build_exes() {
 
 build_dependencies() {
   build_dlfcn
-  build_bzip2 # Bzlib (bzip2) in FFMpeg is autodetected.
-  build_liblzma # Lzma in FFMpeg is autodetected. Uses dlfcn.
-  build_zlib # Zlib in FFMpeg is autodetected.
-  build_iconv # Iconv in FFMpeg is autodetected. Uses dlfcn.
-  build_sdl2 # Sdl2 in FFMpeg is autodetected. Needed to build FFPlay. Uses iconv and dlfcn.
+  build_bzip2 # Bzlib (bzip2) in FFmpeg is autodetected.
+  build_liblzma # Lzma in FFmpeg is autodetected. Uses dlfcn.
+  build_zlib # Zlib in FFmpeg is autodetected.
+  build_iconv # Iconv in FFmpeg is autodetected. Uses dlfcn.
+  build_sdl2 # Sdl2 in FFmpeg is autodetected. Needed to build FFPlay. Uses iconv and dlfcn.
   if [[ $build_intel_qsv = y ]]; then
     build_intel_quicksync_mfx
   fi
@@ -1800,7 +1803,7 @@ build_dependencies() {
   build_freetype # Uses zlib, bzip2, and libpng.
   build_libxml2 # Uses zlib, liblzma, iconv and dlfcn.
   build_fontconfig # Needs freetype and libxml >= 2.6. Uses iconv and dlfcn.
-  build_gmp # For rtmp support configure FFMpeg with '--enable-gmp'. Uses dlfcn.
+  build_gmp # For rtmp support configure FFmpeg with '--enable-gmp'. Uses dlfcn.
   build_libnettle # Needs gmp >= 3.0. Uses dlfcn.
   build_gnutls # Needs nettle >= 3.1, hogweed (nettle) >= 3.1. Uses zlib and dlfcn.
   #if [[ "$non_free" = "y" ]]; then
@@ -1833,7 +1836,7 @@ build_dependencies() {
   build_librubberband # Needs libsamplerate, libsndfile, fftw and vamp_plugin. 'configure' will fail otherwise. Eventhough librubberband doesn't necessarily need them (libsndfile only for 'rubberband.exe' and vamp_plugin only for "Vamp audio analysis plugin"). How to use the bundled libraries '-DUSE_SPEEX' and '-DUSE_KISSFFT'?
   build_frei0r # Needs dlfcn.
   build_vidstab
-  build_libmysofa # Needed for FFMpeg's SOFAlizer filter (https://ffmpeg.org/ffmpeg-filters.html#sofalizer). Uses dlfcn.
+  build_libmysofa # Needed for FFmpeg's SOFAlizer filter (https://ffmpeg.org/ffmpeg-filters.html#sofalizer). Uses dlfcn.
   build_libcaca # Uses zlib and dlfcn.
   if [[ "$non_free" = "y" ]]; then
     build_libdecklink
@@ -1842,7 +1845,7 @@ build_dependencies() {
   build_fribidi # Uses dlfcn.
   build_libass # Needs freetype >= 9.10.3 (see https://bugs.launchpad.net/ubuntu/+source/freetype1/+bug/78573 o_O) and fribidi >= 0.19.0. Uses fontconfig >= 2.10.92, iconv and dlfcn.
   build_libxavs
-  build_libxvid # FFMpeg now has native support, but libxvid still provides a better image.
+  build_libxvid # FFmpeg now has native support, but libxvid still provides a better image.
   build_libvpx
   build_libx265
   build_libopenh264
@@ -1865,8 +1868,7 @@ build_apps() {
   fi
   if [[ $build_ffmpeg_static = "y" ]]; then
     build_ffmpeg static
-  fi
-  if [[ $build_ffmpeg_shared = "y" ]]; then
+  else
     build_ffmpeg shared
   fi
   if [[ $build_vlc = "y" ]]; then
@@ -1904,8 +1906,7 @@ else
 fi
 
 # variables with their defaults
-build_ffmpeg_static=y
-build_ffmpeg_shared=n
+#build_ffmpeg_static=y # Force user selection.
 build_dvbtee=n
 build_libmxf=n
 build_mp4box=n
@@ -1942,8 +1943,8 @@ build_x264_with_libav=n # To build x264 with Libavformat.
 while true; do
   case $1 in
     -h | --help ) echo "available option=default_value:
-      --build-ffmpeg-static=y  (the "normal" ffmpeg.exe build, on by default)
-      --build-ffmpeg-shared=n  (ffmpeg with .dll files as well as .exe files)
+      --build-ffmpeg-static=y  (ffmpeg.exe, ffplay.exe and ffprobe.exe)
+      --build-ffmpeg-static=n  (ffmpeg.exe, ffplay.exe, ffprobe.exe and dll-files)
       --ffmpeg-git-checkout-version=[master] if you want to build a particular version of FFmpeg, ex: n3.1.1 or a specific git hash
       --gcc-cpu-count=[number of cpu cores set it higher than 1 if you have multiple cores and > 1GB RAM, this speeds up initial cross compiler build. FFmpeg build uses number of cores no matter what]
       --disable-nonfree=y (set to n to include nonfree like libfdk-aac)
@@ -1984,12 +1985,11 @@ while true; do
     --build-dvbtee=* ) build_dvbtee="${1#*=}"; shift ;;
     --disable-nonfree=* ) disable_nonfree="${1#*=}"; shift ;;
     # this doesn't actually "build all", like doesn't build 10 high-bit LGPL ffmpeg, but it does exercise the "non default" type build options...
-    -a         ) compiler_flavors="multi"; build_mplayer=y; build_libmxf=y; build_mp4box=y; build_vlc=y; build_lsw=y; build_ffmpeg_shared=y; high_bitdepth=y; build_ffmpeg_static=y; build_lws=y;
+    -a         ) compiler_flavors="multi"; build_mplayer=y; build_libmxf=y; build_mp4box=y; build_vlc=y; build_lsw=y; high_bitdepth=y; build_ffmpeg_static=y; build_lws=y;
                  disable_nonfree=n; git_get_latest=y; sandbox_ok=y; build_intel_qsv=y; build_dvbtee=y; build_x264_with_libav=y; shift ;;
     -d         ) gcc_cpu_count=$cpu_count; disable_nonfree="y"; sandbox_ok="y"; compiler_flavors="win32"; git_get_latest="n"; shift ;;
     --compiler-flavors=* ) compiler_flavors="${1#*=}"; shift ;;
     --build-ffmpeg-static=* ) build_ffmpeg_static="${1#*=}"; shift ;;
-    --build-ffmpeg-shared=* ) build_ffmpeg_shared="${1#*=}"; shift ;;
     --prefer-stable=* ) prefer_stable="${1#*=}"; shift ;;
     --enable-gpl=* ) enable_gpl="${1#*=}"; shift ;;
     --high-bitdepth=* ) high_bitdepth="${1#*=}"; shift ;;
@@ -2052,8 +2052,8 @@ if [[ $compiler_flavors == "multi" || $compiler_flavors == "win64" ]]; then
   bits_target=64
   cross_prefix="$mingw_bin_path/x86_64-w64-mingw32-"
   make_prefix_options="CC=${cross_prefix}gcc AR=${cross_prefix}ar PREFIX=$mingw_w64_x86_64_prefix RANLIB=${cross_prefix}ranlib LD=${cross_prefix}ld STRIP=${cross_prefix}strip CXX=${cross_prefix}g++"
-  mkdir -p x86_64
-  cd x86_64
+  mkdir -p win64
+  cd win64
     build_dependencies
     build_apps
   cd ..
