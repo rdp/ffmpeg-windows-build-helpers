@@ -686,40 +686,34 @@ build_gnutls() {
 }
 
 build_openssl-1.0.2() {
-  download_and_unpack_file https://www.openssl.org/source/openssl-1.0.2k.tar.gz
-  cd openssl-1.0.2k
-    apply_patch file://$patch_dir/openssl-1.0.2k_lib-only.diff
+  download_and_unpack_file https://www.openssl.org/source/openssl-1.0.2l.tar.gz
+  cd openssl-1.0.2l
+    apply_patch file://$patch_dir/openssl-1.0.2l_lib-only.diff
     export CC="${cross_prefix}gcc"
     export AR="${cross_prefix}ar"
     export RANLIB="${cross_prefix}ranlib"
     local config_options="--prefix=$mingw_w64_x86_64_prefix zlib "
-    if [ "$1" != "dllonly" ]; then
-      if [ "$bits_target" = "32" ]; then
-        config_options+="no-shared no-dso mingw"
-      else
-        config_options+="no-shared no-dso mingw64"
-      fi
-      do_configure "$config_options" ./Configure
-      if [[ ! -f Makefile_1 ]]; then
-        sed -i_1 "s/-O3/-O2/" Makefile # Change CFLAGS (OpenSSL's 'Configure' already creates a 'Makefile.bak').
-      fi
-      do_make_and_make_install
+    if [ "$1" = "dllonly" ]; then
+      config_options+="shared "
     else
-      if [ "$bits_target" = "32" ]; then
-        config_options+="shared mingw" # Build shared libraries ('libeay32.dll' and 'ssleay32.dll').
-        local arch=x86
-      else
-        config_options+="shared mingw64" # Build shared libraries ('libeay64.dll' and 'ssleay64.dll').
-        local arch=x86_64
-      fi
-      do_configure "$config_options" ./Configure
-      if [[ ! -f Makefile_1 ]]; then
-        sed -i_1 "s/-O3/-O2/" Makefile
-      fi
+      config_options+="no-shared no-dso "
+    fi
+    if [ "$bits_target" = "32" ]; then
+      config_options+="mingw" # Build shared libraries ('libeay32.dll' and 'ssleay32.dll') if "dllonly" is specified.
+      local arch=x86
+    else
+      config_options+="mingw64" # Build shared libraries ('libeay64.dll' and 'ssleay64.dll') if "dllonly" is specified.
+      local arch=x86_64
+    fi
+    do_configure "$config_options" ./Configure
+    if [[ ! -f Makefile_1 ]]; then
+      sed -i_1 "s/-O3/-O2/" Makefile # Change CFLAGS (OpenSSL's 'Configure' already creates a 'Makefile.bak').
+    fi
+    if [ "$1" = "dllonly" ]; then
       do_make "build_libs"
 
       mkdir -p $cur_dir/redist # Strip and pack shared libraries.
-      archive="$cur_dir/redist/openssl-${arch}-v1.0.2k.7z"
+      archive="$cur_dir/redist/openssl-${arch}-v1.0.2l.7z"
       if [[ ! -f $archive ]]; then
         for sharedlib in *.dll; do
           ${cross_prefix}strip $sharedlib
@@ -727,6 +721,8 @@ build_openssl-1.0.2() {
         sed "s/$/\r/" LICENSE > LICENSE.txt
         7z a -mx=9 $archive *.dll LICENSE.txt && rm -f LICENSE.txt
       fi
+    else
+      do_make_and_make_install
     fi
     unset CC
     unset AR
@@ -735,48 +731,35 @@ build_openssl-1.0.2() {
 }
 
 build_openssl-1.1.0() {
-  download_and_unpack_file https://www.openssl.org/source/openssl-1.1.0e.tar.gz
-  cd openssl-1.1.0e
+  download_and_unpack_file https://www.openssl.org/source/openssl-1.1.0f.tar.gz
+  cd openssl-1.1.0f
     export CC="${cross_prefix}gcc"
     export AR="${cross_prefix}ar"
     export RANLIB="${cross_prefix}ranlib"
     local config_options="--prefix=$mingw_w64_x86_64_prefix zlib "
-    if [ "$1" != "dllonly" ]; then
-      config_options+="no-shared no-dso no-engine "
-      if [[ `uname` =~ "5.1" ]] || [[ `uname` =~ "6.0" ]]; then
-        config_options+="no-async " # "Note: on older OSes, like CentOS 5, BSD 5, and Windows XP or Vista, you will need to configure with no-async when building OpenSSL 1.1.0 and above. The configuration system does not detect lack of the Posix feature on the platforms." (https://wiki.openssl.org/index.php/Compilation_and_Installation)
-      fi
-      if [ "$bits_target" = "32" ]; then
-        config_options+="mingw"
-      else
-        config_options+="mingw64"
-      fi
-      do_configure "$config_options" ./Configure
-      if [[ ! -f Makefile.bak ]]; then # Change CFLAGS.
-        sed -i.bak "s/-O3/-O2/" Makefile
-      fi
-      do_make "build_libs"
-      do_make_install "" "install_dev"
-    else
+    if [ "$1" = "dllonly" ]; then
       config_options+="shared no-engine "
-      if [[ `uname` =~ "5.1" ]] || [[ `uname` =~ "6.0" ]]; then
-        config_options+="no-async "
-      fi
-      if [ "$bits_target" = "32" ]; then
-        config_options+="mingw" # Build shared libraries ('libcrypto-1_1.dll' and 'libssl-1_1.dll').
-        local arch=x86
-      else
-        config_options+="mingw64" # Build shared libraries ('libcrypto-1_1-x64.dll' and 'libssl-1_1-x64.dll').
-        local arch=x86_64
-      fi
-      do_configure "$config_options" ./Configure
-      if [[ ! -f Makefile.bak ]]; then # Change CFLAGS.
-        sed -i.bak "s/-O3/-O2/" Makefile
-      fi
-      do_make "build_libs"
-
+    else
+      config_options+="no-shared no-dso no-engine "
+    fi
+    if [[ `uname` =~ "5.1" ]] || [[ `uname` =~ "6.0" ]]; then
+      config_options+="no-async " # "Note: on older OSes, like CentOS 5, BSD 5, and Windows XP or Vista, you will need to configure with no-async when building OpenSSL 1.1.0 and above. The configuration system does not detect lack of the Posix feature on the platforms." (https://wiki.openssl.org/index.php/Compilation_and_Installation)
+    fi
+    if [ "$bits_target" = "32" ]; then
+      config_options+="mingw" # Build shared libraries ('libcrypto-1_1.dll' and 'libssl-1_1.dll') if "dllonly" is specified.
+      local arch=x86
+    else
+      config_options+="mingw64" # Build shared libraries ('libcrypto-1_1-x64.dll' and 'libssl-1_1-x64.dll') if "dllonly" is specified.
+      local arch=x86_64
+    fi
+    do_configure "$config_options" ./Configure
+    if [[ ! -f Makefile.bak ]]; then # Change CFLAGS.
+      sed -i.bak "s/-O3/-O2/" Makefile
+    fi
+    do_make "build_libs"
+    if [ "$1" = "dllonly" ]; then
       mkdir -p $cur_dir/redist # Strip and pack shared libraries.
-      archive="$cur_dir/redist/openssl-${arch}-v1.1.0e.7z"
+      archive="$cur_dir/redist/openssl-${arch}-v1.1.0f.7z"
       if [[ ! -f $archive ]]; then
         for sharedlib in *.dll; do
           ${cross_prefix}strip $sharedlib
@@ -784,6 +767,8 @@ build_openssl-1.1.0() {
         sed "s/$/\r/" LICENSE > LICENSE.txt
         7z a -mx=9 $archive *.dll LICENSE.txt && rm -f LICENSE.txt
       fi
+    else
+      do_make_install "" "install_dev"
     fi
     unset CC
     unset AR
