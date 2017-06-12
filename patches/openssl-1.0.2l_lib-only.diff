@@ -1,6 +1,6 @@
 diff -ur Makefile.org.bak Makefile.org
---- Makefile.org.bak	2017-01-26 14:22:03.000000000 +0100
-+++ Makefile.org	2017-05-04 18:28:51.500000000 +0200
+--- Makefile.org.bak	2017-05-25 14:54:38.000000000 +0200
++++ Makefile.org	2017-06-12 21:53:15.312500000 +0200
 @@ -137,7 +137,7 @@
  
  BASEADDR=
@@ -24,7 +24,7 @@ diff -ur Makefile.org.bak Makefile.org
  build_libssl: build_ssl libssl.pc
  
  build_crypto:
-@@ -532,17 +532,13 @@
+@@ -540,17 +540,13 @@
  	@$(MAKE) SDIRS='$(SDIRS)' clean
  	@$(MAKE) TAR='$(TAR)' TARFLAGS='$(TARFLAGS)' $(DISTTARVARS) tar
  
