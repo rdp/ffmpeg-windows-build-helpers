@@ -529,22 +529,6 @@ build_iconv() {
   cd ..
 }
 
-build_sdl() {
-  download_and_unpack_file https://www.libsdl.org/release/SDL-1.2.15.tar.gz
-  cd SDL-1.2.15
-    if [[ ! -f Makefile.in.bak ]]; then
-      sed -i.bak "/^install:/s/ install-man//;/aclocal/d" Makefile.in # Library only.
-      #sed -i.bak "/#ifndef DECLSPEC/i\#define DECLSPEC" include/begin_code.h # Static library. Not needed it seems.
-      sed -i.bak "s/ -mwindows//" configure # Allow ffmpeg to output anything to console.
-    fi
-    generic_configure "--bindir=$mingw_bin_path --disable-stdio-redirect"
-    do_make_and_make_install
-    if [[ ! -f $mingw_bin_path/$host_target-sdl-config ]]; then
-      mv "$mingw_bin_path/sdl-config" "$mingw_bin_path/$host_target-sdl-config" # At the moment FFMpeg's 'configure' doesn't use 'sdl-config', because it gives priority to 'sdl.pc', but when it does, it expects 'i686-w64-mingw32-sdl-config' in 'cross_compilers/mingw-w64-i686/bin'.
-    fi
-  cd ..
-}
-
 build_sdl2() {
   download_and_unpack_file http://libsdl.org/release/SDL2-2.0.5.tar.gz
   cd SDL2-2.0.5
@@ -617,12 +601,12 @@ build_libwebp() {
 }
 
 build_freetype() {
-  download_and_unpack_file https://sourceforge.net/projects/freetype/files/freetype2/2.7.1/freetype-2.7.1.tar.bz2
-  cd freetype-2.7.1
+  download_and_unpack_file https://sourceforge.net/projects/freetype/files/freetype2/2.8/freetype-2.8.tar.bz2
+  cd freetype-2.8
     if [[ ! -f builds/unix/install.mk.bak ]]; then # Library only.
       sed -i.bak "/bindir) /s/\s*\\\//;/aclocal/d;/man1/d;/BUILD_DIR/d;/docs/d" builds/unix/install.mk
     fi
-    if [[ `uname -s` == CYGWIN* ]]; then
+    if [[ `uname` == CYGWIN* ]]; then
       generic_configure "--build=i686-pc-cygwin --with-bzip2" # hard to believe but needed...
       # 'configure' can't detect bzip2 without '--with-bzip2', because there's no 'bzip2.pc'.
     else
@@ -646,17 +630,9 @@ build_libxml2() {
   cd ..
 }
 
-build_libexpat() {
-  download_and_unpack_file https://sourceforge.net/projects/expat/files/expat/2.2.0/expat-2.2.0.tar.bz2
-  cd expat-2.2.0
-    generic_configure
-    do_make "installlib" # No need for 'do_make_install', because 'installlib' already has install-instructions.
-  cd ..
-}
-
 build_fontconfig() {
-  download_and_unpack_file https://www.freedesktop.org/software/fontconfig/release/fontconfig-2.12.1.tar.gz
-  cd fontconfig-2.12.1
+  download_and_unpack_file https://www.freedesktop.org/software/fontconfig/release/fontconfig-2.12.3.tar.gz
+  cd fontconfig-2.12.3
     if [[ ! -f Makefile.in.bak ]]; then # Library only.
       sed -i.bak "/^SUBDIRS/s/fc.*/src/;438,439d;/^install-data-am/s/:.*/: install-pkgconfigDATA/;/\tinstall-xmlDATA$/d" Makefile.in
     fi
@@ -694,8 +670,8 @@ build_libnettle() {
 }
 
 build_gnutls() {
-  download_and_unpack_file https://www.mirrorservice.org/sites/ftp.gnupg.org/gcrypt/gnutls/v3.5/gnutls-3.5.12.tar.xz
-  cd gnutls-3.5.12
+  download_and_unpack_file https://www.mirrorservice.org/sites/ftp.gnupg.org/gcrypt/gnutls/v3.5/gnutls-3.5.13.tar.xz
+  cd gnutls-3.5.13
     # --disable-cxx don't need the c++ version, in an effort to cut down on size... XXXX test size difference...
     # --enable-local-libopts to allow building with local autogen installed,
     # --disable-guile is so that if it finds guile installed (cygwin did/does) it won't try and link/build to it and fail...
@@ -812,19 +788,6 @@ build_openssl-1.1.0() {
     unset CC
     unset AR
     unset RANLIB
-  cd ..
-}
-
-build_librtmp() {
-  do_git_checkout "https://git.ffmpeg.org/rtmpdump.git"
-  cd rtmpdump_git
-    apply_patch file://$patch_dir/librtmp_git_lib-only.diff
-    #do_make_and_make_install "SYS=mingw CROSS_COMPILE=$cross_prefix SHARED= prefix=$mingw_w64_x86_64_prefix" # Build all with OpenSSL 1.0.2k.
-    #do_make_and_make_install "SYS=mingw CRYPTO=GNUTLS CROSS_COMPILE=$cross_prefix SHARED= prefix=$mingw_w64_x86_64_prefix" # Build all with GnuTLS.
-    cd librtmp
-      #do_make_and_make_install "SYS=mingw CROSS_COMPILE=$cross_prefix SHARED= prefix=$mingw_w64_x86_64_prefix" # Library only with OpenSSL 1.0.2k.
-      do_make_and_make_install "SYS=mingw CRYPTO=GNUTLS CROSS_COMPILE=$cross_prefix SHARED= prefix=$mingw_w64_x86_64_prefix" # Library only with GnuTLS.
-    cd ..
   cd ..
 }
 
@@ -1068,29 +1031,6 @@ build_libsnappy() {
   cd snappy_git
     if [[ ! -f Makefile.am.bak ]]; then # Library only.
       sed -i.bak "/# Unit/,+7d;/^dist/s/=.*/=/" Makefile.am
-    fi
-    generic_configure_make_install
-  cd ..
-}
-
-build_orc() {
-  do_git_checkout https://github.com/GStreamer/orc.git
-  cd orc_git
-    if [[ ! -f Makefile.am.bak ]]; then # Library only (Libschroedinger needs 'tools/orcc.exe').
-      sed -i.bak "/^SUBDIRS/s/orc-test.*/tools/;/ACLOCAL/,\$d" Makefile.am
-      sed -i.bak "/PROGRAMS/,\$d" orc/Makefile.am
-      sed -i.bak "s/orcc.*/orcc/;/orc_/d" tools/Makefile.am
-    fi
-    generic_configure "--disable-gtk-doc-html"
-    do_make_and_make_install
-  cd ..
-}
-
-build_libschroedinger() {
-  download_and_unpack_file https://download.videolan.org/contrib/schroedinger-1.0.11.tar.gz
-  cd schroedinger-1.0.11
-    if [[ ! -f Makefile.in.bak ]]; then # Library only.
-      sed -i.bak "/^SUBDIRS/s/ doc.*//" Makefile.in
     fi
     generic_configure_make_install
   cd ..
@@ -1863,7 +1803,6 @@ build_dependencies() {
   build_liblzma # Lzma in FFMpeg is autodetected. Uses dlfcn.
   build_zlib # Zlib in FFMpeg is autodetected.
   build_iconv # Iconv in FFMpeg is autodetected. Uses dlfcn.
-  #build_sdl # Sdl in FFMpeg is autodetected. Only needed for libtheora's 'player_example.exe'. Not needed for FFPlay and thus not needed at all.
   build_sdl2 # Sdl2 in FFMpeg is autodetected. Needed to build FFPlay. Uses iconv and dlfcn.
   if [[ $build_intel_qsv = y ]]; then
     build_intel_quicksync_mfx
@@ -1875,8 +1814,7 @@ build_dependencies() {
   build_libwebp # Uses dlfcn.
   build_freetype # Uses zlib, bzip2, and libpng.
   build_libxml2 # Uses zlib, liblzma, iconv and dlfcn.
-  #build_libexpat # Uses dlfcn. Superseded by LibXML2.
-  build_fontconfig # Needs freetype and libxml >= 2.6 (or expat). Uses iconv and dlfcn.
+  build_fontconfig # Needs freetype and libxml >= 2.6. Uses iconv and dlfcn.
   build_gmp # For rtmp support configure FFMpeg with '--enable-gmp'. Uses dlfcn.
   build_libnettle # Needs gmp >= 3.0. Uses dlfcn.
   build_gnutls # Needs nettle >= 3.1, hogweed (nettle) >= 3.1. Uses zlib and dlfcn.
@@ -1884,7 +1822,6 @@ build_dependencies() {
   #  build_openssl-1.0.2 # Nonfree alternative to GnuTLS. 'build_openssl-1.0.2 "dllonly"' to build shared libraries only.
   #  build_openssl-1.1.0 # Nonfree alternative to GnuTLS. Can't be used with LibRTMP. 'build_openssl-1.1.0 "dllonly"' to build shared libraries only.
   #fi
-  #build_librtmp # Needs GnuTLS, or OpenSSL <= 1.0.2k. Superseded by GMP.
   build_libogg # Uses dlfcn.
   build_libvorbis # Needs libogg >= 1.0. Uses dlfcn.
   build_libopus # Uses dlfcn.
@@ -1905,8 +1842,6 @@ build_dependencies() {
   build_libsoxr
   build_libflite
   build_libsnappy # Uses zlib (only for unittests [disabled]) and dlfcn.
-  #build_orc # Uses dlfcn.
-  #build_libschroedinger # Needs orc >= 0.4. Uses dlfcn. Disabled, because FFmpeg has stopped support (see https://github.com/FFmpeg/FFmpeg/commit/220b24c7c97dc033ceab1510549f66d0e7b52ef1).
   build_vamp_plugin # Needs libsndfile for 'vamp-simple-host.exe' [disabled].
   build_fftw # Uses dlfcn.
   build_libsamplerate # Needs libsndfile >= 1.0.6 and fftw >= 0.15.0 for tests. Uses dlfcn.
