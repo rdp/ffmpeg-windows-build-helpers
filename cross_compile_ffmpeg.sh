@@ -860,6 +860,14 @@ build_libsndfile() {
     fi
     generic_configure "--disable-sqlite --disable-external-libs --disable-full-suite"
     do_make_and_make_install
+    if [ "$1" = "install-libgsm" ]; then
+      if [[ ! -f $mingw_w64_x86_64_prefix/lib/libgsm.a ]]; then
+        install -m644 src/GSM610/.libs/libgsm.a $mingw_w64_x86_64_prefix/lib/libgsm.a
+        install -m644 -D src/GSM610/gsm.h $mingw_w64_x86_64_prefix/include/gsm.h
+      else
+        echo "already installed GSM 6.10 ..."
+      fi
+    fi
   cd ..
 }
 
@@ -921,23 +929,6 @@ build_libilbc() {
       sed -i.bak "/dist_doc/,+3d" Makefile.am
     fi
     generic_configure_make_install
-  cd ..
-}
-
-build_libgsm() {
-  download_and_unpack_file http://www.quut.com/gsm/gsm-1.0.16.tar.gz gsm-1.0-pl16
-  cd gsm-1.0-pl16
-    #apply_patch file://$patch_dir/libgsm.patch # patch for openssl to work with it, I think? # OpenSSL? Needed?
-    if [[ ! -f Makefile.bak ]]; then # Ignore nonexistent files.
-      sed -i.bak "/^RMFLAGS/s/.*/& -f/" Makefile
-    fi
-    if [[ ! -f $mingw_w64_x86_64_prefix/lib/libgsm.a ]]; then
-      make $make_prefix_options lib/libgsm.a # 'src/toast(_xxx).c' would otherwise cause problems with lots of 'undefined reference to ...'-errors.
-      install -m644 lib/libgsm.a $mingw_w64_x86_64_prefix/lib/libgsm.a
-      install -m644 -D inc/gsm.h $mingw_w64_x86_64_prefix/include/gsm/gsm.h
-    else
-      echo "already made gsm-1.0-pl16 ..."
-    fi
   cd ..
 }
 
@@ -1816,13 +1807,12 @@ build_dependencies() {
   build_libspeexdsp # Needs libogg for examples. Uses dlfcn.
   build_libspeex # Uses libspeexdsp and dlfcn.
   build_libtheora # Needs libogg >= 1.1. Needs libvorbis >= 1.0.1, sdl and libpng for test, programs and examples [disabled]. Uses dlfcn.
-  build_libsndfile # Needs libogg >= 1.1.3 and libvorbis >= 1.2.3 for external support [disabled]. Uses dlfcn.
+  build_libsndfile "install-libgsm" # Needs libogg >= 1.1.3 and libvorbis >= 1.2.3 for external support [disabled]. Uses dlfcn. 'build_libsndfile "install-libgsm"' to install the included LibGSM 6.10.
   build_lame # Uses dlfcn.
   build_twolame # Uses libsndfile >= 1.0.0 and dlfcn.
   build_fdk-aac # Uses dlfcn.
   build_libopencore # Uses dlfcn.
   build_libilbc # Uses dlfcn.
-  build_libgsm
   build_libmodplug # Uses dlfcn.
   build_libgme
   build_libbluray # Needs libxml >= 2.6, freetype, fontconfig. Uses dlfcn.
