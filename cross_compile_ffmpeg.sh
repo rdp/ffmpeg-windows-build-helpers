@@ -1051,11 +1051,11 @@ build_fftw() {
 build_libsamplerate() {
   do_git_checkout https://github.com/erikd/libsamplerate.git
   cd libsamplerate_git
-    if [[ ! -f Makefile.am.bak ]]; then # Library only.
-      sed -i.bak "s/M4.*/src/" Makefile.am
+    generic_configure
+    if [[ ! -f Makefile.bak ]]; then # Library only.
+      sed -i.bak "/^all-am/s/ \$(PROGRAMS)//;/install-data-am/s/ install-dist_htmlDATA//;/install-exec-am/s/ install-binPROGRAMS//" Makefile
     fi
-    # 'examples/audio_out.c' would otherwise cause problems; "audio_out.c:715:2: warning: return from incompatible pointer type, return (WIN32_AUDIO_OUT *) win32_out ;".
-    generic_configure_make_install
+    do_make_and_make_install
   cd ..
 }
 
