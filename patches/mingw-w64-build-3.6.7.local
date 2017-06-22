@@ -74,12 +74,12 @@ target_i686='i686-w64-mingw32'
 target_x86_64='x86_64-w64-mingw32'
 
 ## Versions
-mingw_w64_release_ver='5.0.2' # or git :)
-gcc_release_ver='7.1.0' # 6.1.0 has problems with 64 bit ffmpeg with c++ deps, also 6.3.0 I believe...
-gcc_old_release_ver='4.9.4' # default if none specified, was 4.9.4 cannot be same as gcc_release_ver above, apparently, as a note here :| ...
+mingw_w64_release_ver='5.0.1' # or git :)
+gcc_release_ver='6.3.0' # 6.1.0 has problems with 64 bit ffmpeg with c++ deps
+gcc_old_release_ver='4.9.4' # default if none specified, was 4.9.4 cannot be same as gcc_release_ver above, apparently, as a note...
 mpfr_release_ver='3.1.3'
 mpc_release_ver='1.0.3'
-binutils_release_ver='2.28'
+binutils_release_ver='2.27'
 gmp_release_ver='6.1.1'
 isl_release_ver='0.16.1'
 pthreads_w32_release_ver='2-9-1'
