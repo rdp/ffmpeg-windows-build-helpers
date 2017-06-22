@@ -1095,9 +1095,7 @@ build_libexpat() {
 build_iconv() {
   download_and_unpack_file https://ftp.gnu.org/pub/gnu/libiconv/libiconv-1.15.tar.gz 
   cd libiconv-1.15
-    export CFLAGS=-O2 # http://betterlogic.com/roger/2015/08/iconv-x86_64-woe-mingw/
     generic_configure_make_install
-    reset_cflags
   cd ..
 }
 
