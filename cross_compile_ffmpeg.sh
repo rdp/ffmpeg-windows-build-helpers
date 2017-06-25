@@ -536,11 +536,11 @@ build_iconv() {
 build_sdl2() {
   download_and_unpack_file http://libsdl.org/release/SDL2-2.0.5.tar.gz
   cd SDL2-2.0.5
+    apply_patch file://$patch_dir/SDL2-2.0.5_lib-only.diff
     #apply_patch file://$patch_dir/sdl2.xinput.diff # mingw-w64 master needs it?
-    if [[ ! -f Makefile.in.bak ]]; then
-      sed -i.bak "/aclocal/d;/\/cmake/d" Makefile.in # Library only.
-      #sed -i.bak "/#ifndef DECLSPEC/i\#define DECLSPEC" include/begin_code.h # Static library. Not needed it seems.
+    if [[ ! -f configure.bak ]]; then
       sed -i.bak "s/ -mwindows//" configure # Allow ffmpeg to output anything to console.
+      #sed -i.bak "/#ifndef DECLSPEC/i\#define DECLSPEC" include/begin_code.h # Static library. Not needed it seems.
     fi
     generic_configure "--bindir=$mingw_bin_path"
     do_make_and_make_install

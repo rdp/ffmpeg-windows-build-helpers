@@ -1,0 +1,67 @@
+diff -ur Makefile.in.bak Makefile.in
+--- Makefile.in.bak	2016-10-20 05:56:26.000000000 +0200
++++ Makefile.in	2017-06-18 22:48:52.015625000 +0200
+@@ -39,9 +39,6 @@
+ SDLMAIN_TARGET = libSDL2main.a
+ SDLMAIN_OBJECTS = @SDLMAIN_OBJECTS@
+ 
+-SDLTEST_TARGET = libSDL2_test.a
+-SDLTEST_OBJECTS = @SDLTEST_OBJECTS@
+-
+ WAYLAND_SCANNER = @WAYLAND_SCANNER@
+ 
+ SRC_DIST = *.txt acinclude Android.mk autogen.sh android-project build-scripts cmake cmake_uninstall.cmake.in configure configure.in debian docs include Makefile.* sdl2-config.cmake.in sdl2-config.in sdl2.m4 sdl2.pc.in SDL2.spec.in src test VisualC.html VisualC VisualC-WinRT Xcode Xcode-iOS
+@@ -123,7 +120,7 @@
+ LT_REVISION = @LT_REVISION@
+ LT_LDFLAGS  = -no-undefined -rpath $(DESTDIR)$(libdir) -release $(LT_RELEASE) -version-info $(LT_CURRENT):$(LT_REVISION):$(LT_AGE)
+ 
+-all: $(srcdir)/configure Makefile $(objects) $(objects)/$(TARGET) $(objects)/$(SDLMAIN_TARGET) $(objects)/$(SDLTEST_TARGET)
++all: $(srcdir)/configure Makefile $(objects) $(objects)/$(TARGET) $(objects)/$(SDLMAIN_TARGET)
+ 
+ $(srcdir)/configure: $(srcdir)/configure.in
+ 	@echo "Warning, configure.in is out of date"
+@@ -150,10 +147,6 @@
+ 	$(RUN_CMD_AR)$(AR) cru $@ $(SDLMAIN_OBJECTS)
+ 	$(RUN_CMD_RANLIB)$(RANLIB) $@
+ 
+-$(objects)/$(SDLTEST_TARGET): $(SDLTEST_OBJECTS)
+-	$(RUN_CMD_AR)$(AR) cru $@ $(SDLTEST_OBJECTS)
+-	$(RUN_CMD_RANLIB)$(RANLIB) $@
+-
+ install: all install-bin install-hdrs install-lib install-data
+ install-bin:
+ 	$(SHELL) $(auxdir)/mkinstalldirs $(DESTDIR)$(bindir)
+@@ -170,20 +163,14 @@
+ 	    $(INSTALL) -m 644 $(srcdir)/include/SDL_revision.h $(DESTDIR)$(includedir)/SDL2/SDL_revision.h; \
+ 	fi
+ 
+-install-lib: $(objects) $(objects)/$(TARGET) $(objects)/$(SDLMAIN_TARGET) $(objects)/$(SDLTEST_TARGET)
++install-lib: $(objects) $(objects)/$(TARGET) $(objects)/$(SDLMAIN_TARGET)
+ 	$(SHELL) $(auxdir)/mkinstalldirs $(DESTDIR)$(libdir)
+ 	$(LIBTOOL) --mode=install $(INSTALL) $(objects)/$(TARGET) $(DESTDIR)$(libdir)/$(TARGET)
+ 	$(INSTALL) -m 644 $(objects)/$(SDLMAIN_TARGET) $(DESTDIR)$(libdir)/$(SDLMAIN_TARGET)
+ 	$(RANLIB) $(DESTDIR)$(libdir)/$(SDLMAIN_TARGET)
+-	$(INSTALL) -m 644 $(objects)/$(SDLTEST_TARGET) $(DESTDIR)$(libdir)/$(SDLTEST_TARGET)
+-	$(RANLIB) $(DESTDIR)$(libdir)/$(SDLTEST_TARGET)
+ install-data:
+-	$(SHELL) $(auxdir)/mkinstalldirs $(DESTDIR)$(datadir)/aclocal
+-	$(INSTALL) -m 644 $(srcdir)/sdl2.m4 $(DESTDIR)$(datadir)/aclocal/sdl2.m4
+ 	$(SHELL) $(auxdir)/mkinstalldirs $(DESTDIR)$(libdir)/pkgconfig
+ 	$(INSTALL) -m 644 sdl2.pc $(DESTDIR)$(libdir)/pkgconfig
+-	$(SHELL) $(auxdir)/mkinstalldirs $(DESTDIR)$(libdir)/cmake/SDL2
+-	$(INSTALL) -m 644 sdl2-config.cmake $(DESTDIR)$(libdir)/cmake/SDL2
+ 
+ uninstall: uninstall-bin uninstall-hdrs uninstall-lib uninstall-data
+ uninstall-bin:
+@@ -198,11 +185,8 @@
+ uninstall-lib:
+ 	$(LIBTOOL) --mode=uninstall rm -f $(DESTDIR)$(libdir)/$(TARGET)
+ 	rm -f $(DESTDIR)$(libdir)/$(SDLMAIN_TARGET)
+-	rm -f $(DESTDIR)$(libdir)/$(SDLTEST_TARGET)
+ uninstall-data:
+-	rm -f $(DESTDIR)$(datadir)/aclocal/sdl2.m4
+ 	rm -f $(DESTDIR)$(libdir)/pkgconfig/sdl2.pc
+-	rm -f $(DESTDIR)$(libdir)/cmake/SDL2/sdl2-config.cmake
+ 
+ clean:
+ 	rm -rf $(objects)
