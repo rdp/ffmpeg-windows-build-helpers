@@ -1641,13 +1641,12 @@ build_ffmpeg() {
   do_git_checkout https://github.com/FFmpeg/FFmpeg.git $output_dir $ffmpeg_git_checkout_version
   cd $output_dir
     git clean -f # Throw away local changes; 'already_*', diff-, done- and bak-files. Somehow the patched files get back to their original state when doing a rerun.
-    apply_patch file://$patch_dir/libopenjpeg_support-v2.2.diff
     apply_patch file://$patch_dir/libfdk-aac_load-shared-library-dynamically.diff
     apply_patch file://$patch_dir/frei0r_load-shared-libraries-dynamically.diff
     if [[ ! -f configure.bak ]]; then # Changes being made to 'configure' are done with 'sed', because 'configure' gets updated a lot.
-      sed -i.bak "/enabled libopenjpeg/s/{ check/{ check_lib libopenjpeg openjpeg-2.2\/openjpeg.h opj_version -lopenjp2 -DOPJ_STATIC \&\& add_cppflags -DOPJ_STATIC; } ||\n                               &/;/openjpeg_2_1_openjpeg_h/i\    openjpeg_2_2_openjpeg_h" configure # Add support for LibOpenJPEG v2.2.
       sed -i "/enabled libfdk_aac/s/&.*/\&\& { check_header fdk-aac\/aacenc_lib.h || die \"ERROR: aacenc_lib.h not found\"; }/;/require libfdk_aac/,/without pkg-config/d;/    libfdk_aac/d;/    libflite/i\    libfdk_aac" configure # Load 'libfdk-aac-1.dll' dynamically.
       sed -i "/enabled libtwolame/s/&&$/-DLIBTWOLAME_STATIC \&\& add_cppflags -DLIBTWOLAME_STATIC \&\&/;/enabled libmodplug/s/.*/& -DMODPLUG_STATIC \&\& add_cppflags -DMODPLUG_STATIC/;/enabled libcaca/s/.*/& -DCACA_STATIC \&\& add_cppflags -DCACA_STATIC/" configure # Add '-Dxxx_STATIC' to LibTwoLAME, LibModplug and Libcaca. FFmpeg should change this upstream, just like they did with libopenjpeg.
+      # Alternative to 'do_configure "... --extra-cflags=-DLIBTWOLAME_STATIC --extra-cflags=-DMODPLUG_STATIC --extra-cflags=-DCACA_STATIC"'.
       sed -i.bak "s/ install-data//" Makefile # Binary only (don't install 'DATA_FILES' and 'EXAMPLES_FILES').
     fi
 
