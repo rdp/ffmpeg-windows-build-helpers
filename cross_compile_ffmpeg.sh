@@ -983,15 +983,15 @@ build_libschroedinger() {
 }
 
 build_gnutls() {
-  download_and_unpack_file http://www.mirrorservice.org/sites/ftp.gnupg.org/gcrypt/gnutls/v3.4/gnutls-3.4.17.tar.xz
-  cd gnutls-3.4.17
+  download_and_unpack_file http://www.mirrorservice.org/sites/ftp.gnupg.org/gcrypt/gnutls/v3.5/gnutls-3.5.9.tar.xz
+  cd gnutls-3.5.9
     sed -i.bak 's/mkstemp(tmpfile)/ -1 /g' src/danetool.c # fix x86_64 absent? but danetool is just an exe AFAICT so this hack should be ok...
     # --disable-cxx don't need the c++ version, in an effort to cut down on size... XXXX test size difference... 
     # --enable-local-libopts to allow building with local autogen installed, 
     # --disable-guile is so that if it finds guile installed (cygwin did/does) it won't try and link/build to it and fail...
     # libtasn1 is some dependency, appears provided is an option [see also build_libnettle]
     # pks #11 hopefully we don't need kit
-    generic_configure "--disable-cxx --disable-doc --enable-local-libopts --disable-guile -with-included-libtasn1 --without-p11-kit" 
+    generic_configure "--disable-cxx --disable-doc --enable-local-libopts --disable-guile -with-included-libtasn1 --without-p11-kit --with-included-unistring" 
     do_make_and_make_install
   cd ..
   sed -i.bak 's/-lgnutls *$/-lgnutls -lnettle -lhogweed -lgmp -lcrypt32 -lws2_32 -liconv/' "$PKG_CONFIG_PATH/gnutls.pc"
@@ -1053,19 +1053,18 @@ build_fontconfig() {
 
 build_openssl() {
   # warning, this is a very old version of openssl since we don't really use it anymore hasn't been updated in awhile...
-  download_and_unpack_file https://www.openssl.org/source/openssl-1.0.1q.tar.gz
-  cd openssl-1.0.1q
-  #export CC="${cross_prefix}gcc"
-  #export AR="${cross_prefix}ar"
-  #export RANLIB="${cross_prefix}ranlib"
-  #XXXX do we need no-asm here?
+  download_and_unpack_file https://www.openssl.org/source/openssl-1.1.0e.tar.gz
+  cd openssl-1.1.0e
+  export CC="${cross_prefix}gcc"
+  export AR="${cross_prefix}ar"
+  export RANLIB="${cross_prefix}ranlib"
   if [ "$bits_target" = "32" ]; then
-    do_configure "--prefix=$mingw_w64_x86_64_prefix no-shared no-asm mingw" ./Configure
+    do_configure "--prefix=$mingw_w64_x86_64_prefix no-shared mingw" ./Configure
   else
-    do_configure "--prefix=$mingw_w64_x86_64_prefix no-shared no-asm mingw64" ./Configure
+    do_configure "--prefix=$mingw_w64_x86_64_prefix no-shared mingw64" ./Configure
   fi
   cpu_count=1
-  do_make_and_make_install "$make_prefix_options"
+  do_make_and_make_install #"$make_prefix_options"
   cpu_count=$original_cpu_count
   unset cross
   unset CC
@@ -1100,11 +1099,9 @@ build_libexpat() {
 }
 
 build_iconv() {
-  download_and_unpack_file https://ftp.gnu.org/pub/gnu/libiconv/libiconv-1.14.tar.gz 
-  cd libiconv-1.14
-    export CFLAGS=-O2 # ??
+  download_and_unpack_file https://ftp.gnu.org/pub/gnu/libiconv/libiconv-1.15.tar.gz 
+  cd libiconv-1.15
     generic_configure_make_install
-    reset_cflags
   cd ..
 }
 
@@ -1287,12 +1284,18 @@ build_libcurl() {
   generic_download_and_make_and_install https://curl.haxx.se/download/curl-7.46.0.tar.gz
 }
 
-build_netcdf() {
-  # used for sofalizer filter
-  download_and_unpack_file http://gfd-dennou.org/arch/ucar/unidata/pub/netcdf/netcdf-4.4.1.tar.gz
-  cd netcdf-4.4.1
-    generic_configure --disable-netcdf-4 --disable-dap # its dependencies were *hard* LOL
-    do_make_and_make_install
+# build_netcdf() { # Not used in ffmpeg anymore, got replaced by libmysofa, See: https://git.ffmpeg.org/gitweb/ffmpeg.git/commit/2336c76b224628f20ed0ef8a683ad602ed1739c3
+#   # used for sofalizer filter
+#   download_and_unpack_file http://gfd-dennou.org/arch/ucar/unidata/pub/netcdf/netcdf-4.4.1.tar.gz
+#   cd netcdf-4.4.1
+#     generic_configure --disable-netcdf-4 --disable-dap # its dependencies were *hard* LOL
+#     do_make_and_make_install
+#   cd ..
+# }
+build_libmysofa() {
+  do_git_checkout https://github.com/hoene/libmysofa.git
+  cd libmysofa_git 
+    do_cmake_and_install "-DBUILD_SHARED_LIBS:bool=off -DBUILD_TESTS=no" # tests fail to compile.
   cd ..
 }
 
@@ -1507,9 +1510,9 @@ build_ffmpeg() {
   fi
 
   init_options="--arch=$arch --target-os=mingw32 --cross-prefix=$cross_prefix --pkg-config=pkg-config --disable-w32threads"
-  config_options="$init_options --enable-libsoxr --enable-fontconfig --enable-libass --enable-libbluray --enable-iconv --enable-libtwolame --extra-cflags=-DLIBTWOLAME_STATIC --enable-libzvbi --enable-libcaca --enable-libmodplug --extra-libs=-lstdc++ --extra-libs=-lpng --enable-decklink --extra-libs=-loleaut32  --enable-libmp3lame --enable-version3 --enable-zlib --enable-librtmp --enable-libvorbis --enable-libtheora --enable-libspeex --enable-libopenjpeg --enable-gnutls --enable-libgsm --enable-libfreetype --enable-libopus --enable-bzlib --enable-libopencore-amrnb --enable-libopencore-amrwb --enable-libvo-amrwbenc --enable-libschroedinger --enable-libvpx --enable-libilbc --enable-libwavpack --enable-libwebp --enable-libgme --enable-dxva2 --enable-avisynth --enable-gray --enable-libopenh264 --enable-netcdf  --enable-libflite --enable-lzma --enable-libsnappy --enable-libzimg"
+  config_options="$init_options --enable-libsoxr --enable-fontconfig --enable-libass --enable-libbluray --enable-iconv --enable-libtwolame --extra-cflags=-DLIBTWOLAME_STATIC --enable-libzvbi --enable-libcaca --enable-libmodplug --extra-libs=-lstdc++ --extra-libs=-lpng --extra-libs=-loleaut32  --enable-libmp3lame --enable-version3 --enable-zlib --enable-librtmp --enable-libvorbis --enable-libtheora --enable-libspeex --enable-libopenjpeg --enable-gnutls  --enable-libgsm --enable-libfreetype --enable-libopus --enable-bzlib --enable-libopencore-amrnb --enable-libopencore-amrwb --enable-libvo-amrwbenc --enable-libvpx --enable-libilbc --enable-libwavpack --enable-libwebp --enable-libgme --enable-dxva2 --enable-gray --enable-libopenh264 --enable-libmysofa  --enable-libflite --enable-lzma --enable-libsnappy --enable-libzimg --enable-libbs2b"
   if [[ $enable_gpl == 'y' ]]; then
-    config_options="$config_options --enable-gpl --enable-libx264 --enable-libx265 --enable-frei0r --enable-filter=frei0r --enable-librubberband --enable-libvidstab --enable-libxavs --enable-libxvid"
+    config_options="$config_options --enable-gpl --enable-libx264 --enable-libx265 --enable-frei0r --enable-filter=frei0r --enable-librubberband --enable-libvidstab --enable-libxavs --enable-libxvid --enable-avisynth"
   fi
   # other possibilities (you'd need to also uncomment the call to their build method): 
   #   --enable-w32threads # [worse UDP than pthreads, so not using that] 
@@ -1527,12 +1530,12 @@ build_ffmpeg() {
   config_options="$config_options $postpend_configure_opts"
 
   if [[ "$non_free" = "y" ]]; then
-    config_options="$config_options --enable-nonfree --enable-libfdk-aac " 
+    config_options="$config_options --enable-nonfree --enable-libfdk-aac  --enable-decklink " 
     # libfaac deemed too poor quality and becomes the default if included -- add it in and uncomment the build_faac line to include it, if anybody ever wants it... 
     # To use fdk-aac in VLC, we need to change FFMPEG's default (aac), but I haven't found how to do that... So I disabled it. This could be an new option for the script? (was --disable-decoder=aac )
     # other possible options: --enable-openssl [unneeded since we use gnutls] 
-    #  apply_patch https://raw.githubusercontent.com/rdp/ffmpeg-windows-build-helpers/master/patches/nvresize2.patch "-p1" # uncomment if you want to test nvresize filter [et al] http://ffmpeg.org/pipermail/ffmpeg-devel/2015-November/182781.html patch worked with 7ab37cae34b3845
   fi
+   # apply_patch https://raw.githubusercontent.com/rdp/ffmpeg-windows-build-helpers/master/patches/nvresize2.patch "-p1" # uncomment if you want to test nvresize filter [et al] http://ffmpeg.org/pipermail/ffmpeg-devel/2015-November/182781.html patch worked with 7ab37cae34b3845
 
   config_options="$config_options --enable-runtime-cpudetect" # not sure what this even does but this is the most compatible
 
@@ -1633,8 +1636,8 @@ build_dependencies() {
   build_libspeex # needs libspeexdsp
   build_libvorbis # needs libogg
   build_libtheora # needs libvorbis, libogg
-  build_orc
-  build_libschroedinger # needs orc
+  # build_orc
+  # build_libschroedinger # needs orc # not supported by ffmpeg anymore, see: https://git.ffmpeg.org/gitweb/ffmpeg.git/commit/220b24c7c97dc033ceab1510549f66d0e7b52ef1
   build_freetype # uses bz2/zlib seemingly
   build_libexpat
   build_libxml2
@@ -1655,12 +1658,11 @@ build_dependencies() {
   build_lame
   build_twolame
   build_vidstab
-  build_netcdf
+  build_libmysofa
   build_libcaca
   build_libmodplug # ffmepg and vlc can use this
   build_zvbi
   build_libvpx
-  build_libdecklink
   build_libilbc
   build_fontconfig # needs expat, needs freetype (at least uses it if available), can use iconv, but I believe doesn't currently
   build_libfribidi
@@ -1671,6 +1673,7 @@ build_dependencies() {
   fi
   if [[ "$non_free" = "y" ]]; then
     build_fdk_aac
+    build_libdecklink
     # build_faac # not included for now, too poor quality output :)
   fi
   # build_openssl # hopefully do not need it anymore, since we use gnutls everywhere, so just don't even build it anymore...
@@ -1744,7 +1747,7 @@ git_get_latest=y
 prefer_stable=y
 build_intel_qsv=y
 #disable_nonfree=n # have no value by default to force user selection
-original_cflags='-mtune=core2 -O3' #  be careful, these override lots of stuff in makesfiles :|
+original_cflags='-mtune=generic -O3' #  be careful, these override lots of stuff in makesfiles :| can't use mtune=core2 since it bworks it for some cpu's
 # if you specify a march it needs to first so x264's configure will use it :|
 build_x264_with_libav=n
 ffmpeg_git_checkout_version=
@@ -1798,7 +1801,7 @@ while true; do
     --disable-nonfree=* ) disable_nonfree="${1#*=}"; shift ;;
     # this doesn't actually "build all", like doesn't build 10 high-bit LGPL ffmpeg, but it does exercise the "non default" type build options...
     -a         ) compiler_flavors="multi"; build_mplayer=y; build_libmxf=y; build_mp4box=y; build_vlc=y; build_lsw=y; build_ffmpeg_shared=y; high_bitdepth=y; build_ffmpeg_static=y; build_lws=y;
-                 disable_nonfree=n; git_get_latest=y; sandbox_ok=y; build_intel_qsv=y; build_dvbtee=y; build_x264_with_libav=y; shift ;;
+                 disable_nonfree=n; git_get_latest=y; sandbox_ok=y; build_intel_qsv=y; build_dvbtee=n; build_x264_with_libav=y; shift ;;
     -d         ) gcc_cpu_count=$cpu_count; disable_nonfree="y"; sandbox_ok="y"; compiler_flavors="win32"; git_get_latest="n"; shift ;;
     --compiler-flavors=* ) compiler_flavors="${1#*=}"; shift ;;
     --build-ffmpeg-static=* ) build_ffmpeg_static="${1#*=}"; shift ;;
