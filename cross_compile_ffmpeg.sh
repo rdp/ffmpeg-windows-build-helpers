@@ -540,7 +540,7 @@ build_sdl2() {
     #apply_patch file://$patch_dir/sdl2.xinput.diff # mingw-w64 master needs it?
     if [[ ! -f configure.bak ]]; then
       sed -i.bak "s/ -mwindows//" configure # Allow ffmpeg to output anything to console.
-      #sed -i.bak "/#ifndef DECLSPEC/i\#define DECLSPEC" include/begin_code.h # Static library. Not needed it seems.
+      sed -i.bak "/#ifndef DECLSPEC/i\#define DECLSPEC" include/begin_code.h # Static library. Needed for building shared FFmpeg binaries and libraries.
     fi
     generic_configure "--bindir=$mingw_bin_path"
     do_make_and_make_install
@@ -1608,7 +1608,6 @@ build_libMXF() {
 }
 
 build_ffmpeg() {
-  local shared_or_static=$1
   local extra_postpend_configure_options=$2
   local output_dir=$3
   if [[ -z $output_dir ]]; then
@@ -1630,10 +1629,9 @@ build_ffmpeg() {
   local postpend_configure_opts=""
 
   # can't mix and match --enable-static --enable-shared unfortunately, or the final executable seems to just use shared if the're both present
-  if [[ $shared_or_static == "shared" ]]; then
+  if [[ $1 == "shared" ]]; then
     output_dir+="_shared"
-    final_install_dir=`pwd`/${output_dir}.installed
-    postpend_configure_opts="--enable-shared --disable-static --prefix=$final_install_dir"
+    postpend_configure_opts="--enable-shared --disable-static --prefix=`pwd`/${output_dir}"
   else
     postpend_configure_opts="--enable-static --disable-shared --prefix=$mingw_w64_x86_64_prefix"
   fi
@@ -1644,7 +1642,7 @@ build_ffmpeg() {
     apply_patch file://$patch_dir/libfdk-aac_load-shared-library-dynamically.diff
     apply_patch file://$patch_dir/frei0r_load-shared-libraries-dynamically.diff
     if [[ ! -f configure.bak ]]; then # Changes being made to 'configure' are done with 'sed', because 'configure' gets updated a lot.
-      sed -i "/enabled libfdk_aac/s/&.*/\&\& { check_header fdk-aac\/aacenc_lib.h || die \"ERROR: aacenc_lib.h not found\"; }/;/require libfdk_aac/,/without pkg-config/d;/    libfdk_aac/d;/    libflite/i\    libfdk_aac" configure # Load 'libfdk-aac-1.dll' dynamically.
+      sed -i.bak "/enabled libfdk_aac/s/&.*/\&\& { check_header fdk-aac\/aacenc_lib.h || die \"ERROR: aacenc_lib.h not found\"; }/;/require libfdk_aac/,/without pkg-config/d;/    libfdk_aac/d;/    libflite/i\    libfdk_aac" configure # Load 'libfdk-aac-1.dll' dynamically.
       sed -i "/enabled libtwolame/s/&&$/-DLIBTWOLAME_STATIC \&\& add_cppflags -DLIBTWOLAME_STATIC \&\&/;/enabled libmodplug/s/.*/& -DMODPLUG_STATIC \&\& add_cppflags -DMODPLUG_STATIC/;/enabled libcaca/s/.*/& -DCACA_STATIC \&\& add_cppflags -DCACA_STATIC/" configure # Add '-Dxxx_STATIC' to LibTwoLAME, LibModplug and Libcaca. FFmpeg should change this upstream, just like they did with libopenjpeg.
       # Alternative to 'do_configure "... --extra-cflags=-DLIBTWOLAME_STATIC --extra-cflags=-DMODPLUG_STATIC --extra-cflags=-DCACA_STATIC"'.
       sed -i.bak "s/ install-data//" Makefile # Binary only (don't install 'DATA_FILES' and 'EXAMPLES_FILES').
@@ -1661,8 +1659,12 @@ build_ffmpeg() {
       init_options+=" --disable-schannel"
       # Fix WinXP incompatibility by disabling Microsoft's Secure Channel, because Windows XP doesn't support TLS 1.1 and 1.2, but with GnuTLS or OpenSSL it does. The main reason I started this journey!
     fi
-    config_options="$init_options --enable-fontconfig --enable-gmp --enable-gnutls --enable-libass --enable-libbluray --enable-libbs2b --enable-libcaca --enable-libfdk-aac --enable-libflite --enable-libfreetype --enable-libfribidi --enable-libgme --enable-libgsm --enable-libilbc --enable-libmodplug --enable-libmp3lame --enable-libmysofa --enable-libopencore-amrnb --enable-libopencore-amrwb --enable-libopenh264 --enable-libopenjpeg --enable-libopus --enable-libsnappy --enable-libsoxr --enable-libspeex --enable-libtheora --enable-libtwolame --enable-libvo-amrwbenc --enable-libvorbis --enable-libvpx --enable-libwebp --enable-libzimg --enable-libzvbi"
-    # With the changes being made to 'configure' above and with '--pkg-config-flags=--static' there's no need anymore for '--extra-cflags=' and '--extra-libs='.
+    if [[ $1 == "shared" ]]; then # Build shared FFmpeg without libbluray and libgme (see https://github.com/Reino17/ffmpeg-windows-build-helpers/issues/2).
+      config_options="$init_options --enable-fontconfig --enable-gmp --enable-gnutls --enable-libass --enable-libbs2b --enable-libcaca --enable-libfdk-aac --enable-libflite --enable-libfreetype --enable-libfribidi --enable-libgsm --enable-libilbc --enable-libmodplug --enable-libmp3lame --enable-libmysofa --enable-libopencore-amrnb --enable-libopencore-amrwb --enable-libopenh264 --enable-libopenjpeg --enable-libopus --enable-libsnappy --enable-libsoxr --enable-libspeex --enable-libtheora --enable-libtwolame --enable-libvo-amrwbenc --enable-libvorbis --enable-libvpx --enable-libwebp --enable-libzimg --enable-libzvbi"
+    else
+      config_options="$init_options --enable-fontconfig --enable-gmp --enable-gnutls --enable-libass --enable-libbluray --enable-libbs2b --enable-libcaca --enable-libfdk-aac --enable-libflite --enable-libfreetype --enable-libfribidi --enable-libgme --enable-libgsm --enable-libilbc --enable-libmodplug --enable-libmp3lame --enable-libmysofa --enable-libopencore-amrnb --enable-libopencore-amrwb --enable-libopenh264 --enable-libopenjpeg --enable-libopus --enable-libsnappy --enable-libsoxr --enable-libspeex --enable-libtheora --enable-libtwolame --enable-libvo-amrwbenc --enable-libvorbis --enable-libvpx --enable-libwebp --enable-libzimg --enable-libzvbi"
+      # With the changes being made to 'configure' above and with '--pkg-config-flags=--static' there's no need anymore for '--extra-cflags=' and '--extra-libs='.
+    fi
     if [[ $enable_gpl == 'y' ]]; then
       config_options+=" --enable-gpl --enable-avisynth --enable-frei0r --enable-filter=frei0r --enable-librubberband --enable-libvidstab --enable-libx264 --enable-libx265 --enable-libxavs --enable-libxvid"
     fi
@@ -1673,8 +1675,6 @@ build_ffmpeg() {
     fi
     config_options+=" --enable-avresample" # guess this is some kind of libav specific thing (the FFmpeg fork) but L-Smash needs it so why not always build it :)
 
-    #config_options+=" --extra-libs=-lpsapi" # dlfcn [frei0r?] requires this, has no .pc file should put in frei0r.pc? ... # Solved with 'gen_ld_script libdl.a -lpsapi' and thus not needed.
-    #config_options+=" --extra-libs=-lspeexdsp" # libebur :|
     for i in $CFLAGS; do
       config_options+=" --extra-cflags=$i" # --extra-cflags may not be needed here, but adds it to the final console output which I like for debugging purposes
     done
@@ -1720,7 +1720,7 @@ build_ffmpeg() {
     sed -i.bak 's/-lswresample -lm.*/-lswresample -lm -lsoxr/' "$PKG_CONFIG_PATH/libswresample.pc" # XXX patch ffmpeg
 
     if [[ $non_free == "y" ]]; then
-      echo "Done! You will find $bits_target bit $shared_or_static non-redistributable binaries in $(pwd)/*.exe."
+      echo "Done! You will find $bits_target bit $1 non-redistributable binaries in $(pwd)/*.exe."
     else    
       mkdir -p $cur_dir/redist
       archive="$cur_dir/redist/ffmpeg-$(git describe --tags --match N)-win$bits_target-$1"
@@ -1728,17 +1728,22 @@ build_ffmpeg() {
         archive+="_legacy"
       fi
       if [[ ! -f $archive.7z ]]; then
-        sed "s/$/\r/" COPYING.GPLv3 > COPYING.GPLv3.txt
-        7z a -mx=9 $archive.7z ffmpeg.exe ffplay.exe ffprobe.exe COPYING.GPLv3.txt && rm -fr COPYING.GPLv3.txt
+        if [[ $1 == "shared" ]]; then
+          sed "s/$/\r/" COPYING.GPLv3 > bin/COPYING.GPLv3.txt
+          cd bin
+            7z a -mx=9 $archive.7z *.exe *.dll COPYING.GPLv3.txt && rm -f COPYING.GPLv3.txt
+          cd ..
+        else
+          sed "s/$/\r/" COPYING.GPLv3 > COPYING.GPLv3.txt
+          7z a -mx=9 $archive.7z ffmpeg.exe ffplay.exe ffprobe.exe COPYING.GPLv3.txt && rm -f COPYING.GPLv3.txt
+        fi
       fi
-      echo "Done! You will find $bits_target bit $shared_or_static binaries in $(pwd)/*.exe."
-    fi
-    if [[ -d $cur_dir/redist ]]; then
+      echo "Done! You will find $bits_target bit $1 binaries in $(pwd)/*.exe."
       echo "You will find redistributable archives in $cur_dir/redist."
     fi
     echo 
-    if [[ $shared_or_static == "shared" ]]; then
-      echo "Installed shared build to $final_install_dir." # this one actually got installed somewhere real LOL
+    if [[ $1 == "shared" ]]; then
+      echo "Installed shared build to `pwd`/${output_dir}/bin."
     fi
     echo `date`
   cd ..
