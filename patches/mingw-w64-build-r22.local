@@ -82,7 +82,7 @@ mpfr_release_ver='3.1.5'
 mpc_release_ver='1.0.3'
 binutils_release_ver='2.28'
 gmp_release_ver='6.1.2'
-isl_release_ver='0.16.1'
+isl_release_ver='0.18'
 pthreads_w32_release_ver='2-9-1'
 
 ## Locations
@@ -693,7 +693,7 @@ std_compile 'mpfr' "$mpfr_release_ver" "http://ftp.gnu.org/gnu/mpfr/mpfr-$mpfr_r
 std_compile 'mpc' "$mpc_release_ver" "http://ftp.gnu.org/gnu/mpc/mpc-$mpc_release_ver.tar.gz" "../source/mpc-$mpc_release_ver/configure" --build="$system_type" --prefix="$mpc_prefix" $gcc_host --with-gmp="$gmp_prefix" --with-mpfr="$mpfr_prefix" --disable-shared --enable-static
 
 #build isl
-std_compile 'isl' "$isl_ver" "ftp://gcc.gnu.org/pub/gcc/infrastructure/isl-$isl_ver.tar.bz2" "../source/isl-$isl_ver/configure" --prefix="$isl_prefix" --build="$system_type" $gcc_host --enable-static --disable-shared --with-gmp-prefix="$gmp_prefix" --with-piplib=no --with-clang=no
+std_compile 'isl' "$isl_ver" "http://isl.gforge.inria.fr/isl-$isl_ver.tar.xz" "../source/isl-$isl_ver/configure" --prefix="$isl_prefix" --build="$system_type" $gcc_host --enable-static --disable-shared --with-gmp-prefix="$gmp_prefix" --with-piplib=no --with-clang=no
 
 #build cloog
 if [[ "$gcc_ver" = "$gcc_old_release_ver" ]]; then
