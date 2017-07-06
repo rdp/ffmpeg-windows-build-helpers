@@ -176,7 +176,7 @@ install_cross_compiler() {
 
     unset CFLAGS # don't want these "windows target" settings used the compiler itself since it creates executables to run on the local box (we have a parameter allowing them to set them for the script "all builds" basically)
     # pthreads version to avoid having to use cvs for it
-    echo "starting to download and build cross compile version of gcc [requires working internet access] with thread count $gcc_cpu_count..."
+    echo "Starting to download and build cross compile version of gcc [requires working internet access] with thread count $gcc_cpu_count..."
     echo ""
 
     # --disable-shared allows c++ to be distributed at all...which seemed necessary for some random dependency which happens to use/require c++...
@@ -186,23 +186,23 @@ install_cross_compiler() {
     # actually git make "faster" builds for some reason, so leave for now, known working commit: d9ce1abe40efb835609e646b1533acab4a404d03
     local zeranoe_script_options="--default-configure --cpu-count=$gcc_cpu_count --pthreads-w32-ver=2-9-1 --disable-shared --clean-build --verbose"
     if [[ ($compiler_flavors == "win32" || $compiler_flavors == "multi") && ! -f ../$win32_gcc ]]; then
-      echo "building win32 cross compiler..."
+      echo "Building win32 cross compiler..."
       download_gcc_build_script $zeranoe_script_name
       if [[ `uname` =~ "5.1" ]]; then # Avoid using secure API functions for compatibility with msvcrt.dll on Windows XP.
-        sed -i "s/--enable-secure-api //" $zeranoe_script_name
+        sed -i "s/ --enable-secure-api//" $zeranoe_script_name
       fi
       nice ./$zeranoe_script_name $zeranoe_script_options --build-type=win32 || exit 1
       if [[ ! -f ../$win32_gcc ]]; then
-        echo "failure building 32 bit gcc? recommend nuke sandbox (rm -fr sandbox) and start over..."
+        echo "Failure building 32 bit gcc? Recommend nuke sandbox (rm -fr sandbox) and start over..."
         exit 1
       fi
     fi
     if [[ ($compiler_flavors == "win64" || $compiler_flavors == "multi") && ! -f ../$win64_gcc ]]; then
-      echo "building win64 x86_64 cross compiler..."
+      echo "Building win64 x86_64 cross compiler..."
       download_gcc_build_script $zeranoe_script_name
       nice ./$zeranoe_script_name $zeranoe_script_options --build-type=win64 || exit 1
       if [[ ! -f ../$win64_gcc ]]; then
-        echo "failure building 64 bit gcc? recommend nuke sandbox (rm -fr sandbox) and start over..."
+        echo "Failure building 64 bit gcc? Recommend nuke sandbox (rm -fr sandbox) and start over..."
         exit 1
       fi
     fi
@@ -2018,7 +2018,7 @@ if [[ $compiler_flavors == "multi" || $compiler_flavors == "win32" ]]; then
   host_target='i686-w64-mingw32'
   mingw_w64_x86_64_prefix="$cur_dir/cross_compilers/mingw-w64-i686/$host_target"
   mingw_bin_path="$cur_dir/cross_compilers/mingw-w64-i686/bin"
-  export PKG_CONFIG_PATH="$cur_dir/cross_compilers/mingw-w64-i686/i686-w64-mingw32/lib/pkgconfig"
+  export PKG_CONFIG_PATH="$mingw_w64_x86_64_prefix/lib/pkgconfig"
   export PATH="$mingw_bin_path:$original_path"
   bits_target=32
   cross_prefix="$mingw_bin_path/i686-w64-mingw32-"
@@ -2036,8 +2036,8 @@ if [[ $compiler_flavors == "multi" || $compiler_flavors == "win64" ]]; then
   host_target='x86_64-w64-mingw32'
   mingw_w64_x86_64_prefix="$cur_dir/cross_compilers/mingw-w64-x86_64/$host_target"
   mingw_bin_path="$cur_dir/cross_compilers/mingw-w64-x86_64/bin"
+  export PKG_CONFIG_PATH="$mingw_w64_x86_64_prefix/lib/pkgconfig"
   export PATH="$mingw_bin_path:$original_path"
-  export PKG_CONFIG_PATH="$cur_dir/cross_compilers/mingw-w64-x86_64/x86_64-w64-mingw32/lib/pkgconfig"
   bits_target=64
   cross_prefix="$mingw_bin_path/x86_64-w64-mingw32-"
   make_prefix_options="CC=${cross_prefix}gcc AR=${cross_prefix}ar PREFIX=$mingw_w64_x86_64_prefix RANLIB=${cross_prefix}ranlib LD=${cross_prefix}ld STRIP=${cross_prefix}strip CXX=${cross_prefix}g++"
