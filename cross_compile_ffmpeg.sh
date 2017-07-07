@@ -1303,8 +1303,8 @@ build_libhdhomerun() {
 
 build_dvbtee_app() {
   build_libcurl # it "can use this" so why not
-#  build_libhdhomerun # broken but dependency apparently :|
-  do_git_checkout https://github.com/mkrufky/libdvbtee.git 
+#  build_libhdhomerun # broken but possible dependency apparently :|
+  do_git_checkout https://github.com/mkrufky/libdvbtee.git libdvbtee 2616b8c6f8fffc8055aa915d99c7429dc9219599 # until https://github.com/mkrufky/libdvbtee/issues/36
   cd libdvbtee_git
     # checkout its submodule, apparently required
     if [ ! -e libdvbpsi/bootstrap ]; then
@@ -1795,7 +1795,7 @@ while true; do
     --disable-nonfree=* ) disable_nonfree="${1#*=}"; shift ;;
     # this doesn't actually "build all", like doesn't build 10 high-bit LGPL ffmpeg, but it does exercise the "non default" type build options...
     -a         ) compiler_flavors="multi"; build_mplayer=y; build_libmxf=y; build_mp4box=y; build_vlc=y; build_lsw=y; build_ffmpeg_shared=y; high_bitdepth=y; build_ffmpeg_static=y; build_lws=y;
-                 disable_nonfree=n; git_get_latest=y; sandbox_ok=y; build_intel_qsv=y; build_dvbtee=n; build_x264_with_libav=y; shift ;;
+                 disable_nonfree=n; git_get_latest=y; sandbox_ok=y; build_intel_qsv=y; build_dvbtee=y; build_x264_with_libav=y; shift ;;
     -d         ) gcc_cpu_count=$cpu_count; disable_nonfree="y"; sandbox_ok="y"; compiler_flavors="win32"; git_get_latest="n"; shift ;;
     --compiler-flavors=* ) compiler_flavors="${1#*=}"; shift ;;
     --build-ffmpeg-static=* ) build_ffmpeg_static="${1#*=}"; shift ;;
