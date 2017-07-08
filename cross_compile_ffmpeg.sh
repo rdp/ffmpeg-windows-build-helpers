@@ -420,8 +420,14 @@ download_and_unpack_file() {
     #  If curl is capable of resolving an address to multiple IP versions (which it is if it is  IPv6-capable),
     #  this option tells curl to resolve names to IPv4 addresses only.
     #  avoid a "network unreachable" error in certain [broken Ubuntu] configurations a user ran into once
+    #
+    #  -k, --insecure
+    # (TLS) By default, every SSL connection curl makes is verified to be secure. This option allows curl
+    # to proceed and operate even for server connections otherwise considered insecure.
+    #
+    # allowing an insecure connection would be required for some sourceforge downloads 
 
-    curl -4 "$url" --retry 50 -O -L --fail || exit 1 # -L means "allow redirection" or some odd :|
+    curl -k -4 "$url" --retry 50 -O -L --fail || exit 1 # -L means "allow redirection" or some odd :|
     tar -xf "$output_name" || unzip "$output_name" || exit 1
     touch "$output_dir/unpacked.successfully" || exit 1
     rm "$output_name" || exit 1
@@ -730,7 +736,7 @@ build_libgme_game_music_emu() {
 }
 
 build_liblzma() {
-  generic_download_and_make_and_install http://tukaani.org/xz/xz-5.2.2.tar.bz2
+  generic_download_and_make_and_install http://tukaani.org/xz/xz-5.2.3.tar.bz2
 }
 
 build_libsnappy() {
