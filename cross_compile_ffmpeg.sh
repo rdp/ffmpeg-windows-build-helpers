@@ -804,7 +804,6 @@ build_libvorbis() {
 build_libopus() {
   do_git_checkout https://github.com/xiph/opus.git
   cd opus_git
-    #apply_patch file://$patch_dir/opus_git_shared.diff # Needed for building a shared library? Untested.
     if [[ ! -f Makefile.am.bak ]]; then # Library only.
       sed -i.bak "/m4data/,+2d;/install-data-local/,+2d" Makefile.am
     fi
@@ -939,6 +938,7 @@ build_libmodplug() {
 build_libgme() {
   do_git_checkout https://bitbucket.org/mpyne/game-music-emu.git
   cd game-music-emu_git
+    apply_patch file://$patch_dir/libgme_git_declspec.diff # Static library. Needed for building shared FFmpeg binaries and libraries.
     if [[ ! -f CMakeLists.txt.bak ]]; then # Library only.
       sed -i.bak "101,102s/.*/#&/" CMakeLists.txt
     fi
@@ -957,6 +957,7 @@ build_libbluray() {
       if [[ "$local_git_version" != "$remote_git_version" ]]; then
         git clean -f # Throw away local changes; 'already_*' in this case.
         git submodule foreach -q 'git clean -f' # Throw away local changes; 'already_configured_*' and 'udfread.c.bak' in this case.
+        rm -f contrib/libudfread/src/udfread-version.h
         git submodule update --remote -f # Checkout even if the working tree differs from HEAD.
       fi
     fi
@@ -964,7 +965,9 @@ build_libbluray() {
       if [[ ! -f src/udfread.c.bak ]]; then
         sed -i.bak "/WIN32$/,+4d" src/udfread.c # Fix WinXP incompatibility.
       fi
-      generic_configure # Generate 'udfread-version.h', or building Libbluray fails otherwise.
+      if [[ ! -f src/udfread-version.h ]]; then
+        generic_configure # Generate 'udfread-version.h', or building Libbluray fails otherwise.
+      fi
     cd ../..
     generic_configure "--disable-examples --disable-bdjava-jar"
     do_make_and_make_install
@@ -1659,8 +1662,8 @@ build_ffmpeg() {
       init_options+=" --disable-schannel"
       # Fix WinXP incompatibility by disabling Microsoft's Secure Channel, because Windows XP doesn't support TLS 1.1 and 1.2, but with GnuTLS or OpenSSL it does. The main reason I started this journey!
     fi
-    if [[ $1 == "shared" ]]; then # Build shared FFmpeg without libbluray and libgme (see https://github.com/Reino17/ffmpeg-windows-build-helpers/issues/2).
-      config_options="$init_options --enable-fontconfig --enable-gmp --enable-gnutls --enable-libass --enable-libbs2b --enable-libcaca --enable-libfdk-aac --enable-libflite --enable-libfreetype --enable-libfribidi --enable-libgsm --enable-libilbc --enable-libmodplug --enable-libmp3lame --enable-libmysofa --enable-libopencore-amrnb --enable-libopencore-amrwb --enable-libopenh264 --enable-libopenjpeg --enable-libopus --enable-libsnappy --enable-libsoxr --enable-libspeex --enable-libtheora --enable-libtwolame --enable-libvo-amrwbenc --enable-libvorbis --enable-libvpx --enable-libwebp --enable-libzimg --enable-libzvbi"
+    if [[ $1 == "shared" ]]; then # Build shared FFmpeg without libbluray (see https://github.com/Reino17/ffmpeg-windows-build-helpers/issues/2).
+      config_options="$init_options --enable-fontconfig --enable-gmp --enable-gnutls --enable-libass --enable-libbs2b --enable-libcaca --enable-libfdk-aac --enable-libflite --enable-libfreetype --enable-libfribidi --enable-libgme --enable-libgsm --enable-libilbc --enable-libmodplug --enable-libmp3lame --enable-libmysofa --enable-libopencore-amrnb --enable-libopencore-amrwb --enable-libopenh264 --enable-libopenjpeg --enable-libopus --enable-libsnappy --enable-libsoxr --enable-libspeex --enable-libtheora --enable-libtwolame --enable-libvo-amrwbenc --enable-libvorbis --enable-libvpx --enable-libwebp --enable-libzimg --enable-libzvbi"
     else
       config_options="$init_options --enable-fontconfig --enable-gmp --enable-gnutls --enable-libass --enable-libbluray --enable-libbs2b --enable-libcaca --enable-libfdk-aac --enable-libflite --enable-libfreetype --enable-libfribidi --enable-libgme --enable-libgsm --enable-libilbc --enable-libmodplug --enable-libmp3lame --enable-libmysofa --enable-libopencore-amrnb --enable-libopencore-amrwb --enable-libopenh264 --enable-libopenjpeg --enable-libopus --enable-libsnappy --enable-libsoxr --enable-libspeex --enable-libtheora --enable-libtwolame --enable-libvo-amrwbenc --enable-libvorbis --enable-libvpx --enable-libwebp --enable-libzimg --enable-libzvbi"
       # With the changes being made to 'configure' above and with '--pkg-config-flags=--static' there's no need anymore for '--extra-cflags=' and '--extra-libs='.

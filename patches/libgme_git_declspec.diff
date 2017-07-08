@@ -1,0 +1,13 @@
+--- gme/blargg_source.h.bak	2017-07-03 00:35:00.312500000 +0200
++++ gme/blargg_source.h	2017-07-08 23:22:36.812500000 +0200
+@@ -89,8 +89,8 @@
+ 
+ // Setup compiler defines useful for exporting required public API symbols in gme.cpp
+ #ifndef BLARGG_EXPORT
+-    #if defined (_WIN32) && defined(BLARGG_BUILD_DLL)
+-        #define BLARGG_EXPORT __declspec(dllexport)
++    #if defined (_WIN32)
++        #define BLARGG_EXPORT
+     #elif defined (LIBGME_VISIBILITY)
+         #define BLARGG_EXPORT __attribute__((visibility ("default")))
+     #else
