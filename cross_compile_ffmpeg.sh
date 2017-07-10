@@ -540,7 +540,7 @@ build_sdl2() {
     #apply_patch file://$patch_dir/sdl2.xinput.diff # mingw-w64 master needs it?
     if [[ ! -f configure.bak ]]; then
       sed -i.bak "s/ -mwindows//" configure # Allow ffmpeg to output anything to console.
-      sed -i.bak "/#ifndef DECLSPEC/i\#define DECLSPEC" include/begin_code.h # Static library. Needed for building shared FFmpeg binaries and libraries.
+      sed -i.bak "/#ifndef DECLSPEC/i\#define DECLSPEC" include/begin_code.h # Needed for building shared FFmpeg libraries.
     fi
     generic_configure "--bindir=$mingw_bin_path"
     do_make_and_make_install
@@ -938,9 +938,9 @@ build_libmodplug() {
 build_libgme() {
   do_git_checkout https://bitbucket.org/mpyne/game-music-emu.git
   cd game-music-emu_git
-    apply_patch file://$patch_dir/libgme_git_declspec.diff # Static library. Needed for building shared FFmpeg binaries and libraries.
-    if [[ ! -f CMakeLists.txt.bak ]]; then # Library only.
-      sed -i.bak "101,102s/.*/#&/" CMakeLists.txt
+    if [[ ! -f CMakeLists.txt.bak ]]; then
+      sed -i.bak "101,102s/.*/#&/" CMakeLists.txt # Library only.
+      sed -i.bak "s/ __declspec.*//" gme/blargg_source.h # Needed for building shared FFmpeg libraries.
     fi
     do_cmake_and_install "-DBUILD_SHARED_LIBS=0 -DENABLE_UBSAN=0"
   cd ..
@@ -949,6 +949,9 @@ build_libgme() {
 build_libbluray() {
   do_git_checkout https://git.videolan.org/git/libbluray.git
   cd libbluray_git
+    if [[ ! -f jni/win32/jni_md.h.bak ]]; then
+      sed -i.bak "/JNIEXPORT/s/ __declspec.*//" jni/win32/jni_md.h # Needed for building shared FFmpeg libraries.
+    fi
     if [[ ! -d .git/modules ]]; then
       git submodule update --init --remote # For UDF support [default=enabled], which strangely enough is in another repository.
     else
@@ -1269,6 +1272,7 @@ build_libx265() {
       echo "still at hg $new_hg_version x265"
     fi
   fi # dont with prefer_stable = [y|n]
+  apply_patch file://$patch_dir/libx265_git_declspec.diff # Needed for building shared FFmpeg libraries.
 
   local cmake_params="-DENABLE_SHARED=0 -DENABLE_CLI=0" # Library only.
   if [ "$bits_target" = "32" ]; then
@@ -1634,7 +1638,7 @@ build_ffmpeg() {
   # can't mix and match --enable-static --enable-shared unfortunately, or the final executable seems to just use shared if the're both present
   if [[ $1 == "shared" ]]; then
     output_dir+="_shared"
-    postpend_configure_opts="--enable-shared --disable-static --prefix=`pwd`/${output_dir}"
+    postpend_configure_opts="--enable-shared --disable-static --prefix=$(pwd)/${output_dir}"
   else
     postpend_configure_opts="--enable-static --disable-shared --prefix=$mingw_w64_x86_64_prefix"
   fi
@@ -1662,11 +1666,8 @@ build_ffmpeg() {
       init_options+=" --disable-schannel"
       # Fix WinXP incompatibility by disabling Microsoft's Secure Channel, because Windows XP doesn't support TLS 1.1 and 1.2, but with GnuTLS or OpenSSL it does. The main reason I started this journey!
     fi
-    if [[ $1 == "shared" ]]; then # Build shared FFmpeg without libbluray (see https://github.com/Reino17/ffmpeg-windows-build-helpers/issues/2).
-      config_options="$init_options --enable-fontconfig --enable-gmp --enable-gnutls --enable-libass --enable-libbs2b --enable-libcaca --enable-libfdk-aac --enable-libflite --enable-libfreetype --enable-libfribidi --enable-libgme --enable-libgsm --enable-libilbc --enable-libmodplug --enable-libmp3lame --enable-libmysofa --enable-libopencore-amrnb --enable-libopencore-amrwb --enable-libopenh264 --enable-libopenjpeg --enable-libopus --enable-libsnappy --enable-libsoxr --enable-libspeex --enable-libtheora --enable-libtwolame --enable-libvo-amrwbenc --enable-libvorbis --enable-libvpx --enable-libwebp --enable-libzimg --enable-libzvbi"
-    else
-      config_options="$init_options --enable-fontconfig --enable-gmp --enable-gnutls --enable-libass --enable-libbluray --enable-libbs2b --enable-libcaca --enable-libfdk-aac --enable-libflite --enable-libfreetype --enable-libfribidi --enable-libgme --enable-libgsm --enable-libilbc --enable-libmodplug --enable-libmp3lame --enable-libmysofa --enable-libopencore-amrnb --enable-libopencore-amrwb --enable-libopenh264 --enable-libopenjpeg --enable-libopus --enable-libsnappy --enable-libsoxr --enable-libspeex --enable-libtheora --enable-libtwolame --enable-libvo-amrwbenc --enable-libvorbis --enable-libvpx --enable-libwebp --enable-libzimg --enable-libzvbi"
-      # With the changes being made to 'configure' above and with '--pkg-config-flags=--static' there's no need anymore for '--extra-cflags=' and '--extra-libs='.
+    config_options="$init_options --enable-fontconfig --enable-gmp --enable-gnutls --enable-libass --enable-libbluray --enable-libbs2b --enable-libcaca --enable-libfdk-aac --enable-libflite --enable-libfreetype --enable-libfribidi --enable-libgme --enable-libgsm --enable-libilbc --enable-libmodplug --enable-libmp3lame --enable-libmysofa --enable-libopencore-amrnb --enable-libopencore-amrwb --enable-libopenh264 --enable-libopenjpeg --enable-libopus --enable-libsnappy --enable-libsoxr --enable-libspeex --enable-libtheora --enable-libtwolame --enable-libvo-amrwbenc --enable-libvorbis --enable-libvpx --enable-libwebp --enable-libzimg --enable-libzvbi"
+    # With the changes being made to 'configure' above and with '--pkg-config-flags=--static' there's no need anymore for '--extra-cflags=' and '--extra-libs='.
     fi
     if [[ $enable_gpl == 'y' ]]; then
       config_options+=" --enable-gpl --enable-avisynth --enable-frei0r --enable-filter=frei0r --enable-librubberband --enable-libvidstab --enable-libx264 --enable-libx265 --enable-libxavs --enable-libxvid"
@@ -1691,8 +1692,6 @@ build_ffmpeg() {
     fi
     #apply_patch file://$patch_dir/nvresize2.patch "-p1" # uncomment if you want to test nvresize filter [et al] http://ffmpeg.org/pipermail/ffmpeg-devel/2015-November/182781.html patch worked with 7ab37cae34b3845
 
-    #config_options+=" --enable-runtime-cpudetect" # Enabled by default nowadays and '--disable-runtime-cpudetect' to disable.
-
     do_debug_build=n # if you need one for backtraces/examining segfaults using gdb.exe ... change this to y :) XXXX make it affect x264 too...and make it param
     if [[ "$do_debug_build" = "y" ]]; then
       # not sure how many of these are actually needed/useful...possibly none LOL
@@ -1714,39 +1713,45 @@ build_ffmpeg() {
     fi
 
     # XXX really ffmpeg should have set this up right but doesn't, patch FFmpeg itself instead...
-    if [[ $build_intel_qsv = y ]]; then
-      sed -i.bak 's/-lavutil -lm.*/-lavutil -lm -lmfx -lstdc++ -lpthread/' "$PKG_CONFIG_PATH/libavutil.pc"
-    else
-      sed -i.bak 's/-lavutil -lm.*/-lavutil -lm -lpthread/' "$PKG_CONFIG_PATH/libavutil.pc"
+    if [[ $1 == "static" ]]; then
+      if [[ $build_intel_qsv = y ]]; then
+        sed -i.bak 's/-lavutil -lm.*/-lavutil -lm -lmfx -lstdc++ -lpthread/' "$PKG_CONFIG_PATH/libavutil.pc"
+      else
+        sed -i.bak 's/-lavutil -lm.*/-lavutil -lm -lpthread/' "$PKG_CONFIG_PATH/libavutil.pc"
+      fi
+      sed -i.bak 's/-lswresample -lm.*/-lswresample -lm -lsoxr/' "$PKG_CONFIG_PATH/libswresample.pc" # XXX patch ffmpeg
     fi
 
     sed -i.bak 's/-lswresample -lm.*/-lswresample -lm -lsoxr/' "$PKG_CONFIG_PATH/libswresample.pc" # XXX patch ffmpeg
 
     if [[ $non_free == "y" ]]; then
-      echo "Done! You will find $bits_target bit $1 non-redistributable binaries in $(pwd)/*.exe."
-    else    
+      if [[ $1 == "shared" ]]; then
+        echo "Done! You will find $bits_target-bit $1 non-redistributable binaries in $(pwd)/bin."
+      else
+        echo "Done! You will find $bits_target-bit $1 non-redistributable binaries in $(pwd)."
+      fi
+    else
       mkdir -p $cur_dir/redist
       archive="$cur_dir/redist/ffmpeg-$(git describe --tags --match N)-win$bits_target-$1"
       if [[ $original_cflags =~ "pentium3" ]]; then
         archive+="_legacy"
       fi
-      if [[ ! -f $archive.7z ]]; then
-        if [[ $1 == "shared" ]]; then
+      if [[ $1 == "shared" ]]; then
+        echo "Done! You will find $bits_target-bit $1 binaries in $(pwd)/bin."
+        if [[ ! -f $archive.7z ]]; then
           sed "s/$/\r/" COPYING.GPLv3 > bin/COPYING.GPLv3.txt
           cd bin
             7z a -mx=9 $archive.7z *.exe *.dll COPYING.GPLv3.txt && rm -f COPYING.GPLv3.txt
           cd ..
-        else
+        fi
+      else
+        echo "Done! You will find $bits_target-bit $1 binaries in $(pwd)."
+        if [[ ! -f $archive.7z ]]; then
           sed "s/$/\r/" COPYING.GPLv3 > COPYING.GPLv3.txt
           7z a -mx=9 $archive.7z ffmpeg.exe ffplay.exe ffprobe.exe COPYING.GPLv3.txt && rm -f COPYING.GPLv3.txt
         fi
       fi
-      echo "Done! You will find $bits_target bit $1 binaries in $(pwd)/*.exe."
       echo "You will find redistributable archives in $cur_dir/redist."
-    fi
-    echo 
-    if [[ $1 == "shared" ]]; then
-      echo "Installed shared build to `pwd`/${output_dir}/bin."
     fi
     echo `date`
   cd ..
@@ -2060,4 +2065,3 @@ echo "searching for all local exe's (some may not have been built this round, NB
 for file in $(find_all_build_exes); do
   echo "built $file"
 done
-echo "done!"

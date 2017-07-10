@@ -78,6 +78,7 @@ ECHO.
 
 CD ..
 ENDLOCAL
+ECHO.
 ECHO Done with local build. Check output above to see if successfull.
 ECHO If not successful, then you could try to rerun the script. It "should" pick up where it left off.
 ECHO.

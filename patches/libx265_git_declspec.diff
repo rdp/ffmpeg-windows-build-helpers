@@ -1,0 +1,14 @@
+--- x265-extras.h.bak	2017-07-09 11:52:49.515625000 +0200
++++ x265-extras.h	2017-07-09 18:16:17.468750000 +0200
+@@ -33,11 +33,7 @@
+ extern "C" {
+ #endif
+ 
+-#if _WIN32
+-#define LIBAPI __declspec(dllexport)
+-#else
+ #define LIBAPI
+-#endif
+ 
+ /* Open a CSV log file. On success it returns a file handle which must be passed
+  * to x265_csvlog_frame() and/or x265_csvlog_encode(). The file handle must be
