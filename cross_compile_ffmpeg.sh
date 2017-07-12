@@ -949,9 +949,6 @@ build_libgme() {
 build_libbluray() {
   do_git_checkout https://git.videolan.org/git/libbluray.git
   cd libbluray_git
-    if [[ ! -f jni/win32/jni_md.h.bak ]]; then
-      sed -i.bak "/JNIEXPORT/s/ __declspec.*//" jni/win32/jni_md.h # Needed for building shared FFmpeg libraries.
-    fi
     if [[ ! -d .git/modules ]]; then
       git submodule update --init --remote # For UDF support [default=enabled], which strangely enough is in another repository.
     else
@@ -963,6 +960,9 @@ build_libbluray() {
         rm -f contrib/libudfread/src/udfread-version.h
         git submodule update --remote -f # Checkout even if the working tree differs from HEAD.
       fi
+    fi
+    if [[ ! -f jni/win32/jni_md.h.bak ]]; then
+      sed -i.bak "/JNIEXPORT/s/ __declspec.*//" jni/win32/jni_md.h # Needed for building shared FFmpeg libraries.
     fi
     cd contrib/libudfread
       if [[ ! -f src/udfread.c.bak ]]; then
@@ -1668,7 +1668,6 @@ build_ffmpeg() {
     fi
     config_options="$init_options --enable-fontconfig --enable-gmp --enable-gnutls --enable-libass --enable-libbluray --enable-libbs2b --enable-libcaca --enable-libfdk-aac --enable-libflite --enable-libfreetype --enable-libfribidi --enable-libgme --enable-libgsm --enable-libilbc --enable-libmodplug --enable-libmp3lame --enable-libmysofa --enable-libopencore-amrnb --enable-libopencore-amrwb --enable-libopenh264 --enable-libopenjpeg --enable-libopus --enable-libsnappy --enable-libsoxr --enable-libspeex --enable-libtheora --enable-libtwolame --enable-libvo-amrwbenc --enable-libvorbis --enable-libvpx --enable-libwebp --enable-libzimg --enable-libzvbi"
     # With the changes being made to 'configure' above and with '--pkg-config-flags=--static' there's no need anymore for '--extra-cflags=' and '--extra-libs='.
-    fi
     if [[ $enable_gpl == 'y' ]]; then
       config_options+=" --enable-gpl --enable-avisynth --enable-frei0r --enable-filter=frei0r --enable-librubberband --enable-libvidstab --enable-libx264 --enable-libx265 --enable-libxavs --enable-libxvid"
     fi
