@@ -1,0 +1,46 @@
+diff -ur Makefile.org.bak Makefile.org
+--- Makefile.org.bak	2017-05-25 14:54:38.000000000 +0200
++++ Makefile.org	2017-06-12 21:53:15.312500000 +0200
+@@ -137,7 +137,7 @@
+ 
+ BASEADDR=
+ 
+-DIRS=   crypto ssl engines apps test tools
++DIRS=   crypto ssl
+ ENGDIRS= ccgost
+ SHLIBDIRS= crypto ssl
+ 
+@@ -274,11 +274,11 @@
+ 
+ sub_all: build_all
+ 
+-build_all: build_libs build_apps build_tests build_tools
++build_all: build_libs
+ 
+ build_libs: build_libcrypto build_libssl openssl.pc
+ 
+-build_libcrypto: build_crypto build_engines libcrypto.pc
++build_libcrypto: build_crypto libcrypto.pc
+ build_libssl: build_ssl libssl.pc
+ 
+ build_crypto:
+@@ -540,17 +540,13 @@
+ 	@$(MAKE) SDIRS='$(SDIRS)' clean
+ 	@$(MAKE) TAR='$(TAR)' TARFLAGS='$(TARFLAGS)' $(DISTTARVARS) tar
+ 
+-install: all install_docs install_sw
++install: all install_sw
+ 
+ install_sw:
+ 	@$(PERL) $(TOP)/util/mkdir-p.pl $(INSTALL_PREFIX)$(INSTALLTOP)/bin \
+ 		$(INSTALL_PREFIX)$(INSTALLTOP)/$(LIBDIR) \
+-		$(INSTALL_PREFIX)$(INSTALLTOP)/$(LIBDIR)/engines \
+ 		$(INSTALL_PREFIX)$(INSTALLTOP)/$(LIBDIR)/pkgconfig \
+-		$(INSTALL_PREFIX)$(INSTALLTOP)/include/openssl \
+-		$(INSTALL_PREFIX)$(OPENSSLDIR)/misc \
+-		$(INSTALL_PREFIX)$(OPENSSLDIR)/certs \
+-		$(INSTALL_PREFIX)$(OPENSSLDIR)/private
++		$(INSTALL_PREFIX)$(INSTALLTOP)/include/openssl
+ 	@set -e; headerlist="$(EXHEADER)"; for i in $$headerlist;\
+ 	do \
+ 	(cp $$i $(INSTALL_PREFIX)$(INSTALLTOP)/include/openssl/$$i; \

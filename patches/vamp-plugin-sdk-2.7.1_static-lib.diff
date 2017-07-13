@@ -1,0 +1,40 @@
+diff -ur Makefile.in.bak Makefile.in
+--- Makefile.in.bak	2017-03-06 14:27:24.000000000 +0100
++++ Makefile.in	2017-05-12 20:21:34.593750000 +0200
+@@ -280,6 +280,36 @@
+ 		rm -f $(SDK_STATIC) $(SDK_DYNAMIC) $(HOSTSDK_STATIC) $(HOSTSDK_DYNAMIC) $(PLUGIN_TARGET) $(HOST_TARGET) $(RDFGEN_TARGET) *~ */*~
+ 		rm -f config.log config.status Makefile
+ 
++install-static:	$(SDK_STATIC) $(HOSTSDK_STATIC)
++		mkdir -p $(DESTDIR)$(INSTALL_API_HEADERS)
++		mkdir -p $(DESTDIR)$(INSTALL_SDK_HEADERS)
++		mkdir -p $(DESTDIR)$(INSTALL_HOSTSDK_HEADERS)
++		mkdir -p $(DESTDIR)$(INSTALL_SDK_LIBS)
++		mkdir -p $(DESTDIR)$(INSTALL_PKGCONFIG)
++		cp $(API_HEADERS) $(DESTDIR)$(INSTALL_API_HEADERS)
++		cp $(SDK_HEADERS) $(DESTDIR)$(INSTALL_SDK_HEADERS)
++		cp $(HOSTSDK_HEADERS) $(DESTDIR)$(INSTALL_HOSTSDK_HEADERS)
++		cp $(SDK_STATIC) $(DESTDIR)$(INSTALL_SDK_LIBS)
++		cp $(HOSTSDK_STATIC) $(DESTDIR)$(INSTALL_SDK_LIBS)
++		sed "s,%PREFIX%,$(INSTALL_PREFIX)," $(PCDIR)/vamp.pc.in \
++		> $(DESTDIR)$(INSTALL_PKGCONFIG)/vamp.pc
++		sed "s,%PREFIX%,$(INSTALL_PREFIX)," $(PCDIR)/vamp-sdk.pc.in \
++		> $(DESTDIR)$(INSTALL_PKGCONFIG)/vamp-sdk.pc
++		sed "s,%PREFIX%,$(INSTALL_PREFIX)," $(PCDIR)/vamp-hostsdk.pc.in \
++		> $(DESTDIR)$(INSTALL_PKGCONFIG)/vamp-hostsdk.pc
++		sed -e "s,%LIBNAME%,,g" \
++		    -e "s,%LINK_ABI%,,g" \
++		    -e "s,%LINK_DEV%,,g" \
++		    -e "s,%STATIC%,$(INSTALL_SDK_STATIC),g" \
++		    -e "s,%LIBS%,$(INSTALL_SDK_LIBS),g" $(SDK_LA).in \
++		> $(DESTDIR)$(INSTALL_SDK_LIBS)/$(INSTALL_SDK_LA)
++		sed -e "s,%LIBNAME%,,g" \
++		    -e "s,%LINK_ABI%,,g" \
++		    -e "s,%LINK_DEV%,,g" \
++		    -e "s,%STATIC%,$(INSTALL_HOSTSDK_STATIC),g" \
++		    -e "s,%LIBS%,$(INSTALL_SDK_LIBS),g" $(HOSTSDK_LA).in \
++		> $(DESTDIR)$(INSTALL_SDK_LIBS)/$(INSTALL_HOSTSDK_LA)
++
+ install:	$(SDK_STATIC) $(SDK_DYNAMIC) $(HOSTSDK_STATIC) $(HOSTSDK_DYNAMIC) $(PLUGIN_TARGET) $(HOST_TARGET) $(RDFGEN_TARGET)
+ 		mkdir -p $(DESTDIR)$(INSTALL_API_HEADERS)
+ 		mkdir -p $(DESTDIR)$(INSTALL_SDK_HEADERS)
