@@ -399,7 +399,7 @@ apply_patch() {
     if [[ -f $patch_name ]]; then
       rm $patch_name || exit 1 # remove old version in case it has been since updated on the server...
     fi
-    curl -4 --retry 5 $url -O --fail || exit 1
+    curl -4 --retry 5 $url -O --fail || echo_and_exit "unable to download patch file $url"
     echo "applying patch $patch_name"
     patch $patch_type < "$patch_name" || exit 1
     touch $patch_done_name || exit 1
@@ -407,6 +407,11 @@ apply_patch() {
   #else
     #echo "patch $patch_name already applied"
   fi
+}
+
+echo_and_exit() {
+  echo "failure, exiting: $1"
+  exit 1
 }
 
 # takes a url, output_dir as params, output_dir optional
@@ -428,8 +433,9 @@ download_and_unpack_file() {
     #  If curl is capable of resolving an address to multiple IP versions (which it is if it is  IPv6-capable),
     #  this option tells curl to resolve names to IPv4 addresses only.
     #  avoid a "network unreachable" error in certain [broken Ubuntu] configurations a user ran into once
+    #  -L means "allow redirection" or some odd :|
 
-    curl -4 "$url" --retry 50 -O -L --fail || echo "unable to download $url" # -L means "allow redirection" or some odd :| wasn't sure how to exit here so just let tar fail and exit on next line instead :|
+    curl -4 "$url" --retry 50 -O -L --fail || echo_and_exit "unable to download $url" 
     tar -xf "$output_name" || unzip "$output_name" || exit 1
     touch "$output_dir/unpacked.successfully" || exit 1
     rm "$output_name" || exit 1
