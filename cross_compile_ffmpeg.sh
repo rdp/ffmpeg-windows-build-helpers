@@ -1030,7 +1030,9 @@ build_libsnappy() {
     if [[ ! -f Makefile.am.bak ]]; then # Library only.
       sed -i.bak "/# Unit/,+7d;/^dist/s/=.*/=/" Makefile.am
     fi
-    generic_configure_make_install
+    generic_configure
+    touch ./README # OS X needed this for reinstall :|
+    do_make_and_make_install
   cd ..
 }
 
