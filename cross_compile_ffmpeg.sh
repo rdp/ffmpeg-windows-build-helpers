@@ -1324,7 +1324,7 @@ build_libx264() {
   fi
 
   #if [[ $prefer_stable = "n" ]]; then
-  #  do_git_checkout "http://git.videolan.org/git/x264.git" $checkout_dir "origin/master" # During 'configure': "Found no assembler. Minimum version is nasm-2.13".
+  #  do_git_checkout "http://git.videolan.org/git/x264.git" $checkout_dir "origin/master" # During 'configure': "Found no assembler. Minimum version is nasm-2.13" so disable for now...
   #else
     do_git_checkout "http://git.videolan.org/git/x264.git" $checkout_dir "origin/stable"
   #fi
