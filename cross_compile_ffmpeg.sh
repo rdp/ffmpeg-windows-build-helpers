@@ -1076,6 +1076,7 @@ build_librubberband() {
     apply_patch file://$patch_dir/rubberband_git_static-lib.diff
     do_configure "--host=$host_target --prefix=$mingw_w64_x86_64_prefix"
     do_make "install-static" # No need for 'do_make_install', because 'install-static' already has install-instructions.
+    sed -i.bak 's/-lrubberband *$/-lrubberband -lfftw3 -lsamplerate -lstdc++/' $PKG_CONFIG_PATH/rubberband.pc
   cd ..
 }
 
@@ -1297,6 +1298,7 @@ build_libx265() {
   local cmake_params="-DENABLE_SHARED=0 -DENABLE_CLI=0" # Library only.
   if [ "$bits_target" = "32" ]; then
     cmake_params+=" -DWINXP_SUPPORT=1" # enable windows xp/vista compatibility in x86 build
+    cmake_params="$cmake_params -DENABLE_ASSEMBLY=OFF" # apparently required or build fails
   fi
   if [[ $high_bitdepth == "y" ]]; then
     cmake_params+=" -DHIGH_BIT_DEPTH=1" # Enable 10 bits (main10) and 12 bits (???) per pixels profiles.
