@@ -468,7 +468,11 @@ do_git_checkout_and_make_install() {
 }
 
 generic_configure_make_install() {
-  generic_configure # no parameters, force myself to break it up :)
+  if [[ $1 != "" ]]; then
+    echo "cant pass parameters to this today"
+    exit 1
+  fi
+  generic_configure # no parameters, force myself to break it up if needed
   do_make_and_make_install
 }
 
