@@ -1212,10 +1212,7 @@ build_libxvid() {
 build_libvpx() {
   do_git_checkout https://chromium.googlesource.com/webm/libvpx.git
   cd libvpx_git
-    if [[ ! -f vp8/common/threading.h.bak ]]; then
-      sed -i.bak "/<semaphore.h/i\#include <sys/types.h>" vp8/common/threading.h
-    fi
-    # 'cross_compilers/mingw-w64-i686/include/semaphore.h' would otherwise cause problems; "semaphore.h:152:8: error: unknown type name 'mode_t'".
+     apply_patch https://raw.githubusercontent.com/rdp/ffmpeg-windows-build-helpers/master/patches/vpx_160_semaphore.patch -p1 # perhaps someday can remove this after 1.6.0 or mingw fixes it LOL
     if [[ "$bits_target" = "32" ]]; then
       local config_options="--target=x86-win32-gcc"
     else
