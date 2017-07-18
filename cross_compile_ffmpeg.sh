@@ -882,8 +882,9 @@ build_lame() {
     if [[ ! -f Makefile.in.bak ]]; then # Library only.
       sed -i.bak "/^SUBDIRS/s/ frontend//;/^SUBDIRS/s/ doc//" Makefile.in
     fi
+    apply_patch file://$patch_dir/lame3.patch # work on mtune=generic type builds :| TODO figure out why, report back to https://sourceforge.net/p/lame/bugs/443/
     generic_configure "--enable-nasm --disable-decoder --disable-frontend"
-    cpu_count=1 # can't handle it seemingly... :| http://betterlogic.com/roger/2017/07/mp3lame-woe/
+    cpu_count=1 # can't handle it apparently... http://betterlogic.com/roger/2017/07/mp3lame-woe/
     do_make_and_make_install
     cpu_count=$original_cpu_count
   cd ..
@@ -1937,19 +1938,21 @@ else
   build_intel_qsv=y
 fi
 #disable_nonfree=n # have no value by default to force user selection
-flags=$(cat /proc/cpuinfo | grep flags)
-if [[ $flags =~ "ssse3" ]]; then # See https://gcc.gnu.org/onlinedocs/gcc/x86-Options.html, https://gcc.gnu.org/onlinedocs/gcc/Optimize-Options.html and https://stackoverflow.com/questions/19689014/gcc-difference-between-o3-and-os.
-  original_cflags='-march=core2 -O2'
-elif [[ $flags =~ "sse3" ]]; then
-  original_cflags='-march=prescott -O2'
-elif [[ $flags =~ "sse2" ]]; then
-  original_cflags='-march=pentium4 -O2'
-elif [[ $flags =~ "sse" ]]; then
-  original_cflags='-march=pentium3 -O2 -mfpmath=sse -msse'
-else
-  original_cflags='-mtune=generic -O2'
-fi
-# if you specify a march it needs to first so x264's configure will use it :|
+original_cflags='-mtune=generic -O3' # high compatible by default, see #219, some other good options are listed below, or you could use -march=native to target your local box:
+# if you specify a march it needs to first so x264's configure will use it :| [ is that still the case ?]
+
+#flags=$(cat /proc/cpuinfo | grep flags)
+#if [[ $flags =~ "ssse3" ]]; then # See https://gcc.gnu.org/onlinedocs/gcc/x86-Options.html, https://gcc.gnu.org/onlinedocs/gcc/Optimize-Options.html and https://stackoverflow.com/questions/19689014/gcc-difference-between-o3-and-os.
+#  original_cflags='-march=core2 -O2'
+#elif [[ $flags =~ "sse3" ]]; then
+#  original_cflags='-march=prescott -O2'
+#elif [[ $flags =~ "sse2" ]]; then
+#  original_cflags='-march=pentium4 -O2'
+#elif [[ $flags =~ "sse" ]]; then
+#  original_cflags='-march=pentium3 -O2 -mfpmath=sse -msse'
+#else
+#  original_cflags='-mtune=generic -O2'
+#fi
 ffmpeg_git_checkout_version=
 build_ismindex=n
 enable_gpl=y
