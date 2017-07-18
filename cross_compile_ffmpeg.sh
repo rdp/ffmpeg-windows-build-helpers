@@ -1167,7 +1167,7 @@ build_fribidi() {
   download_and_unpack_file https://www.fribidi.org/download/fribidi-0.19.7.tar.bz2
   cd fribidi-0.19.7
     # make it export symbols right...
-    apply_patch https://raw.githubusercontent.com/rdp/ffmpeg-windows-build-helpers/master/patches/fribidi.diff # still needed?
+    # apply_patch https://raw.githubusercontent.com/rdp/ffmpeg-windows-build-helpers/master/patches/fribidi.diff # still needed?
     generic_configure_make_install
   cd ..
 }
