@@ -1031,7 +1031,7 @@ build_libsnappy() {
       sed -i.bak "/# Unit/,+7d;/^dist/s/=.*/=/" Makefile.am
     fi
     generic_configure
-    touch ./README # OS X needed this for reinstall :|
+    touch ./README # OS X needed this for reinstall :| unfortunately on linux it still fails, weird
     do_make_and_make_install
   cd ..
 }
