@@ -938,7 +938,12 @@ build_libilbc() {
 }
 
 build_libmodplug() {
-  do_git_checkout_and_make_install https://github.com/Konstanty/libmodplug.git
+  do_git_checkout https://github.com/Konstanty/libmodplug.git
+  cd libmodplug_git
+    sed -i.bak 's/__declspec(dllexport)//' "$mingw_w64_x86_64_prefix/include/libmodplug/modplug.h" #strip DLL import/export directives
+    sed -i.bak 's/__declspec(dllimport)//' "$mingw_w64_x86_64_prefix/include/libmodplug/modplug.h"
+    generic_configure_make_install # or could use cmake I guess
+  end
 }
 
 build_libgme() {
