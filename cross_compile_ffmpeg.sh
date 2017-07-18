@@ -497,8 +497,8 @@ build_bzip2() {
     apply_patch file://$patch_dir/bzip2-1.0.6_brokenstuff.diff
     if [[ ! -f $mingw_w64_x86_64_prefix/lib/libbz2.a ]]; then # Library only.
       do_make "$make_prefix_options libbz2.a"
-      install -m644 libbz2.a $mingw_w64_x86_64_prefix/lib/libbz2.a
       install -m644 bzlib.h $mingw_w64_x86_64_prefix/include/bzlib.h
+      install -m644 libbz2.a $mingw_w64_x86_64_prefix/lib/libbz2.a
     else
       echo "already made bzip2-1.0.6"
     fi
