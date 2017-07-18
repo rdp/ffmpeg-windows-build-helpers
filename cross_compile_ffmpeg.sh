@@ -1129,6 +1129,10 @@ build_libcaca() {
       sed -i.bak "/^SUBDIRS/s/ src.*//;/cxx.*doc/d" Makefile.am
       sed -i.bak "/^SUBDIRS/s/ t//" caca/Makefile.am
     fi
+    cd caca
+      sed -i.bak "s/__declspec(dllexport)//g" *.h # get rid of the declspec lines otherwise the build will fail for undefined symbols
+      sed -i.bak "s/__declspec(dllimport)//g" *.h
+    cd ..
     generic_configure "--libdir=$mingw_w64_x86_64_prefix/lib --disable-csharp --disable-java --disable-cxx --disable-python --disable-ruby --disable-doc"
     do_make_and_make_install
   cd ..
