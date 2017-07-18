@@ -873,12 +873,13 @@ build_libsndfile() {
 build_lame() {
   do_git_checkout https://github.com/rbrito/lame.git
   cd lame_git
-    #apply_patch file://$patch_dir/lame3.patch # Needed?
     if [[ ! -f Makefile.in.bak ]]; then # Library only.
       sed -i.bak "/^SUBDIRS/s/ frontend//;/^SUBDIRS/s/ doc//" Makefile.in
     fi
     generic_configure "--enable-nasm --disable-decoder --disable-frontend"
+    cpu_count=1 # can't handle it seemingly... :| http://betterlogic.com/roger/2017/07/mp3lame-woe/
     do_make_and_make_install
+    cpu_count=$original_cpu_count
   cd ..
 }
 
