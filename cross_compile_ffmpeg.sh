@@ -863,8 +863,8 @@ build_libsndfile() {
     do_make_and_make_install
     if [ "$1" = "install-libgsm" ]; then
       if [[ ! -f $mingw_w64_x86_64_prefix/lib/libgsm.a ]]; then
-        install -m644 src/GSM610/.libs/libgsm.a $mingw_w64_x86_64_prefix/lib/libgsm.a
-        install -m644 -D src/GSM610/gsm.h $mingw_w64_x86_64_prefix/include/gsm.h
+        install -m644 src/GSM610/gsm.h $mingw_w64_x86_64_prefix/include/gsm.h || exit 1
+        install -m644 src/GSM610/.libs/libgsm.a $mingw_w64_x86_64_prefix/lib/libgsm.a || exit 1
       else
         echo "already installed GSM 6.10 ..."
       fi
@@ -1019,9 +1019,9 @@ build_libflite() {
       sed -i.bak "s/cp -pd/cp -p/" main/Makefile # friendlier cp for OS X
     fi
     generic_configure
-    cpu_count=1 # can't handle it :|
+    #cpu_count=1 # can't handle it :|
     do_make_and_make_install
-    cpu_count=$original_cpu_count
+    #cpu_count=$original_cpu_count
   cd ..
 }
 
