@@ -943,7 +943,7 @@ build_libmodplug() {
     sed -i.bak 's/__declspec(dllexport)//' "$mingw_w64_x86_64_prefix/include/libmodplug/modplug.h" #strip DLL import/export directives
     sed -i.bak 's/__declspec(dllimport)//' "$mingw_w64_x86_64_prefix/include/libmodplug/modplug.h"
     generic_configure_make_install # or could use cmake I guess
-  end
+  cd ..
 }
 
 build_libgme() {
