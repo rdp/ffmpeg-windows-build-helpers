@@ -39,9 +39,9 @@ check_missing_packages () {
   local check_packages=('curl' 'pkg-config' 'make' 'git' 'svn' 'cmake' 'gcc' 'autoconf' 'automake' 'yasm' 'cvs' 'flex' 'bison' 'makeinfo' 'g++' 'ed' 'hg' 'pax' 'unzip' 'patch' 'wget' 'xz' 'nasm' 'gperf' 'autogen')
   # libtool check is wonky...
   if [[ $OSTYPE == darwin* ]]; then
-    check_packages+=(glibtoolize) # homebrew special :|
+    check_packages += (glibtoolize) # homebrew special :|
   else
-    check_packages+=(libtoolize) # the rest of the world
+    check_packages += (libtoolize) # the rest of the world
   fi
 
   for package in "${check_packages[@]}"; do
@@ -700,15 +700,15 @@ build_openssl-1.0.2() {
     export RANLIB="${cross_prefix}ranlib"
     local config_options="--prefix=$mingw_w64_x86_64_prefix zlib "
     if [ "$1" = "dllonly" ]; then
-      config_options+="shared "
+      config_options += "shared "
     else
-      config_options+="no-shared no-dso "
+      config_options += "no-shared no-dso "
     fi
     if [ "$bits_target" = "32" ]; then
-      config_options+="mingw" # Build shared libraries ('libeay32.dll' and 'ssleay32.dll') if "dllonly" is specified.
+      config_options += "mingw" # Build shared libraries ('libeay32.dll' and 'ssleay32.dll') if "dllonly" is specified.
       local arch=x86
     else
-      config_options+="mingw64" # Build shared libraries ('libeay64.dll' and 'ssleay64.dll') if "dllonly" is specified.
+      config_options += "mingw64" # Build shared libraries ('libeay64.dll' and 'ssleay64.dll') if "dllonly" is specified.
       local arch=x86_64
     fi
     do_configure "$config_options" ./Configure
@@ -744,18 +744,18 @@ build_openssl-1.1.0() {
     export RANLIB="${cross_prefix}ranlib"
     local config_options="--prefix=$mingw_w64_x86_64_prefix zlib "
     if [ "$1" = "dllonly" ]; then
-      config_options+="shared no-engine "
+      config_options += "shared no-engine "
     else
-      config_options+="no-shared no-dso no-engine "
+      config_options += "no-shared no-dso no-engine "
     fi
     if [[ `uname` =~ "5.1" ]] || [[ `uname` =~ "6.0" ]]; then
-      config_options+="no-async " # "Note: on older OSes, like CentOS 5, BSD 5, and Windows XP or Vista, you will need to configure with no-async when building OpenSSL 1.1.0 and above. The configuration system does not detect lack of the Posix feature on the platforms." (https://wiki.openssl.org/index.php/Compilation_and_Installation)
+      config_options += "no-async " # "Note: on older OSes, like CentOS 5, BSD 5, and Windows XP or Vista, you will need to configure with no-async when building OpenSSL 1.1.0 and above. The configuration system does not detect lack of the Posix feature on the platforms." (https://wiki.openssl.org/index.php/Compilation_and_Installation)
     fi
     if [ "$bits_target" = "32" ]; then
-      config_options+="mingw" # Build shared libraries ('libcrypto-1_1.dll' and 'libssl-1_1.dll') if "dllonly" is specified.
+      config_options += "mingw" # Build shared libraries ('libcrypto-1_1.dll' and 'libssl-1_1.dll') if "dllonly" is specified.
       local arch=x86
     else
-      config_options+="mingw64" # Build shared libraries ('libcrypto-1_1-x64.dll' and 'libssl-1_1-x64.dll') if "dllonly" is specified.
+      config_options += "mingw64" # Build shared libraries ('libcrypto-1_1-x64.dll' and 'libssl-1_1-x64.dll') if "dllonly" is specified.
       local arch=x86_64
     fi
     do_configure "$config_options" ./Configure
@@ -1290,11 +1290,11 @@ build_libx265() {
 
   local cmake_params="-DENABLE_SHARED=0 -DENABLE_CLI=0" # Library only.
   if [ "$bits_target" = "32" ]; then
-    cmake_params+=" -DWINXP_SUPPORT=1" # enable windows xp/vista compatibility in x86 build
+    cmake_params += " -DWINXP_SUPPORT=1" # enable windows xp/vista compatibility in x86 build
     cmake_params="$cmake_params -DENABLE_ASSEMBLY=OFF" # apparently required or build fails
   fi
   if [[ $high_bitdepth == "y" ]]; then
-    cmake_params+=" -DHIGH_BIT_DEPTH=1" # Enable 10 bits (main10) and 12 bits (???) per pixels profiles.
+    cmake_params += " -DHIGH_BIT_DEPTH=1" # Enable 10 bits (main10) and 12 bits (???) per pixels profiles.
   fi
 
   do_cmake "$cmake_params"
@@ -1350,13 +1350,13 @@ build_libx264() {
 
     local configure_flags="--host=$host_target --enable-static --cross-prefix=$cross_prefix --prefix=$mingw_w64_x86_64_prefix --enable-strip --disable-cli" # --enable-win32thread --enable-debug is another useful option here? # Library only.
     if [[ $build_x264_with_libav == "n" ]]; then
-      configure_flags+=" --disable-lavf" # lavf stands for libavformat, there is no --enable-lavf option, either auto or disable...
+      configure_flags += " --disable-lavf" # lavf stands for libavformat, there is no --enable-lavf option, either auto or disable...
     fi
     if [[ $high_bitdepth == "y" ]]; then
-      configure_flags+=" --bit-depth=10" # Enable 10 bits (main10) per pixels profile. possibly affects other profiles as well (?)
+      configure_flags += " --bit-depth=10" # Enable 10 bits (main10) per pixels profile. possibly affects other profiles as well (?)
     fi
     for i in $CFLAGS; do
-      configure_flags+=" --extra-cflags=$i" # needs it this way seemingly :|
+      configure_flags += " --extra-cflags=$i" # needs it this way seemingly :|
     done
 
     if [[ $x264_profile_guided = y ]]; then
@@ -1636,23 +1636,23 @@ build_ffmpeg() {
     output_dir="ffmpeg_git"
   fi
   if [[ "$non_free" = "y" ]]; then
-    output_dir+="_with_fdk_aac"
+    output_dir += "_with_fdk_aac"
   fi
   if [[ $high_bitdepth == "y" ]]; then
-    output_dir+="_x26x_high_bitdepth"
+    output_dir += "_x26x_high_bitdepth"
   fi
   if [[ $build_intel_qsv == "n" ]]; then
-    output_dir+="_xp_compat"
+    output_dir += "_xp_compat"
   fi
   if [[ $enable_gpl == 'n' ]]; then
-    output_dir+="_lgpl"
+    output_dir += "_lgpl"
   fi
 
   local postpend_configure_opts=""
 
   # can't mix and match --enable-static --enable-shared unfortunately, or the final executable seems to just use shared if the're both present
   if [[ $1 == "shared" ]]; then
-    output_dir+="_shared"
+    output_dir += "_shared"
     postpend_configure_opts="--enable-shared --disable-static --prefix=$(pwd)/${output_dir}"
   else
     postpend_configure_opts="--enable-static --disable-shared --prefix=$mingw_w64_x86_64_prefix"
@@ -1661,11 +1661,6 @@ build_ffmpeg() {
   do_git_checkout https://github.com/FFmpeg/FFmpeg.git $output_dir $ffmpeg_git_checkout_version
   cd $output_dir
     apply_patch file://$patch_dir/frei0r_load-shared-libraries-dynamically.diff
-    if [[ ! -f configure.bak ]]; then # Changes being made to 'configure' are done with 'sed', because 'configure' gets updated a lot.
-      sed -i "/enabled libtwolame/s/&&$/-DLIBTWOLAME_STATIC \&\& add_cppflags -DLIBTWOLAME_STATIC \&\&/;/enabled libmodplug/s/.*/& -DMODPLUG_STATIC \&\& add_cppflags -DMODPLUG_STATIC/;/enabled libcaca/s/.*/& -DCACA_STATIC \&\& add_cppflags -DCACA_STATIC/" configure # Add '-Dxxx_STATIC' to LibTwoLAME, LibModplug and Libcaca. FFmpeg should change this upstream, just like they did with libopenjpeg.
-      # Alternative to 'do_configure "... --extra-cflags=-DLIBTWOLAME_STATIC --extra-cflags=-DMODPLUG_STATIC --extra-cflags=-DCACA_STATIC"'.
-      sed -i.bak "s/ install-data//" Makefile # Binary only (don't install 'DATA_FILES' and 'EXAMPLES_FILES').
-    fi
 
     if [ "$bits_target" = "32" ]; then
       local arch=x86
@@ -1675,29 +1670,34 @@ build_ffmpeg() {
 
     init_options="--arch=$arch --target-os=mingw32 --cross-prefix=$cross_prefix --pkg-config=pkg-config --pkg-config-flags=--static --extra-version=Reino --enable-gray --enable-version3 --disable-debug --disable-doc --disable-htmlpages --disable-manpages --disable-podpages --disable-txtpages --disable-w32threads"
     if [[ `uname` =~ "5.1" ]]; then
-      init_options+=" --disable-schannel"
+      init_options += " --disable-schannel"
       # Fix WinXP incompatibility by disabling Microsoft's Secure Channel, because Windows XP doesn't support TLS 1.1 and 1.2, but with GnuTLS or OpenSSL it does. The main reason I started this journey!
     fi
     config_options="$init_options --enable-fontconfig --enable-gmp --enable-gnutls --enable-libass --enable-libbluray --enable-libbs2b --enable-libcaca --enable-libflite --enable-libfreetype --enable-libfribidi --enable-libgme --enable-libgsm --enable-libilbc --enable-libmodplug --enable-libmp3lame --enable-libmysofa --enable-libopencore-amrnb --enable-libopencore-amrwb --enable-libopenh264 --enable-libopenjpeg --enable-libopus --enable-libsnappy --enable-libsoxr --enable-libspeex --enable-libtheora --enable-libtwolame --enable-libvo-amrwbenc --enable-libvorbis --enable-libvpx --enable-libwebp --enable-libzimg --enable-libzvbi"
     # With the changes being made to 'configure' above and with '--pkg-config-flags=--static' there's no need anymore for '--extra-cflags=' and '--extra-libs='.
+    if [[ ! -f configure.bak ]]; then # Changes being made to 'configure' are done with 'sed', because 'configure' gets updated a lot.
+      sed -i "/enabled libtwolame/s/&&$/-DLIBTWOLAME_STATIC \&\& add_cppflags -DLIBTWOLAME_STATIC \&\&/;/enabled libmodplug/s/.*/& -DMODPLUG_STATIC \&\& add_cppflags -DMODPLUG_STATIC/;/enabled libcaca/s/.*/& -DCACA_STATIC \&\& add_cppflags -DCACA_STATIC/" configure # Add '-Dxxx_STATIC' to LibTwoLAME, LibModplug and Libcaca. FFmpeg should change this upstream, just like they did with libopenjpeg.
+      # Alternative to 'do_configure "... --extra-cflags=-DLIBTWOLAME_STATIC --extra-cflags=-DMODPLUG_STATIC --extra-cflags=-DCACA_STATIC"'.
+      sed -i.bak "s/ install-data//" Makefile # Binary only (don't install 'DATA_FILES' and 'EXAMPLES_FILES').
+    fi
     if [[ $enable_gpl == 'y' ]]; then
-      config_options+=" --enable-gpl --enable-avisynth --enable-frei0r --enable-filter=frei0r --enable-librubberband --enable-libvidstab --enable-libx264 --enable-libx265 --enable-libxavs --enable-libxvid"
+      config_options += " --enable-gpl --enable-avisynth --enable-frei0r --enable-filter=frei0r --enable-librubberband --enable-libvidstab --enable-libx264 --enable-libx265 --enable-libxavs --enable-libxvid"
     fi
     # other possibilities (you'd need to also uncomment the call to their build method):
     #   --enable-w32threads # [worse UDP than pthreads, so not using that]
     if [[ $build_intel_qsv = y ]]; then
-      config_options+=" --enable-libmfx" # [note, not windows xp friendly]
+      config_options += " --enable-libmfx" # [note, not windows xp friendly]
     fi
-    config_options+=" --enable-avresample" # guess this is some kind of libav specific thing (the FFmpeg fork) but L-Smash needs it so why not always build it :)
+    config_options += " --enable-avresample" # guess this is some kind of libav specific thing (the FFmpeg fork) but L-Smash needs it so why not always build it :)
 
     for i in $CFLAGS; do
-      config_options+=" --extra-cflags=$i" # --extra-cflags may not be needed here, but adds it to the final console output which I like for debugging purposes
+      config_options += " --extra-cflags=$i" # --extra-cflags may not be needed here, but adds it to the final console output which I like for debugging purposes
     done
 
-    config_options+=" $postpend_configure_opts"
+    config_options += " $postpend_configure_opts"
 
     if [[ "$non_free" = "y" ]]; then
-      config_options+=" --enable-nonfree --enable-decklink --enable-libfdk-aac"
+      config_options += " --enable-nonfree --enable-decklink --enable-libfdk-aac"
       # other possible options: --enable-openssl [unneeded since we use gnutls]
     fi
     #apply_patch file://$patch_dir/nvresize2.patch "-p1" # uncomment if you want to test nvresize filter [et al] http://ffmpeg.org/pipermail/ffmpeg-devel/2015-November/182781.html patch worked with 7ab37cae34b3845
@@ -1705,11 +1705,11 @@ build_ffmpeg() {
     do_debug_build=n # if you need one for backtraces/examining segfaults using gdb.exe ... change this to y :) XXXX make it affect x264 too...and make it param
     if [[ "$do_debug_build" = "y" ]]; then
       # not sure how many of these are actually needed/useful...possibly none LOL
-      config_options+=" --disable-optimizations --extra-cflags=-Og --extra-cflags=-fno-omit-frame-pointer --enable-debug=3 --extra-cflags=-fno-inline $postpend_configure_opts"
+      config_options += " --disable-optimizations --extra-cflags=-Og --extra-cflags=-fno-omit-frame-pointer --enable-debug=3 --extra-cflags=-fno-inline $postpend_configure_opts"
       # this one kills gdb workability for static build? ai ai [?] XXXX
-      config_options+=" --disable-libgme"
+      config_options += " --disable-libgme"
     fi
-    config_options+=" $extra_postpend_configure_options"
+    config_options += " $extra_postpend_configure_options"
 
     do_configure "$config_options"
     rm -f */*.a */*.dll *.exe # just in case some dependency library has changed, force it to re-link even if the ffmpeg source hasn't changed...
@@ -1744,7 +1744,7 @@ build_ffmpeg() {
       mkdir -p $cur_dir/redist
       archive="$cur_dir/redist/ffmpeg-$(git describe --tags --match N)-win$bits_target-$1"
       if [[ $original_cflags =~ "pentium3" ]]; then
-        archive+="_legacy"
+        archive += "_legacy"
       fi
       if [[ $1 == "shared" ]]; then
         echo "Done! You will find $bits_target-bit $1 binaries in $(pwd)/bin."
