@@ -895,7 +895,9 @@ build_twolame() {
     if [[ ! -f Makefile.am.bak ]]; then # Library only.
       sed -i.bak "/^SUBDIRS/s/ frontend.*//" Makefile.am
     fi
+    cpu_count=1 # maybe can't handle it http://betterlogic.com/roger/2017/07/mp3lame-woe/ comments
     generic_configure_make_install
+    cpu_count=$original_cpu_count
   cd ..
 }
 
