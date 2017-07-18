@@ -1882,7 +1882,7 @@ build_apps() {
 
 # set some parameters initial values
 cur_dir="$(pwd)/sandbox"
-patch_dir="$(pwd)/../../../patches"
+patch_dir="$(pwd)/patches"
 cpu_count="$(grep -c processor /proc/cpuinfo 2>/dev/null)" # linux cpu count
 if [ -z "$cpu_count" ]; then
   cpu_count=`sysctl -n hw.ncpu | tr -d '\n'` # OS X
