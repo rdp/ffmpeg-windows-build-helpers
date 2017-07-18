@@ -471,11 +471,11 @@ generic_configure_make_install() {
 
 gen_ld_script() {
   lib=$mingw_w64_x86_64_prefix/lib/$1
-  lib_s="${1:3:-2}_s"
+  lib_s="$2"
   if [[ ! -f $mingw_w64_x86_64_prefix/lib/lib$lib_s.a ]]; then
-    echo "Generating linker script $lib: $2"
+    echo "Generating linker script $lib: $2 $3"
     mv -f $lib $mingw_w64_x86_64_prefix/lib/lib$lib_s.a
-    echo "GROUP ( -l$lib_s $2 )" > $lib
+    echo "GROUP ( -l$lib_s $3 )" > $lib
   fi
 }
 
@@ -487,7 +487,7 @@ build_dlfcn() {
     fi
     do_configure "--prefix=$mingw_w64_x86_64_prefix --cross-prefix=$cross_prefix" # rejects some normal cross compile options so custom here
     do_make_and_make_install
-    gen_ld_script libdl.a -lpsapi # dlfcn-win32's 'README.md': "If you are linking to the static 'dl.lib' or 'libdl.a', then you would need to explicitly add 'psapi.lib' or '-lpsapi' to your linking command, depending on if MinGW is used."
+    gen_ld_script libdl.a dl_s -lpsapi # dlfcn-win32's 'README.md': "If you are linking to the static 'dl.lib' or 'libdl.a', then you would need to explicitly add 'psapi.lib' or '-lpsapi' to your linking command, depending on if MinGW is used."
   cd ..
 }
 
