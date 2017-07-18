@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # ffmpeg windows cross compile helper/download script, see github repo README
 # Copyright (C) 2012 Roger Pack, the script is under the GPLv3, but output FFmpeg's executables aren't
-set -x
+# set -x
 
 yes_no_sel () {
   unset user_input
@@ -429,7 +429,7 @@ download_and_unpack_file() {
     #  this option tells curl to resolve names to IPv4 addresses only.
     #  avoid a "network unreachable" error in certain [broken Ubuntu] configurations a user ran into once
 
-    curl -4 "$url" --retry 50 -O -L --fail || (echo "unable to download $url" && exit 1) # -L means "allow redirection" or some odd :|
+    curl -4 "$url" --retry 50 -O -L --fail || echo "unable to download $url" # -L means "allow redirection" or some odd :| wasn't sure how to exit here so just let tar fail and exit on next line instead :|
     tar -xf "$output_name" || unzip "$output_name" || exit 1
     touch "$output_dir/unpacked.successfully" || exit 1
     rm "$output_name" || exit 1
