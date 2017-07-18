@@ -520,8 +520,7 @@ build_zlib() {
       sed -i.bak "/man3dir/d" Makefile.in
     fi
     do_configure "--prefix=$mingw_w64_x86_64_prefix --static"
-    #do_make_and_make_install "$make_prefix_options ARFLAGS=rcs" # What's 'ARFLAGS=rcs' needed for?
-    do_make_and_make_install "$make_prefix_options"
+    do_make_and_make_install "$make_prefix_options ARFLAGS=rcs" # ARFLAGS Avoid failure in OS X
   cd ..
 }
 
