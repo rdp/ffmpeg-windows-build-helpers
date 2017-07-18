@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # ffmpeg windows cross compile helper/download script, see github repo README
 # Copyright (C) 2012 Roger Pack, the script is under the GPLv3, but output FFmpeg's executables aren't
+set -x
 
 yes_no_sel () {
   unset user_input
@@ -428,7 +429,7 @@ download_and_unpack_file() {
     #  this option tells curl to resolve names to IPv4 addresses only.
     #  avoid a "network unreachable" error in certain [broken Ubuntu] configurations a user ran into once
 
-    curl -4 "$url" --retry 50 -O -L --fail || exit 1 # -L means "allow redirection" or some odd :|
+    curl -4 "$url" --retry 50 -O -L --fail || (echo "unable to download $url" && exit 1) # -L means "allow redirection" or some odd :|
     tar -xf "$output_name" || unzip "$output_name" || exit 1
     touch "$output_dir/unpacked.successfully" || exit 1
     rm "$output_name" || exit 1
@@ -1149,13 +1150,19 @@ build_zvbi() {
 }
 
 build_fribidi() {
-  do_git_checkout https://github.com/behdad/fribidi.git
-  cd fribidi_git
-    if [[ ! -f Makefile.am.bak ]]; then # Library only and disable regeneration of 'configure' (which screws with the CPPFLAGS).
-      sed -i.bak "s/ bin.*//;40s/ \\\//;41d" Makefile.am
-    fi
-    generic_configure "--disable-debug --disable-deprecated"
-    do_make_and_make_install
+  #do_git_checkout https://github.com/behdad/fribidi.git # needs wine?
+  #cd fribidi_git
+  #  if [[ ! -f Makefile.am.bak ]]; then # Library only and disable regeneration of 'configure' (which screws with the CPPFLAGS).
+  #    sed -i.bak "s/ bin.*//;40s/ \\\//;41d" Makefile.am
+  #  fi
+  #  generic_configure "--disable-debug --disable-deprecated"
+  #  do_make_and_make_install
+  #cd ..
+  download_and_unpack_file https://www.fribidi.org/download/fribidi-0.19.7.tar.bz2
+  cd fribidi-0.19.7
+    # make it export symbols right...
+    apply_patch https://raw.githubusercontent.com/rdp/ffmpeg-windows-build-helpers/master/patches/fribidi.diff # still needed?
+    generic_configure_make_install
   cd ..
 }
 
