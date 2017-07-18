@@ -1092,7 +1092,7 @@ build_frei0r() {
       local arch=x86_64
     fi
     archive="$cur_dir/redist/frei0r-plugins-${arch}-$(git describe --tags).7z"
-    if [[ ! -f $archive ]]; then
+    if [[ ! -f "$archive.done" ]]; then
       for sharedlib in $mingw_w64_x86_64_prefix/lib/frei0r-1/*.dll; do
         ${cross_prefix}strip $sharedlib
       done
@@ -1100,6 +1100,7 @@ build_frei0r() {
         sed "s/$/\r/" $doc > $mingw_w64_x86_64_prefix/lib/frei0r-1/$doc.txt
       done
       7z a -mx=9 $archive $mingw_w64_x86_64_prefix/lib/frei0r-1 && rm -f $mingw_w64_x86_64_prefix/lib/frei0r-1/*.txt
+      touch "$archive.done" # for those with no 7z so it won't restrip every time
     fi
   cd ..
 }
@@ -1151,6 +1152,7 @@ build_zvbi() {
   download_and_unpack_file https://sourceforge.net/projects/zapping/files/zvbi/0.2.35/zvbi-0.2.35.tar.bz2
   cd zvbi-0.2.35
     apply_patch file://$patch_dir/zvbi-win32.patch
+    apply_patch file://$patch_dir/zvbi-no-contrib.diff # weird issues with some stuff in contrib...
     #apply_patch file://$patch_dir/zvbi-ioctl.patch # Concerns 'contrib/ntsc-cc.c', but subdir 'contrib' doesn't get built, because it isn't needed for 'libzvbi.a'.
     if [[ ! -f Makefile.in.bak ]]; then # Library only.
       sed -i.bak "/^SUBDIRS/s/\\\/src/;/\tm4/,/\tdoc/d" Makefile.in
