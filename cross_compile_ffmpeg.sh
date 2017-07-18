@@ -194,7 +194,7 @@ install_cross_compiler() {
       fi
       nice ./$zeranoe_script_name $zeranoe_script_options --build-type=win32 || exit 1
       if [[ ! -f ../$win32_gcc ]]; then
-        echo "Failure building 32 bit gcc? Recommend nuke sandbox (rm -fr sandbox) and start over..."
+        echo "Failure building 32 bit gcc? Recommend nuke sandbox (rm -rf sandbox) and start over..."
         exit 1
       fi
     fi
@@ -203,7 +203,7 @@ install_cross_compiler() {
       download_gcc_build_script $zeranoe_script_name
       nice ./$zeranoe_script_name $zeranoe_script_options --build-type=win64 || exit 1
       if [[ ! -f ../$win64_gcc ]]; then
-        echo "Failure building 64 bit gcc? Recommend nuke sandbox (rm -fr sandbox) and start over..."
+        echo "Failure building 64 bit gcc? Recommend nuke sandbox (rm -rf sandbox) and start over..."
         exit 1
       fi
     fi
@@ -247,7 +247,7 @@ do_git_checkout() {
   local desired_branch="$3"
   if [ ! -d $to_dir ]; then
     echo "Downloading (via git clone) $to_dir from $repo_url"
-    rm -fr $to_dir.tmp # just in case it was interrupted previously...
+    rm -rf $to_dir.tmp # just in case it was interrupted previously...
     git clone $repo_url $to_dir.tmp || exit 1
     # prevent partial checkouts by renaming it only after success
     mv $to_dir.tmp $to_dir
@@ -1467,7 +1467,7 @@ build_dvbtee_app() {
   cd libdvbtee_git
     # checkout its submodule, apparently required
     if [ ! -e libdvbpsi/bootstrap ]; then
-      rm -fr libdvbpsi # remove placeholder
+      rm -rf libdvbpsi # remove placeholder
       do_git_checkout https://github.com/mkrufky/libdvbpsi.git
       cd libdvbpsi_git
         generic_configure_make_install # library dependency submodule... TODO don't install it, just leave it local :)
