@@ -1,0 +1,19 @@
+--- zvbi-0.2.35/Makefile.in	2013-08-28 14:24:12.000000000 +0000
++++ zvbi-0.2.35.good/Makefile.in	2017-07-18 21:16:34.704726895 +0000
+@@ -263,15 +263,7 @@
+ DISTCLEANFILES = site_def.h
+ 
+ # Attn order matters.
+-SUBDIRS = \
+-	m4 \
+-	src \
+-	$(proxy_dirs) \
+-	contrib \
+-	examples \
+-	test \
+-	po \
+-	doc
++SUBDIRS = src
+ 
+ ACLOCAL_AMFLAGS = -I m4
+ pkgconfigdir = $(libdir)/pkgconfig

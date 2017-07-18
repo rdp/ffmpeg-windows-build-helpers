@@ -1664,7 +1664,6 @@ build_ffmpeg() {
 
   do_git_checkout https://github.com/FFmpeg/FFmpeg.git $output_dir $ffmpeg_git_checkout_version
   cd $output_dir
-    git clean -f # Throw away local changes; 'already_*', diff-, done- and bak-files. Somehow the patched files get back to their original state when doing a rerun.
     apply_patch file://$patch_dir/libfdk-aac_load-shared-library-dynamically.diff
     apply_patch file://$patch_dir/frei0r_load-shared-libraries-dynamically.diff
     if [[ ! -f configure.bak ]]; then # Changes being made to 'configure' are done with 'sed', because 'configure' gets updated a lot.
