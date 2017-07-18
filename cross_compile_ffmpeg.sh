@@ -643,9 +643,9 @@ build_libxml2() {
 build_fontconfig() {
   download_and_unpack_file https://www.freedesktop.org/software/fontconfig/release/fontconfig-2.12.4.tar.gz
   cd fontconfig-2.12.4
-    if [[ ! -f Makefile.in.bak ]]; then # Library only.
-      sed -i.bak "/^SUBDIRS/s/fc.*/src/;438,439d;/^install-data-am/s/:.*/: install-pkgconfigDATA/;/\tinstall-xmlDATA$/d" Makefile.in
-    fi
+    #if [[ ! -f Makefile.in.bak ]]; then # Library only. fails with older sed [OS x]
+    #  sed -i.bak "/^SUBDIRS/s/fc.*/src/;438,439d;/^install-data-am/s/:.*/: install-pkgconfigDATA/;/\tinstall-xmlDATA$/d" Makefile.in
+    #fi
     #export CFLAGS= # compile fails with -march=sandybridge ... with mingw 4.0.6 at least ...
     generic_configure "--enable-iconv --enable-libxml2 --disable-docs --with-libiconv" # Use Libxml2 instead of Expat.
     do_make_and_make_install
