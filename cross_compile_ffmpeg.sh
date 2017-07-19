@@ -1725,7 +1725,8 @@ set -x
     rm -f */*.a */*.dll *.exe # just in case some dependency library has changed, force it to re-link even if the ffmpeg source hasn't changed...
     rm -f already_ran_make*
     echo "doing ffmpeg make $(pwd)"
-    do_make_and_make_install # install ffmpeg to get libavcodec libraries to be used as dependencies for other things, like vlc [XXX make this a parameter?] or install shared to a local dir
+
+    do_make_and_make_install # install ffmpeg as well (for shared, to separate out the .dll's, for things that depend on it like VLC, to create static libs)
 
     # build ismindex.exe, too, just for fun
     if [[ $build_ismindex == "y" ]]; then
