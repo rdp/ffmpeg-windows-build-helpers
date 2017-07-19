@@ -1733,9 +1733,9 @@ build_ffmpeg() {
 
     if [[ $non_free == "y" ]]; then
       if [[ $1 == "shared" ]]; then
-        echo "Done! You will find $bits_target-bit $1 non-redistributable binaries in $(pwd)/bin."
+        echo "Done! You will find $bits_target-bit $1 non-redistributable binaries in $(pwd)/bin"
       else
-        echo "Done! You will find $bits_target-bit $1 non-redistributable binaries in $(pwd)."
+        echo "Done! You will find $bits_target-bit $1 non-redistributable binaries in $(pwd)"
       fi
     else
       mkdir -p $cur_dir/redist
