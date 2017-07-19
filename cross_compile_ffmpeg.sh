@@ -908,21 +908,7 @@ build_fdk-aac() {
     if [[ ! -f "configure" ]]; then
       autoreconf -fiv || exit 1
     fi
-    do_configure "--host=$host_target --prefix=$mingw_w64_x86_64_prefix --disable-static" # Build shared library ('libfdk-aac-1.dll').
-    do_make_and_make_install
-
-    mkdir -p $cur_dir/redist # Strip and pack shared library.
-    if [ $bits_target = 32 ]; then
-      local arch=x86
-    else
-      local arch=x86_64
-    fi
-    archive="$cur_dir/redist/libfdk-aac-${arch}-$(git describe --tags).7z"
-    if [[ ! -f $archive ]]; then
-      ${cross_prefix}strip $mingw_w64_x86_64_prefix/bin/libfdk-aac-1.dll
-      sed "s/$/\r/" NOTICE > NOTICE.txt
-      7z a -mx=9 $archive $mingw_w64_x86_64_prefix/bin/libfdk-aac-1.dll NOTICE.txt && rm -f NOTICE.txt
-    fi
+    generic_configure_make_install
   cd ..
 }
 
