@@ -1078,7 +1078,7 @@ build_libsamplerate() {
 build_librubberband() {
   do_git_checkout https://github.com/breakfastquay/rubberband.git
   cd rubberband_git
-    apply_patch file://$patch_dir/rubberband_git_static-lib.diff
+    apply_patch file://$patch_dir/rubberband_git_static-lib.diff # create install-static target
     do_configure "--host=$host_target --prefix=$mingw_w64_x86_64_prefix"
     do_make "install-static" # No need for 'do_make_install', because 'install-static' already has install-instructions.
     sed -i.bak 's/-lrubberband *$/-lrubberband -lfftw3 -lsamplerate -lstdc++/' $PKG_CONFIG_PATH/rubberband.pc
