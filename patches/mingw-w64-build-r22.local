@@ -669,6 +669,7 @@ cd "$mingw_w64_prefix" || print_error
 ln -s "./$mingw_w64_target" './mingw'
 
 case "$gcc_ver" in
+  "svn" ) isl_ver="$isl_release_ver" ;;
   $gcc_release_ver ) isl_ver="$isl_release_ver" ;;
   $gcc_old_release_ver ) isl_ver='0.12.2'; cloog_ver='0.18.1';  cloog_prefix="$pkgs_dir/cloog/cloog-$cloog_ver-$uname_m" ;;
 esac
