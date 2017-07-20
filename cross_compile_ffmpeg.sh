@@ -1307,6 +1307,7 @@ build_libopenh264() {
     if [[ ! -f Makefile.bak ]]; then # Change CFLAGS and Library only.
       sed -i.bak "s/O3/O2/;/^all:/s/ binaries//" Makefile
     fi
+    sed -i.bak "s/_M_X64/_M_DISABLED_X64/" codec/encoder/core/inc/param_svc.h # for 64 bit, avoid missing _set_FMA3_enable, it needed to link against msvcrt120 to get this or something weird?
     if [ $bits_target = 32 ]; then
       local arch=i686 # or x86?
     else
