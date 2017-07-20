@@ -709,6 +709,9 @@ create_pkg_dirs 'gcc'
 cd "$pkgs_dir/gcc/source" || print_error
 if [[ "$gcc_ver" != 'svn' ]]; then
   download_extract "http://ftp.gnu.org/gnu/gcc/gcc-$gcc_ver/gcc-$gcc_ver.tar.bz2" "ftp://ftp.gnu.org/gnu/gcc/gcc-$gcc_ver/gcc-$gcc_ver.tar.bz2"
+  if [[ "$gcc_ver" == "7.1.0" ]]; then # others could probably use it as well :|
+    wget https://raw.githubusercontent.com/gcc-mirror/gcc/f47fc7ef7f52cd095e636d4f93cca052427f3f0a/libstdc%2B%2B-v3/config/os/mingw32-w64/os_defines.h --output-document=gcc-7.1.0/libstdc++-v3/config/os/mingw32-w64/os_defines.h
+  fi
 else
   if cd 'gcc-svn' 2>/dev/null; then
     build_progress 'gcc-svn' 'Updating'
