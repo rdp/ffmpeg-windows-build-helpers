@@ -17,7 +17,7 @@ Obtain the repository by downloading and unzipping the archive below:
        
 https://github.com/rdp/ffmpeg-windows-build-helpers/archive/master.zip
        
-Or, if you have git installed, clone the repository: 
+Or, if you have git installed, clone the repository instead of downloading the zip, ex: 
 
      c:\>git clone https://github.com/rdp/ffmpeg-windows-build-helpers.git
        
@@ -37,13 +37,6 @@ Download the script by cloning this repository via git:
     $ git clone https://github.com/rdp/ffmpeg-windows-build-helpers.git
     $ cd ffmpeg-windows-build-helpers
 
-Or do the following in a bash prompt instead of git clone:
-
-    $ mkdir ffmpeg_build
-    $ cd ffmpeg_build
-    $ wget https://raw.github.com/rdp/ffmpeg-windows-build-helpers/master/cross_compile_ffmpeg.sh -O cross_compile_ffmpeg.sh
-    $ chmod u+x cross_compile_ffmpeg.sh
-    
  Now run the script:
     
     $ ./cross_compile_ffmpeg.sh
@@ -55,9 +48,9 @@ Another option instead of running `./cross_compile_ffmpeg.sh` is to run
 
     $ native_build/quick_cross_compile_ffmpeg_fdk_aac_and_x264_using_packaged_mingw64.sh script.
 
-Note the "quick" part here which attempts to use the locally installed `mingw-w64` package from the distribution for the cross compiler, thus skipping the time-intensive cross-compiler toolchain build step.
+Note the "quick" part here which attempts to use the locally installed `mingw-w64` package from your distribution for the cross compiler, thus skipping the time-intensive cross-compiler toolchain build step.  It's not as well tested as running the normal one, however, which builds gcc from scratch.
 
-For Mac OSX users, simply follow the instructions for Linux above. The cross-compilation will work just fine.
+For Mac OSX users, simply follow the instructions for Linux above.
 
 To view additional arguments and options supported by the script, run:
 
