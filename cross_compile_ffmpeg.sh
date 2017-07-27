@@ -1019,9 +1019,8 @@ build_libsnappy() {
     if [[ ! -f Makefile.am.bak ]]; then # Library only.
       sed -i.bak "/# Unit/,+7d;/^dist/s/=.*/=/" Makefile.am
     fi
-    generic_configure
-    touch ./README # OS X needed this for reinstall :| unfortunately on linux it still fails, weird
-    do_make_and_make_install
+    apply_patch https://raw.githubusercontent.com/DeadSix27/python_cross_compile_script/master/patches/snappy/0001-snappy-remove-tests-and-shared.patch -p1
+    do_cmake_and_install
   cd ..
 }
 
