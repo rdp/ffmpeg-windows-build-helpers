@@ -1014,13 +1014,13 @@ build_libflite() {
 }
 
 build_libsnappy() {
-  do_git_checkout https://github.com/google/snappy.git snappy_git a8b239c3de22b05c9f267940f3ee8df1a388f39b # work with patch
+  do_git_checkout https://github.com/google/snappy.git snappy_git
   cd snappy_git
     if [[ ! -f Makefile.am.bak ]]; then # Library only.
       sed -i.bak "/# Unit/,+7d;/^dist/s/=.*/=/" Makefile.am
     fi
-    apply_patch https://raw.githubusercontent.com/DeadSix27/python_cross_compile_script/master/patches/snappy/0001-snappy-remove-tests-and-shared.patch -p1
-    do_cmake_and_install
+    do_cmake_and_install "-DBUILD_SHARED_LIBS=OFF -DBUILD_BINARY=OFF -DCMAKE_BUILD_TYPE=Release -DSNAPPY_BUILD_TESTS=OFF" # extra params from deadsix27 and from new cMakeLists.txt content
+    rm -f $mingw_w64_x86_64_prefix/lib/libsnappy.dll.a # unintall shared :|
   cd ..
 }
 
