@@ -1048,14 +1048,16 @@ build_fftw() {
 }
 
 build_libsamplerate() {
-  do_git_checkout https://github.com/erikd/libsamplerate.git
-  cd libsamplerate_git
-    generic_configure
-    if [[ ! -f Makefile.bak ]]; then # Library only.
-      sed -i.bak "/^all-am/s/ \$(PROGRAMS)//;/install-data-am/s/ install-dist_htmlDATA//;/install-exec-am/s/ install-binPROGRAMS//" Makefile
-    fi
-    do_make_and_make_install
-  cd ..
+  # I think this didn't work with ubuntu 14.04 [too old automake or some odd] :|
+  #do_git_checkout https://github.com/erikd/libsamplerate.git
+  #cd libsamplerate_git
+  #  generic_configure
+  #  if [[ ! -f Makefile.bak ]]; then # Library only.
+  #    sed -i.bak "/^all-am/s/ \$(PROGRAMS)//;/install-data-am/s/ install-dist_htmlDATA//;/install-exec-am/s/ install-binPROGRAMS//" Makefile
+  #  fi
+  #  do_make_and_make_install
+  #cd ..
+  generic_download_and_make_and_install http://www.mega-nerd.com/SRC/libsamplerate-0.1.8.tar.gz # can use this, but uses speex bundled by default [any difference?]
 }
 
 build_librubberband() {
