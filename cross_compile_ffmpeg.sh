@@ -1014,7 +1014,7 @@ build_libflite() {
 }
 
 build_libsnappy() {
-  do_git_checkout https://github.com/google/snappy.git
+  do_git_checkout https://github.com/google/snappy.git snappy_git a8b239c3de22b05c9f267940f3ee8df1a388f39b # work with patch
   cd snappy_git
     if [[ ! -f Makefile.am.bak ]]; then # Library only.
       sed -i.bak "/# Unit/,+7d;/^dist/s/=.*/=/" Makefile.am
