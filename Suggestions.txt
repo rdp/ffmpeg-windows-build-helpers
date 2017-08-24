@@ -1,0 +1,39 @@
+In the video transcoding or for your dark collections, There are lots of thing to do.
+First of all, 
+
+
+Some upscaling recommendation for old publications
+ffmpeg -i input -crf 17 -vf "scale=1920x1080:flags=lanczos" -acodec flac -tune film -pix_fmt yuv420p10le output.mkv 
+
+If you know the being is a movie or an animation, you can try (in NTSC format, While PAL format may be 4 percent faster in picture part, 4 percent slower in audio, I need to re-check)
+
+
+Movie
+ffmpeg -i input -crf 17 -vf "detelecine, scale=1920x1080:flags=lanczos" -acodec flac -tune film -pix_fmt yuv420p10le output.mkv
+
+Animation (Typical)
+ffmpeg -i input -crf 17 -vf "detelecine, scale=1920x1080:flags=lanczos" -acodec flac -tune animation -pix_fmt yuv420p10le output.mkv
+
+Animation (Non-Regular)
+ffmpeg -i input -crf 17 -vf "yadif=0:-1:1,decimate, scale=1920x1080:flags=lanczos" -acodec flac -tune animation -pix_fmt yuv420p10le output.mkv
+
+
+TV
+ffmpeg -i input -crf 17 -vf "yadif=1, scale=1920x1080:flags=lanczos" -acodec flac -tune film -pix_fmt yuv420p10le output.mkv
+
+Of course, if you like to do slightly better, can do something like this below
+ffmpeg -i input -crf 17 -vf "yadif=1, scale=1920x1080:flags=lanczos" -acodec flac -tune film -level 4.2 -pix_fmt yuv420p10le output.mkv
+
+The above is what I have been using when dealing with some content required since for progression, have to consider smoothness since for video production, most of things are captured in 24 fps or 23.976 fps while for TV , could be in 50 fps or 60 fps (just like youtube as you can tune the feel afterwards and suit for physical things). I have been seeing many bad transcoded and some supplier like youtube, pointing they are wrong so they give you actual 50fps and 60fps flavor.
+
+
+The above depends on content, For most of animations, or anime in short, Most of known publications in 23.976 fps or 24 fps. Some publication may need to crop some black bar before transcoding since there may be bad mastering.
+
+What does the script do?
+High precision transcoding with same colorspace, the default script is able to handle 10-bit x264, 10-bit x265 and 12-bit vp9 (But I drop x265 encoding function entirely because of silly smoke but the x264 is not) if you selected --high-bitdepth=y , and using something like -pix_fmt yuv420p10le or -pix_fmt yuv420p12le, you shall get a better transcoding result. It is believed I have put at least 15% higher quality but with the same size. 
+
+Which function I shall use?
+Try using vp9 when available. The script may be able to do 12-bit x265 but the author thinks the codec is gibberish so only 10-bit included. If AV1 was finalized, then most of my collections (Dark?) will be on AV1
+
+
+
