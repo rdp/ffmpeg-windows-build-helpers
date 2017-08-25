@@ -58,21 +58,15 @@ IF NOT EXIST ffmpeg_local_builds\cygwin_local_install (
 )
 ECHO.
 REM want wget etc. so override path here by prepending. Probably need/want to do this anyway...
-REM since we're messing with the PATH
+REM   since we're messing with the PATH
 SET PATH=%cd%\ffmpeg_local_builds\cygwin_local_install\bin;%PATH%
 
 CD ffmpeg_local_builds
 
 IF NOT EXIST cross_compile_ffmpeg.sh (
-	.\cygwin_local_install\bin\bash.exe -c "wget https://raw.githubusercontent.com/Reino17/ffmpeg-windows-build-helpers/master/cross_compile_ffmpeg.sh -O cross_compile_ffmpeg.sh"
-	.\cygwin_local_install\bin\bash.exe -c "chmod u+x ./cross_compile_ffmpeg.sh"
-) ELSE (
-	SET /P "update=Would you like to update the current 'cross_compile_ffmpeg.sh' [Y/n]?"
-	IF /I NOT "!update!"=="n" (
-		.\cygwin_local_install\bin\bash.exe -c "wget https://raw.githubusercontent.com/Reino17/ffmpeg-windows-build-helpers/master/cross_compile_ffmpeg.sh -O cross_compile_ffmpeg.sh"
-		.\cygwin_local_install\bin\bash.exe -c "chmod u+x ./cross_compile_ffmpeg.sh"
-	)
+	.\cygwin_local_install\bin\bash.exe -c "cp ../../cross_compile_ffmpeg.sh ."
 )
+
 ECHO.
 .\cygwin_local_install\bin\bash.exe -c "./cross_compile_ffmpeg.sh %1 %2 %3 %4 %5 %6 %7 %8 %9"
 
