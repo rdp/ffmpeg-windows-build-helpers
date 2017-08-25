@@ -1,3 +1,9 @@
+Please check release if you like to deploy FAST and Robust, I am here to help you to get suitable, trying to reduce junk encoders as many as possible...
+
+KONYZULPHREA (READ as KONYZULFUREA)
+25 August 2017
+
+
 ffmpeg-windows-build-helpers
 ============================
 
