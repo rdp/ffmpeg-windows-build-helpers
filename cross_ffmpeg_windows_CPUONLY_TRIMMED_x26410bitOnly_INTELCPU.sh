@@ -1937,7 +1937,7 @@ build_intel_qsv=n #I dislike to mess up with the F-ing GPU
 #  build_intel_qsv=y
 #fi
 #disable_nonfree=n # have no value by default to force user selection
-original_cflags='-mtune=generic -O3' # high compatible by default, see #219, some other good options are listed below, or you could use -march=native to target your local box:
+original_cflags='-mtune=intel -O3' # high compatible by default, see #219, some other good options are listed below, or you could use -march=native to target your local box:
 # if you specify a march it needs to first so x264's configure will use it :| [ is that still the case ?]
 
 #flags=$(cat /proc/cpuinfo | grep flags)
