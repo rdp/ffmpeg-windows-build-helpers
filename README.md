@@ -1,10 +1,16 @@
 Please check release if you like to deploy FAST and Robust, I am here to help you to get suitable, trying to reduce junk encoders as many as possible...
 
+I also have some script which is a deploy ready, I only modify the encoder part as some people may only need few encoders to suit most of his needs, but the Zeranoe's seems general for some people.
+
+I also accept tipping, please tip some when you think useful. 
+
+For the tipping details, You can ask me via email address of polarhei -at- gmail -dot- com
+
 KONYZULPHREA (READ as KONYZULFUREA)
-25 August 2017
+26 August 2017
 
 
-ffmpeg-windows-build-helpers
+ffmpeg-windows-build-helpers (From orgininal authors, I can help you to test out, also can tune the neccessary components such as codecs and muxers. However I just barely am able to follow up, There are lots of work to do, It doesn't need much money to )
 ============================
 
 This helper script lets you cross compile a windows-based 32 or 64-bit version of ffmpeg/mplayer/mp4box.exe, etc,  including their dependencies and libraries that they use.
