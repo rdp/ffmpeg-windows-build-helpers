@@ -1,3 +1,22 @@
+32-bit Windows OS with x86 CPU
+only the encoders and the muxers are enabled, the other are in default
+
+encoders:
+x264
+vp9
+flac
+aac
+opus
+
+muxers
+ts
+mp4
+mkv
+
+KONYZULPHREA
+
+26 August 2017
+
 ffmpeg-windows-build-helpers
 ============================
 
