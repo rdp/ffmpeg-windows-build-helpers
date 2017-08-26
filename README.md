@@ -1,4 +1,4 @@
-32-bit Windows OS with x86 CPU
+Windows OS with x86 CPU
 only the encoders and the muxers are enabled, the other are in default
 
 encoders:
