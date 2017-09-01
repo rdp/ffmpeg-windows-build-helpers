@@ -1,6 +1,14 @@
-#ndows cross compile helper/download script, see github repo README
+#!/bin/bash
+#Windows cross compile helper/download script, see github repo README
 # Copyright (C) 2012 Roger Pack, the script is under the GPLv3, but output FFmpeg's executables aren't
 # set -x
+
+PKGNAME="ffmpeg-KONYZULPHREA Experiment"
+PKGVERSION="1.0.1"
+PKGSECTION="video"
+PKGAUTHOR="Kenneth Chu <polarhei@gmail.com>"
+PKGHOMEPAGE="https://github.com/konyzulphrea"
+
 
 yes_no_sel () {
   unset user_input
