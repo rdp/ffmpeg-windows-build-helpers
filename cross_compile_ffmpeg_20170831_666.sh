@@ -8,6 +8,7 @@ PKGVERSION="1.0.1"
 PKGSECTION="video"
 PKGAUTHOR="Kenneth Chu <polarhei@gmail.com>"
 PKGHOMEPAGE="https://github.com/konyzulphrea"
+PKGDESCRIPTION="Multimedia encoder Customized ffmpeg build for archival or for streaming because of banding or gradiant too much"
 
 
 yes_no_sel () {
