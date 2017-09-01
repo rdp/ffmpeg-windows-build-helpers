@@ -1288,7 +1288,7 @@ build_libx265() {
   fi
   if [[ $high_bitdepth == "y" ]]; then
     #cmake_params+=" -DHIGH_BIT_DEPTH=1" # Enable 10 bits (main10) and 12 bits (???) per pixels profiles.
-cmake_params+=" -DHIGH_BIT_DEPTH=1 -DMAIN12=ON -DENABLE_DYNAMIC_HDR10=ON -DMAIN10=ON -DMAIN=ON"  
+cmake_params+=" -DHIGH_BIT_DEPTH=1 -DMAIN12=ON"  
 fi
 
   do_cmake "$cmake_params"
