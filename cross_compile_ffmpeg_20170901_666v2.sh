@@ -1358,7 +1358,7 @@ build_libx264() {
     fi
 #Experimental only, I currenly am asking if the below is possible since x265 can be stacked.    
     if [[ $high_bitdepth == "y" ]]; then
-      configure_flags+=" --bit-depth=8 --bit-depth=10 --disable-interlace" # Enable 10 bits (main10) per pixels profile. possibly affects other profiles as well (?)
+      configure_flags+=" --bit-depth=8  --bit-depth=9 --bit-depth=10" # Enable 10 bits (main10) per pixels profile. possibly affects other profiles as well (?)
     fi
     for i in $CFLAGS; do
       configure_flags+=" --extra-cflags=$i" # needs it this way seemingly :|
