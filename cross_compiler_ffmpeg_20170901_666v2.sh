@@ -1268,35 +1268,59 @@ build_libx265() {
       hg clone https://bitbucket.org/multicoreware/x265 -r stable $checkout_dir || exit 1
       cd $checkout_dir
       old_hg_version=none-yet
-    fi
-    cd source
+create_build_dir
+local build_root
+build_root="$(pwd)"
+mkdir -p {8,10,12}bit
+fi
+cd 12bit
 
-    local new_hg_version=`hg --debug id -i`
-    if [[ "$old_hg_version" != "$new_hg_version" ]]; then
-      echo "got upstream hg changes, forcing rebuild...x265"
-      rm -f already*
-    else
-      echo "still at hg $new_hg_version x265"
-    fi
-  fi # dont with prefer_stable = [y|n]
-  apply_patch file://$patch_dir/libx265_git_declspec.diff # Needed for building shared FFmpeg libraries.
-
-  local cmake_params="-DENABLE_SHARED=0 -DENABLE_CLI=1" # build x265.exe
-  if [ "$bits_target" = "32" ]; then
-    cmake_params+=" -DWINXP_SUPPORT=1" # enable windows xp/vista compatibility in x86 build
-    cmake_params="$cmake_params -DENABLE_ASSEMBLY=OFF" # apparently required or build fails
-  fi
-  if [[ $high_bitdepth == "y" ]]; then
-    #cmake_params+=" -DHIGH_BIT_DEPTH=1" # Enable 10 bits (main10) and 12 bits (???) per pixels profiles.
-cmake_params+=" -DHIGH_BIT_DEPTH=1 -DMAIN12=ON"  
+local new_hg_version=hg --debug id -i
+if [[ "$old_hg_version" != "$new_hg_version" ]]; then
+echo "got upstream hg changes, forcing rebuild...x265"
+rm -f already*
+else
+echo "still at hg $new_hg_version x265"
 fi
 
-  do_cmake "$cmake_params"
-  do_make
-  echo force reinstall in case bit depth changed at all :|
-  rm already_ran_make_install*
-  do_make_install
-  cd ../..
+fi
+
+local cmake_params="-DENABLE_SHARED=OFF"
+if [[ $high_bitdepth == "y" ]]; then
+cmake_params="$cmake_params -DHIGH_BIT_DEPTH=ON" # Enable 10 bits (main10)
+and 12 bits (???) per pixels profiles.
+if [ "$bits_target" = "32" ]; then
+cmake_params="$cmake_params -DENABLE_ASSEMBLY=OFF" # apparently required
+or build fails
+fi
+fi
+
+do_cmake "$cmake_params ../source -DHIGH_BIT_DEPTH:BOOL=ON -DMAIN12:BOOL=ON -DENABLE_SHARED:BOOL=OFF -DEXPORT_C_API:BOOL=OFF -DENABLE_CLI:BOOL=OFF"
+do_make
+cp libx265.a ../8bit/libx265_main12.a
+cd ..
+
+cd 10bit
+do_cmake "$cmake_params ../source -DHIGH_BIT_DEPTH:BOOL=ON -DMAIN10:BOOL=ON -DENABLE_SHARED:BOOL=OFF -DEXPORT_C_API:BOOL=OFF -DENABLE_CLI:BOOL=OFF"
+do_make
+cp libx265.a ../8bit/libx265_main10.a
+cd ..
+
+cd 8bit
+do_cmake "$cmake_params ../source -DEXTRA_LINK_FLAGS=-L. -DLINKED_10BIT:BOOL=ON -DLINKED_12BIT:BOOL=ON  DEXTRA_LIB=libx265_main10.a;libx265_main12.a"
+do_make
+mv libx265.a libx265_main.a
+ar -M <<EOF
+CREATE libx265.a
+ADDLIB libx265_main.a
+ADDLIB libx265_main10.a
+ADDLIB libx265_main12.a
+SAVE
+END
+EOF
+do_make_install
+cd ../..
+
 }
 
 build_libopenh264() {
