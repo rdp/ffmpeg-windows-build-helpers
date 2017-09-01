@@ -1351,13 +1351,14 @@ build_libx264() {
     if [[ ! -f configure.bak ]]; then # Change CFLAGS.
       sed -i.bak "s/O3 -/O2 -/" configure
     fi
-
+#In default, will build the static library which is exe
     local configure_flags="--host=$host_target --enable-static --cross-prefix=$cross_prefix --prefix=$mingw_w64_x86_64_prefix --enable-strip --disable-cli" # --enable-win32thread --enable-debug is another useful option here? # Library only.
     if [[ $build_x264_with_libav == "n" ]]; then
       configure_flags+=" --disable-lavf" # lavf stands for libavformat, there is no --enable-lavf option, either auto or disable...
     fi
+#Experimental only, I currenly am asking if the below is possible since x265 can be stacked.    
     if [[ $high_bitdepth == "y" ]]; then
-      configure_flags+=" --bit-depth=10" # Enable 10 bits (main10) per pixels profile. possibly affects other profiles as well (?)
+      configure_flags+=" --bit-depth=8 --bit-depth=10 --disable-interlace" # Enable 10 bits (main10) per pixels profile. possibly affects other profiles as well (?)
     fi
     for i in $CFLAGS; do
       configure_flags+=" --extra-cflags=$i" # needs it this way seemingly :|
@@ -1689,7 +1690,7 @@ build_ffmpeg() {
       config_options+=" --enable-gpl --enable-avisynth --enable-frei0r --enable-filter=frei0r --enable-librubberband --enable-libvidstab --enable-libx264 --enable-libx265 --enable-libxavs --enable-libxvid"
     fi
 #For removing decoder
-	config_options+=" --disable-encoder=*_nvenc --disable-encoder=nvenc --disable-encoder=nvenc_*"
+	config_options+=" --disable-encoder=*nvenc*"
     # other possibilities (you'd need to also uncomment the call to their build method):
     #   --enable-w32threads # [worse UDP than pthreads, so not using that]
     if [[ $build_intel_qsv = y ]]; then
