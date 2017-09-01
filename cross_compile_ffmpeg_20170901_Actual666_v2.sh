@@ -1,6 +1,8 @@
-#ndows cross compile helper/download script, see github repo README
+#windows cross compile helper/download script, see github repo README
 # Copyright (C) 2012 Roger Pack, the script is under the GPLv3, but output FFmpeg's executables aren't
 # set -x
+
+#The script is a form of 666, but it is for 64-bit Windows OS only because I have enabled the most advanced functions in here.
 
 yes_no_sel () {
   unset user_input
@@ -1288,7 +1290,7 @@ build_libx265() {
   fi
   if [[ $high_bitdepth == "y" ]]; then
     #cmake_params+=" -DHIGH_BIT_DEPTH=1" # Enable 10 bits (main10) and 12 bits (???) per pixels profiles.
-cmake_params+=" -DHIGH_BIT_DEPTH=1 -DMAIN12=ON"  
+cmake_params+=" -DHIGH_BIT_DEPTH=1 -DMAIN12=ON"  #The configuration I have tested, has three files, 8-bit, 10-bit and 12-bit
 fi
 
   do_cmake "$cmake_params"
@@ -1347,7 +1349,7 @@ build_libx264() {
     if [[ $build_x264_with_libav == "n" ]]; then
       configure_flags+=" --disable-lavf" # lavf stands for libavformat, there is no --enable-lavf option, either auto or disable...
     fi
-    if [[ $high_bitdepth == "y" ]]; then
+    if [[ $high_bitdepth == "y" ]]; then # The statement below contain two settings, instead of x265 I have tested
       configure_flags+=" --bit-depth=10 --bit-depth=8" # Enable 10 bits (main10) per pixels profile. possibly affects other profiles as well (?)
     fi
     for i in $CFLAGS; do
