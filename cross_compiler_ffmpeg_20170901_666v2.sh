@@ -1288,7 +1288,7 @@ build_libx265() {
   fi
   if [[ $high_bitdepth == "y" ]]; then
     #cmake_params+=" -DHIGH_BIT_DEPTH=1" # Enable 10 bits (main10) and 12 bits (???) per pixels profiles.
-cmake_params+=" -DHIGH_BIT_DEPTH=1 -DMAIN12=ON"  
+cmake_params+=" -DHIGH_BIT_DEPTH=1 -DMAIN12=ON -DENABLE_DYNAMIC_HDR10=ON -DMAIN10=ON -DMAIN=ON"  
 fi
 
   do_cmake "$cmake_params"
@@ -1314,6 +1314,69 @@ build_libopenh264() {
     do_make "$make_prefix_options OS=mingw_nt ARCH=$arch ASM=yasm install-static" # No need for 'do_make_install', because 'install-static' already has install-instructions.
   cd ..
 }
+
+build_libx264N() {
+  local checkout_dir="x264"
+  if [[ $build_x264_with_libav == "y" ]]; then
+    build_ffmpeg static --disable-libx264 ffmpeg_git_pre_x264 # installs libav locally so we can use it within x264.exe FWIW...
+    checkout_dir="${checkout_dir}_with_libav"
+    # they don't know how to use a normal pkg-config when cross compiling, so specify some manually: (see their mailing list for a request...)
+    export LAVF_LIBS="$LAVF_LIBS $(pkg-config --libs libavformat libavcodec libavutil libswscale)"
+    export LAVF_CFLAGS="$LAVF_CFLAGS $(pkg-config --cflags libavformat libavcodec libavutil libswscale)"
+    export SWSCALE_LIBS="$SWSCALE_LIBS $(pkg-config --libs libswscale)"
+  fi
+
+  local x264_profile_guided=n # or y -- haven't gotten this proven yet...TODO
+ 
+  checkout_dir="${checkout_dir}_normal_bitdepth"
+ 
+
+  #if [[ $prefer_stable = "n" ]]; then
+  #  do_git_checkout "http://git.videolan.org/git/x264.git" $checkout_dir "origin/master" # During 'configure': "Found no assembler. Minimum version is nasm-2.13" so disable for now...
+  #else
+    do_git_checkout "http://git.videolan.org/git/x264.git" $checkout_dir "origin/stable"
+  #fi
+  cd $checkout_dir
+    if [[ ! -f configure.bak ]]; then # Change CFLAGS.
+      sed -i.bak "s/O3 -/O2 -/" configure
+    fi
+
+    local configure_flags="--host=$host_target --enable-static --cross-prefix=$cross_prefix --prefix=$mingw_w64_x86_64_prefix --enable-strip --disable-cli" # --enable-win32thread --enable-debug is another useful option here? # Library only.
+    if [[ $build_x264_with_libav == "n" ]]; then
+      configure_flags+=" --disable-lavf" # lavf stands for libavformat, there is no --enable-lavf option, either auto or disable...
+    fi
+
+    for i in $CFLAGS; do
+      configure_flags+=" --extra-cflags=$i" # needs it this way seemingly :|
+    done
+
+    if [[ $x264_profile_guided = y ]]; then
+      # I wasn't able to figure out how/if this gave any speedup...
+      # TODO more march=native here?
+      # TODO profile guided here option, with wine?
+      do_configure "$configure_flags"
+      curl -4 http://samples.mplayerhq.hu/yuv4mpeg2/example.y4m.bz2 -O --fail || exit 1
+      rm -f example.y4m # in case it exists already...
+      bunzip2 example.y4m.bz2 || exit 1
+      # XXX does this kill git updates? maybe a more general fix, since vid.stab does also?
+      sed -i.bak "s_\\, ./x264_, wine ./x264_" Makefile # in case they have wine auto-run disabled http://askubuntu.com/questions/344088/how-to-ensure-wine-does-not-auto-run-exe-files
+      do_make_and_make_install "fprofiled VIDS=example.y4m" # guess it has its own make fprofiled, so we don't need to manually add -fprofile-generate here...
+    else
+      # normal path
+      do_configure "$configure_flags"
+      do_make
+      echo force reinstall in case bit depth changed at all :|
+      rm already_ran_make_install*
+      do_make_install
+    fi
+
+    unset LAVF_LIBS
+    unset LAVF_CFLAGS
+    unset SWSCALE_LIBS
+  cd ..
+}
+
+
 
 build_libx264() {
   local checkout_dir="x264"
@@ -1348,7 +1411,7 @@ build_libx264() {
       configure_flags+=" --disable-lavf" # lavf stands for libavformat, there is no --enable-lavf option, either auto or disable...
     fi
     if [[ $high_bitdepth == "y" ]]; then
-      configure_flags+=" --bit-depth=10" # Enable 10 bits (main10) per pixels profile. possibly affects other profiles as well (?)
+      configure_flags+=" --bit-depth=10 --disable-interlaced" # Enable 10 bits (main10) per pixels profile. possibly affects other profiles as well (?)
     fi
     for i in $CFLAGS; do
       configure_flags+=" --extra-cflags=$i" # needs it this way seemingly :|
@@ -1818,7 +1881,11 @@ build_dependencies() {
   build_gmp # For rtmp support configure FFmpeg with '--enable-gmp'. Uses dlfcn.
   build_libnettle # Needs gmp >= 3.0. Uses dlfcn.
   build_gnutls # Needs nettle >= 3.1, hogweed (nettle) >= 3.1. Uses zlib and dlfcn.
-  #if [[ "$non_free" = "y" ]]; then
+if [[ "$non_free" = "y" ]]; then
+  build_libx264N
+fi
+
+#if [[ "$non_free" = "y" ]]; then
   #  build_openssl-1.0.2 # Nonfree alternative to GnuTLS. 'build_openssl-1.0.2 "dllonly"' to build shared libraries only.
   #  build_openssl-1.1.0 # Nonfree alternative to GnuTLS. Can't be used with LibRTMP. 'build_openssl-1.1.0 "dllonly"' to build shared libraries only.
   #fi
