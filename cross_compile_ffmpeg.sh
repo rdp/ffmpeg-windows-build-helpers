@@ -1460,6 +1460,7 @@ build_libhdhomerun() {
 build_dvbtee_app() {
   build_libcurl # it "can use this" so why not
 #  build_libhdhomerun # broken but possible dependency apparently :|
+  do_git_checkout https://github.com/mkrufky/libdvbtee.git libdvbtee_git
   cd libdvbtee_git
     # checkout its submodule, apparently required
     if [ ! -e libdvbpsi/bootstrap ]; then
