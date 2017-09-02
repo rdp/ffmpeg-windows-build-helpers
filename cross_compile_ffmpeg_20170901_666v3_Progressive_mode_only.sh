@@ -1,4 +1,7 @@
 #!/bin/bash
+
+#The script will generate progressive x264 only while mpeg-2 is nothing changed
+
 #Windows cross compile helper/download script, see github repo README
 # Copyright (C) 2012 Roger Pack, the script is under the GPLv3, but output FFmpeg's executables aren't
 # set -x
@@ -9,8 +12,8 @@
 
 #During the writing time, this is generally known as School-in day, I believe only few people have found a suitable beat to deal with. For Southern hemisphere, These people usually feel happy, you knew some of the reasons. 
 
-Konyzulphrea (read as konyzulfurea)
-1 September 2017
+#Konyzulphrea (read as konyzulfurea)
+#1 September 2017
 
 #Some configuration
 
