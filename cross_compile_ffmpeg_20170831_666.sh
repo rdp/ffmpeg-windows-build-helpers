@@ -3,13 +3,10 @@
 # Copyright (C) 2012 Roger Pack, the script is under the GPLv3, but output FFmpeg's executables aren't
 # set -x
 
-PKGNAME="ffmpeg-KONYZULPHREA Experiment"
-PKGVERSION="1.0.1"
-PKGSECTION="video"
-PKGAUTHOR="Kenneth Chu <polarhei@gmail.com>"
-PKGHOMEPAGE="https://github.com/konyzulphrea"
-PKGDESCRIPTION="Multimedia encoder Customized ffmpeg build for archival or for streaming because of banding or gradiant too much"
+#Edited on 2 September 2017
+#The script will generate x264 10-bit, 12-bit x265 purely and vp9 all set (with explicit settings) when -high-bitdepth is on. I am still finding how to place x264 8-bit and 10-bit nicely, but the building will be for static only, while the script is still able to compiled in shared way.
 
+#You should use 64-bit OS compiling option.
 
 yes_no_sel () {
   unset user_input
