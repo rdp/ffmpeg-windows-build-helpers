@@ -33,54 +33,94 @@ set_box_memory_size_bytes() {
   fi
 }
 
-check_missing_packages () {
+# Rather than keeping the versioning logic in the script we can pull it into it's own function
+# So it can potentially be used if we needed other version comparisons done later.
+# Also, using the logic built into sort seems more robust than a roll-your-own for comparing versions.
+ver_comp() {
+  [ "${1}" = "${2}" ] || [ "$(printf '%s\n%s' "${1}" "${2}" | sort --version-sort | head -n 1)" == "${1}" ]
+}
 
+check_missing_packages () {
+  # We will need this later if we don't want to just constantly be grepping the /etc/os-release file
+  if [ -z "${VENDOR}" ] && grep -E '(centos|rhel)' /etc/os-release &> /dev/null; then
+    # In RHEL this should always be set anyway. But not so sure about CentOS
+    VENDOR="redhat"
+  fi
   # zeranoe's build scripts use wget, though we don't here...
-  local check_packages=('curl' 'pkg-config' 'make' 'git' 'svn' 'cmake' 'gcc' 'autoconf' 'automake' 'yasm' 'cvs' 'flex' 'bison' 'makeinfo' 'g++' 'ed' 'hg' 'pax' 'unzip' 'patch' 'wget' 'xz' 'nasm' 'gperf' 'autogen')
+  local check_packages=('curl' 'pkg-config' 'make' 'git' 'svn' 'gcc' 'autoconf' 'automake' 'yasm' 'cvs' 'flex' 'bison' 'makeinfo' 'g++' 'ed' 'hg' 'pax' 'unzip' 'patch' 'wget' 'xz' 'nasm' 'gperf' 'autogen' 'bzip2')  
+  # I'm not actually sure if VENDOR being set to centos is a thing or not. On all the centos boxes I can test on it's not been set at all.
+  # that being said, if it where set I would imagine it would be set to centos... And this contition will satisfy the "Is not initially set"
+  # case because the above code will assign "redhat" all the time.
+  if [ -z "${VENDOR}" ] || [ "${VENDOR}" != "redhat" ] && [ "${VENDOR}" != "centos" ]; then
+    check_packages+=('cmake')
+  fi
   # libtool check is wonky...
   if [[ $OSTYPE == darwin* ]]; then
-    check_packages+=(glibtoolize) # homebrew special :|
+    check_packages+=('glibtoolize') # homebrew special :|
   else
-    check_packages+=(libtoolize) # the rest of the world
+    check_packages+=('libtoolize') # the rest of the world
   fi
-
+  # Use hash to check if the packages exist or not. Type is a bash builtin which I'm told behaves differently between different versions of bash.
   for package in "${check_packages[@]}"; do
-    type -P "$package" >/dev/null || missing_packages=("$package" "${missing_packages[@]}")
+    hash "$package" &> /dev/null || missing_packages=("$package" "${missing_packages[@]}")
   done
-
+  if [ "${VENDOR}" = "redhat" ] || [ "${VENDOR}" = "centos" ]; then
+    if [ -n "$(hash cmake 2>&1)" ] && [ -n "$(hash cmake3 2>&1)" ]; then missing_packages=('cmake' "${missing_packages[@]}"); fi
+  fi
   if [[ -n "${missing_packages[@]}" ]]; then
     clear
-    echo "Could not find the following execs (svn is actually package subversion, makeinfo is actually package texinfo, hg is actually package mercurial if you're missing them): ${missing_packages[@]}"
+    echo "Could not find the following execs (svn is actually package subversion, makeinfo is actually package texinfo, hg is actually package mercurial if you're missing them): ${missing_packages[*]}"
     echo 'Install the missing packages before running this script.'
-    echo "for ubuntu: $ sudo apt-get install subversion curl texinfo g++ bison flex cvs yasm automake libtool autoconf gcc cmake git make pkg-config zlib1g-dev mercurial unzip pax nasm gperf autogen -y"
+    echo "for ubuntu: $ sudo apt-get install subversion curl texinfo g++ bison flex cvs yasm automake libtool autoconf gcc cmake git make pkg-config zlib1g-dev mercurial unzip pax nasm gperf autogen bzip2 -y"
     echo "for gentoo (a non ubuntu distro): same as above, but no g++, no gcc, git is dev-vcs/git, zlib1g-dev is zlib, pkg-config is dev-util/pkgconfig, add ed..."
-    echo "for OS X (homebrew): brew install wget cvs hg yasm autogen automake autoconf cmake hg libtool xz pkg-config nasm"
+    echo "for OS X (homebrew): brew install wget cvs hg yasm autogen automake autoconf cmake hg libtool xz pkg-config nasm bzip2"
     echo "for debian: same as ubuntu, but also add libtool-bin and ed"
+    echo "for RHEL/CentOS: First ensure you have epel repos available, then run $ sudo yum install subversion texinfo mercurial libtool autogen gperf nasm patch unzip pax ed gcc-c++ bison flex yasm automake autoconf gcc zlib-devel cvs bzip2 cmake3 -y"
+    echo "for fedora: if your distribution comes with a modern version of cmake then use the same as RHEL/CentOS but replace cmake3 with cmake."
     exit 1
   fi
 
-  local out=`cmake --version` # like cmake version 2.8.7
-  local version_have=`echo "$out" | cut -d " " -f 3`
+  export REQUIRED_CMAKE_VERSION="3.0.0"
+  for cmake_binary in 'cmake' 'cmake3'; do
+    # We need to check both binaries the same way because the check for installed packages will work if *only* cmake3 is installed or
+    # if *only* cmake is installed.
+    # On top of that we ideally would handle the case where someone may have patched their version of cmake themselves, locally, but if
+    # the version of cmake required move up to, say, 3.1.0 and the cmake3 package still only pulls in 3.0.0 flat, then the user having manually
+    # installed cmake at a higher version wouldn't be detected.
+    if hash "${cmake_binary}"  &> /dev/null; then
+      cmake_version="$( "${cmake_binary}" --version | sed -e "s#${cmake_binary}##g" | head -n 1 | tr -cd '[0-9.\n]' )"
+      if ver_comp "${REQUIRED_CMAKE_VERSION}" "${cmake_version}"; then
+        export cmake_command="${cmake_binary}"
+        break
+      else
+        echo "your ${cmake_binary} version is too old ${cmake_version} wanted ${REQUIRED_CMAKE_VERSION}"
+      fi 
+    fi
+  done
 
-  function version { echo "$@" | awk -F. '{ printf("%d%03d%03d%03d\n", $1,$2,$3,$4); }'; }
-
-  if [[ $(version $version_have)  < $(version '2.8.12') ]]; then
-    echo "your cmake version is too old $version_have wanted 2.8.12"
+  # If cmake_command never got assigned then there where no versions found which where sufficient.
+  if [ -z "${cmake_command}" ]; then
+    echo "there where no appropriate versions of cmake found on your machine."
     exit 1
+  else
+    # If cmake_command is set then either one of the cmake's is adequate.
+    echo "cmake binary for this build will be ${cmake_command}"
   fi
 
   if [[ ! -f /usr/include/zlib.h ]]; then
-    echo "warning: you may need to install zlib development headers first if you want to build mp4-box [on ubuntu: $ apt-get install zlib1g-dev]" # XXX do like configure does and attempt to compile and include zlib.h instead?
+    echo "warning: you may need to install zlib development headers first if you want to build mp4-box [on ubuntu: $ apt-get install zlib1g-dev] [on redhat/fedora distros: $ yum install zlib-devel]" # XXX do like configure does and attempt to compile and include zlib.h instead?
     sleep 1
   fi
 
-  out=`yasm --version`
-  yasm_version=`echo "$out" | cut -d " " -f 2` # like 1.1.0.112
-  if [[ $(version $yasm_version)  < $(version '1.2.0') ]]; then
-    echo "your yasm version is too old $yasm_version wanted 1.2.0"
+  # doing the cut thing with an assigned variable dies on the version of yasm I have installed (which I'm pretty sure is the RHEL default)
+  # because of all the trailing lines of stuff
+  export REQUIRED_YASM_VERSION="1.2.0"
+  yasm_binary=yasm
+  yasm_version="$( "${yasm_binary}" --version |sed -e "s#${yasm_binary}##g" | head -n 1 | tr -dc '[0-9.\n]' )"
+  if ! ver_comp "${REQUIRED_YASM_VERSION}" "${yasm_version}"; then
+    echo "your yasm version is too old $yasm_version wanted ${REQUIRED_YASM_VERSION}"
     exit 1
   fi
-
 }
 
 
@@ -369,8 +409,8 @@ do_cmake() {
     rm -f already_* # reset so that make will run again if option just changed
     local cur_dir2=$(pwd)
     echo doing cmake in $cur_dir2 with PATH=$mingw_bin_path:\$PATH with extra_args=$extra_args like this:
-    echo cmake –G”Unix Makefiles” . -DENABLE_STATIC_RUNTIME=1 -DCMAKE_SYSTEM_NAME=Windows -DCMAKE_RANLIB=${cross_prefix}ranlib -DCMAKE_C_COMPILER=${cross_prefix}gcc -DCMAKE_CXX_COMPILER=${cross_prefix}g++ -DCMAKE_RC_COMPILER=${cross_prefix}windres -DCMAKE_INSTALL_PREFIX=$mingw_w64_x86_64_prefix $extra_args
-    cmake –G”Unix Makefiles” . -DENABLE_STATIC_RUNTIME=1 -DCMAKE_SYSTEM_NAME=Windows -DCMAKE_RANLIB=${cross_prefix}ranlib -DCMAKE_C_COMPILER=${cross_prefix}gcc -DCMAKE_CXX_COMPILER=${cross_prefix}g++ -DCMAKE_RC_COMPILER=${cross_prefix}windres -DCMAKE_INSTALL_PREFIX=$mingw_w64_x86_64_prefix $extra_args || exit 1
+    echo ${cmake_command} –G"Unix Makefiles" . -DENABLE_STATIC_RUNTIME=1 -DCMAKE_SYSTEM_NAME=Windows -DCMAKE_RANLIB=${cross_prefix}ranlib -DCMAKE_C_COMPILER=${cross_prefix}gcc -DCMAKE_CXX_COMPILER=${cross_prefix}g++ -DCMAKE_RC_COMPILER=${cross_prefix}windres -DCMAKE_INSTALL_PREFIX=$mingw_w64_x86_64_prefix $extra_args
+    ${cmake_command} –G"Unix Makefiles" . -DENABLE_STATIC_RUNTIME=1 -DCMAKE_SYSTEM_NAME=Windows -DCMAKE_RANLIB=${cross_prefix}ranlib -DCMAKE_C_COMPILER=${cross_prefix}gcc -DCMAKE_CXX_COMPILER=${cross_prefix}g++ -DCMAKE_RC_COMPILER=${cross_prefix}windres -DCMAKE_INSTALL_PREFIX=$mingw_w64_x86_64_prefix $extra_args || exit 1
     touch $touch_name || exit 1
   fi
 }
@@ -428,7 +468,7 @@ download_and_unpack_file() {
     #  avoid a "network unreachable" error in certain [broken Ubuntu] configurations a user ran into once
     #  -L means "allow redirection" or some odd :|
 
-    curl -4 "$url" --retry 50 -O -L --fail || echo_and_exit "unable to download $url" 
+    curl -4 "$url" --retry 50 -O -L --fail || echo_and_exit "unable to download $url"
     tar -xf "$output_name" || unzip "$output_name" || exit 1
     touch "$output_dir/unpacked.successfully" || exit 1
     rm "$output_name" || exit 1
@@ -465,8 +505,9 @@ do_git_checkout_and_make_install() {
 }
 
 generic_configure_make_install() {
-  if [[ $1 != "" ]]; then
+  if [ $# -gt 0 ]; then
     echo "cant pass parameters to this today"
+    echo "The following arguments where passed: ${@}"
     exit 1
   fi
   generic_configure # no parameters, force myself to break it up if needed
@@ -1998,7 +2039,7 @@ while true; do
     --build-dvbtee=* ) build_dvbtee="${1#*=}"; shift ;;
     --disable-nonfree=* ) disable_nonfree="${1#*=}"; shift ;;
     # this doesn't actually "build all", like doesn't build 10 high-bit LGPL ffmpeg, but it does exercise the "non default" type build options...
-    -a         ) compiler_flavors="multi"; build_mplayer=y; build_libmxf=y; build_mp4box=y; build_vlc=y; build_lsw=y; high_bitdepth=y; 
+    -a         ) compiler_flavors="multi"; build_mplayer=y; build_libmxf=y; build_mp4box=y; build_vlc=y; build_lsw=y; high_bitdepth=y;
                  build_ffmpeg_static=y; build_ffmpeg_shared=y; build_lws=y;
                  disable_nonfree=n; git_get_latest=y; sandbox_ok=y; build_intel_qsv=y; build_dvbtee=y; build_x264_with_libav=y; shift ;;
     -d         ) gcc_cpu_count=$cpu_count; disable_nonfree="y"; sandbox_ok="y"; compiler_flavors="win32"; git_get_latest="n"; shift ;;
