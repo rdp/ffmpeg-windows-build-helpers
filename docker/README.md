@@ -5,4 +5,4 @@ To avoid breaking your current Linux system and to avoid conflicts of libraries,
 Examples:
 
 `docker build -t ffmpeg:cpu cpu` 
-
+`docker build -t ffmpeg:gpu gpu` 
