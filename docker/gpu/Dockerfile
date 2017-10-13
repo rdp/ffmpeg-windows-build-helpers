@@ -30,6 +30,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         wget \
         libnuma1 \
         libnuma-dev \
+        libbluray-dev \
         ca-certificates \
         ed
 
