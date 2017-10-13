@@ -33,6 +33,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         ca-certificates \
         ed
 
+ENV LIBRARY_PATH $LIBRARY_PATH/usr/local/cuda/lib64
+
 RUN git clone https://github.com/yangcha/ffmpeg-windows-build-helpers.git && \
         cd ffmpeg-windows-build-helpers && \
         ./cross_compile_ffmpeg.sh --compiler-flavors=win64
