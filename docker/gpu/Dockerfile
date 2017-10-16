@@ -37,5 +37,5 @@ ENV LIBRARY_PATH $LIBRARY_PATH/usr/local/cuda/lib64
 
 RUN git clone https://github.com/yangcha/ffmpeg-windows-build-helpers.git && \
         cd ffmpeg-windows-build-helpers && \
-        ./cross_compile_ffmpeg.sh --disable-nonfree=n --compiler-flavors=win64
+        ./cross_compile_ffmpeg.sh --compiler-flavors=win64 --ffmpeg-git-checkout-version=n3.4
 
