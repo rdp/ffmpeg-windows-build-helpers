@@ -600,6 +600,7 @@ build_intel_quicksync_mfx() { # i.e. qsv
   cd mfx_dispatch_git
     if [[ ! -f "configure" ]]; then
       autoreconf -fiv || exit 1
+      automake --add-missing || exit 1
     fi
     generic_configure_make_install
   cd ..
