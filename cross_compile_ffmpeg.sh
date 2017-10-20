@@ -1025,6 +1025,7 @@ build_libbs2b() {
     if [[ ! -f src/Makefile.in.bak ]]; then
       sed -i.bak "/^bin_PROGRAMS/s/=.*/=/" src/Makefile.in # Library only.
     fi
+    sed -i.bak "s/AC_FUNC_MALLOC//" configure.ac # #270
     generic_configure_make_install
   cd ..
 }
