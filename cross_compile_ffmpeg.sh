@@ -988,6 +988,7 @@ build_libgme() {
 }
 
 build_libbluray() {
+  unset JDK_HOME # #268 was causing failure
   do_git_checkout https://git.videolan.org/git/libbluray.git
   cd libbluray_git
     sed -i.bak 's_git://git.videolan.org/libudfread.git_https://git.videolan.org/git/libudfread.git_' .gitmodules
