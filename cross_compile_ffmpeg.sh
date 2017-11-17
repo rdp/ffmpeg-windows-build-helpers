@@ -1210,7 +1210,7 @@ build_fribidi() {
   #  generic_configure "--disable-debug --disable-deprecated"
   #  do_make_and_make_install
   #cd ..
-  download_and_unpack_file https://www.fribidi.org/download/fribidi-0.19.7.tar.bz2
+  download_and_unpack_file http://pkgs.fedoraproject.org/repo/pkgs/fribidi/fribidi-0.19.7.tar.bz2/6c7e7cfdd39c908f7ac619351c1c5c23/fribidi-0.19.7.tar.bz2
   cd fribidi-0.19.7
     # make it export symbols right...
     # apply_patch https://raw.githubusercontent.com/rdp/ffmpeg-windows-build-helpers/master/patches/fribidi.diff # still needed?
