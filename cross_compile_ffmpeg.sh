@@ -1328,7 +1328,6 @@ build_libx265() {
       echo "still at hg $new_hg_version x265"
     fi
   fi # dont with prefer_stable = [y|n]
-  apply_patch file://$patch_dir/libx265_git_declspec.diff # Needed for building shared FFmpeg libraries.
 
   local cmake_params="-DENABLE_SHARED=0 -DENABLE_CLI=1" # build x265.exe
   if [ "$bits_target" = "32" ]; then
