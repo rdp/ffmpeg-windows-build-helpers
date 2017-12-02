@@ -58,7 +58,9 @@ To view additional arguments and options supported by the script, run:
 
 to see all the various options available.
 
- For long running builds, do run them overnight as they take a while.
+For long running builds, do run them overnight as they take a while.
+
+If you want to build a "shared" build (there's a command line option for that :) then link it into your MSVC project see https://ffmpeg.zeranoe.com/forum/viewtopic.php?f=5&t=796&p=4095#p4095
 
 Also note that you can also "cross compile" mp4box, mplayer,mencoder and vlc binaries if you pass in the appropriate command line parameters.
 The VLC build is currently broken, send a PM if you'd want it fixed.
