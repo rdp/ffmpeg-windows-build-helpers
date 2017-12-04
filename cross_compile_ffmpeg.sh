@@ -1170,9 +1170,6 @@ build_vidstab() {
 build_libmysofa() {
   do_git_checkout https://github.com/hoene/libmysofa.git
   cd libmysofa_git
-    if [[ ! -f CMakeLists.txt.bak ]]; then # Library only.
-      sed -e '/install(.*) *$/d' -e '/^install(/,/) *$/d'
-    fi
     do_cmake_and_install "-DBUILD_SHARED_LIBS=0 -DBUILD_TESTS=0"
   cd ..
 }
