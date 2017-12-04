@@ -306,7 +306,7 @@ do_git_checkout() {
     fi
   else
     echo "doing git checkout $desired_branch"
-    git checkout "$desired_branch" || exit 1
+    git checkout -f "$desired_branch" || exit 1
     git merge "$desired_branch" || exit 1 # get incoming changes to a branch
   fi
 
