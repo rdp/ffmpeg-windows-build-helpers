@@ -241,7 +241,7 @@ install_cross_compiler() {
       fi
     fi
 
-    rm -f build.log # left over stuff...
+    # rm -f build.log # left over stuff... # sometimes useful...
     reset_cflags
   cd ..
   echo "Done building (or already built) MinGW-w64 cross-compiler(s) successfully..."
