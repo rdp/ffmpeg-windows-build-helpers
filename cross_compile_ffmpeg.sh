@@ -621,7 +621,7 @@ build_intel_quicksync_mfx() { # i.e. qsv
 }
 
 build_libzimg() {
-  do_git_checkout https://github.com/sekrit-twc/zimg.git zimg_git c1689d4b9abbf4becadcbd4f436e2f3b2bf1c2f1
+  do_git_checkout https://github.com/sekrit-twc/zimg.git zimg_git 8e87f5a4b88e16ccafb2e7ade8ef45
   cd zimg_git
     if [[ ! -f Makefile.am.bak ]]; then # Library only.
       sed -i.bak "/dist_doc_DATA/,+19d" Makefile.am
