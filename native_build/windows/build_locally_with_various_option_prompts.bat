@@ -31,7 +31,7 @@ IF NOT EXIST ffmpeg_local_builds\cygwin_local_install (
 			--site http://cygwin-xp.portfolis.net/cygwin ^
 			--root !cd! ^
 			--packages ^
-			ed,curl,libcurl4,wget,subversion,texinfo,gcc-g++,bison,flex,cvs,yasm,automake,libtool,autoconf,gcc-core,cmake,git,make,pkg-config,zlib1g-dev,mercurial,unzip,pax,ncurses,patch,gettext-devel,nasm,p7zip,gperf
+			ed,curl,libcurl4,wget,subversion,texinfo,gcc-g++,bison,flex,cvs,yasm,automake,libtool,autoconf,gcc-core,cmake,git,make,pkg-config,zlib1g-dev,mercurial,unzip,pax,ncurses,patch,gettext-devel,nasm,p7zip,gperf,autogen
 		) ELSE (
 			powershell -command "$clnt = new-object System.Net.WebClient; $clnt.DownloadFile(\"https://www.cygwin.com/setup-x86.exe\", \"setup-x86.exe\")"
 			START /wait setup-x86.exe ^
@@ -43,7 +43,7 @@ IF NOT EXIST ffmpeg_local_builds\cygwin_local_install (
 			--site http://mirrors.xmission.com/cygwin/ ^
 			--root !cd! ^
 			--packages ^
-			ed,curl,libcurl4,wget,subversion,texinfo,gcc-g++,bison,flex,cvs,yasm,automake,libtool,autoconf,gcc-core,cmake,git,make,pkg-config,zlib1g-dev,mercurial,unzip,pax,ncurses,patch,gettext-devel,nasm,p7zip,gperf
+			ed,curl,libcurl4,wget,subversion,texinfo,gcc-g++,bison,flex,cvs,yasm,automake,libtool,autoconf,gcc-core,cmake,git,make,pkg-config,zlib1g-dev,mercurial,unzip,pax,ncurses,patch,gettext-devel,nasm,p7zip,gperf,autogen
 		)
 	)
 	REM wget for the initial script download as well as zeranoe's uses it
@@ -64,7 +64,8 @@ SET PATH=%cd%\ffmpeg_local_builds\cygwin_local_install\bin;%PATH%
 CD ffmpeg_local_builds
 
 IF NOT EXIST cross_compile_ffmpeg.sh (
-	.\cygwin_local_install\bin\bash.exe -c "cp ../../cross_compile_ffmpeg.sh ."
+	.\cygwin_local_install\bin\bash.exe -c "cp ../../../cross_compile_ffmpeg.sh ."
+	.\cygwin_local_install\bin\bash.exe -c "cp -r ../../../patches ."
 )
 
 ECHO.
