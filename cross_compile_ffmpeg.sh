@@ -995,8 +995,9 @@ build_libmodplug() {
 }
 
 build_libgme() {
-  do_git_checkout https://bitbucket.org/mpyne/game-music-emu.git
-  cd game-music-emu_git
+  # do_git_checkout https://bitbucket.org/mpyne/game-music-emu.git
+  download_and_unpack_file https://bitbucket.org/mpyne/game-music-emu/downloads/game-music-emu-0.6.2.tar.xz
+  cd game-music-emu-0.6.2
     if [[ ! -f CMakeLists.txt.bak ]]; then
       sed -i.bak "101,102s/.*/#&/" CMakeLists.txt # Library only.
       sed -i.bak "s/ __declspec.*//" gme/blargg_source.h # Needed for building shared FFmpeg libraries.
