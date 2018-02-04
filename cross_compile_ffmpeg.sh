@@ -1214,19 +1214,13 @@ build_zvbi() {
 }
 
 build_fribidi() {
-  #do_git_checkout https://github.com/behdad/fribidi.git # needs wine?
-  #cd fribidi_git
-  #  if [[ ! -f Makefile.am.bak ]]; then # Library only and disable regeneration of 'configure' (which screws with the CPPFLAGS).
-  #    sed -i.bak "s/ bin.*//;40s/ \\\//;41d" Makefile.am
-  #  fi
-  #  generic_configure "--disable-debug --disable-deprecated"
-  #  do_make_and_make_install
-  #cd ..
-  download_and_unpack_file http://pkgs.fedoraproject.org/repo/pkgs/fribidi/fribidi-0.19.7.tar.bz2/6c7e7cfdd39c908f7ac619351c1c5c23/fribidi-0.19.7.tar.bz2
-  cd fribidi-0.19.7
-    # make it export symbols right...
-    # apply_patch https://raw.githubusercontent.com/rdp/ffmpeg-windows-build-helpers/master/patches/fribidi.diff # still needed?
-    generic_configure_make_install
+  do_git_checkout https://github.com/fribidi/fribidi.git
+  cd fribidi_git
+  if [[ ! -f Makefile.am.bak ]]; then # Library only and disable regeneration of 'configure' (which screws with the CPPFLAGS).
+  sed -i.bak "s/ bin.*//;40s/ \\\//;41d" Makefile.am
+  fi
+  generic_configure "--disable-debug --disable-deprecated"
+  do_make_and_make_install
   cd ..
 }
 
