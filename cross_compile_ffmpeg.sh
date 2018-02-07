@@ -1214,13 +1214,15 @@ build_zvbi() {
 }
 
 build_fribidi() {
+  cpu_count=1 # needed apparently...
   do_git_checkout https://github.com/fribidi/fribidi.git
   cd fribidi_git
-  if [[ ! -f Makefile.am.bak ]]; then # Library only and disable regeneration of 'configure' (which screws with the CPPFLAGS).
-  sed -i.bak "s/ bin.*//;40s/ \\\//;41d" Makefile.am
-  fi
-  generic_configure "--disable-debug --disable-deprecated"
-  do_make_and_make_install
+    if [[ ! -f Makefile.am.bak ]]; then # Library only and disable regeneration of 'configure' (which screws with the CPPFLAGS).
+      sed -i.bak "s/ bin.*//;40s/ \\\//;41d" Makefile.am
+    fi
+    generic_configure "--disable-debug --disable-deprecated"
+    do_make_and_make_install
+    cpu_count=$original_cpu_count
   cd ..
 }
 
