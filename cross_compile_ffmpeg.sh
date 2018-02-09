@@ -1214,9 +1214,9 @@ build_zvbi() {
 }
 
 build_fribidi() {
-  cpu_count=1 # needed apparently...
   do_git_checkout https://github.com/fribidi/fribidi.git
   cd fribidi_git
+    cpu_count=1 # needed apparently...
     if [[ ! -f Makefile.am.bak ]]; then # Library only and disable regeneration of 'configure' (which screws with the CPPFLAGS).
       sed -i.bak "s/ bin.*//;40s/ \\\//;41d" Makefile.am
     fi
