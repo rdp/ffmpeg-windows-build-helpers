@@ -867,7 +867,7 @@ build_libopus() {
     if [[ ! -f Makefile.am.bak ]]; then # Library only.
       sed -i.bak "/m4data/,+2d;/install-data-local/,+2d" Makefile.am
     fi
-    generic_configure "--disable-doc --disable-extra-programs"
+    generic_configure "--disable-doc --disable-extra-programs --disable-stack-protector"
     do_make_and_make_install
   cd ..
 }
