@@ -316,7 +316,7 @@ do_git_checkout() {
     echo "got upstream changes, forcing re-configure."
     git clean -f # Throw away local changes; 'already_*' and bak-files for instance.
   else
-    echo "got no code changes, not forcing reconfigure for that..."
+    echo "fetched no code changes, not forcing reconfigure for that..."
   fi
   cd ..
 }
@@ -607,6 +607,13 @@ build_amd_amf_headers() {
   cd ..
 }
 
+build_nv_headers() {
+  do_git_checkout https://git.videolan.org/git/ffmpeg/nv-codec-headers.git
+  cd nv-codec-headers_git
+    do_make_install "PREFIX=$mingw_w64_x86_64_prefix" # just copies in headers
+  cd ..
+}
+
 build_intel_quicksync_mfx() { # i.e. qsv
   do_git_checkout https://github.com/lu-zero/mfx_dispatch.git # lu-zero??
   cd mfx_dispatch_git
@@ -618,10 +625,10 @@ build_intel_quicksync_mfx() { # i.e. qsv
   cd ..
 }
 
-build_leptonica() {
+build_libleptonica() {
   do_git_checkout https://github.com/DanBloomberg/leptonica.git 
   cd leptonica_git
-    generic_configure "--without-libopenjpeg" # never could quite figure out how to get it to work with jp2
+    generic_configure "--without-libopenjpeg" # never could quite figure out how to get it to work with jp2 stuffs...I think OPJ_STATIC or something, see issue for tesseract
     do_make_and_make_install
   cd ..
 }
@@ -632,10 +639,10 @@ build_libtiff() {
 } 
 
 build_libtesseract() {
-  build_leptonica
-  build_libtiff # no disable configure option? odd...
+  build_libleptonica
+  build_libtiff # no disable configure option for this in tesseract? odd...
   do_git_checkout_and_make_install https://github.com/tesseract-ocr/tesseract.git
-  sed -i.bak 's/-ltesseract.*$/-ltesseract -lstdc++ -lws2_32 -llept -ltiff -llzma -ljpeg -lz/' $PKG_CONFIG_PATH/tesseract.pc # why does it needs winsock? LOL
+  sed -i.bak 's/-ltesseract.*$/-ltesseract -lstdc++ -lws2_32 -llept -ltiff -llzma -ljpeg -lz/' $PKG_CONFIG_PATH/tesseract.pc # why does it needs winsock? LOL plus all of libtiff's <sigh>
 }
 
 build_libzimg() {
@@ -1022,6 +1029,7 @@ build_libflite() {
     if [[ ! -f configure.bak ]]; then
       sed -i.bak "s|i386-mingw32-|$cross_prefix|" configure
       #sed -i.bak "/define const/i\#include <windows.h>" tools/find_sts_main.c # Needed for x86_64? Untested.
+      sed -i.bak "128,134d" main/Makefile # Library only. else fails with cannot copy bin/libflite or someodd
       sed -i.bak "s/cp -pd/cp -p/" main/Makefile # friendlier cp for OS X
     fi
     generic_configure
@@ -1656,7 +1664,7 @@ build_ffmpeg() {
       init_options+=" --disable-schannel"
       # Fix WinXP incompatibility by disabling Microsoft's Secure Channel, because Windows XP doesn't support TLS 1.1 and 1.2, but with GnuTLS or OpenSSL it does. The main reason I started this journey!
     fi
-    config_options="$init_options  --enable-libtesseract --enable-fontconfig --enable-gmp --enable-gnutls --enable-libass --enable-libbluray --enable-libbs2b --enable-libcaca --enable-libflite --enable-libfreetype --enable-libfribidi --enable-libgme --enable-libgsm --enable-libilbc --enable-libmodplug --enable-libmp3lame --enable-libmysofa --enable-libopencore-amrnb --enable-libopencore-amrwb --enable-libopenh264 --enable-libopenjpeg --enable-libopus --enable-libsnappy --enable-libsoxr --enable-libspeex --enable-libtheora --enable-libtwolame --enable-libvo-amrwbenc --enable-libvorbis --enable-libvpx --enable-libwebp --enable-libzimg --enable-libzvbi"
+    config_options="$init_options  --enable-libtesseract --enable-fontconfig --enable-gmp --enable-gnutls --enable-libass --enable-libbluray --enable-libbs2b --enable-libcaca --enable-libflite --enable-libfreetype --enable-libfribidi --enable-libgme --enable-libgsm --enable-libilbc --enable-libmodplug --enable-libmp3lame --enable-libmysofa --enable-libopencore-amrnb --enable-libopencore-amrwb --enable-libopenh264 --enable-libopenjpeg --enable-libopus --enable-libsnappy --enable-libsoxr --enable-libspeex --enable-libtheora --enable-libtwolame --enable-libvo-amrwbenc --enable-libvorbis --enable-libvpx --enable-libwebp --enable-libzimg --enable-libzvbi  --enable-nvenc --enable-nvdec"
     # With the changes being made to 'configure' above and with '--pkg-config-flags=--static' there's no need anymore for '--extra-cflags=' and '--extra-libs='.
     if [[ ! -f configure.bak ]]; then # Changes being made to 'configure' are done with 'sed', because 'configure' gets updated a lot.
       sed -i "/enabled libtwolame/s/&&$/-DLIBTWOLAME_STATIC \&\& add_cppflags -DLIBTWOLAME_STATIC \&\&/;/enabled libmodplug/s/.*/& -DMODPLUG_STATIC \&\& add_cppflags -DMODPLUG_STATIC/;/enabled libcaca/s/.*/& -DCACA_STATIC \&\& add_cppflags -DCACA_STATIC/" configure # Add '-Dxxx_STATIC' to LibTwoLAME, LibModplug and Libcaca. FFmpeg should change this upstream, just like they did with libopenjpeg.
@@ -1802,6 +1810,7 @@ build_dependencies() {
   if [[ $build_intel_qsv = y ]]; then
     build_intel_quicksync_mfx
   fi
+  build_nv_headers
   build_libzimg # Uses dlfcn.
   build_libopenjpeg
   #build_libjpeg_turbo # mplayer can use this, VLC qt might need it? [replaces libjpeg]
