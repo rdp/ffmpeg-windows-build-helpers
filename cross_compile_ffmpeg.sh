@@ -633,9 +633,9 @@ build_libtiff() {
 
 build_libtesseract() {
   build_leptonica
-  build_libtiff # no disable option? odd...
+  build_libtiff # no disable configure option? odd...
   do_git_checkout_and_make_install https://github.com/tesseract-ocr/tesseract.git
-  sed -i.bak 's/-ltesseract.*$/-ltesseract -lstdc++ -lws2_32/' $PKG_CONFIG_PATH/tesseract.pc # why does it needs winsock? LOL
+  sed -i.bak 's/-ltesseract.*$/-ltesseract -lstdc++ -lws2_32 -llept -ltiff -llzma -ljpeg -lz/' $PKG_CONFIG_PATH/tesseract.pc # why does it needs winsock? LOL
 }
 
 build_libzimg() {
