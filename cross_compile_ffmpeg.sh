@@ -621,13 +621,14 @@ build_intel_quicksync_mfx() { # i.e. qsv
 build_leptonica() {
   do_git_checkout https://github.com/DanBloomberg/leptonica.git 
   cd leptonica_git
-    generic_configure "--without-libopenjpeg"
+    generic_configure "--without-libopenjpeg" # never could quite figure out how to get it to work with jp2
     do_make_and_make_install
   cd ..
 }
 
 build_libtiff() {
   generic_download_and_make_and_install ftp://download.osgeo.org/libtiff/tiff-4.0.9.tar.gz
+  sed -i.bak 's/-ltiff.*$/-ltiff -llzma -ljpeg -lz/' $PKG_CONFIG_PATH/libtiff-4.pc # static deps
 } 
 
 build_libtesseract() {
