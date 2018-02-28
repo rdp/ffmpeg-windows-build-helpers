@@ -913,6 +913,9 @@ build_lame() {
 build_twolame() {
   do_git_checkout https://github.com/njh/twolame.git
   cd twolame_git
+    if [[ ! -f Makefile.am.bak ]]; then # Library only, front end refuses to build for some reason with git master
+      sed -i.bak "/^SUBDIRS/s/ frontend.*//" Makefile.am || exit 1 
+    fi
     cpu_count=1 # maybe can't handle it http://betterlogic.com/roger/2017/07/mp3lame-woe/ comments
     generic_configure_make_install
     cpu_count=$original_cpu_count
@@ -1022,9 +1025,7 @@ build_libflite() {
       sed -i.bak "s/cp -pd/cp -p/" main/Makefile # friendlier cp for OS X
     fi
     generic_configure
-    #cpu_count=1 # can't handle it :|
     do_make_and_make_install
-    #cpu_count=$original_cpu_count
   cd ..
 }
 
@@ -1155,7 +1156,7 @@ build_zvbi() {
 build_fribidi() {
   do_git_checkout https://github.com/fribidi/fribidi.git
   cd fribidi_git
-    cpu_count=1 # needed apparently...
+    cpu_count=1 # needed apparently with git master
     generic_configure "--disable-debug --disable-deprecated --disable-docs"
     do_make_and_make_install
     cpu_count=$original_cpu_count
