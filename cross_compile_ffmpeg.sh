@@ -912,8 +912,10 @@ build_lame() {
     apply_patch file://$patch_dir/lame3.patch # work on mtune=generic type builds :| TODO figure out why, report back to https://sourceforge.net/p/lame/bugs/443/
     generic_configure "--enable-nasm --disable-decoder --disable-frontend"
     cpu_count=1 # can't handle it apparently... http://betterlogic.com/roger/2017/07/mp3lame-woe/
+    export CFLAGS="-msse4.1" # fix inlining error with gcc 7.1
     do_make_and_make_install
     cpu_count=$original_cpu_count
+    reset_cflags
   cd ..
 }
 
