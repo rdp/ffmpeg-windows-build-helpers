@@ -658,8 +658,11 @@ build_libtiff() {
 build_libtesseract() {
   build_libleptonica
   build_libtiff # no disable configure option for this in tesseract? odd...
-  do_git_checkout_and_make_install https://github.com/tesseract-ocr/tesseract.git
-  sed -i.bak 's/-ltesseract.*$/-ltesseract -lstdc++ -lws2_32 -llept -ltiff -llzma -ljpeg -lz/' $PKG_CONFIG_PATH/tesseract.pc # why does it needs winsock? LOL plus all of libtiff's <sigh>
+  do_git_checkout https://github.com/tesseract-ocr/tesseract.git tesseract_git   8209ce36636ab7
+  cd tesseract_git
+    generic_configure_make_install
+    sed -i.bak 's/-ltesseract.*$/-ltesseract -lstdc++ -lws2_32 -llept -ltiff -llzma -ljpeg -lz/' $PKG_CONFIG_PATH/tesseract.pc # why does it needs winsock? LOL plus all of libtiff's <sigh>
+  cd ..
 }
 
 build_libzimg() {
