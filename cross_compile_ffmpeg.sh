@@ -1490,6 +1490,7 @@ build_libhdhomerun() {
 }
 
 build_dvbtee_app() {
+  build_iconv
   build_libcurl # it "can use this" so why not
 #  build_libhdhomerun # broken but possible dependency apparently :|
   do_git_checkout https://github.com/mkrufky/libdvbtee.git libdvbtee_git
