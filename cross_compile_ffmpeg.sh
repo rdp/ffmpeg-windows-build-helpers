@@ -150,7 +150,7 @@ EOL
     if  [[ $disable_nonfree = "n" ]]; then
       non_free="y"
     else
-      yes_no_sel "Would you like to include non-free (non GPL compatible) libraries, like [libfdk_aac -- note that the internal AAC encoder is ruled almost as high quality as fdk-aac these days]
+      yes_no_sel "Would you like to include non-free (non GPL compatible) libraries, like [libfdk_aac,decklink -- note that the internal AAC encoder is ruled almost as high a quality as fdk-aac these days]
 The resultant binary may not be distributable, but can be useful for in-house use. Include these non-free license libraries [y/N]?" "n"
       non_free="$user_input" # save it away
     fi
@@ -1874,7 +1874,6 @@ build_ffmpeg_dependencies() {
   build_libsndfile "install-libgsm" # Needs libogg >= 1.1.3 and libvorbis >= 1.2.3 for external support [disabled]. Uses dlfcn. 'build_libsndfile "install-libgsm"' to install the included LibGSM 6.10.
   build_lame # Uses dlfcn.
   build_twolame # Uses libsndfile >= 1.0.0 and dlfcn.
-  build_fdk-aac # Uses dlfcn.
   build_libopencore # Uses dlfcn.
   build_libilbc # Uses dlfcn.
   build_libmodplug # Uses dlfcn.
@@ -1893,6 +1892,7 @@ build_ffmpeg_dependencies() {
   build_libmysofa # Needed for FFmpeg's SOFAlizer filter (https://ffmpeg.org/ffmpeg-filters.html#sofalizer). Uses dlfcn.
   build_libcaca # Uses zlib and dlfcn.
   if [[ "$non_free" = "y" ]]; then
+    build_fdk-aac # Uses dlfcn.
     build_libdecklink
   fi
   build_zvbi # Uses iconv, libpng and dlfcn.
@@ -1983,7 +1983,7 @@ if [[ `uname` =~ "5.1" ]]; then # Disable when WinXP is detected, or you'll get 
 else
   build_intel_qsv=y
 fi
-#disable_nonfree=n # have no value by default to force user selection
+disable_nonfree=y # comment out to force user y/n selection
 original_cflags='-mtune=generic -O3' # high compatible by default, see #219, some other good options are listed below, or you could use -march=native to target your local box:
 # if you specify a march it needs to first so x264's configure will use it :| [ is that still the case ?]
 
@@ -2012,7 +2012,7 @@ while true; do
       --build-ffmpeg-shared=n  (ffmpeg.exe (with libavformat-x.dll, etc., ffplay.exe, ffprobe.exe and dll-files)
       --ffmpeg-git-checkout-version=[master] if you want to build a particular version of FFmpeg, ex: n3.1.1 or a specific git hash
       --gcc-cpu-count=[number of cpu cores set it higher than 1 if you have multiple cores and > 1GB RAM, this speeds up initial cross compiler build. FFmpeg build uses number of cores no matter what]
-      --disable-nonfree=y (set to n to include nonfree like libfdk-aac)
+      --disable-nonfree=y (set to n to include nonfree like libfdk-aac,decklink)
       --build-intel-qsv=y (set to y to include the [non windows xp compat.] qsv library and ffmpeg module. NB this not not hevc_qsv...
       --sandbox-ok=n [skip sandbox prompt if y]
       -d [meaning \"defaults\" skip all prompts, just build ffmpeg static with some reasonable defaults like no git updates]
