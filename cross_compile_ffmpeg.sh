@@ -1836,6 +1836,7 @@ find_all_build_exes() {
 }
 
 build_ffmpeg_dependencies() {
+  echo "Building ffmpeg dependency libraries..." 
   build_dlfcn
   build_bzip2 # Bzlib (bzip2) in FFmpeg is autodetected.
   build_liblzma # Lzma in FFmpeg is autodetected. Uses dlfcn.
@@ -2050,9 +2051,10 @@ while true; do
     --build-dvbtee=* ) build_dvbtee="${1#*=}"; shift ;;
     --disable-nonfree=* ) disable_nonfree="${1#*=}"; shift ;;
     # this doesn't actually "build all", like doesn't build 10 high-bit LGPL ffmpeg, but it does exercise the "non default" type build options...
-    -a         ) compiler_flavors="multi"; build_mplayer=y; build_libmxf=y; build_mp4box=y; build_vlc=y; build_lsw=y; high_bitdepth=y;
-                 build_ffmpeg_static=y; build_ffmpeg_shared=y; build_lws=y;
-                 disable_nonfree=n; git_get_latest=y; sandbox_ok=y; build_amd_amf=y; build_intel_qsv=y; build_dvbtee=y; build_x264_with_libav=y; shift ;;
+    -a         ) compiler_flavors="multi"; build_mplayer=y; build_libmxf=y; build_mp4box=y; build_vlc=y; build_lsw=y; 
+                 high_bitdepth=y; build_ffmpeg_static=y; build_ffmpeg_shared=y; build_lws=y;
+                 disable_nonfree=n; git_get_latest=y; sandbox_ok=y; build_amd_amf=y; build_intel_qsv=y; 
+                 build_dvbtee=y; build_x264_with_libav=y; shift ;;
     -d         ) gcc_cpu_count=$cpu_count; disable_nonfree="y"; sandbox_ok="y"; compiler_flavors="win32"; git_get_latest="n"; shift ;;
     --compiler-flavors=* ) compiler_flavors="${1#*=}"; shift ;;
     --build-ffmpeg-static=* ) build_ffmpeg_static="${1#*=}"; shift ;;
