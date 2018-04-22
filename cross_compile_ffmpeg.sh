@@ -1658,7 +1658,6 @@ build_libMXF() {
 }
 
 build_ffmpeg() {
-  build_ffmpeg_dependencies
   local extra_postpend_configure_options=$2
   local output_dir=$3
   if [[ -z $output_dir ]]; then
@@ -2105,6 +2104,7 @@ if [[ $compiler_flavors == "multi" || $compiler_flavors == "win32" ]]; then
   make_prefix_options="CC=${cross_prefix}gcc AR=${cross_prefix}ar PREFIX=$mingw_w64_x86_64_prefix RANLIB=${cross_prefix}ranlib LD=${cross_prefix}ld STRIP=${cross_prefix}strip CXX=${cross_prefix}g++"
   mkdir -p win32
   cd win32
+    build_ffmpeg_dependencies
     build_apps
   cd ..
 fi
@@ -2122,6 +2122,7 @@ if [[ $compiler_flavors == "multi" || $compiler_flavors == "win64" ]]; then
   make_prefix_options="CC=${cross_prefix}gcc AR=${cross_prefix}ar PREFIX=$mingw_w64_x86_64_prefix RANLIB=${cross_prefix}ranlib LD=${cross_prefix}ld STRIP=${cross_prefix}strip CXX=${cross_prefix}g++"
   mkdir -p win64
   cd win64
+    build_ffmpeg_dependencies
     build_apps
   cd ..
 fi
