@@ -23,7 +23,7 @@ diff -ur rubberband.pc.in.bak rubberband.pc.in
 @@ -5,6 +5,7 @@
  
  Name: rubberband
- Version: 1.8.1
+ Version: 1.8.2
 -Description: 
 +Description: An audio time-stretching and pitch-shifting library and utility program
  Libs: -L${libdir} -lrubberband
