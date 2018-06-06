@@ -416,7 +416,7 @@ do_cmake() {
   fi
 }
 
-do_cmake_from_build_dir() {
+do_cmake_from_build_dir() { # XX combine with the above :)
   source_dir="$1"
   extra_args="$2"
   local touch_name=$(get_small_touchfile_name already_ran_cmake "$extra_args")
@@ -1236,19 +1236,18 @@ build_libvpx() {
 }
 
 build_libaom() {
-  do_git_checkout https://aomedia.googlesource.com/aom
-  rm -rf aom_build # force rebuild every time
-  mkdir -p aom_build
-  cd aom_build
+  do_git_checkout https://aomedia.googlesource.com/aom aom_git
   if [ "$bits_target" = "32" ]; then
     local config_options="-DCMAKE_TOOLCHAIN_FILE=../aom/build/cmake/toolchains/x86-mingw-gcc.cmake -DAOM_TARGET_CPU=x86"
-    
   else
     local config_options="-DCMAKE_TOOLCHAIN_FILE=../aom/build/cmake/toolchains/x86_64-mingw-gcc.cmake -DAOM_TARGET_CPU=x86_64"
   fi
-    do_cmake_from_build_dir ../aom $config_options
+  mkdir -p aom_git/aom_build
+  cd aom_git/aom_build
+    do_cmake_from_build_dir .. $config_options
     do_make_and_make_install
   cd ..
+  exit 1
 }
 
 build_libx265() {
