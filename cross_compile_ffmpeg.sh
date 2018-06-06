@@ -1246,8 +1246,7 @@ build_libaom() {
   cd aom_git/aom_build
     do_cmake_from_build_dir .. $config_options
     do_make_and_make_install
-  cd ..
-  exit 1
+  cd ../..
 }
 
 build_libx265() {
