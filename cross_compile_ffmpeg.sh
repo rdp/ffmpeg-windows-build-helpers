@@ -658,7 +658,7 @@ build_libtiff() {
 build_libtesseract() {
   build_libleptonica
   build_libtiff # no disable configure option for this in tesseract? odd...
-  do_git_checkout https://github.com/tesseract-ocr/tesseract.git tesseract_git
+  do_git_checkout https://github.com/tesseract-ocr/tesseract.git tesseract_git 8d3f811
   cd tesseract_git
     generic_configure_make_install
     sed -i.bak 's/-ltesseract.*$/-ltesseract -lstdc++ -lws2_32 -llept -ltiff -llzma -ljpeg -lz/' $PKG_CONFIG_PATH/tesseract.pc # why does it needs winsock? LOL plus all of libtiff's <sigh>
@@ -1368,7 +1368,7 @@ build_libx264() {
   #if [[ $prefer_stable = "n" ]]; then
   #  do_git_checkout "http://git.videolan.org/git/x264.git" $checkout_dir "origin/master" # During 'configure': "Found no assembler. Minimum version is nasm-2.13" so disable for now...
   #else
-    do_git_checkout "http://git.videolan.org/git/x264.git" $checkout_dir  8c2974255b01728 # or "origin/stable" nasm again
+    do_git_checkout "http://git.videolan.org/git/x264.git" $checkout_dir  "origin/stable" # or "origin/stable" nasm again
   #fi
   cd $checkout_dir
     if [[ ! -f configure.bak ]]; then # Change CFLAGS.
