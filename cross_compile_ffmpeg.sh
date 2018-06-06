@@ -1148,9 +1148,9 @@ build_libmysofa() {
 }
 
 build_libcaca() {
-  do_git_checkout https://github.com/cacalabs/libcaca.git libcaca_git da28e9684ef44
+  do_git_checkout https://github.com/cacalabs/libcaca.git libcaca_git f1267fbd3cd3635a
   cd libcaca_git
-    apply_patch file://$patch_dir/libcaca_git_stdio-cruft.diff # Fix WinXP incompatibility.
+    apply_patch file://$patch_dir/libcaca_git_stdio-cruft.diff -p1 # Fix WinXP incompatibility.
     cd caca
       sed -i.bak "s/__declspec(dllexport)//g" *.h # get rid of the declspec lines otherwise the build will fail for undefined symbols
       sed -i.bak "s/__declspec(dllimport)//g" *.h
