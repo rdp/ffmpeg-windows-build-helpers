@@ -1,10 +1,13 @@
-diff -ur caca/figfont.c.bak caca/figfont.c
---- caca/figfont.c.bak	2017-05-13 22:44:04.812500000 +0200
-+++ caca/figfont.c	2017-05-13 22:52:57.375000000 +0200
-@@ -637,31 +637,6 @@
- }
+diff --git a/caca/figfont.c b/caca/figfont.c
+index 4c50b4e..a41966a 100644
+--- a/caca/figfont.c
++++ b/caca/figfont.c
+@@ -635,29 +635,3 @@ static uint32_t hsmush(uint32_t ch1, uint32_t ch2, int rule)
  
- /*
+     return 0;
+ }
+-
+-/*
 - * Functions for the mingw32 runtime
 - */
 -
@@ -29,13 +32,10 @@ diff -ur caca/figfont.c.bak caca/figfont.c
 -#   endif
 -#endif
 -
--/*
-  * XXX: The following functions are aliases.
-  */
- 
-diff -ur caca/string.c.bak caca/string.c
---- caca/string.c.bak	2017-05-13 22:44:04.859375000 +0200
-+++ caca/string.c	2017-05-13 22:53:04.890625000 +0200
+diff --git a/caca/string.c b/caca/string.c
+index b2a67ce..c6dc886 100644
+--- a/caca/string.c
++++ b/caca/string.c
 @@ -36,16 +36,6 @@
  #include "caca.h"
  #include "caca_internals.h"
@@ -53,7 +53,7 @@ diff -ur caca/string.c.bak caca/string.c
  /** \brief Set cursor position.
   *
   *  Put the cursor at the given coordinates. Functions making use of the
-@@ -349,13 +339,7 @@
+@@ -349,13 +339,7 @@ int caca_vprintf(caca_canvas_t *cv, int x, int y, char const *format,
          buf = malloc(bufsize);
      }
  
@@ -67,10 +67,12 @@ diff -ur caca/string.c.bak caca/string.c
      buf[bufsize - 1] = '\0';
  
      ret = caca_put_str(cv, x, y, buf);
-@@ -611,26 +595,6 @@
- }
+@@ -609,24 +593,3 @@ int caca_set_canvas_boundaries(caca_canvas_t *cv, int x, int y, int w, int h)
  
- /*
+     return 0;
+ }
+-
+-/*
 - * Functions for the mingw32 runtime
 - */
 -
@@ -90,7 +92,3 @@ diff -ur caca/string.c.bak caca/string.c
 -#   endif
 -#endif
 -
--/*
-  * XXX: The following functions are aliases.
-  */
- 
