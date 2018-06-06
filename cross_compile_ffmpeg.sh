@@ -1238,9 +1238,9 @@ build_libvpx() {
 build_libaom() {
   do_git_checkout https://aomedia.googlesource.com/aom aom_git
   if [ "$bits_target" = "32" ]; then
-    local config_options="-DCMAKE_TOOLCHAIN_FILE=../aom/build/cmake/toolchains/x86-mingw-gcc.cmake -DAOM_TARGET_CPU=x86"
+    local config_options="-DCMAKE_TOOLCHAIN_FILE=../build/cmake/toolchains/x86-mingw-gcc.cmake -DAOM_TARGET_CPU=x86"
   else
-    local config_options="-DCMAKE_TOOLCHAIN_FILE=../aom/build/cmake/toolchains/x86_64-mingw-gcc.cmake -DAOM_TARGET_CPU=x86_64"
+    local config_options="-DCMAKE_TOOLCHAIN_FILE=../build/cmake/toolchains/x86_64-mingw-gcc.cmake -DAOM_TARGET_CPU=x86_64"
   fi
   mkdir -p aom_git/aom_build
   cd aom_git/aom_build
