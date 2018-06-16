@@ -308,7 +308,7 @@ do_git_checkout() {
   else
     echo "doing git checkout $desired_branch"
     git checkout -f "$desired_branch" || exit 1
-    git merge "$desired_branch" || exit 1 # get incoming changes to a branch
+    git merge "origin/$desired_branch" || exit 1 # get incoming changes to a branch
   fi
 
   new_git_version=`git rev-parse HEAD`
