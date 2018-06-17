@@ -308,7 +308,9 @@ do_git_checkout() {
   else
     echo "doing git checkout $desired_branch"
     git checkout -f "$desired_branch" || exit 1
-    git merge "$desired_branch" || exit 1 # get incoming changes to a branch
+    if git show-ref --verify --quiet "refs/remotes/origin/$desired_branch"; then # $desired_branch is actually a branch, not a tag or commit
+      git merge "origin/$desired_branch" || exit 1 # get incoming changes to a branch
+    fi
   fi
 
   new_git_version=`git rev-parse HEAD`
