@@ -33,11 +33,12 @@ set_box_memory_size_bytes() {
   fi
 }
 
-# Rather than keeping the versioning logic in the script we can pull it into it's own function
-# So it can potentially be used if we needed other version comparisons done later.
-# Also, using the logic built into sort seems more robust than a roll-your-own for comparing versions.
-ver_comp() {
-  [ "${1}" = "${2}" ] || [ "$(printf '%s\n%s' "${1}" "${2}" | sort --version-sort | head -n 1)" == "${1}" ]
+function sortable_version { echo "$@" | awk -F. '{ printf("%d%03d%03d%03d\n", $1,$2,$3,$4); }'; }
+
+ver_comp() { # params: required actual
+  local sortable_required=$(sortable_version $1)
+  local sortable_actual=$(sortable_version $2)
+  [[ "$sortable_actual" -ge "$sortable_required" ]]
 }
 
 check_missing_packages () {
