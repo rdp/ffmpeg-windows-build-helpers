@@ -1,1 +1,6 @@
 sandbox/
+output/
+output_*/
+.DS_store
+config.log
+sandbox/

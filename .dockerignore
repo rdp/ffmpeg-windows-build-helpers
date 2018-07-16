@@ -1,0 +1,10 @@
+sandbox/
+output/
+output_*/
+.git/
+do-docker-build.sh
+.gitignore
+.gitattributes
+native_build/
+Dockerfile
+README.md
