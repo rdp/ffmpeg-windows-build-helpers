@@ -1378,9 +1378,9 @@ build_libx264() {
     if [[ $build_x264_with_libav == "n" ]]; then
       configure_flags+=" --disable-lavf" # lavf stands for libavformat, there is no --enable-lavf option, either auto or disable...
     fi
-    #if [[ $high_bitdepth == "y" ]]; then
-      configure_flags+=" --bit-depth=all" 
-    #fi
+    if [[ $high_bitdepth == "y" ]]; then
+      configure_flags+=" --bit-depth=10" # all?
+    fi
     for i in $CFLAGS; do
       configure_flags+=" --extra-cflags=$i" # needs it this way seemingly :|
     done
