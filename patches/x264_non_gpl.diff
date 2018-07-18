@@ -1,0 +1,20 @@
+diff --git a/configure b/configure
+index 5783407bdc..e2aabda3d1 100755
+--- a/configure
++++ b/configure
+@@ -1641,7 +1641,6 @@ EXTERNAL_LIBRARY_GPL_LIST="
+     libcdio
+     librubberband
+     libvidstab
+-    libx264
+     libx265
+     libxavs
+     libxvid
+@@ -1727,6 +1726,7 @@ EXTERNAL_LIBRARY_LIST="
+     libwavpack
+     libwebp
+     libxml2
++    libx264
+     libzimg
+     libzmq
+     libzvbi
