@@ -1,20 +1,12 @@
 diff --git a/configure b/configure
-index 5783407bdc..e2aabda3d1 100755
+index a1818dc853..ccbedfc981 100755
 --- a/configure
 +++ b/configure
-@@ -1641,7 +1641,6 @@ EXTERNAL_LIBRARY_GPL_LIST="
-     libcdio
-     librubberband
-     libvidstab
--    libx264
-     libx265
-     libxavs
-     libxvid
-@@ -1727,6 +1726,7 @@ EXTERNAL_LIBRARY_LIST="
-     libwavpack
-     libwebp
-     libxml2
-+    libx264
-     libzimg
-     libzmq
-     libzvbi
+@@ -5077,7 +5077,6 @@ die_license_disabled gpl libcdio
+ die_license_disabled gpl librubberband
+ die_license_disabled gpl libsmbclient
+ die_license_disabled gpl libvidstab
+-die_license_disabled gpl libx264
+ die_license_disabled gpl libx265
+ die_license_disabled gpl libxavs
+ die_license_disabled gpl libxvid
