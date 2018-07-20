@@ -307,14 +307,14 @@ do_git_checkout() {
 
   if [[ -z $desired_branch ]]; then
     echo "doing git checkout -f master"
-    git checkout -f master || exit 1 # in case they were on some other branch before [ex: going between ffmpeg release tags]. # -f: checkout even if the working tree differs from HEAD.
+    git checkout master || exit 1 # in case they were on some other branch before [ex: going between ffmpeg release tags].
     if [[ $git_get_latest = "y" ]]; then
       echo "Updating to latest $to_dir git version [origin/master]..."
       git merge origin/master || exit 1
     fi
   else
-    echo "doing git checkout -f $desired_branch"
-    git checkout -f "$desired_branch" || exit 1
+    echo "doing git checkout $desired_branch" # -f nukes ffmpeg local patches??
+    git checkout "$desired_branch" || exit 1
     git merge "$desired_branch" || exit 1 # get incoming changes to a branch
   fi
 
@@ -678,7 +678,11 @@ build_libtesseract() {
   do_git_checkout https://github.com/tesseract-ocr/tesseract.git tesseract_git a2e72f258a3bd6811cae226a01802d # #315
   cd tesseract_git
     generic_configure_make_install
-    sed -i.bak 's/-ltesseract.*$/-ltesseract -lstdc++ -lws2_32 -llept -ltiff -llzma -ljpeg -lz/' $PKG_CONFIG_PATH/tesseract.pc # why does it needs winsock? LOL plus all of libtiff's <sigh>
+    if [[ $compiler_flavors != "native"  ]]; then
+      sed -i.bak 's/-ltesseract.*$/-ltesseract -lstdc++ -lws2_32 -llept -ltiff -llzma -ljpeg -lz/' $PKG_CONFIG_PATH/tesseract.pc # why does it needs winsock? LOL plus all of libtiff's <sigh>
+    else
+      sed -i.bak 's/-ltesseract.*$/-ltesseract -lstdc++ -llept -ltiff -llzma -ljpeg -lz/' $PKG_CONFIG_PATH/tesseract.pc # see above
+    fi
   cd ..
 }
 
@@ -761,23 +765,28 @@ build_gmp() {
 }
 
 build_libnettle() {
-  download_and_unpack_file https://ftp.gnu.org/gnu/nettle/nettle-3.3.tar.gz
-  cd nettle-3.3
+  download_and_unpack_file https://ftp.gnu.org/gnu/nettle/nettle-3.4.tar.gz
+  cd nettle-3.4
     generic_configure "--disable-openssl --disable-documentation" # in case we have both gnutls and openssl, just use gnutls [except that gnutls uses this so...huh? https://github.com/rdp/ffmpeg-windows-build-helpers/issues/25#issuecomment-28158515
     do_make_and_make_install # What's up with "Configured with: ... --with-gmp=/cygdrive/d/ffmpeg-windows-build-helpers-master/native_build/windows/ffmpeg_local_builds/sandbox/cross_compilers/pkgs/gmp/gmp-6.1.2-i686" in 'config.log'? Isn't the 'gmp-6.1.2' above being used?
   cd ..
 }
 
 build_gnutls() {
-  download_and_unpack_file https://www.gnupg.org/ftp/gcrypt/gnutls/v3.5/gnutls-3.5.18.tar.xz
-  cd gnutls-3.5.18
+  download_and_unpack_file https://www.gnupg.org/ftp/gcrypt/gnutls/v3.5/gnutls-3.5.19.tar.xz
+  cd gnutls-3.5.19
     # --disable-cxx don't need the c++ version, in an effort to cut down on size... XXXX test size difference...
     # --enable-local-libopts to allow building with local autogen installed,
     # --disable-guile is so that if it finds guile installed (cygwin did/does) it won't try and link/build to it and fail...
     # libtasn1 is some dependency, appears provided is an option [see also build_libnettle]
     # pks #11 hopefully we don't need kit
     if [[ ! -f lib/gnutls.pc.in.bak ]]; then # Somehow FFmpeg's 'configure' needs '-lcrypt32'. Otherwise you'll get "undefined reference to `_imp__Cert...'" and "ERROR: gnutls not found using pkg-config".
-      sed -i.bak "/privat/s/.*/& -lcrypt32/" lib/gnutls.pc.in
+       # similar OS X some weird link failure at FFmpeg time...
+       if [[ $compiler_flavors != "native"  ]]; then
+         sed -i.bak "/privat/s/.*/& -lcrypt32/" lib/gnutls.pc.in
+       else
+         sed -i.bak "/privat/s/.*/& -framework Security/" lib/gnutls.pc.in
+       fi
     fi
     generic_configure "--disable-doc --disable-tools --disable-cxx --disable-tests --disable-gtk-doc-html --disable-libdane --disable-nls --enable-local-libopts --disable-guile --with-included-libtasn1 --with-included-unistring --without-p11-kit"
     do_make_and_make_install
@@ -1242,7 +1251,9 @@ build_libvpx() {
   do_git_checkout https://chromium.googlesource.com/webm/libvpx.git
   cd libvpx_git
      apply_patch https://raw.githubusercontent.com/rdp/ffmpeg-windows-build-helpers/master/patches/vpx_160_semaphore.patch -p1 # perhaps someday can remove this after 1.6.0 or mingw fixes it LOL
-    if [[ "$bits_target" = "32" ]]; then
+    if [[ $compiler_flavors == "native" ]]; then
+      local config_options=""
+    elif [[ "$bits_target" = "32" ]]; then
       local config_options="--target=x86-win32-gcc"
     else
       local config_options="--target=x86_64-win64-gcc"
@@ -1727,21 +1738,17 @@ build_ffmpeg() {
       init_options+=" --disable-schannel"
       # Fix WinXP incompatibility by disabling Microsoft's Secure Channel, because Windows XP doesn't support TLS 1.1 and 1.2, but with GnuTLS or OpenSSL it does.  XP compat!
     fi
-    if [[ $compiler_flavors == "native" ]]; then
-      config_options="$init_options --enable-libx264 --enable-libmp3lame"
+    config_options="$init_options --enable-gray --enable-libtesseract --enable-fontconfig --enable-gmp --enable-gnutls --enable-libass --enable-libbluray --enable-libbs2b --enable-libflite --enable-libfreetype --enable-libfribidi --enable-libgme --enable-libgsm --enable-libilbc --enable-libmodplug --enable-libmp3lame --enable-libopencore-amrnb --enable-libopencore-amrwb --enable-libopus --enable-libsnappy --enable-libsoxr --enable-libspeex --enable-libtheora --enable-libtwolame --enable-libvo-amrwbenc --enable-libvorbis --enable-libvpx --enable-libwebp --enable-libzimg --enable-libzvbi"  #-enable-libmysofa --enable-nvdec --enable-libaom --enable-libopenjpeg # don't work 2.3.4
+    # voluntary: --enable-nvenc --enable-libopenh264
+    if [[ $compiler_flavors != "native" ]]; then
+      config_options+=" --enable-libcaca" # don't work OS X 
+    fi
+    config_options+=" --extra-cflags=-DLIBTWOLAME_STATIC --extra-cflags=-DMODPLUG_STATIC --extra-cflags=-DCACA_STATIC" # if we ever do a git pull then it nukes changes, which overrides manual changes to configure, so just use these for now :|
+    if [[ $build_amd_amf = n ]]; then
+      #config_options+=" --disable-amf" # Since its autodetected we have to disable it if we do not want it. #unless we define no autodetection but.. we don't.
+      echo "not there yet"
     else
-      config_options="$init_options --enable-gray --enable-libtesseract --enable-fontconfig --enable-gmp --enable-gnutls --enable-libass --enable-libbluray --enable-libbs2b --enable-libflite --enable-libfreetype --enable-libfribidi --enable-libgme --enable-libgsm --enable-libilbc --enable-libmodplug --enable-libmp3lame --enable-libopencore-amrnb --enable-libopencore-amrwb --enable-libopus --enable-libsnappy --enable-libsoxr --enable-libspeex --enable-libtheora --enable-libtwolame --enable-libvo-amrwbenc --enable-libvorbis --enable-libvpx --enable-libwebp --enable-libzimg --enable-libzvbi"  #-enable-libmysofa --enable-nvdec --enable-libaom --enable-libopenjpeg # don't work 2.3.4
-      # voluntary: --enable-nvenc --enable-libopenh264
-      if [[ $compiler_flavors != "native" ]]; then
-        config_options+=" --enable-libcaca" # don't work OS X 
-      fi
-      config_options+=" --extra-cflags=-DLIBTWOLAME_STATIC --extra-cflags=-DMODPLUG_STATIC --extra-cflags=-DCACA_STATIC" # if we ever do a git pull then it nukes changes, which overrides manual changes to configure, so just use these for now :|
-      if [[ $build_amd_amf = n ]]; then
-        #config_options+=" --disable-amf" # Since its autodetected we have to disable it if we do not want it. #unless we define no autodetection but.. we don't.
-        echo "not there yet"
-      else
-        config_options+=" --enable-amf" # This is actually autodetected but for consistency.. we might as well set it.
-      fi
+      config_options+=" --enable-amf" # This is actually autodetected but for consistency.. we might as well set it.
     fi
 
     if [[ $build_intel_qsv = y ]]; then
