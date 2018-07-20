@@ -1718,7 +1718,11 @@ build_ffmpeg() {
     if [[ $compiler_flavors == "native" ]]; then
       config_options="$init_options --enable-libx264 --enable-libmp3lame"
     else
-      config_options="$init_options --enable-gray --enable-libtesseract --enable-fontconfig --enable-gmp --enable-gnutls --enable-libass --enable-libbluray --enable-libbs2b --enable-libflite --enable-libfreetype --enable-libfribidi --enable-libgme --enable-libgsm --enable-libilbc --enable-libmodplug --enable-libmp3lame --enable-libopencore-amrnb --enable-libopencore-amrwb --enable-libopenh264 --enable-libopus --enable-libsnappy --enable-libsoxr --enable-libspeex --enable-libtheora --enable-libtwolame --enable-libvo-amrwbenc --enable-libvorbis --enable-libvpx --enable-libwebp --enable-libzimg --enable-libzvbi  --enable-nvenc "  # # --enable-libmysofa --enable-nvdec --enable-libaom  --enable-libopenjpeg --enablelibcaca
+      config_options="$init_options --enable-gray --enable-libtesseract --enable-fontconfig --enable-gmp --enable-gnutls --enable-libass --enable-libbluray --enable-libbs2b --enable-libflite --enable-libfreetype --enable-libfribidi --enable-libgme --enable-libgsm --enable-libilbc --enable-libmodplug --enable-libmp3lame --enable-libopencore-amrnb --enable-libopencore-amrwb --enable-libopus --enable-libsnappy --enable-libsoxr --enable-libspeex --enable-libtheora --enable-libtwolame --enable-libvo-amrwbenc --enable-libvorbis --enable-libvpx --enable-libwebp --enable-libzimg --enable-libzvbi --enable-libopenjpeg"  #-enable-libmysofa --enable-nvdec --enable-libaom --enable-libopenjpeg # don't work 2.3.4
+      # voluntary: --enable-nvenc --enable-libopenh264
+      if [[ $compiler_flavors != "native" ]]; then
+        config_options+=" --enable-libcaca" # don't work OS X 
+      fi
       config_options+=" --extra-cflags=-DLIBTWOLAME_STATIC --extra-cflags=-DMODPLUG_STATIC --extra-cflags=-DCACA_STATIC" # if we ever do a git pull then it nukes changes, which overrides manual changes to configure, so just use these for now :|
       if [[ $build_amd_amf = n ]]; then
         #config_options+=" --disable-amf" # Since its autodetected we have to disable it if we do not want it. #unless we define no autodetection but.. we don't.
@@ -1731,7 +1735,11 @@ build_ffmpeg() {
     fi
     fi
     if [[ $enable_gpl == 'y' ]]; then
-      config_options+=" --enable-gpl --enable-avisynth --enable-frei0r --enable-filter=frei0r --enable-librubberband --enable-libvidstab --enable-libx264 --enable-libx265 --enable-libxavs --enable-libxvid"
+      config_options+=" --enable-gpl --enable-avisynth --enable-frei0r --enable-filter=frei0r --enable-librubberband --enable-libvidstab --enable-libx264 --enable-libx265 --enable-libxvid"
+      if [[ $compiler_flavors != "native" ]]; then
+        config_options+=" --enable-libxavs" # don't work OS X 
+      fi
+
     fi
     local licensed_gpl=y
     if [[ $licensed_gpl == 'y' ]]; then
@@ -1852,10 +1860,14 @@ find_all_build_exes() {
 
 build_ffmpeg_dependencies() {
   echo "Building ffmpeg dependency libraries..." 
-  #build_dlfcn
+  build_zlib # Zlib in FFmpeg is autodetected.
+  if [[ $compiler_flavors != "native" ]]; then # build some stuff that don't build native...
+    build_dlfcn
+    build_libxavs
+    build_libcaca # Uses zlib and dlfcn.
+  fi
   build_bzip2 # Bzlib (bzip2) in FFmpeg is autodetected.
   build_liblzma # Lzma in FFmpeg is autodetected. Uses dlfcn.
-  build_zlib # Zlib in FFmpeg is autodetected.
   build_iconv # Iconv in FFmpeg is autodetected. Uses dlfcn.
   build_sdl2 # Sdl2 in FFmpeg is autodetected. Needed to build FFPlay. Uses iconv and dlfcn.
   if [[ $build_amd_amf = y ]]; then
@@ -1867,7 +1879,7 @@ build_ffmpeg_dependencies() {
   build_nv_headers
   build_libzimg # Uses dlfcn.
   build_libopenjpeg
-  #build_libjpeg_turbo # mplayer can use this, VLC qt might need it? [replaces libjpeg]
+  #build_libjpeg_turbo # mplayer can use this, VLC qt might need it? [replaces libjpeg] (ffmpeg seems to not need it so commented out here)
   build_libpng # Needs zlib >= 1.0.4. Uses dlfcn.
   build_libwebp # Uses dlfcn.
   build_freetype # Uses zlib, bzip2, and libpng.
@@ -1905,7 +1917,6 @@ build_ffmpeg_dependencies() {
   build_frei0r # Needs dlfcn.
   build_vidstab
   build_libmysofa # Needed for FFmpeg's SOFAlizer filter (https://ffmpeg.org/ffmpeg-filters.html#sofalizer). Uses dlfcn.
-  #build_libcaca # Uses zlib and dlfcn.
   if [[ "$non_free" = "y" ]]; then
     build_fdk-aac # Uses dlfcn.
     build_libdecklink
@@ -1913,7 +1924,7 @@ build_ffmpeg_dependencies() {
   build_zvbi # Uses iconv, libpng and dlfcn.
   build_fribidi # Uses dlfcn.
   build_libass # Needs freetype >= 9.10.3 (see https://bugs.launchpad.net/ubuntu/+source/freetype1/+bug/78573 o_O) and fribidi >= 0.19.0. Uses fontconfig >= 2.10.92, iconv and dlfcn.
-  #build_libxavs
+
   build_libxvid # FFmpeg now has native support, but libxvid still provides a better image.
   build_libtesseract
   build_libvpx
@@ -2116,12 +2127,10 @@ if [[ $compiler_flavors == "native" ]]; then
   export PATH="$mingw_bin_path:$original_path"
   #  b2sb doesn't use pkg-config, sndfile needed Carbon :|
   export CPATH=$cur_dir/cross_compilers/native/include:/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/System/Library/Frameworks/Carbon.framework/Versions/A/Headers # C_INCLUDE_PATH
-  export LIBRARY_PATH=$cur_dir/cross_compilers/native/lib:
+  export LIBRARY_PATH=$cur_dir/cross_compilers/native/lib
   mkdir -p native
   cd native
-    # build_lame
     build_ffmpeg_dependencies
-    build_libx264 # small deps )
     build_ffmpeg
   cd ..
 fi
