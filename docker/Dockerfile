@@ -30,10 +30,10 @@ RUN apt-get update && \
     bzip2 \
     autoconf-archive
 
-COPY . /ffmpeg-windows-build-helpers
+COPY . ./ffmpeg-windows-build-helpers
 
 #COPY ./do-custom-build.sh /ffmpeg-windows-build-helpers/do-custom-build.sh
 
 WORKDIR /ffmpeg-windows-build-helpers
-ENTRYPOINT [ "bash", "./docker-entry.sh" ]
+ENTRYPOINT [ "bash", "./docker/docker-entry.sh" ]
     

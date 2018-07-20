@@ -9,7 +9,7 @@ echo [`date +'%Y%m%dT%H%M%S'`] Updating local git repository.
  #   git clone https://github.com/rdp/ffmpeg-windows-build-helpers.git
 fi
 
-docker build . -f Dockerfile -t ffmpeg-windows-build-helpers
+docker build .. -f Dockerfile -t ffmpeg-windows-build-helpers 
 
 if [ $? -eq 0 ]; then
     ## TODO make better so it doe snot clone everytime, but also no nested repositories. .dockerignore and self copy should also work.
