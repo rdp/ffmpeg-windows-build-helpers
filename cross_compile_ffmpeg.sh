@@ -1104,7 +1104,7 @@ build_libsamplerate() {
   #  generic_configure
   #  do_make_and_make_install
   #cd ..
-  generic_download_and_make_and_install http://www.mega-nerd.com/SRC/libsamplerate-0.1.9.tar.gz # can use this, but uses speex bundled by default [any difference?]
+  generic_download_and_make_and_install http://www.mega-nerd.com/SRC/libsamplerate-0.1.8.tar.gz # rubberband can use this, but uses speex bundled by default [any difference?] 1.9 failed
 }
 
 build_librubberband() {
@@ -1168,10 +1168,7 @@ build_libcaca() {
       sed -i.bak "s/__declspec(dllexport)//g" *.h # get rid of the declspec lines otherwise the build will fail for undefined symbols
       sed -i.bak "s/__declspec(dllimport)//g" *.h
     cd ..
-    local old_cath=$CPATH # weird OS X native issue
-    export CPATH=
     generic_configure "--libdir=$mingw_w64_x86_64_prefix/lib --disable-csharp --disable-java --disable-cxx --disable-python --disable-ruby --disable-doc"
-    export CPATH=$old_cath
     do_make_and_make_install
   cd ..
 }
@@ -1720,12 +1717,12 @@ build_ffmpeg() {
     fi
     if [[ $compiler_flavors == "native" ]]; then
       config_options="$init_options --enable-libx264 --enable-libmp3lame"
-      # apply_patch file://$patch_dir/x264_non_gpl.diff -p1 # if you have a license with them :)
     else
       config_options="$init_options --enable-gray --enable-libtesseract --enable-fontconfig --enable-gmp --enable-gnutls --enable-libass --enable-libbluray --enable-libbs2b --enable-libflite --enable-libfreetype --enable-libfribidi --enable-libgme --enable-libgsm --enable-libilbc --enable-libmodplug --enable-libmp3lame --enable-libopencore-amrnb --enable-libopencore-amrwb --enable-libopenh264 --enable-libopus --enable-libsnappy --enable-libsoxr --enable-libspeex --enable-libtheora --enable-libtwolame --enable-libvo-amrwbenc --enable-libvorbis --enable-libvpx --enable-libwebp --enable-libzimg --enable-libzvbi  --enable-nvenc "  # # --enable-libmysofa --enable-nvdec --enable-libaom  --enable-libopenjpeg --enablelibcaca
       config_options+=" --extra-cflags=-DLIBTWOLAME_STATIC --extra-cflags=-DMODPLUG_STATIC --extra-cflags=-DCACA_STATIC" # if we ever do a git pull then it nukes changes, which overrides manual changes to configure, so just use these for now :|
       if [[ $build_amd_amf = n ]]; then
-        config_options+=" --disable-amf" # Since its autodetected we have to disable it if we do not want it. #unless we define no autodetection but.. we don't.
+        #config_options+=" --disable-amf" # Since its autodetected we have to disable it if we do not want it. #unless we define no autodetection but.. we don't.
+        echo "not there yet"
       else
         config_options+=" --enable-amf" # This is actually autodetected but for consistency.. we might as well set it.
       fi
@@ -1736,6 +1733,11 @@ build_ffmpeg() {
     if [[ $enable_gpl == 'y' ]]; then
       config_options+=" --enable-gpl --enable-avisynth --enable-frei0r --enable-filter=frei0r --enable-librubberband --enable-libvidstab --enable-libx264 --enable-libx265 --enable-libxavs --enable-libxvid"
     fi
+    local licensed_gpl=y
+    if [[ $licensed_gpl == 'y' ]]; then
+      apply_patch file://$patch_dir/x264_non_gpl.diff -p1
+      config_options+=" --enable-libx264"
+    fi 
     # other possibilities:
     #   --enable-w32threads # [worse UDP than pthreads, so not using that]
     config_options+=" --enable-avresample" # guess this is some kind of libav specific thing (the FFmpeg fork) but L-Smash needs it so why not always build it :)
