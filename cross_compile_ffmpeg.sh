@@ -306,21 +306,21 @@ do_git_checkout() {
   old_git_version=`git rev-parse HEAD`
 
   if [[ -z $desired_branch ]]; then
-    echo "doing git checkout master"
+    echo "doing git checkout -f master"
     git checkout -f master || exit 1 # in case they were on some other branch before [ex: going between ffmpeg release tags]. # -f: checkout even if the working tree differs from HEAD.
     if [[ $git_get_latest = "y" ]]; then
       echo "Updating to latest $to_dir git version [origin/master]..."
       git merge origin/master || exit 1
     fi
   else
-    echo "doing git checkout $desired_branch"
+    echo "doing git checkout -f $desired_branch"
     git checkout -f "$desired_branch" || exit 1
     git merge "$desired_branch" || exit 1 # get incoming changes to a branch
   fi
 
   new_git_version=`git rev-parse HEAD`
   if [[ "$old_git_version" != "$new_git_version" ]]; then
-    echo "got upstream changes, forcing re-configure."
+    echo "got upstream changes, forcing re-configure. Doing git clean -f"
     git clean -f # Throw away local changes; 'already_*' and bak-files for instance.
   else
     echo "fetched no code changes, not forcing reconfigure for that..."
@@ -465,8 +465,8 @@ apply_patch() {
     patch $patch_type < "$patch_name" || exit 1
     touch $patch_done_name || exit 1
     rm -f already_ran* # if it's a new patch, reset everything too, in case it's really really really new
-  #else
-    #echo "patch $patch_name already applied"
+  else
+    echo "patch $patch_name already applied"
   fi
 }
 
@@ -1018,6 +1018,7 @@ build_libbluray() {
       local local_git_version=`git --git-dir=.git/modules/contrib/libudfread rev-parse HEAD`
       local remote_git_version=`git ls-remote -h https://git.videolan.org/git/libudfread.git | sed "s/[[:space:]].*//"`
       if [[ "$local_git_version" != "$remote_git_version" ]]; then
+        echo "doing git clean -f"
         git clean -f # Throw away local changes; 'already_*' in this case.
         git submodule foreach -q 'git clean -f' # Throw away local changes; 'already_configured_*' and 'udfread.c.bak' in this case.
         rm -f contrib/libudfread/src/udfread-version.h
@@ -1680,7 +1681,7 @@ build_ffmpeg() {
   if [[ $high_bitdepth == "y" ]]; then
     output_dir+="_x26x_high_bitdepth"
   fi
-  if [[ $build_amd_amf == "n" ]] || [[ $build_intel_qsv == "n" ]]; then # wrong should be &&?
+  if [[ $build_intel_qsv == "n" ]]; then
     output_dir+="_xp_compat"
   fi
   if [[ $enable_gpl == 'n' ]]; then
@@ -1730,16 +1731,16 @@ build_ffmpeg() {
       else
         config_options+=" --enable-amf" # This is actually autodetected but for consistency.. we might as well set it.
       fi
-    if [[ $build_intel_qsv = y ]]; then
-      config_options+=" --enable-libmfx" # [note, not windows xp friendly]
     fi
+
+    if [[ $build_intel_qsv = y ]]; then
+      config_options+=" --enable-libmfx"
     fi
     if [[ $enable_gpl == 'y' ]]; then
       config_options+=" --enable-gpl --enable-avisynth --enable-frei0r --enable-filter=frei0r --enable-librubberband --enable-libvidstab --enable-libx264 --enable-libx265 --enable-libxvid"
       if [[ $compiler_flavors != "native" ]]; then
         config_options+=" --enable-libxavs" # don't work OS X 
       fi
-
     fi
     local licensed_gpl=y
     if [[ $licensed_gpl == 'y' ]]; then
@@ -1999,16 +2000,7 @@ build_vlc=n
 build_lsw=n # To build x264 with L-Smash-Works.
 git_get_latest=y
 prefer_stable=y # Only for x264 and x265.
-# if [[ `uname` =~ "5.1" ]]; # Uncomment this if people report that AMF does not work on XP (I have no way to test this myself)
-#   build_amd_amf=n
-# else
-#   build_amd_amf=y
-# fi
-if [[ `uname` =~ "5.1" ]]; then # Disable when WinXP is detected, or you'll get "The procedure entry point _wfopen_s could not be located in the dynamic link library msvcrt.dll".
-  build_intel_qsv=n
-else
-  build_intel_qsv=y
-fi
+build_intel_qsv=y # note: not windows xp friendly!
 disable_nonfree=y # comment out to force user y/n selection
 original_cflags='-mtune=generic -O3' # high compatible by default, see #219, some other good options are listed below, or you could use -march=native to target your local box:
 # if you specify a march it needs to first so x264's configure will use it :| [ is that still the case ?]
