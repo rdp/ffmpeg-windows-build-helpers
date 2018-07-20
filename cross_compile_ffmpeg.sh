@@ -437,8 +437,13 @@ do_cmake_from_build_dir() { # XX combine with the above :)
     rm -f already_* # reset so that make will run again if option just changed
     local cur_dir2=$(pwd)
     echo doing cmake in $cur_dir2 with PATH=$mingw_bin_path:\$PATH with extra_args=$extra_args like this:
-    echo ${cmake_command} -G"Unix Makefiles" $source_dir -DENABLE_STATIC_RUNTIME=1 -DCMAKE_SYSTEM_NAME=Windows -DCMAKE_RANLIB=${cross_prefix}ranlib -DCMAKE_C_COMPILER=${cross_prefix}gcc -DCMAKE_CXX_COMPILER=${cross_prefix}g++ -DCMAKE_RC_COMPILER=${cross_prefix}windres -DCMAKE_INSTALL_PREFIX=$mingw_w64_x86_64_prefix $extra_args
-    ${cmake_command} -G"Unix Makefiles" $source_dir -DENABLE_STATIC_RUNTIME=1 -DCMAKE_SYSTEM_NAME=Windows -DCMAKE_RANLIB=${cross_prefix}ranlib -DCMAKE_C_COMPILER=${cross_prefix}gcc -DCMAKE_CXX_COMPILER=${cross_prefix}g++ -DCMAKE_RC_COMPILER=${cross_prefix}windres -DCMAKE_INSTALL_PREFIX=$mingw_w64_x86_64_prefix $extra_args || exit 1
+    if [[ $compiler_flavors != "native" ]]; then
+      echo ${cmake_command} -G"Unix Makefiles" $source_dir -DENABLE_STATIC_RUNTIME=1 -DCMAKE_SYSTEM_NAME=Windows -DCMAKE_RANLIB=${cross_prefix}ranlib -DCMAKE_C_COMPILER=${cross_prefix}gcc -DCMAKE_CXX_COMPILER=${cross_prefix}g++ -DCMAKE_RC_COMPILER=${cross_prefix}windres -DCMAKE_INSTALL_PREFIX=$mingw_w64_x86_64_prefix $extra_args
+      ${cmake_command} -G"Unix Makefiles" $source_dir -DENABLE_STATIC_RUNTIME=1 -DCMAKE_SYSTEM_NAME=Windows -DCMAKE_RANLIB=${cross_prefix}ranlib -DCMAKE_C_COMPILER=${cross_prefix}gcc -DCMAKE_CXX_COMPILER=${cross_prefix}g++ -DCMAKE_RC_COMPILER=${cross_prefix}windres -DCMAKE_INSTALL_PREFIX=$mingw_w64_x86_64_prefix $extra_args || exit 1
+    else
+      echo ${cmake_command} -G"Unix Makefiles" $source_dir -DENABLE_STATIC_RUNTIME=1 -DCMAKE_INSTALL_PREFIX=$mingw_w64_x86_64_prefix $extra_args || exit 1
+      ${cmake_command} -G"Unix Makefiles" $source_dir -DENABLE_STATIC_RUNTIME=1 -DCMAKE_INSTALL_PREFIX=$mingw_w64_x86_64_prefix $extra_args || exit 1
+    fi
     touch $touch_name || exit 1
   fi
 }
@@ -1251,7 +1256,9 @@ build_libvpx() {
 
 build_libaom() {
   do_git_checkout https://aomedia.googlesource.com/aom aom_git
-  if [ "$bits_target" = "32" ]; then
+  if [[ $compiler_flavors == "native" ]]; then 
+    local config_options=""
+  elif [ "$bits_target" = "32" ]; then
     local config_options="-DCMAKE_TOOLCHAIN_FILE=../build/cmake/toolchains/x86-mingw-gcc.cmake -DAOM_TARGET_CPU=x86"
   else
     local config_options="-DCMAKE_TOOLCHAIN_FILE=../build/cmake/toolchains/x86_64-mingw-gcc.cmake -DAOM_TARGET_CPU=x86_64"
@@ -1350,12 +1357,16 @@ build_libopenh264() {
   do_git_checkout "https://github.com/cisco/openh264.git"
   cd openh264_git
     sed -i.bak "s/_M_X64/_M_DISABLED_X64/" codec/encoder/core/inc/param_svc.h # for 64 bit, avoid missing _set_FMA3_enable, it needed to link against msvcrt120 to get this or something weird?
-    if [ $bits_target = 32 ]; then
+    if [[ $bits_target == 32 ]]; then
       local arch=i686 # or x86?
     else
       local arch=x86_64
     fi
-    do_make "$make_prefix_options OS=mingw_nt ARCH=$arch ASM=yasm install-static" # No need for 'do_make_install', because 'install-static' already has install-instructions.
+    if [[ $compiler_flavors == "native" ]]; then
+      do_make_install "$make_prefix_options ASM=yasm"
+    else
+      do_make_install "$make_prefix_options OS=mingw_nt ARCH=$arch ASM=yasm"
+    fi
   cd ..
 }
 
@@ -1719,7 +1730,7 @@ build_ffmpeg() {
     if [[ $compiler_flavors == "native" ]]; then
       config_options="$init_options --enable-libx264 --enable-libmp3lame"
     else
-      config_options="$init_options --enable-gray --enable-libtesseract --enable-fontconfig --enable-gmp --enable-gnutls --enable-libass --enable-libbluray --enable-libbs2b --enable-libflite --enable-libfreetype --enable-libfribidi --enable-libgme --enable-libgsm --enable-libilbc --enable-libmodplug --enable-libmp3lame --enable-libopencore-amrnb --enable-libopencore-amrwb --enable-libopus --enable-libsnappy --enable-libsoxr --enable-libspeex --enable-libtheora --enable-libtwolame --enable-libvo-amrwbenc --enable-libvorbis --enable-libvpx --enable-libwebp --enable-libzimg --enable-libzvbi --enable-libopenjpeg"  #-enable-libmysofa --enable-nvdec --enable-libaom --enable-libopenjpeg # don't work 2.3.4
+      config_options="$init_options --enable-gray --enable-libtesseract --enable-fontconfig --enable-gmp --enable-gnutls --enable-libass --enable-libbluray --enable-libbs2b --enable-libflite --enable-libfreetype --enable-libfribidi --enable-libgme --enable-libgsm --enable-libilbc --enable-libmodplug --enable-libmp3lame --enable-libopencore-amrnb --enable-libopencore-amrwb --enable-libopus --enable-libsnappy --enable-libsoxr --enable-libspeex --enable-libtheora --enable-libtwolame --enable-libvo-amrwbenc --enable-libvorbis --enable-libvpx --enable-libwebp --enable-libzimg --enable-libzvbi"  #-enable-libmysofa --enable-nvdec --enable-libaom --enable-libopenjpeg # don't work 2.3.4
       # voluntary: --enable-nvenc --enable-libopenh264
       if [[ $compiler_flavors != "native" ]]; then
         config_options+=" --enable-libcaca" # don't work OS X 
@@ -2117,6 +2128,7 @@ if [[ $compiler_flavors == "native" ]]; then
   mingw_bin_path="$cur_dir/cross_compilers/native/bin" # sdl needs somewhere to drop "binaries"??
   export PKG_CONFIG_PATH="$mingw_w64_x86_64_prefix/lib/pkgconfig"
   export PATH="$mingw_bin_path:$original_path"
+  make_prefix_options="PREFIX=$mingw_w64_x86_64_prefix"
   #  b2sb doesn't use pkg-config, sndfile needed Carbon :|
   export CPATH=$cur_dir/cross_compilers/native/include:/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/System/Library/Frameworks/Carbon.framework/Versions/A/Headers # C_INCLUDE_PATH
   export LIBRARY_PATH=$cur_dir/cross_compilers/native/lib
