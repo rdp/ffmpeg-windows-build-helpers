@@ -306,8 +306,8 @@ do_git_checkout() {
   old_git_version=`git rev-parse HEAD`
 
   if [[ -z $desired_branch ]]; then
-    local cur_branch==$(git rev-parse --abbrev-ref HEAD)
-    if [[ $cur_branch != "master" ]]; then
+    local cur_branch=$(git rev-parse --abbrev-ref HEAD)
+    if [[ "$cur_branch" != "master" ]]; then
       echo "doing git checkout -f master, git clean -f"
       git checkout -f master || exit 1 # in case they were on some other branch before [ex: going between ffmpeg release tags].
       git clean -f # remove patch applied files
@@ -784,16 +784,13 @@ build_gnutls() {
     # --disable-guile is so that if it finds guile installed (cygwin did/does) it won't try and link/build to it and fail...
     # libtasn1 is some dependency, appears provided is an option [see also build_libnettle]
     # pks #11 hopefully we don't need kit
-    if [[ ! -f lib/gnutls.pc.in.bak ]]; then # Somehow FFmpeg's 'configure' needs '-lcrypt32'. Otherwise you'll get "undefined reference to `_imp__Cert...'" and "ERROR: gnutls not found using pkg-config".
-       # similar OS X some weird link failure at FFmpeg time...
-       if [[ $compiler_flavors != "native"  ]]; then
-         sed -i.bak "/privat/s/.*/& -lcrypt32/" lib/gnutls.pc.in
-       else
-         sed -i.bak "/privat/s/.*/& -framework Security/" lib/gnutls.pc.in
-       fi
-    fi
     generic_configure "--disable-doc --disable-tools --disable-cxx --disable-tests --disable-gtk-doc-html --disable-libdane --disable-nls --enable-local-libopts --disable-guile --with-included-libtasn1 --with-included-unistring --without-p11-kit"
     do_make_and_make_install
+    if [[ $compiler_flavors != "native"  ]]; then
+      sed -i.bak 's/-lgnutls.*/-lgnutls -lcrypt32/' "$PKG_CONFIG_PATH/gnutls.pc" 
+    else
+      sed -i.bak 's/-lgnutls.*/-lgnutls -framework Security -framework Foundation/' "$PKG_CONFIG_PATH/gnutls.pc" 
+    fi
   cd ..
 }
 
@@ -1204,7 +1201,9 @@ build_libdecklink() {
 build_zvbi() {
   download_and_unpack_file https://sourceforge.net/projects/zapping/files/zvbi/0.2.35/zvbi-0.2.35.tar.bz2
   cd zvbi-0.2.35
-    apply_patch file://$patch_dir/zvbi-win32.patch
+    if [[ $compiler_flavors != "native" ]]; then
+      apply_patch file://$patch_dir/zvbi-win32.patch
+    fi
     apply_patch file://$patch_dir/zvbi-no-contrib.diff # weird issues with some stuff in contrib...
     generic_configure " --disable-dvb --disable-bktr --disable-proxy --disable-nls --without-doxygen --without-libiconv-prefix"
     # Without '--without-libiconv-prefix' 'configure' would otherwise search for and only accept a shared Libiconv library.
@@ -1713,9 +1712,11 @@ build_ffmpeg() {
   if [[ $enable_gpl == 'n' ]]; then
     output_dir+="_lgpl"
   fi
+  if [[ ! -z $ffmpeg_git_checkout_version ]]; then
+    output_dir+="_$ffmpeg_git_checkout_version"
+  fi
 
   local postpend_configure_opts=""
-
   # can't mix and match --enable-static --enable-shared unfortunately, or the final executable seems to just use shared if the're both present
   if [[ $1 == "shared" ]]; then
     output_dir+="_shared"
