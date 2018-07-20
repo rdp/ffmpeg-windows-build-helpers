@@ -1174,7 +1174,6 @@ build_libmysofa() {
   cd ..
 }
 
-
 build_libcaca() {
   do_git_checkout https://github.com/cacalabs/libcaca.git libcaca_git f1267fbd3cd3635a
   cd libcaca_git
@@ -1183,7 +1182,7 @@ build_libcaca() {
       sed -i.bak "s/__declspec(dllexport)//g" *.h # get rid of the declspec lines otherwise the build will fail for undefined symbols
       sed -i.bak "s/__declspec(dllimport)//g" *.h
     cd ..
-    generic_configure "--libdir=$mingw_w64_x86_64_prefix/lib --disable-csharp --disable-java --disable-cxx --disable-python --disable-ruby --disable-doc"
+    generic_configure "--libdir=$mingw_w64_x86_64_prefix/lib --disable-csharp --disable-java --disable-cxx --disable-python --disable-ruby --disable-doc --disable-cocoa"
     do_make_and_make_install
   cd ..
 }
@@ -1738,11 +1737,8 @@ build_ffmpeg() {
       init_options+=" --disable-schannel"
       # Fix WinXP incompatibility by disabling Microsoft's Secure Channel, because Windows XP doesn't support TLS 1.1 and 1.2, but with GnuTLS or OpenSSL it does.  XP compat!
     fi
-    config_options="$init_options --enable-gray --enable-libtesseract --enable-fontconfig --enable-gmp --enable-gnutls --enable-libass --enable-libbluray --enable-libbs2b --enable-libflite --enable-libfreetype --enable-libfribidi --enable-libgme --enable-libgsm --enable-libilbc --enable-libmodplug --enable-libmp3lame --enable-libopencore-amrnb --enable-libopencore-amrwb --enable-libopus --enable-libsnappy --enable-libsoxr --enable-libspeex --enable-libtheora --enable-libtwolame --enable-libvo-amrwbenc --enable-libvorbis --enable-libvpx --enable-libwebp --enable-libzimg --enable-libzvbi"  #-enable-libmysofa --enable-nvdec --enable-libaom --enable-libopenjpeg # don't work 2.3.4
+    config_options="$init_options --enable-libcaca --enable-gray --enable-libtesseract --enable-fontconfig --enable-gmp --enable-gnutls --enable-libass --enable-libbluray --enable-libbs2b --enable-libflite --enable-libfreetype --enable-libfribidi --enable-libgme --enable-libgsm --enable-libilbc --enable-libmodplug --enable-libmp3lame --enable-libopencore-amrnb --enable-libopencore-amrwb --enable-libopus --enable-libsnappy --enable-libsoxr --enable-libspeex --enable-libtheora --enable-libtwolame --enable-libvo-amrwbenc --enable-libvorbis --enable-libvpx --enable-libwebp --enable-libzimg --enable-libzvbi"  #-enable-libmysofa --enable-nvdec --enable-libaom --enable-libopenjpeg # don't work 2.3.4
     # voluntary: --enable-nvenc --enable-libopenh264
-    if [[ $compiler_flavors != "native" ]]; then
-      config_options+=" --enable-libcaca" # don't work OS X 
-    fi
     config_options+=" --extra-cflags=-DLIBTWOLAME_STATIC --extra-cflags=-DMODPLUG_STATIC --extra-cflags=-DCACA_STATIC" # if we ever do a git pull then it nukes changes, which overrides manual changes to configure, so just use these for now :|
     if [[ $build_amd_amf = n ]]; then
       #config_options+=" --disable-amf" # Since its autodetected we have to disable it if we do not want it. #unless we define no autodetection but.. we don't.
@@ -1757,7 +1753,7 @@ build_ffmpeg() {
     if [[ $enable_gpl == 'y' ]]; then
       config_options+=" --enable-gpl --enable-avisynth --enable-frei0r --enable-filter=frei0r --enable-librubberband --enable-libvidstab --enable-libx264 --enable-libx265 --enable-libxvid"
       if [[ $compiler_flavors != "native" ]]; then
-        config_options+=" --enable-libxavs" # don't work OS X 
+        config_options+=" --enable-libxavs" # don't compile OS X 
       fi
     fi
     local licensed_gpl=y
@@ -1879,12 +1875,12 @@ find_all_build_exes() {
 
 build_ffmpeg_dependencies() {
   echo "Building ffmpeg dependency libraries..." 
-  build_zlib # Zlib in FFmpeg is autodetected.
   if [[ $compiler_flavors != "native" ]]; then # build some stuff that don't build native...
     build_dlfcn
     build_libxavs
-    build_libcaca # Uses zlib and dlfcn.
   fi
+  build_zlib # Zlib in FFmpeg is autodetected.
+  build_libcaca # Uses zlib and dlfcn (on windows).
   build_bzip2 # Bzlib (bzip2) in FFmpeg is autodetected.
   build_liblzma # Lzma in FFmpeg is autodetected. Uses dlfcn.
   build_iconv # Iconv in FFmpeg is autodetected. Uses dlfcn.
