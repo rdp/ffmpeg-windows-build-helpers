@@ -306,8 +306,12 @@ do_git_checkout() {
   old_git_version=`git rev-parse HEAD`
 
   if [[ -z $desired_branch ]]; then
-    echo "doing git checkout -f master"
-    git checkout master || exit 1 # in case they were on some other branch before [ex: going between ffmpeg release tags].
+    local cur_branch==$(git rev-parse --abbrev-ref HEAD)
+    if [[ $cur_branch != "master" ]]; then
+      echo "doing git checkout -f master, git clean -f"
+      git checkout -f master || exit 1 # in case they were on some other branch before [ex: going between ffmpeg release tags].
+      git clean -f # remove patch applied files
+    fi
     if [[ $git_get_latest = "y" ]]; then
       echo "Updating to latest $to_dir git version [origin/master]..."
       git merge origin/master || exit 1
@@ -1182,7 +1186,7 @@ build_libcaca() {
       sed -i.bak "s/__declspec(dllexport)//g" *.h # get rid of the declspec lines otherwise the build will fail for undefined symbols
       sed -i.bak "s/__declspec(dllimport)//g" *.h
     cd ..
-    generic_configure "--libdir=$mingw_w64_x86_64_prefix/lib --disable-csharp --disable-java --disable-cxx --disable-python --disable-ruby --disable-doc --disable-cocoa"
+    generic_configure "--libdir=$mingw_w64_x86_64_prefix/lib --disable-csharp --disable-java --disable-cxx --disable-python --disable-ruby --disable-doc --disable-cocoa --disable-ncurses"
     do_make_and_make_install
   cd ..
 }
@@ -1692,9 +1696,10 @@ build_libMXF() {
 
 build_ffmpeg() {
   local extra_postpend_configure_options=$2
-  local output_dir=$3
-  if [[ -z $output_dir ]]; then
-    output_dir="ffmpeg_git"
+  if [[ -z $3 ]]; then
+    local output_dir="ffmpeg_git"
+  else
+    local output_dir=$3
   fi
   if [[ "$non_free" = "y" ]]; then
     output_dir+="_with_fdk_aac"
