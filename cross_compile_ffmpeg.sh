@@ -1750,8 +1750,7 @@ build_ffmpeg() {
 
     config_options+=" --extra-cflags=-DLIBTWOLAME_STATIC --extra-cflags=-DMODPLUG_STATIC --extra-cflags=-DCACA_STATIC" # if we ever do a git pull then it nukes changes, which overrides manual changes to configure, so just use these for now :|
     if [[ $build_amd_amf = n ]]; then
-      #config_options+=" --disable-amf" # Since its autodetected we have to disable it if we do not want it. #unless we define no autodetection but.. we don't.
-      echo "not there yet"
+      config_options+=" --disable-amf" # Since its autodetected we have to disable it if we do not want it. #unless we define no autodetection but.. we don't.
     else
       config_options+=" --enable-amf" # This is actually autodetected but for consistency.. we might as well set it.
     fi
