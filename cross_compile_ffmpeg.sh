@@ -940,7 +940,8 @@ build_libtheoraold() {
   cpu_count=1 # can't handle it
   download_and_unpack_file http://downloads.xiph.org/releases/theora/libtheora-1.2.0alpha1.tar.gz 
   cd libtheora-1.2.0alpha1
-    sed -i.bak 's/double rint/double rint_disabled/' examples/encoder_example.c # double define issue [?]
+    sed -i.bak 's/png_sizeof/sizeof/' examples/png2theora.c # https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=809949 png 1.6 compat
+    sed -i.bak 's/double rint/double disabled_rint_disabled/' examples/encoder_example.c # double define issue [?]
     generic_configure_make_install 
   cd ..
   cpu_count=$original_cpu_count
@@ -1384,9 +1385,10 @@ build_libopenh264() {
       local arch=x86_64
     fi
     if [[ $compiler_flavors == "native" ]]; then
-      do_make_install "$make_prefix_options ASM=yasm"
+      # No need for 'do_make_install', because 'install-static' already has install-instructions. we want install static so no shared built...
+      do_make "$make_prefix_options ASM=yasm install-static"
     else
-      do_make_install "$make_prefix_options OS=mingw_nt ARCH=$arch ASM=yasm"
+      do_make "$make_prefix_options OS=mingw_nt ARCH=$arch ASM=yasm install-static"
     fi
   cd ..
 }
