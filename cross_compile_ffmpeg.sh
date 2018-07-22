@@ -931,7 +931,7 @@ build_libspeex() {
 build_libtheora() {
   do_git_checkout https://github.com/xiph/theora.git
   cd theora_git
-    generic_configure "--disable-doc --disable-oggtest --disable-vorbistest --disable-examples"
+    generic_configure "--disable-doc --disable-spec --disable-oggtest --disable-vorbistest --disable-examples"
     # 'examples/encoder_example.c' would otherwise cause problems; "encoder_example.c:56:15: error: static declaration of 'rint' follows non-static declaration". No more issues with latest libpng either.
     do_make_and_make_install
   cd ..
