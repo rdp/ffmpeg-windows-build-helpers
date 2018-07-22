@@ -75,7 +75,7 @@ gcc='gcc'
 gcc_host=''
 
 ## Versions
-mingw_w64_release_ver='5.0.2'
+mingw_w64_release_ver='5.0.4'
 gcc_release_ver='7.1.0'
 gcc_old_release_ver='4.9.3'
 mpfr_release_ver='3.1.5'

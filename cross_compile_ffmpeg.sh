@@ -936,7 +936,15 @@ build_libtheora() {
     do_make_and_make_install
   cd ..
 }
-
+build_libtheoraold() {
+  cpu_count=1 # can't handle it
+  download_and_unpack_file http://downloads.xiph.org/releases/theora/libtheora-1.2.0alpha1.tar.gz 
+  cd libtheora-1.2.0alpha1
+    sed -i.bak 's/double rint/double rint_disabled/' examples/encoder_example.c # double define issue [?]
+    generic_configure_make_install 
+  cd ..
+  cpu_count=$original_cpu_count
+}
 build_libsndfile() {
   do_git_checkout https://github.com/erikd/libsndfile.git
   cd libsndfile_git
