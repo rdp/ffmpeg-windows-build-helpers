@@ -1994,7 +1994,7 @@ cur_dir="$(pwd)/sandbox"
 patch_dir="$(pwd)/patches"
 cpu_count="$(grep -c processor /proc/cpuinfo 2>/dev/null)" # linux cpu count
 if [ -z "$cpu_count" ]; then
-  cpu_count=`sysctl -n hw.ncpu | tr -d '\n'` # OS X
+  cpu_count=`sysctl -n hw.ncpu | tr -d '\n'` # OS X cpu count
   if [ -z "$cpu_count" ]; then
     echo "warning, unable to determine cpu count, defaulting to 1"
     cpu_count=1 # else default to just 1, instead of blank, which means infinite
@@ -2013,6 +2013,11 @@ if [[ $box_memory_size_bytes -gt 2000000000 ]]; then
 else
   echo "low RAM detected so using only one cpu for gcc compilation"
   gcc_cpu_count=1 # compatible low RAM...
+fi
+
+if [[ $OSTYPE == "darwin17" ]]; then
+  echo "high sierra detected, so using only one cpu for gcc compilation" # until #326 fixable...
+  gcc_cpu_count=1 
 fi
 
 # variables with their defaults
