@@ -599,7 +599,11 @@ build_zlib() {
   download_and_unpack_file https://github.com/madler/zlib/archive/v1.2.11.tar.gz zlib-1.2.11
   cd zlib-1.2.11
     do_configure "--prefix=$mingw_w64_x86_64_prefix --static"
-    do_make_and_make_install "$make_prefix_options" # ARFLAGS Avoid failure in OS X
+    if [[ $compiler_flavors == "native" ]]; then
+      do_make_and_make_install "$make_prefix_options" # can't take ARFLAGS...
+    else
+      do_make_and_make_install "$make_prefix_options ARFLAGS=rcs" # https://stackoverflow.com/questions/21396988/zlib-build-not-configuring-properly-with-cross-compiler-ignores-ar
+    fi
   cd ..
 }
 
