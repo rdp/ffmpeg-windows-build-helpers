@@ -931,21 +931,11 @@ build_libspeex() {
 build_libtheora() {
   do_git_checkout https://github.com/xiph/theora.git
   cd theora_git
-    generic_configure "--disable-doc --disable-spec --disable-oggtest --disable-vorbistest --disable-examples"
-    # 'examples/encoder_example.c' would otherwise cause problems; "encoder_example.c:56:15: error: static declaration of 'rint' follows non-static declaration". No more issues with latest libpng either.
+    generic_configure "--disable-doc --disable-spec --disable-oggtest --disable-vorbistest --disable-examples --disable-asm" # disable asm: avoid [theora @ 0x1043144a0]error in unpack_block_qpis in 64 bit... [OK OS X 64 bit tho...]
     do_make_and_make_install
   cd ..
 }
-build_libtheoraold() {
-  cpu_count=1 # can't handle it
-  download_and_unpack_file http://downloads.xiph.org/releases/theora/libtheora-1.2.0alpha1.tar.gz 
-  cd libtheora-1.2.0alpha1
-    sed -i.bak 's/png_sizeof/sizeof/' examples/png2theora.c # https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=809949 png 1.6 compat
-    sed -i.bak 's/double rint/double disabled_rint_disabled/' examples/encoder_example.c # double define issue [?]
-    generic_configure_make_install 
-  cd ..
-  cpu_count=$original_cpu_count
-}
+
 build_libsndfile() {
   do_git_checkout https://github.com/erikd/libsndfile.git
   cd libsndfile_git
