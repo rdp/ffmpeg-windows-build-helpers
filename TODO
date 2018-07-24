@@ -1,5 +1,7 @@
 == actual todos ==
 
+linux native build LOL
+
 zipped lgpl (shared+static) and release plz
 
 build "all" doesn't actually built low and high bitdepth x26x
@@ -11,8 +13,6 @@ try more march, does it really even matter?
   try with latest gcc :|
 
 nvidia build various deps :)
-
-nvresize distro once
 
 add cygwin "cygwin bash" prompt [and combine...]
 
