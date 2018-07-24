@@ -2,11 +2,9 @@
 STARTTIME=`date +'%Y%m%dT%H%M%S'`
 OUTPUTDIR=./output_$STARTTIME
 
-if [ -d ".git" ]; then
-echo [`date +'%Y%m%dT%H%M%S'`] Updating local git repository.
-    git pull
-#else
- #   git clone https://github.com/rdp/ffmpeg-windows-build-helpers.git
+if [ -d "../git" ]; then
+  echo [`date +'%Y%m%dT%H%M%S'`] Updating local git repository.
+  git pull
 fi
 
 docker build .. -f Dockerfile -t ffmpeg-windows-build-helpers 
