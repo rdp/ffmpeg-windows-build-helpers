@@ -311,6 +311,7 @@ do_git_checkout() {
       echo "doing git checkout -f master, git clean -f"
       git checkout -f master || exit 1 # in case they were on some other branch before [ex: going between ffmpeg release tags].
       git clean -f # remove patch applied files
+      git reset --hard
     fi
     if [[ $git_get_latest = "y" ]]; then
       echo "Updating to latest $to_dir git version [origin/master]..."
