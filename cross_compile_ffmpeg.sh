@@ -326,6 +326,7 @@ do_git_checkout() {
   if [[ "$old_git_version" != "$new_git_version" ]]; then
     echo "got upstream changes, forcing re-configure. Doing git clean -f"
     git clean -f # Throw away local changes; 'already_*' and bak-files for instance.
+    git reset --hard
   else
     echo "fetched no code changes, not forcing reconfigure for that..."
   fi
