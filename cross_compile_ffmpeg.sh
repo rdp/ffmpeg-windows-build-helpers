@@ -2188,8 +2188,6 @@ if [[ $compiler_flavors == "multi" || $compiler_flavors == "win64" ]]; then
     build_ffmpeg_dependencies
     build_apps
   cd ..
-else
-  echo "doing local native build for your current OS!"
 fi
 
 echo "searching for all local exe's (some may not have been built this round, NB)..."
