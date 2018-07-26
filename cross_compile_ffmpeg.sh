@@ -297,41 +297,34 @@ do_git_checkout() {
   else
     cd $to_dir
     if [[ $git_get_latest = "y" ]]; then
-      git fetch # need this no matter what
+      git fetch # want this for later...
     else
-      echo "not doing git get latest pull for latest code $to_dir"
+      echo "not doing git get latest pull for latest code $to_dir" # too slow'ish...
     fi
   fi
 
+  # reset will be useless if they didn't git_get_latest but pretty fast so who cares...plus what if they changed branches? :)
   old_git_version=`git rev-parse HEAD`
-
   if [[ -z $desired_branch ]]; then
-    local cur_branch=$(git rev-parse --abbrev-ref HEAD)
-    if [[ "$cur_branch" != "master" ]]; then
-      echo "doing git checkout -f master, git clean -f"
-      git checkout -f master || exit 1 # in case they were on some other branch before [ex: going between ffmpeg release tags].
-      git clean -f # remove patch applied files
-      git reset --hard
-    fi
-    if [[ $git_get_latest = "y" ]]; then
-      echo "Updating to latest $to_dir git version [origin/master]..."
-      git merge origin/master || exit 1
-    fi
-  else
-    echo "doing git checkout $desired_branch" # -f nukes ffmpeg local patches??
-    git checkout "$desired_branch" || exit 1
-    git merge "$desired_branch" || exit 1 # get incoming changes to a branch
+    desired_branch="origin/master"
   fi
+  echo "doing git checkout $desired_branch" 
+  git checkout "$desired_branch" || (git_hard_reset && git checkout "$desired_branch") || exit 1 # can't just use merge -f because might "think" patch files already applied when their changes have been lost, etc...
+  git merge "$desired_branch" || exit 1 # get incoming changes to a branch else if you do another git checkout it says "Already on 'xx'"
 
   new_git_version=`git rev-parse HEAD`
   if [[ "$old_git_version" != "$new_git_version" ]]; then
     echo "got upstream changes, forcing re-configure. Doing git clean -f"
-    git clean -f # Throw away local changes; 'already_*' and bak-files for instance.
-    git reset --hard
+    git_hard_reset
   else
     echo "fetched no code changes, not forcing reconfigure for that..."
   fi
   cd ..
+}
+
+git_hard_reset() {
+  git reset --hard # throw away results of patch files
+  git clean -f # throw away local changes; 'already_*' and bak-files for instance.
 }
 
 get_small_touchfile_name() { # have to call with assignment like a=$(get_small...)
