@@ -1058,7 +1058,9 @@ build_libbs2b() {
   download_and_unpack_file https://downloads.sourceforge.net/project/bs2b/libbs2b/3.1.0/libbs2b-3.1.0.tar.gz
   cd libbs2b-3.1.0
     sed -i.bak "s/AC_FUNC_MALLOC//" configure.ac # #270
-    generic_configure_make_install
+    export LIBS=-lm # avoid pow failure linux native
+    generic_configure_make_install 
+    unset LIBS
   cd ..
 }
 
@@ -2144,7 +2146,7 @@ if [[ $compiler_flavors == "native" ]]; then
   export PKG_CONFIG_PATH="$mingw_w64_x86_64_prefix/lib/pkgconfig"
   export PATH="$mingw_bin_path:$original_path"
   make_prefix_options="PREFIX=$mingw_w64_x86_64_prefix"
-  #  b2sb doesn't use pkg-config, sndfile needed Carbon :|
+  #  bs2b doesn't use pkg-config, sndfile needed Carbon :|
   export CPATH=$cur_dir/cross_compilers/native/include:/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/System/Library/Frameworks/Carbon.framework/Versions/A/Headers # C_INCLUDE_PATH
   export LIBRARY_PATH=$cur_dir/cross_compilers/native/lib
   mkdir -p native
