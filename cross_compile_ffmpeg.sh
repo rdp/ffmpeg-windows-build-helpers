@@ -985,7 +985,7 @@ build_twolame() {
 }
 
 build_fdk-aac() {
-  do_git_checkout https://github.com/mstorsjo/fdk-aac.git fdk-aac_git e45ae429b9 
+  do_git_checkout https://github.com/mstorsjo/fdk-aac.git
   cd fdk-aac_git
     if [[ ! -f "configure" ]]; then
       autoreconf -fiv || exit 1
