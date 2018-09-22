@@ -1762,6 +1762,8 @@ echo "volunt"
 
     if [[ $build_intel_qsv = y ]]; then
       config_options+=" --enable-libmfx"
+    else
+      config_options+=" --disable-libmfx"
     fi
     if [[ $enable_gpl == 'y' ]]; then
       config_options+=" --enable-gpl --enable-avisynth --enable-frei0r --enable-filter=frei0r --enable-librubberband --enable-libvidstab --enable-libx264 --enable-libx265 --enable-libxvid"
