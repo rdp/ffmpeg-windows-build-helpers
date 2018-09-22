@@ -1408,7 +1408,7 @@ build_libx264() {
   #if [[ $prefer_stable = "n" ]]; then
   #  do_git_checkout "http://git.videolan.org/git/x264.git" $checkout_dir "origin/master" # During 'configure': "Found no assembler. Minimum version is nasm-2.13" so disable for now...
   #else
-    do_git_checkout "http://git.videolan.org/git/x264.git" $checkout_dir  "origin/stable" # or "origin/stable" nasm again
+    do_git_checkout "http://git.videolan.org/git/x264.git" $checkout_dir  "2451a728246" # avoid  error: ‘x264_bit_depth’ undeclared 
   #fi
   cd $checkout_dir
     if [[ ! -f configure.bak ]]; then # Change CFLAGS.
@@ -1772,7 +1772,7 @@ echo "volunt"
     local licensed_gpl=y # lgpl build with libx264 included for those with "commercial" license :)
     if [[ $licensed_gpl == 'y' ]]; then
       apply_patch file://$patch_dir/x264_non_gpl.diff -p1
-      config_options+=" --enable-libx264 --disable-gpl"
+      config_options+=" --enable-libx264 --disable-gpl --disable-decoder=hevc --disable-decoder=dca --disable-decoder=ac3  --disable-decoder=ac3_fixed --disable-decoder=atrac3 --disable-decoder=atrac3p --disable-decoder=eac3"
     fi 
     # other possibilities:
     #   --enable-w32threads # [worse UDP than pthreads, so not using that]
