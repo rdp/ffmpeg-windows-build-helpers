@@ -658,8 +658,8 @@ build_intel_quicksync_mfx() { # i.e. qsv, disableable via command line switch...
       autoreconf -fiv || exit 1
       automake --add-missing || exit 1
     fi
-    if [[ $compiler_flavors != "native" && $OSTYPE != darwin* ]]; then
-      unset PKG_CONFIG_LIBDIR # allow mfx_dispatch to use libva-dev or some odd...not sure OS X just disable it :)
+    if [[ $compiler_flavors == "native" && $OSTYPE != darwin* ]]; then
+      unset PKG_CONFIG_LIBDIR # allow mfx_dispatch to use libva-dev or some odd...not sure for OS X so just disable it :)
       generic_configure_make_install
       export PKG_CONFIG_LIBDIR=
     else
