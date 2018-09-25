@@ -1,0 +1,136 @@
+--- configure	2018-09-21 03:47:02.000000000 -0600
++++ ../../configure_me	2018-09-25 01:57:15.000000000 -0600
+@@ -1506,6 +1506,7 @@
+     cross_compiling=yes
+   fi
+ fi
++cross_compiling=yes
+ 
+ ac_tool_prefix=
+ test -n "$host_alias" && ac_tool_prefix=$host_alias-
+@@ -8373,115 +8374,6 @@
+ 
+ $as_echo "#define HAVE_GETTEXT 1" >>confdefs.h
+ 
+-	# Extract the first word of "msgfmt", so it can be a program name with args.
+-set dummy msgfmt; ac_word=$2
+-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
+-$as_echo_n "checking for $ac_word... " >&6; }
+-if ${ac_cv_path_MSGFMT+:} false; then :
+-  $as_echo_n "(cached) " >&6
+-else
+-  case "$MSGFMT" in
+-  /*)
+-  ac_cv_path_MSGFMT="$MSGFMT" # Let the user override the test with a path.
+-  ;;
+-  *)
+-  IFS="${IFS= 	}"; ac_save_ifs="$IFS"; IFS="${IFS}:"
+-  for ac_dir in $PATH; do
+-    test -z "$ac_dir" && ac_dir=.
+-    if test -f $ac_dir/$ac_word; then
+-      if test -z "`$ac_dir/$ac_word -h 2>&1 | grep 'dv '`"; then
+-	ac_cv_path_MSGFMT="$ac_dir/$ac_word"
+-	break
+-      fi
+-    fi
+-  done
+-  IFS="$ac_save_ifs"
+-  test -z "$ac_cv_path_MSGFMT" && ac_cv_path_MSGFMT="no"
+-  ;;
+-esac
+-fi
+-MSGFMT="$ac_cv_path_MSGFMT"
+-if test "$MSGFMT" != "no"; then
+-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $MSGFMT" >&5
+-$as_echo "$MSGFMT" >&6; }
+-else
+-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+-$as_echo "no" >&6; }
+-fi
+-	if test "$MSGFMT" != "no"; then
+-          glib_save_LIBS="$LIBS"
+-          LIBS="$LIBS $INTLLIBS"
+-	  for ac_func in dcgettext
+-do :
+-  ac_fn_c_check_func "$LINENO" "dcgettext" "ac_cv_func_dcgettext"
+-if test "x$ac_cv_func_dcgettext" = xyes; then :
+-  cat >>confdefs.h <<_ACEOF
+-#define HAVE_DCGETTEXT 1
+-_ACEOF
+-
+-fi
+-done
+-
+-	  MSGFMT_OPTS=
+-	  { $as_echo "$as_me:${as_lineno-$LINENO}: checking if msgfmt accepts -c" >&5
+-$as_echo_n "checking if msgfmt accepts -c... " >&6; }
+-	  cat >conftest.foo <<_ACEOF
+-
+-msgid ""
+-msgstr ""
+-"Content-Type: text/plain; charset=UTF-8\n"
+-"Project-Id-Version: test 1.0\n"
+-"PO-Revision-Date: 2007-02-15 12:01+0100\n"
+-"Last-Translator: test <foo@bar.xx>\n"
+-"Language-Team: C <LL@li.org>\n"
+-"MIME-Version: 1.0\n"
+-"Content-Transfer-Encoding: 8bit\n"
+-
+-_ACEOF
+-if { { $as_echo "$as_me:${as_lineno-$LINENO}: \$MSGFMT -c -o /dev/null conftest.foo"; } >&5
+-  ($MSGFMT -c -o /dev/null conftest.foo) 2>&5
+-  ac_status=$?
+-  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+-  test $ac_status = 0; }; then
+-  MSGFMT_OPTS=-c; { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+-$as_echo "yes" >&6; }
+-else { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+-$as_echo "no" >&6; }
+-echo "$as_me: failed input was:" >&5
+-sed 's/^/| /' conftest.foo >&5
+-fi
+-
+-	  # Extract the first word of "gmsgfmt", so it can be a program name with args.
+-set dummy gmsgfmt; ac_word=$2
+-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
+-$as_echo_n "checking for $ac_word... " >&6; }
+-if ${ac_cv_path_GMSGFMT+:} false; then :
+-  $as_echo_n "(cached) " >&6
+-else
+-  case $GMSGFMT in
+-  [\\/]* | ?:[\\/]*)
+-  ac_cv_path_GMSGFMT="$GMSGFMT" # Let the user override the test with a path.
+-  ;;
+-  *)
+-  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+-for as_dir in $PATH
+-do
+-  IFS=$as_save_IFS
+-  test -z "$as_dir" && as_dir=.
+-    for ac_exec_ext in '' $ac_executable_extensions; do
+-  if as_fn_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
+-    ac_cv_path_GMSGFMT="$as_dir/$ac_word$ac_exec_ext"
+-    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
+-    break 2
+-  fi
+-done
+-  done
+-IFS=$as_save_IFS
+-
+-  test -z "$ac_cv_path_GMSGFMT" && ac_cv_path_GMSGFMT="$MSGFMT"
+-  ;;
+-esac
+-fi
+ GMSGFMT=$ac_cv_path_GMSGFMT
+ if test -n "$GMSGFMT"; then
+   { $as_echo "$as_me:${as_lineno-$LINENO}: result: $GMSGFMT" >&5
+@@ -8575,9 +8467,6 @@
+ 	fi
+       fi
+ 
+-fi
+-
+-
+ 
+     if test "$gt_cv_have_gettext" = "yes" ; then
+ 

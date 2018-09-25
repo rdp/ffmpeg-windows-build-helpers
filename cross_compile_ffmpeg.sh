@@ -683,6 +683,25 @@ build_libtiff() {
   sed -i.bak 's/-ltiff.*$/-ltiff -llzma -ljpeg -lz/' $PKG_CONFIG_PATH/libtiff-4.pc # static deps
 } 
 
+build_lensfun() {
+  export CPPFLAGS=-DLIBXML_STATIC # gettext build...
+  generic_download_and_make_and_install  https://ftp.gnu.org/pub/gnu/gettext/gettext-0.19.8.1.tar.xz
+  generic_download_and_make_and_install  http://sourceware.org/pub/libffi/libffi-3.2.1.tar.gz # also dep
+  export CPPFLAGS='-liconv -pthread' # I think gettext needs this but has no .pc file??
+  #export MSGFMT='wine $$mingw_bin_path/msgfmt.exe'
+  download_and_unpack_file https://ftp.gnome.org/pub/gnome/sources/glib/2.56/glib-2.56.3.tar.xz
+  cd glib-2.56.3
+    apply_patch file://$patch_dir/glib_msg_fmt.patch
+    generic_configure "--with-pcre=internal"
+    do_make_and_make_install
+  cd ..
+  download_and_unpack_file https://sourceforge.net/projects/lensfun/files/0.3.95/lensfun-0.3.95.tar.gz
+  cd lensfun-0.3.95
+    do_cmake_and_install
+  cd ..
+  exit 1
+}
+
 build_libtesseract() {
   build_libleptonica
   build_libtiff # no disable configure option for this in tesseract? odd...
@@ -1966,6 +1985,7 @@ build_ffmpeg_dependencies() {
 
   build_libxvid # FFmpeg now has native support, but libxvid still provides a better image.
   build_libtesseract
+  #build_lensfun  # requires some...broken as of yet
   build_libvpx
   build_libx265
   build_libopenh264
