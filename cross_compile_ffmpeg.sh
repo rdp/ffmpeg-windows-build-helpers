@@ -157,6 +157,7 @@ The resultant binary may not be distributable, but can be useful for in-house us
       non_free="$user_input" # save it away
     fi
   fi
+  echo "sit back, this may take awhile..."
 }
 
 pick_compiler_flavors() {
@@ -359,7 +360,7 @@ do_configure() {
       autoreconf -fiv # a handful of them require this to create ./configure :|
     fi
     rm -f already_* # reset
-    "$configure_name" $configure_options || exit 1 # not nice on purpose, so that if some other script is running as nice, this one will get priority :)
+    nice -n 5 "$configure_name" $configure_options || exit 1 # less nice (since single thread, and what if you're running another ffmpeg nice build elsewhere?)
     touch -- "$touch_name"
     echo "doing preventative make clean"
     nice make clean -j $cpu_count # sometimes useful when files change, etc.
@@ -422,7 +423,7 @@ do_cmake() {
       ${cmake_command} -G"Unix Makefiles" . -DENABLE_STATIC_RUNTIME=1 -DCMAKE_SYSTEM_NAME=Windows -DCMAKE_FIND_ROOT_PATH=$mingw_w64_x86_64_prefix -DCMAKE_FIND_ROOT_PATH_MODE_PROGRAM=NEVER -DCMAKE_FIND_ROOT_PATH_MODE_LIBRARY=ONLY -DCMAKE_FIND_ROOT_PATH_MODE_INCLUDE=ONLY -DCMAKE_RANLIB=${cross_prefix}ranlib -DCMAKE_C_COMPILER=${cross_prefix}gcc -DCMAKE_CXX_COMPILER=${cross_prefix}g++ -DCMAKE_RC_COMPILER=${cross_prefix}windres -DCMAKE_INSTALL_PREFIX=$mingw_w64_x86_64_prefix $extra_args || exit 1
     else
       echo "doing cmake" ${cmake_command} -G"Unix Makefiles" . -DENABLE_STATIC_RUNTIME=1 -DCMAKE_INSTALL_PREFIX=$mingw_w64_x86_64_prefix $extra_args || exit 1
-      ${cmake_command} -G"Unix Makefiles" . -DENABLE_STATIC_RUNTIME=1 -DCMAKE_INSTALL_PREFIX=$mingw_w64_x86_64_prefix $extra_args || exit 1
+      nice -n 5 ${cmake_command} -G"Unix Makefiles" . -DENABLE_STATIC_RUNTIME=1 -DCMAKE_INSTALL_PREFIX=$mingw_w64_x86_64_prefix $extra_args || exit 1
     fi
     touch $touch_name || exit 1
   fi
@@ -683,23 +684,38 @@ build_libtiff() {
   sed -i.bak 's/-ltiff.*$/-ltiff -llzma -ljpeg -lz/' $PKG_CONFIG_PATH/libtiff-4.pc # static deps
 } 
 
+build_libtensorflow() {
+  do_git_checkout_and_make_install https://github.com/tensorflow/tensorflow.git
+}
+
 build_lensfun() {
-  export CPPFLAGS=-DLIBXML_STATIC # gettext build...
+  export CPPFLAGS='-DLIBXML_STATIC -DGLIB_STATIC_COMPILATION' # gettext build...
   generic_download_and_make_and_install  https://ftp.gnu.org/pub/gnu/gettext/gettext-0.19.8.1.tar.xz
+  unset CPPFLAGS
   generic_download_and_make_and_install  http://sourceware.org/pub/libffi/libffi-3.2.1.tar.gz # also dep
-  export CPPFLAGS='-liconv -pthread' # I think gettext needs this but has no .pc file??
-  #export MSGFMT='wine $$mingw_bin_path/msgfmt.exe'
   download_and_unpack_file https://ftp.gnome.org/pub/gnome/sources/glib/2.56/glib-2.56.3.tar.xz
   cd glib-2.56.3
-    apply_patch file://$patch_dir/glib_msg_fmt.patch
-    generic_configure "--with-pcre=internal"
+    export CPPFLAGS='-liconv -pthread' # I think gettext needs this but has no .pc file??
+    apply_patch file://$patch_dir/glib_msg_fmt.patch # needed for configure
+    apply_patch  file://$patch_dir/glib-prefer-constructors-over-DllMain.patch # needed for static. weird.
+    generic_configure "--with-pcre=internal --with-threads=posix" # too lazy for pcre, somebody said other was needed for older version anyway...
     do_make_and_make_install
   cd ..
   download_and_unpack_file https://sourceforge.net/projects/lensfun/files/0.3.95/lensfun-0.3.95.tar.gz
   cd lensfun-0.3.95
-    do_cmake_and_install
+    export CMAKE_SHARED_LINKER_FLAGS='-lws2_32 -pthread'
+    export CMAKE_STATIC_LINKER_FLAGS='-lws2_32 -pthread'
+    do_cmake "-DBUILD_STATIC=on"
+    do_make
+    # make_install fails something weird...possibly because static
+    # do_make_install
+    cp libs/lensfun/liblensfun.a  $mingw_w64_x86_64_prefix/lib || exit 1
+    cp lensfun.h "$mingw_w64_x86_64_prefix/include/" || exit 1
+    cp libs/lensfun/lensfun.pc $PKG_CONFIG_PATH
+    sed -i.bak 's/-llensfun/-llensfun -lstdc++/' "$PKG_CONFIG_PATH/lensfun.pc"
+    unset CMAKE_SHARED_LINKER_FLAGS
+    unset CMAKE_STATIC_LINKER_FLAGS
   cd ..
-  exit 1
 }
 
 build_libtesseract() {
@@ -1773,7 +1789,7 @@ build_ffmpeg() {
       init_options+=" --disable-schannel"
       # Fix WinXP incompatibility by disabling Microsoft's Secure Channel, because Windows XP doesn't support TLS 1.1 and 1.2, but with GnuTLS or OpenSSL it does.  XP compat!
     fi
-    config_options="$init_options --enable-libcaca --enable-gray --enable-libtesseract --enable-fontconfig --enable-gmp --enable-gnutls --enable-libass --enable-libbluray --enable-libbs2b --enable-libflite --enable-libfreetype --enable-libfribidi --enable-libgme --enable-libgsm --enable-libilbc --enable-libmodplug --enable-libmp3lame --enable-libopencore-amrnb --enable-libopencore-amrwb --enable-libopus --enable-libsnappy --enable-libsoxr --enable-libspeex --enable-libtheora --enable-libtwolame --enable-libvo-amrwbenc --enable-libvorbis --enable-libvpx --enable-libwebp --enable-libzimg --enable-libzvbi --enable-libmysofa --enable-libaom --enable-libopenjpeg  --enable-libopenh264"
+    config_options="$init_options --enable-libcaca --enable-gray --enable-libtesseract --enable-fontconfig --enable-gmp --enable-gnutls --enable-libass --enable-libbluray --enable-libbs2b --enable-libflite --enable-libfreetype --enable-libfribidi --enable-libgme --enable-libgsm --enable-libilbc --enable-libmodplug --enable-libmp3lame --enable-libopencore-amrnb --enable-libopencore-amrwb --enable-libopus --enable-libsnappy --enable-libsoxr --enable-libspeex --enable-libtheora --enable-libtwolame --enable-libvo-amrwbenc --enable-libvorbis --enable-libvpx --enable-libwebp --enable-libzimg --enable-libzvbi --enable-libmysofa --enable-libaom --enable-libopenjpeg  --enable-libopenh264 --enable-liblensfun"
     if [[ $compiler_flavors != "native" ]]; then
       config_options+=" --enable-nvenc --enable-nvdec" # don't work OS X 
     fi
@@ -1985,7 +2001,8 @@ build_ffmpeg_dependencies() {
 
   build_libxvid # FFmpeg now has native support, but libxvid still provides a better image.
   build_libtesseract
-  #build_lensfun  # requires some...broken as of yet
+  build_lensfun  # requires png, zlib, iconv
+  # build_libtensorflow # broken
   build_libvpx
   build_libx265
   build_libopenh264
