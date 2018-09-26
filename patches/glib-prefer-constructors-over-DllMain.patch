@@ -1,0 +1,100 @@
+diff -rupN glib-2.48.1/glib/glib-init.c glib-2.48.1-new/glib/glib-init.c
+--- glib/glib-init.c	2016-05-10 10:54:30.000000000 +0200
++++ glib/glib-init.c	2016-05-12 21:06:33.227224446 +0200
+@@ -245,12 +245,14 @@ glib_init (void)
+ 
+ #if defined (G_OS_WIN32)
+ 
++HMODULE glib_dll = NULL;
++
++#if defined (DLL_EXPORT)
++
+ BOOL WINAPI DllMain (HINSTANCE hinstDLL,
+                      DWORD     fdwReason,
+                      LPVOID    lpvReserved);
+ 
+-HMODULE glib_dll;
+-
+ BOOL WINAPI
+ DllMain (HINSTANCE hinstDLL,
+          DWORD     fdwReason,
+@@ -260,11 +262,6 @@ DllMain (HINSTANCE hinstDLL,
+     {
+     case DLL_PROCESS_ATTACH:
+       glib_dll = hinstDLL;
+-      g_clock_win32_init ();
+-#ifdef THREADS_WIN32
+-      g_thread_win32_init ();
+-#endif
+-      glib_init ();
+       break;
+ 
+     case DLL_THREAD_DETACH:
+@@ -288,7 +285,10 @@ DllMain (HINSTANCE hinstDLL,
+   return TRUE;
+ }
+ 
+-#elif defined (G_HAS_CONSTRUCTORS)
++#endif /* defined (DLL_EXPORT) */
++#endif /* defined (G_OS_WIN32) */
++
++#if defined (G_HAS_CONSTRUCTORS)
+ 
+ #ifdef G_DEFINE_CONSTRUCTOR_NEEDS_PRAGMA
+ #pragma G_DEFINE_CONSTRUCTOR_PRAGMA_ARGS(glib_init_ctor)
+@@ -298,6 +298,12 @@ G_DEFINE_CONSTRUCTOR(glib_init_ctor)
+ static void
+ glib_init_ctor (void)
+ {
++#if defined (G_OS_WIN32)
++  g_clock_win32_init ();
++#ifdef THREADS_WIN32
++  g_thread_win32_init ();
++#endif /* defined (THREADS_WIN32) */
++#endif /* defined (G_OS_WIN32) */
+   glib_init ();
+ }
+ 
+diff -rupN glib-2.48.1/gobject/gtype.c glib-2.48.1-new/gobject/gtype.c
+--- gobject/gtype.c	2016-02-29 15:32:08.000000000 +0100
++++ gobject/gtype.c	2016-05-12 21:06:33.228224465 +0200
+@@ -4459,7 +4459,19 @@ gobject_init (void)
+   _g_signal_init ();
+ }
+ 
+-#if defined (G_OS_WIN32)
++#if defined (G_HAS_CONSTRUCTORS)
++#ifdef G_DEFINE_CONSTRUCTOR_NEEDS_PRAGMA
++#pragma G_DEFINE_CONSTRUCTOR_PRAGMA_ARGS(gobject_init_ctor)
++#endif
++G_DEFINE_CONSTRUCTOR(gobject_init_ctor)
++
++static void
++gobject_init_ctor (void)
++{
++  gobject_init ();
++}
++
++#elif defined (G_OS_WIN32) && defined (DLL_EXPORT)
+ 
+ BOOL WINAPI DllMain (HINSTANCE hinstDLL,
+                      DWORD     fdwReason,
+@@ -4484,18 +4496,6 @@ DllMain (HINSTANCE hinstDLL,
+   return TRUE;
+ }
+ 
+-#elif defined (G_HAS_CONSTRUCTORS)
+-#ifdef G_DEFINE_CONSTRUCTOR_NEEDS_PRAGMA
+-#pragma G_DEFINE_CONSTRUCTOR_PRAGMA_ARGS(gobject_init_ctor)
+-#endif
+-G_DEFINE_CONSTRUCTOR(gobject_init_ctor)
+-
+-static void
+-gobject_init_ctor (void)
+-{
+-  gobject_init ();
+-}
+-
+ #else
+ # error Your platform/compiler is missing constructor support
+ #endif
