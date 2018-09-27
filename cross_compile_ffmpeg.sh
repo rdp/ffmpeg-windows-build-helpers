@@ -471,8 +471,8 @@ apply_patch() {
     patch $patch_type < "$patch_name" || exit 1
     touch $patch_done_name || exit 1
     rm -f already_ran* # if it's a new patch, reset everything too, in case it's really really really new
-  else
-    echo "patch $patch_name already applied"
+  #else
+  #  echo "patch $patch_name already applied" # too chatty
   fi
 }
 
@@ -698,7 +698,7 @@ build_lensfun() {
     export CPPFLAGS='-liconv -pthread' # I think gettext needs this but has no .pc file??
     apply_patch file://$patch_dir/glib_msg_fmt.patch # needed for configure
     apply_patch  file://$patch_dir/glib-prefer-constructors-over-DllMain.patch # needed for static. weird.
-    generic_configure "--with-pcre=internal --with-threads=posix" # too lazy for pcre, somebody said other was needed for older version anyway...
+    generic_configure "--with-pcre=internal" # too lazy for pcre :) XXX
     do_make_and_make_install
   cd ..
   download_and_unpack_file https://sourceforge.net/projects/lensfun/files/0.3.95/lensfun-0.3.95.tar.gz
@@ -1234,13 +1234,10 @@ build_libcaca() {
 }
 
 build_libdecklink() {
-  if [[ ! -f $mingw_w64_x86_64_prefix/include/DeckLinkAPIVersion.h ]]; then
-    # smaller files don't worry about partials for now, plus we only care about the last file anyway here...
-    curl -4 file://$patch_dir/DeckLinkAPI.h --fail > $mingw_w64_x86_64_prefix/include/DeckLinkAPI.h || exit 1
-    curl -4 file://$patch_dir/DeckLinkAPI_i.c --fail > $mingw_w64_x86_64_prefix/include/DeckLinkAPI_i.c.tmp || exit 1
-    mv $mingw_w64_x86_64_prefix/include/DeckLinkAPI_i.c.tmp $mingw_w64_x86_64_prefix/include/DeckLinkAPI_i.c
-    curl -4 file://$patch_dir/DeckLinkAPIVersion.h --fail > $mingw_w64_x86_64_prefix/include/DeckLinkAPIVersion.h || exit 1
-  fi
+  do_git_checkout https://notabug.org/RiCON/decklink-headers.git
+  cd decklink-headers_git
+    do_make_install PREFIX=$mingw_w64_x86_64_prefix
+  cd ..
 }
 
 build_zvbi() {
