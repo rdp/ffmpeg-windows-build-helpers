@@ -28,7 +28,8 @@ RUN apt-get update && \
     gperf \
     autogen \
     bzip2 \
-    autoconf-archive
+    autoconf-archive \
+    p7zip-full
 
 COPY . ./ffmpeg-windows-build-helpers
 
