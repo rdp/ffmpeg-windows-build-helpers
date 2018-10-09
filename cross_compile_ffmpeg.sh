@@ -722,10 +722,11 @@ build_lensfun() {
   generic_download_and_make_and_install  http://sourceware.org/pub/libffi/libffi-3.2.1.tar.gz # also dep
   download_and_unpack_file https://ftp.gnome.org/pub/gnome/sources/glib/2.56/glib-2.56.3.tar.xz
   cd glib-2.56.3
-    export CPPFLAGS='-liconv -pthread' # I think gettext needs this but has no .pc file??
+    export CPPFLAGS='-liconv -pthread' # I think gettext wanted this but has no .pc file??
     apply_patch file://$patch_dir/glib_msg_fmt.patch # needed for configure
     apply_patch  file://$patch_dir/glib-prefer-constructors-over-DllMain.patch # needed for static. weird.
     generic_configure "--with-pcre=internal" # too lazy for pcre :) XXX
+    unset CPPFLAGS
     do_make_and_make_install
   cd ..
   download_and_unpack_file https://sourceforge.net/projects/lensfun/files/0.3.95/lensfun-0.3.95.tar.gz
@@ -1337,7 +1338,7 @@ build_libvpx() {
 }
 
 build_libaom() {
-  do_git_checkout https://aomedia.googlesource.com/aom aom_git
+  do_git_checkout https://aomedia.googlesource.com/aom aom_git df7131064bf # avoid collision with vp9 :|
   if [[ $compiler_flavors == "native" ]]; then 
     local config_options=""
   elif [ "$bits_target" = "32" ]; then
