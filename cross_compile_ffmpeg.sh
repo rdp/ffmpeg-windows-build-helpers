@@ -716,7 +716,7 @@ build_libtensorflow() {
 }
 
 build_lensfun() {
-  export CPPFLAGS='-DLIBXML_STATIC -DGLIB_STATIC_COMPILATION' # gettext build...
+  export CPPFLAGS='-DLIBXML_STATIC' # gettext build...
   generic_download_and_make_and_install  https://ftp.gnu.org/pub/gnu/gettext/gettext-0.19.8.1.tar.xz
   unset CPPFLAGS
   generic_download_and_make_and_install  http://sourceware.org/pub/libffi/libffi-3.2.1.tar.gz # also dep
@@ -731,17 +731,11 @@ build_lensfun() {
   cd ..
   download_and_unpack_file https://sourceforge.net/projects/lensfun/files/0.3.95/lensfun-0.3.95.tar.gz
   cd lensfun-0.3.95
-    export CMAKE_SHARED_LINKER_FLAGS='-lws2_32 -pthread'
     export CMAKE_STATIC_LINKER_FLAGS='-lws2_32 -pthread'
-    do_cmake "-DBUILD_STATIC=on"
+    do_cmake "-DBUILD_STATIC=on -DCMAKE_INSTALL_DATAROOTDIR=$mingw_w64_x86_64_prefix"
     do_make
-    # make_install fails something weird...possibly because static
-    # do_make_install
-    cp libs/lensfun/liblensfun.a  $mingw_w64_x86_64_prefix/lib || exit 1
-    cp lensfun.h "$mingw_w64_x86_64_prefix/include/" || exit 1
-    cp libs/lensfun/lensfun.pc $PKG_CONFIG_PATH
+    do_make_install
     sed -i.bak 's/-llensfun/-llensfun -lstdc++/' "$PKG_CONFIG_PATH/lensfun.pc"
-    unset CMAKE_SHARED_LINKER_FLAGS
     unset CMAKE_STATIC_LINKER_FLAGS
   cd ..
 }
