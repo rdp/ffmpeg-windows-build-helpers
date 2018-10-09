@@ -35,7 +35,7 @@ set_box_memory_size_bytes() {
 
 function sortable_version { echo "$@" | awk -F. '{ printf("%d%03d%03d%03d\n", $1,$2,$3,$4); }'; }
 
-ver_comp() { # params: required actual
+at_least_required_version() { # params: required actual
   local sortable_required=$(sortable_version $1)
   local sortable_actual=$(sortable_version $2)
   [[ "$sortable_actual" -ge "$sortable_required" ]]
@@ -73,13 +73,21 @@ check_missing_packages () {
     clear
     echo "Could not find the following execs (svn is actually package subversion, makeinfo is actually package texinfo, hg is actually package mercurial if you're missing them): ${missing_packages[*]}"
     echo 'Install the missing packages before running this script.'
-    echo "for ubuntu: $ sudo apt-get install subversion curl texinfo g++ bison flex cvs yasm automake libtool autoconf gcc cmake git make pkg-config zlib1g-dev mercurial unzip pax nasm gperf autogen bzip2 autoconf-archive p7zip-full -y"
-    echo "for gentoo (a non ubuntu distro): same as above, but no g++, no gcc, git is dev-vcs/git, zlib1g-dev is zlib, pkg-config is dev-util/pkgconfig, add ed..."
-    echo "for OS X (homebrew): brew install wget cvs hg yasm autogen automake autoconf cmake libtool xz pkg-config nasm bzip2 autoconf-archive p7zip"
-    echo "for debian: same as ubuntu, but also add libtool-bin and ed"
-    echo "for RHEL/CentOS: First ensure you have epel repos available, then run $ sudo yum install subversion texinfo mercurial libtool autogen gperf nasm patch unzip pax ed gcc-c++ bison flex yasm automake autoconf gcc zlib-devel cvs bzip2 cmake3 -y"
-    echo "for fedora: if your distribution comes with a modern version of cmake then use the same as RHEL/CentOS but replace cmake3 with cmake."
-    echo "for linux native: libva-dev"
+    determine_distro
+    if [[ $DISTRO == "Ubuntu" ]]; then
+      echo -n "for ubuntu: $ sudo apt-get install subversion curl texinfo g++ bison flex cvs yasm automake libtool autoconf gcc cmake git make pkg-config zlib1g-dev mercurial unzip pax nasm gperf autogen bzip2 autoconf-archive p7zip-full"
+      if at_least_required_version "18.10"  `lsb_release -rs`; then
+        echo -n " python3-distutils" # guess it's no longer built-in, lensfun requires it...
+      fi
+      echo " -y"
+    else
+      echo "for gentoo (a non ubuntu distro): same as above, but no g++, no gcc, git is dev-vcs/git, zlib1g-dev is zlib, pkg-config is dev-util/pkgconfig, add ed..."
+      echo "for OS X (homebrew): brew install wget cvs hg yasm autogen automake autoconf cmake libtool xz pkg-config nasm bzip2 autoconf-archive p7zip"
+      echo "for debian: same as ubuntu, but also add libtool-bin and ed"
+      echo "for RHEL/CentOS: First ensure you have epel repos available, then run $ sudo yum install subversion texinfo mercurial libtool autogen gperf nasm patch unzip pax ed gcc-c++ bison flex yasm automake autoconf gcc zlib-devel cvs bzip2 cmake3 -y"
+      echo "for fedora: if your distribution comes with a modern version of cmake then use the same as RHEL/CentOS but replace cmake3 with cmake."
+      echo "for linux native: libva-dev"
+    fi
     exit 1
   fi
 
@@ -92,7 +100,7 @@ check_missing_packages () {
     # installed cmake at a higher version wouldn't be detected.
     if hash "${cmake_binary}"  &> /dev/null; then
       cmake_version="$( "${cmake_binary}" --version | sed -e "s#${cmake_binary}##g" | head -n 1 | tr -cd '[0-9.\n]' )"
-      if ver_comp "${REQUIRED_CMAKE_VERSION}" "${cmake_version}"; then
+      if at_least_required_version "${REQUIRED_CMAKE_VERSION}" "${cmake_version}"; then
         export cmake_command="${cmake_binary}"
         break
       else
@@ -120,10 +128,29 @@ check_missing_packages () {
   export REQUIRED_YASM_VERSION="1.2.0"
   yasm_binary=yasm
   yasm_version="$( "${yasm_binary}" --version |sed -e "s#${yasm_binary}##g" | head -n 1 | tr -dc '[0-9.\n]' )"
-  if ! ver_comp "${REQUIRED_YASM_VERSION}" "${yasm_version}"; then
+  if ! at_least_required_version "${REQUIRED_YASM_VERSION}" "${yasm_version}"; then
     echo "your yasm version is too old $yasm_version wanted ${REQUIRED_YASM_VERSION}"
     exit 1
   fi
+}
+
+determine_distro() { 
+
+# Determine OS platform from https://askubuntu.com/a/459425/20972
+UNAME=$(uname | tr "[:upper:]" "[:lower:]")
+# If Linux, try to determine specific distribution
+if [ "$UNAME" == "linux" ]; then
+    # If available, use LSB to identify distribution
+    if [ -f /etc/lsb-release -o -d /etc/lsb-release.d ]; then
+        export DISTRO=$(lsb_release -i | cut -d: -f2 | sed s/'^\t'//)
+    # Otherwise, use release info file
+    else
+        export DISTRO=$(ls -d /etc/[A-Za-z]*[_-][rv]e[lr]* | grep -v "lsb" | cut -d'/' -f3 | cut -d'-' -f1 | cut -d'_' -f1)
+    fi
+fi
+# For everything else (or if above failed), just use generic identifier
+[ "$DISTRO" == "" ] && export DISTRO=$UNAME
+unset UNAME
 }
 
 
