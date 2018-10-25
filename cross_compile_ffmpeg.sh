@@ -845,8 +845,6 @@ build_librtmfp() {
     apply_patch file://$patch_dir/rtmfp.static.cross.patch -p1 # works e48efb4f
     do_make "$make_prefix_options GPP=${cross_prefix}g++"
   cd ..
-  echo "success rtmfp"
-  exit 1
 }
 
 build_libnettle() {
