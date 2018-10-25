@@ -832,6 +832,23 @@ build_gmp() {
   cd ..
 }
 
+build_librtmfp() {
+  build_openssl-1.1.0
+  build_openssl-1.0.2 # pre req?
+  do_git_checkout https://github.com/MonaSolutions/librtmfp.git
+  cd librtmfp_git/include/Base
+    do_git_checkout https://github.com/meganz/mingw-std-threads.git mingw-std-threads # our g++ apparently doesn't have std::mutex baked in...weird...
+  cd ../../..
+  cd librtmfp_git
+    #export CPPFLAGS='-Iinclude -Llib' only if building with it ja ja
+    #export LIBS='-mwindows -lWs2_32 -liphlpapi -lz'
+    apply_patch file://$patch_dir/rtmfp.static.cross.patch -p1 # works e48efb4f
+    do_make "$make_prefix_options GPP=${cross_prefix}g++"
+  cd ..
+  echo "success rtmfp"
+  exit 1
+}
+
 build_libnettle() {
   download_and_unpack_file https://ftp.gnu.org/gnu/nettle/nettle-3.4.tar.gz
   cd nettle-3.4
@@ -1979,6 +1996,7 @@ build_ffmpeg_dependencies() {
   build_libxml2 # Uses zlib, liblzma, iconv and dlfcn.
   build_fontconfig # Needs freetype and libxml >= 2.6. Uses iconv and dlfcn.
   build_gmp # For rtmp support configure FFmpeg with '--enable-gmp'. Uses dlfcn.
+  build_librtmfp
   build_libnettle # Needs gmp >= 3.0. Uses dlfcn.
   build_gnutls # Needs nettle >= 3.1, hogweed (nettle) >= 3.1. Uses zlib and dlfcn.
   #if [[ "$non_free" = "y" ]]; then

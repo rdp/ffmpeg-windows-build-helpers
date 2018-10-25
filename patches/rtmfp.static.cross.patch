@@ -1,0 +1,162 @@
+diff --git a/Makefile b/Makefile
+index d617cfc..0f395c9 100644
+--- a/Makefile
++++ b/Makefile
+@@ -23,14 +23,15 @@ OS := $(shell uname -s)
+ 
+ # Variables with default values
+ GPP?=g++
++AR?=ar
+ 
+ # Variables extendable
+-CFLAGS+=-std=c++11 -Wall -Wno-reorder -Wno-terminate -Wno-unknown-pragmas -Wno-unknown-warning-option
++CFLAGS+=-std=c++11 -Wall -Wno-reorder -Wno-terminate -Wno-unknown-pragmas
+ ifeq ($(OS),FreeBSD)
+ 	CFLAGS+=-D_GLIBCXX_USE_C99
+ endif
+ override INCLUDES+=-I./include/
+-LIBS+=-Wl,-Bdynamic -lcrypto -lssl -lpthread
++LIBS+=-Wl,-Bdynamic -lcrypto -lssl -lpthread -lz
+ 
+ INCDIR=/usr/include/librtmfp/
+ 
+@@ -42,6 +43,11 @@ else
+ 	LIBNAME=librtmfp.so
+ 	SHARED=-shared
+ endif
++
++# mingw cross static
++LIBNAME=librtmfp.a
++SHARED=
++
+ LIB=lib/$(LIBNAME)
+ 
+ # Variables fixed
+@@ -55,8 +61,9 @@ release:
+ 	mkdir -p tmp/Release/Base
+ 	mkdir -p lib
+ 	@$(MAKE) -k $(OBJECT)
+-	@echo creating dynamic lib $(LIB)
+-	@$(GPP) $(CFLAGS) $(LIBDIRS) -fPIC $(SHARED) -o $(LIB) $(OBJECT) $(LIBS)
++	@echo creating static lib $(LIB)
++	@$(AR) crf $(LIB) $(OBJECT)
++	@echo was $(GPP) $(CFLAGS) $(LIBDIRS) -fPIC $(SHARED) -o $(LIB) $(OBJECT) $(LIBS)
+ 
+ debug:
+ 	mkdir -p tmp/Debug/Base
+@@ -90,4 +97,4 @@ $(OBJECTD): tmp/Debug/%.o: sources/%.cpp
+ clean:
+ 	@echo cleaning project librtmfp
+ 	@rm -f $(OBJECT) $(LIB)
+-	@rm -f $(OBJECTD) $(LIB)
+\ No newline at end of file
++	@rm -f $(OBJECTD) $(LIB)
+diff --git a/include/Base/Date.h b/include/Base/Date.h
+index 209d3ce..ab2431a 100644
+--- a/include/Base/Date.h
++++ b/include/Base/Date.h
+@@ -19,6 +19,7 @@ details (or else see http://mozilla.org/MPL/2.0/).
+ #include "Base/Mona.h"
+ #include "Base/Time.h"
+ #include "Base/Timezone.h"
++#define __STDC_FORMAT_MACROS
+ #include "inttypes.h"
+ 
+ namespace Base {
+diff --git a/include/Base/Mona.h b/include/Base/Mona.h
+index d212a25..177184c 100644
+--- a/include/Base/Mona.h
++++ b/include/Base/Mona.h
+@@ -26,7 +26,11 @@ details (or else see http://mozilla.org/MPL/2.0/).
+ #include <memory>
+ #include <functional>
+ #include <cmath> // C++ version of math.h to solve abs ambiguity over linux
+-
++#include <mutex>
++#include "winsock2.h"
++#include "windows.h"
++#include "Base/mingw-std-threads/mingw.mutex.h"
++#include "Base/mingw-std-threads/mingw.condition_variable.h"
+ 
+ /////  Usefull macros and patchs   //////
+ 
+@@ -43,12 +47,13 @@ details (or else see http://mozilla.org/MPL/2.0/).
+ #define LINE_STRING STRINGIZE(__LINE__)
+ 
+ #if defined(_WIN32)
+-#define _WINSOCKAPI_    // stops windows.h including winsock.h
+-#define NOMINMAX
++//#define _WINSOCKAPI_    // stops windows.h including winsock.h
++//#define NOMINMAX
++#include "winsock2.h"
+ #include "windows.h"
+ #define sprintf sprintf_s
+ #define snprintf sprintf_s
+-#define PATH_MAX 4096 // to match Linux!
++// #define PATH_MAX 4096 // to match Linux!
+ #define __BIG_ENDIAN__ 0 // windows is always little endian!
+ #elif defined(__FreeBSD__) || defined(__APPLE__) || defined(__TOS_MACOS__) || defined(__NetBSD__) || defined(__OpenBSD__)
+ #define _BSD 1 // Detect BSD system
+diff --git a/include/Base/Path.h b/include/Base/Path.h
+index 5a5291e..d562bda 100644
+--- a/include/Base/Path.h
++++ b/include/Base/Path.h
+@@ -19,6 +19,7 @@ details (or else see http://mozilla.org/MPL/2.0/).
+ #include "Base/Mona.h"
+ #include "Base/FileSystem.h"
+ #include <mutex>
++#include "Base/mingw-std-threads/mingw.mutex.h"
+ 
+ namespace Base {
+ 
+diff --git a/include/Base/Thread.h b/include/Base/Thread.h
+index 5324da6..cfaef48 100644
+--- a/include/Base/Thread.h
++++ b/include/Base/Thread.h
+@@ -19,6 +19,7 @@ details (or else see http://mozilla.org/MPL/2.0/).
+ #include "Base/Exceptions.h"
+ #include "Base/Signal.h"
+ #include <thread>
++#include "Base/mingw-std-threads/mingw.mutex.h"
+ 
+ namespace Base {
+ 
+diff --git a/include/librtmfp.h b/include/librtmfp.h
+index 50ff248..9a5e512 100644
+--- a/include/librtmfp.h
++++ b/include/librtmfp.h
+@@ -18,7 +18,7 @@ GNU Lesser General Public License for more details.
+ You should have received a copy of the GNU Lesser General Public License
+ along with Librtmfp.  If not, see <http://www.gnu.org/licenses/>.
+ */
+-
++#define LIBRTMFP_STATIC 1
+ #if defined(_WIN32) && !defined(LIBRTMFP_STATIC)
+ 	// Windows DLL declaration
+ 	#if defined(LIBRTMFP_EXPORT)
+diff --git a/sources/Base/IOSocket.cpp b/sources/Base/IOSocket.cpp
+index 8d904c3..60a7048 100644
+--- a/sources/Base/IOSocket.cpp
++++ b/sources/Base/IOSocket.cpp
+@@ -535,7 +535,7 @@ bool IOSocket::run(Exception& ex, const volatile bool& requestStop) {
+ 		shared<Socket> pSocket;
+ 		{
+ 			lock_guard<mutex> lock(_mutexSockets);
+-			auto& it = _sockets.find(msg.wParam);
++			const auto& it = _sockets.find(msg.wParam);
+ 			if (it != _sockets.end())
+ 				pSocket = it->second.lock();
+ 		}
+diff --git a/sources/Base/Timezone.cpp b/sources/Base/Timezone.cpp
+index 5313a37..f181e2a 100644
+--- a/sources/Base/Timezone.cpp
++++ b/sources/Base/Timezone.cpp
+@@ -494,7 +494,7 @@ Timezone::Timezone() : _offset(0),_dstOffset(3600000) {
+ 		});
+ 
+ 
+-		auto& it = WindowToTZID.find(_name);
++		const auto& it = WindowToTZID.find(_name);
+ 		if (it != WindowToTZID.end())
+ 			_name.assign(it->second);
+ 	} else
