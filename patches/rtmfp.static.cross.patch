@@ -1,8 +1,8 @@
 diff --git a/Makefile b/Makefile
-index d617cfc..0f395c9 100644
+index d617cfc..9f9fc0a 100644
 --- a/Makefile
 +++ b/Makefile
-@@ -23,14 +23,15 @@ OS := $(shell uname -s)
+@@ -23,16 +23,17 @@ OS := $(shell uname -s)
  
  # Variables with default values
  GPP?=g++
@@ -18,8 +18,11 @@ index d617cfc..0f395c9 100644
 -LIBS+=-Wl,-Bdynamic -lcrypto -lssl -lpthread
 +LIBS+=-Wl,-Bdynamic -lcrypto -lssl -lpthread -lz
  
- INCDIR=/usr/include/librtmfp/
+-INCDIR=/usr/include/librtmfp/
++INCDIR="$(prefix)/include/librtmfp/"
  
+ # Variables fixed
+ ifeq ($(OS),Darwin)
 @@ -42,6 +43,11 @@ else
  	LIBNAME=librtmfp.so
  	SHARED=-shared

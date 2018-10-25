@@ -844,6 +844,7 @@ build_librtmfp() {
     #export LIBS='-mwindows -lWs2_32 -liphlpapi -lz'
     apply_patch file://$patch_dir/rtmfp.static.cross.patch -p1 # works e48efb4f
     do_make "$make_prefix_options GPP=${cross_prefix}g++"
+    do_make_install "prefix=$mingw_w64_x86_64_prefix"
   cd ..
 }
 
