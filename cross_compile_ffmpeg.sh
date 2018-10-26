@@ -659,16 +659,19 @@ generic_configure "--bindir=$mingw_bin_path"
 }
 
 build_amd_amf_headers() {
-  do_git_checkout https://github.com/GPUOpen-LibrariesAndSDKs/AMF.git amf_headers_git # Use: https://github.com/DeadSix27/AMF or your own stripped fork if needed (original is like 120MB of data we don't need).
+  # was https://github.com/GPUOpen-LibrariesAndSDKs/AMF.git too big
+  # or https://github.com/DeadSix27/AMF smaller
+  # just right...
+  do_git_checkout https://github.com/rdp/amf_headers.git amf_headers_git
   cd amf_headers_git
-    if [ ! -f "already_installed" ] ; then
-	  rm -rf "./Thirdparty"
+    if [ ! -f "already_installed" ]; then
+      #rm -rf "./Thirdparty" # ?? plus too chatty...
       if [ ! -d "$mingw_w64_x86_64_prefix/include/AMF" ]; then
         mkdir -p "$mingw_w64_x86_64_prefix/include/AMF"
       fi
       cp -av "amf/public/include/." "$mingw_w64_x86_64_prefix/include/AMF" 
-	  touch "already_installed"
-	fi
+      touch "already_installed"
+    fi
   cd ..
 }
 
