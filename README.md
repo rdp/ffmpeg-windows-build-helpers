@@ -9,28 +9,11 @@ Building on linux takes less time overall. On Windows 10, you can use the bash s
 Building in windows takes considerably longer but avoids the need of deploying a  Linux installation for the same purpose.
 I do have some "distribution release builds" of running the script here: https://sourceforge.net/projects/ffmpegwindowsbi/files
 
-** Windows Cmd  **
-
-To build in windows without a VM (uses the native'ish cygwin):
-
-Obtain the repository by downloading and unzipping the archive below: 
-       
-https://github.com/rdp/ffmpeg-windows-build-helpers/archive/master.zip
-       
-Or, if you have git installed, clone the repository instead of downloading the zip, ex: 
-
-     c:\>git clone https://github.com/rdp/ffmpeg-windows-build-helpers.git
-       
-Next run one of the "`native_build/build_locally_XXX.bat`" file.
-* `build_locally_fdk_aac_and_x264_32bit_fast`: This will build libx264, fdk aac, and FFmpeg, and takes about 1 hour. This is the easiest way to get fdk aac, if you don't know which you want, use this one.
-* `build_locally_with_various_option_prompts`: This will build FFmpeg and extra dependencies and  libraries.  It will prompt whether you'd like to also include fdk/nvenc libraries, 32 and/or 64 bit executables, etc.  This build will take 6 hours or more.
-* `build_locally_gpl_32_bit_option`: Same as option prompts above, but selects 32bit non-fdk automatically.
-
 **Cross-compiling from a Linux environment:**
-  
-You can build the project on Linux with a cross compiler toolchain, and this process is much faster, taking about 2 hours for the "options" build. Deploy a Linux VM on the host with a hypervisor of your choice, or natively on an extra computer or a dual boot system, and also, you could even create a VM temporarily, on a hosting provider such as Digital Ocean. 
 
-NB: works with Ubuntu distros that uses gcc 5.x but not 6.x (yet) (i.e. 16.10 it will not work yet).
+You can build the project on Linux with a cross compiler toolchain, taking about 2 hours for the "options" build. 
+
+Deploy a Linux VM on the host of your choice, or natively on an extra computer or a dual boot system, and also, you could even create a VM temporarily, on a hosting provider such as Digital Ocean.  Cheapest way: install windows 10 bash shell.  Another option: linux on a virtualbox VM.  Another option, typically fastest: temporarily rent a box (ex: DigitalOcean https://m.do.co/c/b3030b559d17 )
 
 Download the script by cloning this repository via git:
 
@@ -90,7 +73,8 @@ Then use the output shown (in this case, `core-avx-i`, corresponding to Intel's 
 
     % gcc -march=core-avx-i ...
 
-Benchmarks prove that modifying the CFLAGS this way (at least using libx264) doesn't end up helping much speed-wise (it might make a smaller executable?) since libx264 auto detects and auto uses your cpu capabilities anyway, so until further research is done, these options may not actually provide significant speedup.  Ping me if you get different results than this, as you may be wasting your time using the `--cflags=` parameter here.
+Benchmarks prove that modifying the CFLAGS this way (at least using libx264) doesn't end up helping much speed-wise (it might make a smaller executable?) since libx264 auto detects and auto uses your cpu capabilities anyway, so until further research is done, these options may not actually provide significant or any speedup, while making the executable "undistributable" since it can only be run on certain cpu's, but it's fun!
+Ping me if you get different results than this, as you may be wasting your time using the `--cflags=` parameter here.
 
 Note that the build scripts fetch stable sources (not mainline) which may contain slightly older/out of date dependency versions, and as such, there may be implied security risks (see CVEs that may not be patched downstream), though FFmpeg itself will be built from git master by default.
 
