@@ -1,0 +1,56 @@
+diff --git a/Makefile b/Makefile
+index d617cfc..9f9fc0a 100644
+--- a/Makefile
++++ b/Makefile
+@@ -23,16 +23,17 @@ OS := $(shell uname -s)
+ 
+ # Variables with default values
+ GPP?=g++
++AR?=ar
+ 
+ # Variables extendable
+-CFLAGS+=-std=c++11 -Wall -Wno-reorder -Wno-terminate -Wno-unknown-pragmas -Wno-unknown-warning-option
++CFLAGS+=-std=c++11 -Wall -Wno-reorder -Wno-terminate -Wno-unknown-pragmas
+ ifeq ($(OS),FreeBSD)
+ 	CFLAGS+=-D_GLIBCXX_USE_C99
+ endif
+ override INCLUDES+=-I./include/
+-LIBS+=-Wl,-Bdynamic -lcrypto -lssl -lpthread
++LIBS+=-Wl,-Bdynamic -lcrypto -lssl -lpthread -lz
+ 
+-INCDIR=/usr/include/librtmfp/
++INCDIR="$(prefix)/include/librtmfp/"
+ 
+ # Variables fixed
+ ifeq ($(OS),Darwin)
+@@ -42,6 +43,11 @@ else
+ 	LIBNAME=librtmfp.so
+ 	SHARED=-shared
+ endif
++
++# mingw cross static
++LIBNAME=librtmfp.a
++SHARED=
++
+ LIB=lib/$(LIBNAME)
+ 
+ # Variables fixed
+@@ -55,8 +61,9 @@ release:
+ 	mkdir -p tmp/Release/Base
+ 	mkdir -p lib
+ 	@$(MAKE) -k $(OBJECT)
+-	@echo creating dynamic lib $(LIB)
+-	@$(GPP) $(CFLAGS) $(LIBDIRS) -fPIC $(SHARED) -o $(LIB) $(OBJECT) $(LIBS)
++	@echo creating static lib $(LIB)
++	@$(AR) rcs $(LIB) $(OBJECT)
++	@echo was $(GPP) $(CFLAGS) $(LIBDIRS) -fPIC $(SHARED) -o $(LIB) $(OBJECT) $(LIBS)
+ 
+ debug:
+ 	mkdir -p tmp/Debug/Base
+@@ -90,4 +97,4 @@ $(OBJECTD): tmp/Debug/%.o: sources/%.cpp
+ clean:
+ 	@echo cleaning project librtmfp
+ 	@rm -f $(OBJECT) $(LIB)
+-	@rm -f $(OBJECTD) $(LIB)
+\ No newline at end of file
++	@rm -f $(OBJECTD) $(LIB)

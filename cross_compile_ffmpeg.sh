@@ -403,7 +403,7 @@ do_make() {
 
   if [ ! -f $touch_name ]; then
     echo
-    echo "making $cur_dir2 as $ PATH=$mingw_bin_path:\$PATH make $extra_make_options"
+    echo "Making $cur_dir2 as $ PATH=$mingw_bin_path:\$PATH make $extra_make_options"
     echo
     if [ ! -f configure ]; then
       nice make clean -j $cpu_count # just in case helpful if old junk left around and this is a 're make' and wasn't cleaned at reconfigure time
@@ -411,7 +411,7 @@ do_make() {
     nice make $extra_make_options || exit 1
     touch $touch_name || exit 1 # only touch if the build was OK
   else
-    echo "already made $(basename "$cur_dir2") ..."
+    echo "Already made $(basename "$cur_dir2") ..."
   fi
 }
 
@@ -844,7 +844,11 @@ build_librtmfp() {
   cd librtmfp_git
     #export CPPFLAGS='-Iinclude -Llib' only if building with it ja ja
     #export LIBS='-mwindows -lWs2_32 -liphlpapi -lz'
-    apply_patch file://$patch_dir/rtmfp.static.cross.patch -p1 # works e48efb4f
+    if [[ $compiler_flavors != "native" ]]; then
+      apply_patch file://$patch_dir/rtmfp.static.cross.patch -p1 # works e48efb4f
+    else
+      apply_patch file://$patch_dir/rtfmp.static.make.patch -p1
+    fi
     do_make "$make_prefix_options GPP=${cross_prefix}g++"
     do_make_install "prefix=$mingw_w64_x86_64_prefix PKGCONFIGPATH=$PKG_CONFIG_PATH"
   cd ..
