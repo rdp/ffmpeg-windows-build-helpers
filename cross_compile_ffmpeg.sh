@@ -836,8 +836,7 @@ build_gmp() {
 }
 
 build_librtmfp() {
-  build_openssl-1.1.0
-  build_openssl-1.0.2 # pre req?
+  build_openssl-1.1.1 # pre req...
   do_git_checkout https://github.com/MonaSolutions/librtmfp.git
   cd librtmfp_git/include/Base
     do_git_checkout https://github.com/meganz/mingw-std-threads.git mingw-std-threads # our g++ apparently doesn't have std::mutex baked in...weird...
@@ -924,9 +923,9 @@ build_openssl-1.0.2() {
   cd ..
 }
 
-build_openssl-1.1.0() {
-  download_and_unpack_file https://www.openssl.org/source/openssl-1.1.0f.tar.gz
-  cd openssl-1.1.0f
+build_openssl-1.1.1() {
+  download_and_unpack_file https://www.openssl.org/source/openssl-1.1.1.tar.gz
+  cd openssl-1.1.1
     export CC="${cross_prefix}gcc"
     export AR="${cross_prefix}ar"
     export RANLIB="${cross_prefix}ranlib"
@@ -939,7 +938,14 @@ build_openssl-1.1.0() {
     if [[ `uname` =~ "5.1" ]] || [[ `uname` =~ "6.0" ]]; then
       config_options+="no-async " # "Note: on older OSes, like CentOS 5, BSD 5, and Windows XP or Vista, you will need to configure with no-async when building OpenSSL 1.1.0 and above. The configuration system does not detect lack of the Posix feature on the platforms." (https://wiki.openssl.org/index.php/Compilation_and_Installation)
     fi
-    if [ "$bits_target" = "32" ]; then
+    if [[ $compiler_flavors == "native" ]]; then
+      if [[ $OSTYPE == darwin* ]]; then
+        config_options+="darwin64-x86_64-cc "
+      else
+        linux-generic64 # uh guess...
+      fi
+      local arch=native
+    elif [ "$bits_target" = "32" ]; then
       config_options+="mingw" # Build shared libraries ('libcrypto-1_1.dll' and 'libssl-1_1.dll') if "dllonly" is specified.
       local arch=x86
     else
@@ -2003,7 +2009,7 @@ build_ffmpeg_dependencies() {
   build_gnutls # Needs nettle >= 3.1, hogweed (nettle) >= 3.1. Uses zlib and dlfcn.
   #if [[ "$non_free" = "y" ]]; then
   #  build_openssl-1.0.2 # Nonfree alternative to GnuTLS. 'build_openssl-1.0.2 "dllonly"' to build shared libraries only.
-  #  build_openssl-1.1.0 # Nonfree alternative to GnuTLS. Can't be used with LibRTMP. 'build_openssl-1.1.0 "dllonly"' to build shared libraries only.
+  #  build_openssl-1.1.1 # Nonfree alternative to GnuTLS. Can't be used with LibRTMP. 'build_openssl-1.1.1 "dllonly"' to build shared libraries only.
   #fi
   build_libogg # Uses dlfcn.
   build_libvorbis # Needs libogg >= 1.0. Uses dlfcn.
@@ -2194,7 +2200,13 @@ while true; do
                  disable_nonfree=n; git_get_latest=y; sandbox_ok=y; build_amd_amf=y; build_intel_qsv=y; 
                  build_dvbtee=y; build_x264_with_libav=y; shift ;;
     -d         ) gcc_cpu_count=$cpu_count; disable_nonfree="y"; sandbox_ok="y"; compiler_flavors="win32"; git_get_latest="n"; shift ;;
-    --compiler-flavors=* ) compiler_flavors="${1#*=}"; shift ;;
+    --compiler-flavors=* ) 
+         compiler_flavors="${1#*=}"; 
+         if [[ $compiler_flavors == "native" && $OSTYPE == darwin* ]]; then
+           build_intel_qsv=n
+           echo "disabling qsv since os x"
+         fi
+         shift ;;
     --build-ffmpeg-static=* ) build_ffmpeg_static="${1#*=}"; shift ;;
     --build-ffmpeg-shared=* ) build_ffmpeg_shared="${1#*=}"; shift ;;
     --prefer-stable=* ) prefer_stable="${1#*=}"; shift ;;
