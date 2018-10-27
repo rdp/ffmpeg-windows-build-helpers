@@ -1217,12 +1217,13 @@ build_fftw() {
 
 build_libsamplerate() {
   # I think this didn't work with ubuntu 14.04 [too old automake or some odd] :|
-  #do_git_checkout https://github.com/erikd/libsamplerate.git
-  #cd libsamplerate_git
-  #  generic_configure
-  #  do_make_and_make_install
-  #cd ..
-  generic_download_and_make_and_install http://www.mega-nerd.com/SRC/libsamplerate-0.1.8.tar.gz # rubberband can use this, but uses speex bundled by default [any difference?] 1.9 failed
+  do_git_checkout https://github.com/erikd/libsamplerate.git
+  cd libsamplerate_git
+    generic_configure
+    do_make_and_make_install
+  cd ..
+  # but OS X can't use 0.1.9 :|
+  # rubberband can use this, but uses speex bundled by default [any difference? who knows!]
 }
 
 build_librubberband() {
