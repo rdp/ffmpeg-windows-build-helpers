@@ -718,20 +718,26 @@ build_libtensorflow() {
   do_git_checkout_and_make_install https://github.com/tensorflow/tensorflow.git
 }
 
-build_lensfun() {
-  export CPPFLAGS='-DLIBXML_STATIC' # gettext build...
-  generic_download_and_make_and_install  https://ftp.gnu.org/pub/gnu/gettext/gettext-0.19.8.1.tar.xz
-  unset CPPFLAGS
-  generic_download_and_make_and_install  http://sourceware.org/pub/libffi/libffi-3.2.1.tar.gz # also dep
+build_glib() {
   download_and_unpack_file https://ftp.gnome.org/pub/gnome/sources/glib/2.56/glib-2.56.3.tar.xz # there's a 2.58 but guess I'd need to use meson for that, too complicated...also didn't yet contain the DllMain patch I believe, so no huge win...
   cd glib-2.56.3
     export CPPFLAGS='-liconv -pthread' # I think gettext wanted this but has no .pc file??
-    apply_patch file://$patch_dir/glib_msg_fmt.patch # needed for configure
-    apply_patch  file://$patch_dir/glib-prefer-constructors-over-DllMain.patch # needed for static. weird.
+    if [[ $compiler_flavors != "native" ]]; then # seemingly unneeded for OS X
+      apply_patch file://$patch_dir/glib_msg_fmt.patch # needed for configure
+      apply_patch  file://$patch_dir/glib-prefer-constructors-over-DllMain.patch # needed for static. weird.
+    fi
     generic_configure "--with-pcre=internal" # too lazy for pcre :) XXX
     unset CPPFLAGS
     do_make_and_make_install
   cd ..
+}
+
+build_lensfun() {
+  build_glib
+  export CPPFLAGS='-DLIBXML_STATIC' # gettext build...
+  generic_download_and_make_and_install  https://ftp.gnu.org/pub/gnu/gettext/gettext-0.19.8.1.tar.xz
+  unset CPPFLAGS
+  generic_download_and_make_and_install  http://sourceware.org/pub/libffi/libffi-3.2.1.tar.gz # also dep
   download_and_unpack_file https://sourceforge.net/projects/lensfun/files/0.3.95/lensfun-0.3.95.tar.gz
   cd lensfun-0.3.95
     export CMAKE_STATIC_LINKER_FLAGS='-lws2_32 -pthread'
@@ -1232,6 +1238,7 @@ build_librubberband() {
 build_frei0r() {
   do_git_checkout https://github.com/dyne/frei0r.git
   cd frei0r_git
+    sed -i.bak 's/-arch i386//' CMakeLists.txt # OS X https://github.com/dyne/frei0r/issues/64
     do_cmake_and_install
 
     mkdir -p $cur_dir/redist # Strip and pack shared libraries.
