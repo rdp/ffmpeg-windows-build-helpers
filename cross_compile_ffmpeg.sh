@@ -2017,7 +2017,7 @@ build_ffmpeg_dependencies() {
   build_libxml2 # Uses zlib, liblzma, iconv and dlfcn.
   build_fontconfig # Needs freetype and libxml >= 2.6. Uses iconv and dlfcn.
   build_gmp # For rtmp support configure FFmpeg with '--enable-gmp'. Uses dlfcn.
-  build_librtmfp
+  #build_librtmfp
   build_libnettle # Needs gmp >= 3.0. Uses dlfcn.
   build_gnutls # Needs nettle >= 3.1, hogweed (nettle) >= 3.1. Uses zlib and dlfcn.
   #if [[ "$non_free" = "y" ]]; then
