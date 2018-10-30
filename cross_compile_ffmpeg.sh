@@ -719,6 +719,10 @@ build_libtensorflow() {
 }
 
 build_glib() {
+  export CPPFLAGS='-DLIBXML_STATIC' # gettext build...
+  generic_download_and_make_and_install  https://ftp.gnu.org/pub/gnu/gettext/gettext-0.19.8.1.tar.xz
+  unset CPPFLAGS
+  generic_download_and_make_and_install  http://sourceware.org/pub/libffi/libffi-3.2.1.tar.gz # also dep
   download_and_unpack_file https://ftp.gnome.org/pub/gnome/sources/glib/2.56/glib-2.56.3.tar.xz # there's a 2.58 but guess I'd need to use meson for that, too complicated...also didn't yet contain the DllMain patch I believe, so no huge win...
   cd glib-2.56.3
     export CPPFLAGS='-liconv -pthread' # I think gettext wanted this but has no .pc file??
@@ -734,10 +738,6 @@ build_glib() {
 
 build_lensfun() {
   build_glib
-  export CPPFLAGS='-DLIBXML_STATIC' # gettext build...
-  generic_download_and_make_and_install  https://ftp.gnu.org/pub/gnu/gettext/gettext-0.19.8.1.tar.xz
-  unset CPPFLAGS
-  generic_download_and_make_and_install  http://sourceware.org/pub/libffi/libffi-3.2.1.tar.gz # also dep
   download_and_unpack_file https://sourceforge.net/projects/lensfun/files/0.3.95/lensfun-0.3.95.tar.gz
   cd lensfun-0.3.95
     export CMAKE_STATIC_LINKER_FLAGS='-lws2_32 -pthread'
@@ -842,6 +842,7 @@ build_gmp() {
 }
 
 build_librtmfp() {
+  # build_openssl-1.0.2 # fails OS X 
   build_openssl-1.1.1 # pre req...
   do_git_checkout https://github.com/MonaSolutions/librtmfp.git
   cd librtmfp_git/include/Base
@@ -889,8 +890,8 @@ build_gnutls() {
 }
 
 build_openssl-1.0.2() {
-  download_and_unpack_file https://www.openssl.org/source/openssl-1.0.2l.tar.gz
-  cd openssl-1.0.2l
+  download_and_unpack_file https://www.openssl.org/source/openssl-1.0.2p.tar.gz
+  cd openssl-1.0.2p
     apply_patch file://$patch_dir/openssl-1.0.2l_lib-only.diff
     export CC="${cross_prefix}gcc"
     export AR="${cross_prefix}ar"
