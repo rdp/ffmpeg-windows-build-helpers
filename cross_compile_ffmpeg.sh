@@ -255,7 +255,7 @@ install_cross_compiler() {
 
     # --disable-shared allows c++ to be distributed at all...which seemed necessary for some random dependency which happens to use/require c++...
     local zeranoe_script_name=mingw-w64-build-r22.local
-    local zeranoe_script_options="--gcc-ver=7.1.0 --default-configure --cpu-count=$gcc_cpu_count --pthreads-w32-ver=2-9-1 --disable-shared --clean-build --verbose --allow-overwrite" # allow-overwrite to avoid some crufty prompts if I do rebuilds [or maybe should just nuke everything...]
+    local zeranoe_script_options="--gcc-ver=8.2.0 --default-configure --cpu-count=$gcc_cpu_count --pthreads-w32-ver=2-9-1 --disable-shared --clean-build --verbose --allow-overwrite" # allow-overwrite to avoid some crufty prompts if I do rebuilds [or maybe should just nuke everything...]
     if [[ ($compiler_flavors == "win32" || $compiler_flavors == "multi") && ! -f ../$win32_gcc ]]; then
       echo "Building win32 cross compiler..."
       download_gcc_build_script $zeranoe_script_name
@@ -842,15 +842,14 @@ build_gmp() {
 }
 
 build_librtmfp() {
+  # needs some version of openssl...
   # build_openssl-1.0.2 # fails OS X 
-  build_openssl-1.1.1 # pre req...
+  build_openssl-1.1.1
   do_git_checkout https://github.com/MonaSolutions/librtmfp.git
   cd librtmfp_git/include/Base
-    do_git_checkout https://github.com/meganz/mingw-std-threads.git mingw-std-threads # our g++ apparently doesn't have std::mutex baked in...weird...
+    do_git_checkout https://github.com/meganz/mingw-std-threads.git mingw-std-threads # our g++ apparently doesn't have std::mutex baked in...weird...this replaces it...
   cd ../../..
   cd librtmfp_git
-    #export CPPFLAGS='-Iinclude -Llib' only if building with it ja ja
-    #export LIBS='-mwindows -lWs2_32 -liphlpapi -lz'
     if [[ $compiler_flavors != "native" ]]; then
       apply_patch file://$patch_dir/rtmfp.static.cross.patch -p1 # works e48efb4f
     else
@@ -858,6 +857,11 @@ build_librtmfp() {
     fi
     do_make "$make_prefix_options GPP=${cross_prefix}g++"
     do_make_install "prefix=$mingw_w64_x86_64_prefix PKGCONFIGPATH=$PKG_CONFIG_PATH"
+    if [[ $compiler_flavors == "native" ]]; then
+      sed -i.bak 's/-lrtmfp.*/-lrtmfp -lstdc++/' "$PKG_CONFIG_PATH/librtmfp.pc"
+    else
+      sed -i.bak 's/-lrtmfp.*/-lrtmfp -lstdc++ -lWs2_32 -liphlpapi/' "$PKG_CONFIG_PATH/librtmfp.pc"
+    fi
   cd ..
 }
 
@@ -1363,7 +1367,7 @@ build_libvpx() {
       local config_options="--target=x86_64-win64-gcc"
     fi
     export CROSS="$cross_prefix"
-    do_configure "$config_options --prefix=$mingw_w64_x86_64_prefix --enable-static --disable-shared --disable-examples --disable-tools --disable-docs --disable-unit-tests --enable-vp9-highbitdepth"
+    do_configure "$config_options --prefix=$mingw_w64_x86_64_prefix --enable-static --disable-shared --disable-examples --disable-tools --disable-docs --disable-unit-tests --enable-vp9-highbitdepth --extra-cflags=-fno-asynchronous-unwind-tables" # fno for Error: invalid register for .seh_savexmm
     do_make_and_make_install
     unset CROSS
   cd ..
