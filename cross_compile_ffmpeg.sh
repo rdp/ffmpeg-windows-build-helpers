@@ -1855,7 +1855,7 @@ build_ffmpeg() {
       config_options2+=" --enable-nvenc --enable-nvdec" # don't work OS X 
     fi
 
-    config_options+=" --disable-autodetect --disable-everything --enable-protocols --enable-demuxer=image2 --enable-muxer=mp4 --enable-demuxer=concat --enable-decoder=png --enable-decoder=bmp --enable-decoder=apng --enable-zlib --enable-encoder=libx264 --enable-filter=scale --enable-decoder=h264 --enable-demuxer=mov --enable-bsf=h264_mp4toannexb" # start with blank s#te...
+    config_options+=" --disable-autodetect --disable-everything --enable-protocols --enable-demuxer=image2 --enable-muxer=mp4 --enable-demuxer=concat --enable-decoder=png --enable-decoder=bmp --enable-decoder=apng --enable-zlib --enable-encoder=libx264 --enable-filter=scale --enable-decoder=h264 --enable-demuxer=mov --enable-bsf=h264_mp4toannexb --enable-demuxer=image2pipe --enable-demuxer=image_png_pipe --enable-demuxer=image_bmp_pipe --enable-demuxer=image_jpeg_pipe" # start with blank s#te...
 
     #config_options+=" --extra-libs=-lm" # libflite seemed to need this linux native...and have no .pc file huh?
     config_options+=" --extra-libs=-lpthread" # for some reason various and sundry needed this linux native
