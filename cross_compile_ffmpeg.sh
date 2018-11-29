@@ -1846,16 +1846,18 @@ build_ffmpeg() {
     if [[ $compiler_flavors != "native" ]]; then
       init_options+=" --arch=$arch --target-os=mingw32 --cross-prefix=$cross_prefix"
     fi
-    if [[ `uname` =~ "5.1" ]]; then
+    #if [[ `uname` =~ "5.1" ]]; then
       init_options+=" --disable-schannel"
       # Fix WinXP incompatibility by disabling Microsoft's Secure Channel, because Windows XP doesn't support TLS 1.1 and 1.2, but with GnuTLS or OpenSSL it does.  XP compat!
-    fi
+    #fi
     config_options="$init_options "
     if [[ $compiler_flavors != "native" ]]; then
       config_options2+=" --enable-nvenc --enable-nvdec" # don't work OS X 
     fi
 
-    config_options+=" --extra-libs=-lm" # libflite seemed to need this linux native...and have no .pc file huh?
+    config_options+=" --disable-autodetect --disable-everything --enable-protocols --enable-demuxer=image2 --enable-muxer=mp4 --enable-demuxer=concat --enable-decoder=png --enable-decoder=bmp --enable-decoder=apng --enable-zlib --enable-encoder=libx264 --enable-filter=scale --enable-decoder=h264 --enable-demuxer=mov --enable-bsf=h264_mp4toannexb" # start with blank s#te...
+
+    #config_options+=" --extra-libs=-lm" # libflite seemed to need this linux native...and have no .pc file huh?
     config_options+=" --extra-libs=-lpthread" # for some reason various and sundry needed this linux native
 
     config_options+=" --extra-cflags=-DLIBTWOLAME_STATIC --extra-cflags=-DMODPLUG_STATIC --extra-cflags=-DCACA_STATIC" # if we ever do a git pull then it nukes changes, which overrides manual changes to configure, so just use these for now :|
@@ -1883,7 +1885,7 @@ build_ffmpeg() {
     fi 
     # other possibilities:
     #   --enable-w32threads # [worse UDP than pthreads, so not using that]
-    config_options+=" --enable-avresample" # guess this is some kind of libav specific thing (the FFmpeg fork) but L-Smash needs it so why not always build it :)
+    #config_options+=" --enable-avresample" # guess this is some kind of libav specific thing (the FFmpeg fork) but L-Smash needs it so why not always build it :)
 
     for i in $CFLAGS; do
       config_options+=" --extra-cflags=$i" # --extra-cflags may not be needed here, but adds it to the final console output which I like for debugging purposes
