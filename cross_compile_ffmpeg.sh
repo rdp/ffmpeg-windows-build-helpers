@@ -1511,7 +1511,7 @@ build_libx264() {
   #if [[ $prefer_stable = "n" ]]; then
   #  do_git_checkout "http://git.videolan.org/git/x264.git" $checkout_dir "origin/master" # During 'configure': "Found no assembler. Minimum version is nasm-2.13" so disable for now...
   #else
-    do_git_checkout "http://git.videolan.org/git/x264.git" $checkout_dir  "origin/stable" # or "origin/stable" nasm again
+    do_git_checkout "http://git.videolan.org/git/x264.git" $checkout_dir  2451a728246 # "origin/stable" # or "origin/stable" nasm again
   #fi
   cd $checkout_dir
     if [[ ! -f configure.bak ]]; then # Change CFLAGS.
@@ -1850,9 +1850,9 @@ build_ffmpeg() {
       init_options+=" --disable-schannel"
       # Fix WinXP incompatibility by disabling Microsoft's Secure Channel, because Windows XP doesn't support TLS 1.1 and 1.2, but with GnuTLS or OpenSSL it does.  XP compat!
     fi
-    config_options="$init_options --enable-libcaca --enable-gray --enable-libtesseract --enable-fontconfig --enable-gmp --enable-gnutls --enable-libass --enable-libbluray --enable-libbs2b --enable-libflite --enable-libfreetype --enable-libfribidi --enable-libgme --enable-libgsm --enable-libilbc --enable-libmodplug --enable-libmp3lame --enable-libopencore-amrnb --enable-libopencore-amrwb --enable-libopus --enable-libsnappy --enable-libsoxr --enable-libspeex --enable-libtheora --enable-libtwolame --enable-libvo-amrwbenc --enable-libvorbis --enable-libvpx --enable-libwebp --enable-libzimg --enable-libzvbi --enable-libmysofa --enable-libaom --enable-libopenjpeg  --enable-libopenh264 --enable-liblensfun"
+    config_options="$init_options "
     if [[ $compiler_flavors != "native" ]]; then
-      config_options+=" --enable-nvenc --enable-nvdec" # don't work OS X 
+      config_options2+=" --enable-nvenc --enable-nvdec" # don't work OS X 
     fi
 
     config_options+=" --extra-libs=-lm" # libflite seemed to need this linux native...and have no .pc file huh?
@@ -1862,18 +1862,18 @@ build_ffmpeg() {
     if [[ $build_amd_amf = n ]]; then
       config_options+=" --disable-amf" # Since its autodetected we have to disable it if we do not want it. #unless we define no autodetection but.. we don't.
     else
-      config_options+=" --enable-amf" # This is actually autodetected but for consistency.. we might as well set it.
+      config_options2+=" --enable-amf" # This is actually autodetected but for consistency.. we might as well set it.
     fi
 
     if [[ $build_intel_qsv = y ]]; then
-      config_options+=" --enable-libmfx"
+      config_options2+=" --enable-libmfx"
     else
       config_options+=" --disable-libmfx"
     fi
     if [[ $enable_gpl == 'y' ]]; then
-      config_options+=" --enable-gpl --enable-avisynth --enable-frei0r --enable-filter=frei0r --enable-librubberband --enable-libvidstab --enable-libx264 --enable-libx265 --enable-libxvid"
+      config_options+=" --enable-gpl --enable-libx264 "
       if [[ $compiler_flavors != "native" ]]; then
-        config_options+=" --enable-libxavs" # don't compile OS X 
+        config_options+="" # don't compile OS X 
       fi
     fi
     local licensed_gpl=n # lgpl build with libx264 included for those with "commercial" license :)
@@ -2063,7 +2063,7 @@ build_ffmpeg_dependencies() {
 
   build_libxvid # FFmpeg now has native support, but libxvid still provides a better image.
   build_libtesseract
-  build_lensfun  # requires png, zlib, iconv
+  #build_lensfun  # requires png, zlib, iconv
   # build_libtensorflow # broken
   build_libvpx
   build_libx265
