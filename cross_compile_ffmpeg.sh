@@ -844,8 +844,9 @@ build_gmp() {
 build_librtmfp() {
   # needs some version of openssl...
   # build_openssl-1.0.2 # fails OS X 
+  export cpu_count=1
   build_openssl-1.1.1
-  do_git_checkout https://github.com/MonaSolutions/librtmfp.git
+  do_git_checkout https://github.com/MonaSolutions/librtmfp.git librtmfp_git  e48efb4f95dffbab8
   cd librtmfp_git/include/Base
     do_git_checkout https://github.com/meganz/mingw-std-threads.git mingw-std-threads # our g++ apparently doesn't have std::mutex baked in...weird...this replaces it...
   cd ../../..
@@ -1853,7 +1854,7 @@ build_ffmpeg() {
       init_options+=" --disable-schannel"
       # Fix WinXP incompatibility by disabling Microsoft's Secure Channel, because Windows XP doesn't support TLS 1.1 and 1.2, but with GnuTLS or OpenSSL it does.  XP compat!
     fi
-    config_options="$init_options  --enable-librtmfp --enable-libcaca --enable-gray --enable-fontconfig --enable-gmp --enable-libass --enable-libbluray --enable-libbs2b --enable-libflite --enable-libfreetype --enable-libfribidi --enable-libgme --enable-libgsm --enable-libilbc --enable-libmodplug --enable-libmp3lame --enable-libopencore-amrnb --enable-libopencore-amrwb --enable-libopus --enable-libsnappy --enable-libsoxr --enable-libspeex --enable-libtheora --enable-libtwolame --enable-libvo-amrwbenc --enable-libvorbis --enable-libvpx --enable-libwebp --enable-libzimg --enable-libzvbi  --enable-libopenjpeg  --enable-libopenh264"
+    config_options="$init_options   --disable-autodetect  --enable-librtmfp --enable-libmp3lame"
     if [[ $compiler_flavors != "native" ]]; then
       config_options+=" --enable-nvenc --enable-nvdec" # don't work OS X 
       config_options+=" --extra-libs=-lmingwex" # attempt some XP comapat...
@@ -1876,9 +1877,9 @@ build_ffmpeg() {
       config_options+=" --disable-libmfx"
     fi
     if [[ $enable_gpl == 'y' ]]; then
-      config_options+=" --enable-gpl --enable-avisynth --enable-frei0r --enable-filter=frei0r --enable-librubberband --enable-libvidstab --enable-libx264 --enable-libx265 --enable-libxvid"
+      config_options+=" --enable-gpl --enable-libx264 --enable-libx265"
       if [[ $compiler_flavors != "native" ]]; then
-        config_options+=" --enable-libxavs" # don't compile OS X 
+        config_options2+=" --enable-libxavs" # don't compile OS X 
       fi
     fi
     local licensed_gpl=n # lgpl build with libx264 included for those with "commercial" license :)
