@@ -844,7 +844,7 @@ build_gmp() {
 build_librtmfp() {
   # needs some version of openssl...
   # build_openssl-1.0.2 # fails OS X 
-  export cpu_count=1
+  # export cpu_count=1
   build_openssl-1.1.1
   do_git_checkout https://github.com/MonaSolutions/librtmfp.git librtmfp_git  e48efb4f95dffbab8
   cd librtmfp_git/include/Base
@@ -2069,7 +2069,7 @@ build_ffmpeg_dependencies() {
 
   build_libxvid # FFmpeg now has native support, but libxvid still provides a better image.
   build_libtesseract
-  build_lensfun  # requires png, zlib, iconv
+  # build_lensfun  # requires png, zlib, iconv
   # build_libtensorflow # broken
   build_libvpx
   build_libx265
