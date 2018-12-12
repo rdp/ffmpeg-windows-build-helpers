@@ -853,6 +853,7 @@ build_librtmfp() {
   cd librtmfp_git
     if [[ $compiler_flavors != "native" ]]; then
       apply_patch file://$patch_dir/rtmfp.static.cross.patch -p1 # works e48efb4f
+      apply_patch file://$patch_dir/rtmfp_capitalization.diff -p1 # cross for windows needs it if on linux...
     else
       apply_patch file://$patch_dir/rtfmp.static.make.patch -p1
     fi
@@ -861,7 +862,7 @@ build_librtmfp() {
     if [[ $compiler_flavors == "native" ]]; then
       sed -i.bak 's/-lrtmfp.*/-lrtmfp -lstdc++/' "$PKG_CONFIG_PATH/librtmfp.pc"
     else
-      sed -i.bak 's/-lrtmfp.*/-lrtmfp -lstdc++ -lWs2_32 -liphlpapi/' "$PKG_CONFIG_PATH/librtmfp.pc"
+      sed -i.bak 's/-lrtmfp.*/-lrtmfp -lstdc++ -lws2_32 -liphlpapi/' "$PKG_CONFIG_PATH/librtmfp.pc"
     fi
   cd ..
 }
