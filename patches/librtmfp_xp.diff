@@ -1,0 +1,20 @@
+diff --git a/sources/NetGroup.cpp b/sources/NetGroup.cpp
+index 45c3fcf..dd9aa86 100644
+--- a/sources/NetGroup.cpp
++++ b/sources/NetGroup.cpp
+@@ -29,7 +29,7 @@ using namespace Base;
+ using namespace std;
+ 
+ #if defined(_WIN32)
+-	#define sscanf sscanf_s
++	#define sscanf sscanf
+ #endif
+ #if !defined(_INC_MATH) // On Android gnu_shared library does not include math.h
+ 	#define log2(VARIABLE) (log(VARIABLE) / log(2))
+@@ -893,4 +893,4 @@ void NetGroup::newGroupPeer(const std::string& peerId, const char* rawId, const
+ 
+ 	++_countP2P; // new p2p connection
+ 	addPeer2HeardList(peerId, rawId, listAddresses, hostAddress);
+-}
+\ No newline at end of file
++}
