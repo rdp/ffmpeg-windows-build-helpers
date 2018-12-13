@@ -844,7 +844,6 @@ build_gmp() {
 build_librtmfp() {
   # needs some version of openssl...
   # build_openssl-1.0.2 # fails OS X 
-  # export cpu_count=1
   build_openssl-1.1.1
   do_git_checkout https://github.com/MonaSolutions/librtmfp.git librtmfp_git  e48efb4f95dffbab8
   cd librtmfp_git/include/Base
@@ -854,6 +853,7 @@ build_librtmfp() {
     if [[ $compiler_flavors != "native" ]]; then
       apply_patch file://$patch_dir/rtmfp.static.cross.patch -p1 # works e48efb4f
       apply_patch file://$patch_dir/rtmfp_capitalization.diff -p1 # cross for windows needs it if on linux...
+      apply_patch file://$patch_dir/librtmfp_xp.diff.diff -p1 # cross for windows needs it if on linux...
     else
       apply_patch file://$patch_dir/rtfmp.static.make.patch -p1
     fi
