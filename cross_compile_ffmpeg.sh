@@ -380,11 +380,18 @@ do_configure() {
     if [ -f bootstrap ]; then
       ./bootstrap # some need this to create ./configure :|
     fi
-    if [[ ! -f $configure_name && -f bootstrap.sh ]]; then # fftw wants to only run this if no configure :|
-      ./bootstrap.sh
-    fi
-    if [[ ! -f $configure_name ]]; then
-      autoreconf -fiv # a handful of them require this to create ./configure :|
+    if [ ! -f ${configure_name} ]; then
+      if [ -f bootstrap.sh ]; then
+        ./bootstrap.sh
+      elif [ -f bootstrap ]; then
+        ./bootstrap
+      elif [ -f autogen.sh ]; then
+        ./autogen.sh
+      elif [ -f autogen ]; then
+        ./autogen
+      else
+        autoreconf -fvi
+      fi
     fi
     rm -f already_* # reset
     nice -n 5 "$configure_name" $configure_options || exit 1 # less nice (since single thread, and what if you're running another ffmpeg nice build elsewhere?)
@@ -839,6 +846,22 @@ build_gmp() {
     #unset CPP_FOR_BUILD
     do_make_and_make_install
   cd ..
+}
+
+build_libdc1394() {
+   # "lib1394" first, which has no configure :|
+   do_git_checkout https://github.com/Warblefly/MultimediaTools-mingw-w64.git
+   cd MultimediaTools-mingw-w64_git
+     #cp -v 1394camera.dll ${mingw_w64_x86_64_prefix}/bin/1394camera.dll
+     cp -v lib1394camera.a ${mingw_w64_x86_64_prefix}/lib/lib1394camera.a
+     cp -v 1394*h ${mingw_w64_x86_64_prefix}/include
+   cd ..
+   do_git_checkout https://github.com/astraw/dc1394.git libdc1394
+ export ACLOCAL_PATH="${mingw_w64_x86_64_prefix}/share/aclocal"
+   cd libdc1394/libdc1394
+     generic_configure_make_install
+   cd ../..
+  g#eneric_download_and_make_and_install https://sourceforge.net/projects/libdc1394/files/libdc1394-2/2.2.5/libdc1394-2.2.5.tar.gz
 }
 
 build_librtmfp() {
@@ -1857,7 +1880,7 @@ build_ffmpeg() {
     fi
     config_options="$init_options   --disable-autodetect  --enable-librtmfp --enable-libmp3lame"
     if [[ $compiler_flavors != "native" ]]; then
-      config_options+=" --enable-nvenc --enable-nvdec" # don't work OS X 
+      config_options2+=" --enable-nvenc --enable-nvdec" # don't work OS X 
       config_options+=" --extra-libs=-lmingwex" # attempt some XP comapat...
       sed -i.bak 's/0x140000000/0x10000000/' "configure" # --extra-ldexeflags=.. doesn't work, avoid "TLS init function not found..." rtmfp
     fi
@@ -2029,6 +2052,7 @@ build_ffmpeg_dependencies() {
   build_fontconfig # Needs freetype and libxml >= 2.6. Uses iconv and dlfcn.
   build_gmp # For rtmp support configure FFmpeg with '--enable-gmp'. Uses dlfcn.
   build_librtmfp
+  #build_libdc1394
   build_libnettle # Needs gmp >= 3.0. Uses dlfcn.
   build_gnutls # Needs nettle >= 3.1, hogweed (nettle) >= 3.1. Uses zlib and dlfcn.
   #if [[ "$non_free" = "y" ]]; then
