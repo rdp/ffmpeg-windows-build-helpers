@@ -959,7 +959,7 @@ build_openssl-1.1.1() {
       if [[ $OSTYPE == darwin* ]]; then
         config_options+="darwin64-x86_64-cc "
       else
-        linux-generic64 # uh guess...
+        config_options+="linux-generic64 " 
       fi
       local arch=native
     elif [ "$bits_target" = "32" ]; then
