@@ -2269,6 +2269,11 @@ if [[ $compiler_flavors == "native" ]]; then
   export PKG_CONFIG_PATH="$mingw_w64_x86_64_prefix/lib/pkgconfig"
   export PATH="$mingw_bin_path:$original_path"
   make_prefix_options="PREFIX=$mingw_w64_x86_64_prefix"
+  if [[ $(uname -m) =~ 'i686' ]]; then
+    bits_target=32
+  else
+    bits_target=64
+  fi
   #  bs2b doesn't use pkg-config, sndfile needed Carbon :|
   export CPATH=$cur_dir/cross_compilers/native/include:/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/System/Library/Frameworks/Carbon.framework/Versions/A/Headers # C_INCLUDE_PATH
   export LIBRARY_PATH=$cur_dir/cross_compilers/native/lib
