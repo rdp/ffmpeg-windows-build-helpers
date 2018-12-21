@@ -1847,6 +1847,11 @@ build_ffmpeg() {
     init_options="--pkg-config=pkg-config --pkg-config-flags=--static --extra-version=ffmpeg-windows-build-helpers --enable-version3 --disable-debug --disable-w32threads"
     if [[ $compiler_flavors != "native" ]]; then
       init_options+=" --arch=$arch --target-os=mingw32 --cross-prefix=$cross_prefix"
+    else
+      if [[ $OSTYPE != darwin* ]]; then
+        unset PKG_CONFIG_LIBDIR # just use locally packages for all the xcb stuff for now, you need to install them locally first...
+        init_options+=" --enable-libv4l2 --enable-libxcb --enable-libxcb-shm --enable-libxcb-xfixes --enable-libxcb-shape "
+      fi 
     fi
     if [[ `uname` =~ "5.1" ]]; then
       init_options+=" --disable-schannel"
