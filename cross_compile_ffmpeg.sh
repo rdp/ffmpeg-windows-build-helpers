@@ -2096,9 +2096,9 @@ build_ffmpeg_dependencies() {
   build_libtesseract
   # build_lensfun  # requires png, zlib, iconv
   # build_libtensorflow # broken
-  build_libvpx
+  # build_libvpx
   build_libx265
-  build_libopenh264
+  #build_libopenh264
   build_libaom
   build_libx264 # at bottom as it might internally build a coy of ffmpeg (which needs all the above deps...
 }
