@@ -1131,6 +1131,37 @@ build_libgme() {
   cd ..
 }
 
+build_opencv() {
+  do_git_checkout https://github.com/meganz/mingw-std-threads.git # it needs std::mutex too :|
+  cd mingw-std-threads_git
+    cp *.h "$mingw_w64_x86_64_prefix/include"
+  cd ..
+  #do_git_checkout https://github.com/opencv/opencv.git # too big :|
+  download_and_unpack_file https://github.com/opencv/opencv/archive/4.0.1.zip opencv-4.0.1
+  mkdir -p opencv-4.0.1/build
+  cd opencv-4.0.1
+     apply_patch file://$patch_dir/opencv-mingw-mutex.patch 
+     apply_patch file://$patch_dir/opencv.detection_based.patch
+     apply_patch file://$patch_dir/opencv.windows_w32.patch
+     #apply_patch file://$patch_dir/opencv.caffee.patch
+  cd ..
+  cd opencv-4.0.1/build
+    cpu_count=1
+    do_cmake_from_build_dir .. "-DOPENCV_GENERATE_PKGCONFIG=ON -DWITH_FFMPEG=0"
+    do_make_and_make_install
+    cp unix-install/opencv4.pc $PKG_CONFIG_PATH/opencv.pc # make install doesn't do it [?] plus want new name :|
+    cpu_count=$original_cpu_count
+  cd ../..
+}
+
+build_facebooktransform360() {
+  build_opencv
+  do_git_checkout https://github.com/facebook/transform360.git
+  cd transform360_git/Transform360
+    do_cmake_and_install
+  cd ../.. 
+}
+
 build_libbluray() {
   unset JDK_HOME # #268 was causing failure
   do_git_checkout https://git.videolan.org/git/libbluray.git
