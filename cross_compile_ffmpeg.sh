@@ -1895,6 +1895,8 @@ build_ffmpeg() {
       config_options+=" --enable-nvenc --enable-nvdec" # don't work OS X 
     fi
 
+    config_options+=" --enable-libopencv --extra-libs=-lTransform360"
+
     config_options+=" --extra-libs=-lm" # libflite seemed to need this linux native...and have no .pc file huh?
     config_options+=" --extra-libs=-lpthread" # for some reason various and sundry needed this linux native
 
@@ -2039,6 +2041,7 @@ build_ffmpeg_dependencies() {
     build_dlfcn
     build_libxavs
   fi
+  build_facebooktransform360
   build_zlib # Zlib in FFmpeg is autodetected.
   build_libcaca # Uses zlib and dlfcn (on windows).
   build_bzip2 # Bzlib (bzip2) in FFmpeg is autodetected.
