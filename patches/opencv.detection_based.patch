@@ -1,0 +1,10 @@
+--- ./modules/objdetect/src/detection_based_tracker.cpp.origme	2019-01-11 18:05:15.609119600 -0700
++++ ./modules/objdetect/src/detection_based_tracker.cpp	2019-01-11 18:05:36.843431200 -0700
+@@ -48,6 +48,7 @@
+ #include <thread>
+ #include <mutex>
+ #include <condition_variable>
++#include <mingw.condition_variable.h>
+ 
+ #if defined(DEBUG) || defined(_DEBUG)
+ #undef DEBUGLOGS

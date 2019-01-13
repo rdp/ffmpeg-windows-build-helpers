@@ -1,0 +1,14 @@
+diff --git a/Transform360/Library/VideoFrameTransform.cpp b/Transform360/Library/VideoFrameTransform.cpp
+index f813931..bbf4afc 100644
+--- a/Transform360/Library/VideoFrameTransform.cpp
++++ b/Transform360/Library/VideoFrameTransform.cpp
+@@ -21,6 +21,9 @@
+ #include <memory>
+ #include <set>
+ #include <stdio.h>
++#ifndef M_PI
++    #define M_PI 3.14159265358979323846
++#endif
+ 
+ #ifdef FACEBOOK_LAYOUT
+ #include "FBVideoFrameTransformUtilities.h"

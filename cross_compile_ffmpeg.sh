@@ -458,7 +458,7 @@ do_cmake() {
   fi
 }
 
-do_cmake_from_build_dir() { # XX combine with the above :)
+do_cmake_from_build_dir() { # some sources don't allow it, weird XXX combine with the above :)
   source_dir="$1"
   extra_args="$2"
   local touch_name=$(get_small_touchfile_name already_ran_cmake "$extra_args")
@@ -519,7 +519,7 @@ download_and_unpack_file() {
     output_dir=$(basename $url | sed s/\.tar\.*//) # remove .tar.xx
   fi
   if [ ! -f "$output_dir/unpacked.successfully" ]; then
-    echo "downloading $url"
+    echo "downloading $url" # redownload in case failed...
     if [[ -f $output_name ]]; then
       rm $output_name || exit 1
     fi
