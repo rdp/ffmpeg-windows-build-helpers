@@ -1137,19 +1137,19 @@ build_opencv() {
     cp *.h "$mingw_w64_x86_64_prefix/include"
   cd ..
   #do_git_checkout https://github.com/opencv/opencv.git # too big :|
-  download_and_unpack_file https://github.com/opencv/opencv/archive/4.0.1.zip opencv-4.0.1
-  mkdir -p opencv-4.0.1/build
-  cd opencv-4.0.1
-     apply_patch file://$patch_dir/opencv-mingw-mutex.patch 
+  download_and_unpack_file https://github.com/opencv/opencv/archive/3.4.5.zip opencv-3.4.5
+  mkdir -p opencv-3.4.5/build
+  cd opencv-3.4.5
+     #apply_patch file://$patch_dir/opencv-mingw-mutex.patch 
      apply_patch file://$patch_dir/opencv.detection_based.patch
-     apply_patch file://$patch_dir/opencv.windows_w32.patch
+     #apply_patch file://$patch_dir/opencv.windows_w32.patch
      #apply_patch file://$patch_dir/opencv.caffee.patch
   cd ..
-  cd opencv-4.0.1/build
+  cd opencv-3.4.5/build
     cpu_count=1
-    do_cmake_from_build_dir .. "-DOPENCV_GENERATE_PKGCONFIG=ON -DWITH_FFMPEG=0"
+    do_cmake_from_build_dir .. "-DWITH_FFMPEG=0 -DOPENCV_GENERATE_PKGCONFIG=1 -DENABLE_PRECOMPILED_HEADERS=OFF" # https://stackoverflow.com/q/40262928/32453, no pkg config by default on "windows", who cares ffmpeg
     do_make_and_make_install
-    cp unix-install/opencv4.pc $PKG_CONFIG_PATH/opencv.pc # make install doesn't do it [?] plus want new name :|
+    cp unix-install/opencv.pc $PKG_CONFIG_PATH
     cpu_count=$original_cpu_count
   cd ../..
 }
@@ -1157,8 +1157,11 @@ build_opencv() {
 build_facebooktransform360() {
   build_opencv
   do_git_checkout https://github.com/facebook/transform360.git
+  cd transform360_git
+    apply_patch file://$patch_dir/transform360.pi.diff -p1
+  cd ..
   cd transform360_git/Transform360
-    do_cmake_and_install
+    do_cmake_and_install "-DENABLE_PRECOMPILED_HEADERS=OFF"
   cd ../.. 
 }
 
