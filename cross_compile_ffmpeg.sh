@@ -1140,10 +1140,7 @@ build_opencv() {
   download_and_unpack_file https://github.com/opencv/opencv/archive/3.4.5.zip opencv-3.4.5
   mkdir -p opencv-3.4.5/build
   cd opencv-3.4.5
-     #apply_patch file://$patch_dir/opencv-mingw-mutex.patch 
      apply_patch file://$patch_dir/opencv.detection_based.patch
-     #apply_patch file://$patch_dir/opencv.windows_w32.patch
-     #apply_patch file://$patch_dir/opencv.caffee.patch
   cd ..
   cd opencv-3.4.5/build
     cpu_count=1
@@ -1900,8 +1897,6 @@ build_ffmpeg() {
       config_options+=" --enable-nvenc --enable-nvdec" # don't work OS X 
     fi
 
-    config_options+=" --extra-libs=-lTransform360  --enable-libopencv"
-
     config_options+=" --extra-libs=-lm" # libflite seemed to need this linux native...and have no .pc file huh?
     config_options+=" --extra-libs=-lpthread" # for some reason various and sundry needed this linux native
 
@@ -2046,7 +2041,6 @@ build_ffmpeg_dependencies() {
     build_dlfcn
     build_libxavs
   fi
-  build_facebooktransform360
   build_zlib # Zlib in FFmpeg is autodetected.
   build_libcaca # Uses zlib and dlfcn (on windows).
   build_bzip2 # Bzlib (bzip2) in FFmpeg is autodetected.
@@ -2100,6 +2094,7 @@ build_ffmpeg_dependencies() {
   build_librubberband # Needs libsamplerate, libsndfile, fftw and vamp_plugin. 'configure' will fail otherwise. Eventhough librubberband doesn't necessarily need them (libsndfile only for 'rubberband.exe' and vamp_plugin only for "Vamp audio analysis plugin"). How to use the bundled libraries '-DUSE_SPEEX' and '-DUSE_KISSFFT'?
   build_frei0r # Needs dlfcn.
   build_vidstab
+  #build_facebooktransform360
   build_libmysofa # Needed for FFmpeg's SOFAlizer filter (https://ffmpeg.org/ffmpeg-filters.html#sofalizer). Uses dlfcn.
   if [[ "$non_free" = "y" ]]; then
     build_fdk-aac # Uses dlfcn.
