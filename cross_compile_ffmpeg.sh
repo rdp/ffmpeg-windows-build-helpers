@@ -1161,7 +1161,8 @@ build_facebooktransform360() {
     apply_patch file://$patch_dir/transform360.pi.diff -p1
   cd ..
   cd transform360_git/Transform360
-    do_cmake_and_install "-DENABLE_PRECOMPILED_HEADERS=OFF"
+    sed -i.bak "s/isystem/I/g" CMakeFiles/Transform360.dir/includes_CXX.rsp # weird stdlib.h error
+    do_cmake_and_install ""
   cd ../.. 
 }
 
