@@ -1147,7 +1147,7 @@ build_opencv() {
   cd ..
   cd opencv-3.4.5/build
     cpu_count=1
-    do_cmake_from_build_dir .. "-DWITH_FFMPEG=0 -DOPENCV_GENERATE_PKGCONFIG=1 -DENABLE_PRECOMPILED_HEADERS=OFF" # https://stackoverflow.com/q/40262928/32453, no pkg config by default on "windows", who cares ffmpeg
+    do_cmake_from_build_dir .. "-DWITH_FFMPEG=0 -DOPENCV_GENERATE_PKGCONFIG=1" # https://stackoverflow.com/q/40262928/32453, no pkg config by default on "windows", who cares ffmpeg
     do_make_and_make_install
     cp unix-install/opencv.pc $PKG_CONFIG_PATH
     cpu_count=$original_cpu_count
@@ -1161,8 +1161,9 @@ build_facebooktransform360() {
     apply_patch file://$patch_dir/transform360.pi.diff -p1
   cd ..
   cd transform360_git/Transform360
+    do_cmake ""
     sed -i.bak "s/isystem/I/g" CMakeFiles/Transform360.dir/includes_CXX.rsp # weird stdlib.h error
-    do_cmake_and_install ""
+    do_make_and_make_install
   cd ../.. 
 }
 
@@ -1899,7 +1900,7 @@ build_ffmpeg() {
       config_options+=" --enable-nvenc --enable-nvdec" # don't work OS X 
     fi
 
-    config_options+=" --enable-libopencv --extra-libs=-lTransform360"
+    config_options+=" --extra-libs=-lTransform360  --enable-libopencv"
 
     config_options+=" --extra-libs=-lm" # libflite seemed to need this linux native...and have no .pc file huh?
     config_options+=" --extra-libs=-lpthread" # for some reason various and sundry needed this linux native
