@@ -458,7 +458,7 @@ do_cmake() {
   fi
 }
 
-do_cmake_from_build_dir() { # XX combine with the above :)
+do_cmake_from_build_dir() { # some sources don't allow it, weird XXX combine with the above :)
   source_dir="$1"
   extra_args="$2"
   local touch_name=$(get_small_touchfile_name already_ran_cmake "$extra_args")
@@ -519,7 +519,7 @@ download_and_unpack_file() {
     output_dir=$(basename $url | sed s/\.tar\.*//) # remove .tar.xx
   fi
   if [ ! -f "$output_dir/unpacked.successfully" ]; then
-    echo "downloading $url"
+    echo "downloading $url" # redownload in case failed...
     if [[ -f $output_name ]]; then
       rm $output_name || exit 1
     fi
@@ -1129,6 +1129,42 @@ build_libgme() {
     fi
     do_cmake_and_install "-DENABLE_UBSAN=0"
   cd ..
+}
+
+build_opencv() {
+  do_git_checkout https://github.com/meganz/mingw-std-threads.git # it needs std::mutex too :|
+  cd mingw-std-threads_git
+    cp *.h "$mingw_w64_x86_64_prefix/include"
+  cd ..
+  #do_git_checkout https://github.com/opencv/opencv.git # too big :|
+  download_and_unpack_file https://github.com/opencv/opencv/archive/3.4.5.zip opencv-3.4.5
+  mkdir -p opencv-3.4.5/build
+  cd opencv-3.4.5
+     #apply_patch file://$patch_dir/opencv-mingw-mutex.patch 
+     apply_patch file://$patch_dir/opencv.detection_based.patch
+     #apply_patch file://$patch_dir/opencv.windows_w32.patch
+     #apply_patch file://$patch_dir/opencv.caffee.patch
+  cd ..
+  cd opencv-3.4.5/build
+    cpu_count=1
+    do_cmake_from_build_dir .. "-DWITH_FFMPEG=0 -DOPENCV_GENERATE_PKGCONFIG=1" # https://stackoverflow.com/q/40262928/32453, no pkg config by default on "windows", who cares ffmpeg
+    do_make_and_make_install
+    cp unix-install/opencv.pc $PKG_CONFIG_PATH
+    cpu_count=$original_cpu_count
+  cd ../..
+}
+
+build_facebooktransform360() {
+  build_opencv
+  do_git_checkout https://github.com/facebook/transform360.git
+  cd transform360_git
+    apply_patch file://$patch_dir/transform360.pi.diff -p1
+  cd ..
+  cd transform360_git/Transform360
+    do_cmake ""
+    sed -i.bak "s/isystem/I/g" CMakeFiles/Transform360.dir/includes_CXX.rsp # weird stdlib.h error
+    do_make_and_make_install
+  cd ../.. 
 }
 
 build_libbluray() {
@@ -1864,6 +1900,8 @@ build_ffmpeg() {
       config_options+=" --enable-nvenc --enable-nvdec" # don't work OS X 
     fi
 
+    config_options+=" --extra-libs=-lTransform360  --enable-libopencv"
+
     config_options+=" --extra-libs=-lm" # libflite seemed to need this linux native...and have no .pc file huh?
     config_options+=" --extra-libs=-lpthread" # for some reason various and sundry needed this linux native
 
@@ -2008,6 +2046,7 @@ build_ffmpeg_dependencies() {
     build_dlfcn
     build_libxavs
   fi
+  build_facebooktransform360
   build_zlib # Zlib in FFmpeg is autodetected.
   build_libcaca # Uses zlib and dlfcn (on windows).
   build_bzip2 # Bzlib (bzip2) in FFmpeg is autodetected.
