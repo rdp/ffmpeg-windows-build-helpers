@@ -1,0 +1,11 @@
+--- ./src/hrtf/mysofa_export.h.meorig	2019-01-23 08:17:24.209371300 -0700
++++ ./src/hrtf/mysofa_export.h	2019-01-23 08:17:44.000717000 -0700
+@@ -2,6 +2,8 @@
+ #ifndef MYSOFA_EXPORT_H
+ #define MYSOFA_EXPORT_H
+ 
++#define MYSOFA_STATIC_DEFINE
++
+ #ifdef MYSOFA_STATIC_DEFINE
+ #  define MYSOFA_EXPORT
+ #  define MYSOFA_NO_EXPORT
