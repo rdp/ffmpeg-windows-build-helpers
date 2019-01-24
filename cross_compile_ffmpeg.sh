@@ -83,7 +83,7 @@ check_missing_packages () {
     else
       echo "for gentoo (a non ubuntu distro): same as above, but no g++, no gcc, git is dev-vcs/git, zlib1g-dev is zlib, pkg-config is dev-util/pkgconfig, add ed..."
       echo "for OS X (homebrew): brew install wget cvs hg yasm autogen automake autoconf cmake libtool xz pkg-config nasm bzip2 autoconf-archive p7zip"
-      echo "for debian: same as ubuntu, but also add libtool-bin and ed"
+      echo "for debian: same as ubuntu, but also add libtool-bin, ed, autoconf-archive"
       echo "for RHEL/CentOS: First ensure you have epel repos available, then run $ sudo yum install subversion texinfo mercurial libtool autogen gperf nasm patch unzip pax ed gcc-c++ bison flex yasm automake autoconf gcc zlib-devel cvs bzip2 cmake3 -y"
       echo "for fedora: if your distribution comes with a modern version of cmake then use the same as RHEL/CentOS but replace cmake3 with cmake."
       echo "for linux native: libva-dev"
