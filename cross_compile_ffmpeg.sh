@@ -499,7 +499,8 @@ apply_patch() {
     echo "applying patch $patch_name"
     patch $patch_type < "$patch_name" || exit 1
     touch $patch_done_name || exit 1
-    rm -f already_ran* # if it's a new patch, reset everything too, in case it's really really really new
+    # too crazy, you can't do do_configure then apply a patch?
+    # rm -f already_ran* # if it's a new patch, reset everything too, in case it's really really really new
   #else
   #  echo "patch $patch_name already applied" # too chatty
   fi
@@ -1315,7 +1316,7 @@ build_vidstab() {
 }
 
 build_libmysofa() {
-  do_git_checkout https://github.com/hoene/libmysofa.git libmysofa_git ace18c1c96cb
+  do_git_checkout https://github.com/hoene/libmysofa.git libmysofa_git
   cd libmysofa_git
     do_cmake "-DBUILD_TESTS=0"
     apply_patch file://$patch_dir/libmysofa.patch -p1 # Fix WinXP incompatibility.
