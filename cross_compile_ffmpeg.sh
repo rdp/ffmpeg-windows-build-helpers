@@ -2169,11 +2169,6 @@ else
   gcc_cpu_count=1 # compatible low RAM...
 fi
 
-if [[ $OSTYPE == "darwin17" ]]; then
-  echo "high sierra detected, so using only one cpu for gcc compilation" # until #326 fixable...
-  gcc_cpu_count=1 
-fi
-
 # variables with their defaults
 build_ffmpeg_static=y
 build_ffmpeg_shared=n
