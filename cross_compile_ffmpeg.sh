@@ -441,6 +441,10 @@ do_make_install() {
 
 do_cmake() {
   extra_args="$1"
+  local build_from_dir="$2"
+  if [[ -z $build_from_dir ]]; then
+    build_from_dir="."
+  fi
   local touch_name=$(get_small_touchfile_name already_ran_cmake "$extra_args")
 
   if [ ! -f $touch_name ]; then
@@ -448,12 +452,12 @@ do_cmake() {
     local cur_dir2=$(pwd)
     echo doing cmake in $cur_dir2 with PATH=$mingw_bin_path:\$PATH with extra_args=$extra_args like this:
     if [[ $compiler_flavors != "native" ]]; then
-      local command=". -DENABLE_STATIC_RUNTIME=1 -DCMAKE_SYSTEM_NAME=Windows -DCMAKE_FIND_ROOT_PATH=$mingw_w64_x86_64_prefix -DCMAKE_FIND_ROOT_PATH_MODE_PROGRAM=NEVER -DCMAKE_FIND_ROOT_PATH_MODE_LIBRARY=ONLY -DCMAKE_FIND_ROOT_PATH_MODE_INCLUDE=ONLY -DCMAKE_RANLIB=${cross_prefix}ranlib -DCMAKE_C_COMPILER=${cross_prefix}gcc -DCMAKE_CXX_COMPILER=${cross_prefix}g++ -DCMAKE_RC_COMPILER=${cross_prefix}windres -DCMAKE_INSTALL_PREFIX=$mingw_w64_x86_64_prefix  -DBUILD_SHARED_LIBS=0 $extra_args"
+      local command="${build_from_dir} -DENABLE_STATIC_RUNTIME=1 -DBUILD_SHARED_LIBS=0 -DCMAKE_SYSTEM_NAME=Windows -DCMAKE_FIND_ROOT_PATH=$mingw_w64_x86_64_prefix -DCMAKE_FIND_ROOT_PATH_MODE_PROGRAM=NEVER -DCMAKE_FIND_ROOT_PATH_MODE_LIBRARY=ONLY -DCMAKE_FIND_ROOT_PATH_MODE_INCLUDE=ONLY -DCMAKE_RANLIB=${cross_prefix}ranlib -DCMAKE_C_COMPILER=${cross_prefix}gcc -DCMAKE_CXX_COMPILER=${cross_prefix}g++ -DCMAKE_RC_COMPILER=${cross_prefix}windres -DCMAKE_INSTALL_PREFIX=$mingw_w64_x86_64_prefix $extra_args"
     else
-      local command=". -DENABLE_STATIC_RUNTIME=1 -DBUILD_SHARED_LIBS=0 -DCMAKE_INSTALL_PREFIX=$mingw_w64_x86_64_prefix $extra_args"
+      local command="${build_from_dir} -DENABLE_STATIC_RUNTIME=1 -DBUILD_SHARED_LIBS=0 -DCMAKE_INSTALL_PREFIX=$mingw_w64_x86_64_prefix $extra_args"
     fi
     echo "doing ${cmake_command}  -G\"Unix Makefiles\" $command"
-    nice -n 5  ${cmake_command} $command || exit 1
+    nice -n 5  ${cmake_command} -G"Unix Makefiles" $command || exit 1
     touch $touch_name || exit 1
   fi
 }
@@ -461,21 +465,7 @@ do_cmake() {
 do_cmake_from_build_dir() { # some sources don't allow it, weird XXX combine with the above :)
   source_dir="$1"
   extra_args="$2"
-  local touch_name=$(get_small_touchfile_name already_ran_cmake "$extra_args")
-
-  if [ ! -f $touch_name ]; then
-    rm -f already_* # reset so that make will run again if option just changed
-    local cur_dir2=$(pwd)
-    echo doing cmake in $cur_dir2 with PATH=$mingw_bin_path:\$PATH with extra_args=$extra_args like this:
-    if [[ $compiler_flavors != "native" ]]; then
-      echo ${cmake_command} -G\"Unix Makefiles\" $source_dir -DENABLE_STATIC_RUNTIME=1 -DBUILD_SHARED_LIBS=0 -DCMAKE_SYSTEM_NAME=Windows -DCMAKE_FIND_ROOT_PATH=$mingw_w64_x86_64_prefix -DCMAKE_FIND_ROOT_PATH_MODE_PROGRAM=NEVER -DCMAKE_FIND_ROOT_PATH_MODE_LIBRARY=ONLY -DCMAKE_FIND_ROOT_PATH_MODE_INCLUDE=ONLY -DCMAKE_RANLIB=${cross_prefix}ranlib -DCMAKE_C_COMPILER=${cross_prefix}gcc -DCMAKE_CXX_COMPILER=${cross_prefix}g++ -DCMAKE_RC_COMPILER=${cross_prefix}windres -DCMAKE_INSTALL_PREFIX=$mingw_w64_x86_64_prefix $extra_args
-      ${cmake_command} -G"Unix Makefiles" $source_dir -DENABLE_STATIC_RUNTIME=1  -DBUILD_SHARED_LIBS=0 -DCMAKE_SYSTEM_NAME=Windows -DCMAKE_FIND_ROOT_PATH=$mingw_w64_x86_64_prefix -DCMAKE_FIND_ROOT_PATH_MODE_PROGRAM=NEVER -DCMAKE_FIND_ROOT_PATH_MODE_LIBRARY=ONLY -DCMAKE_FIND_ROOT_PATH_MODE_INCLUDE=ONLY -DCMAKE_RANLIB=${cross_prefix}ranlib -DCMAKE_C_COMPILER=${cross_prefix}gcc -DCMAKE_CXX_COMPILER=${cross_prefix}g++ -DCMAKE_RC_COMPILER=${cross_prefix}windres -DCMAKE_INSTALL_PREFIX=$mingw_w64_x86_64_prefix $extra_args || exit 1
-    else
-      echo ${cmake_command} -G\"Unix Makefiles\" $source_dir -DENABLE_STATIC_RUNTIME=1 -DCMAKE_INSTALL_PREFIX=$mingw_w64_x86_64_prefix  -DBUILD_SHARED_LIBS=0 $extra_args || exit 1
-      ${cmake_command} -G"Unix Makefiles" $source_dir -DENABLE_STATIC_RUNTIME=1 -DCMAKE_INSTALL_PREFIX=$mingw_w64_x86_64_prefix  -DBUILD_SHARED_LIBS=0 $extra_args || exit 1
-    fi
-    touch $touch_name || exit 1
-  fi
+  do_cmake $extra_args $source_dir
 }
 
 do_cmake_and_install() {
