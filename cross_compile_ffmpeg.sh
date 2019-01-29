@@ -465,7 +465,7 @@ do_cmake() {
 do_cmake_from_build_dir() { # some sources don't allow it, weird XXX combine with the above :)
   source_dir="$1"
   extra_args="$2"
-  do_cmake $extra_args $source_dir
+  do_cmake "$extra_args" "$source_dir"
 }
 
 do_cmake_and_install() {
