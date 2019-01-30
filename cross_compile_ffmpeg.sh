@@ -1142,8 +1142,9 @@ build_opencv() {
      apply_patch file://$patch_dir/opencv.detection_based.patch
   cd ..
   cd opencv-3.4.5/build
+    # could do more here, it seems to think it needs its own internal libwebp etc...
     cpu_count=1
-    do_cmake_from_build_dir .. "-DWITH_FFMPEG=0 -DOPENCV_GENERATE_PKGCONFIG=1" # https://stackoverflow.com/q/40262928/32453, no pkg config by default on "windows", who cares ffmpeg
+    do_cmake_from_build_dir .. "-DWITH_FFMPEG=0 -DOPENCV_GENERATE_PKGCONFIG=1 -DHAVE_DSHOW=0" # https://stackoverflow.com/q/40262928/32453, no pkg config by default on "windows", who cares ffmpeg 
     do_make_and_make_install
     cp unix-install/opencv.pc $PKG_CONFIG_PATH
     cpu_count=$original_cpu_count
