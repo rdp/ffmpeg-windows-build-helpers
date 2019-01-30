@@ -9,13 +9,29 @@ index 72f8fa7..0b4ab75 100644
 +#undef ADM_OPT_RECIP_DIVISION
  
  #endif /* ADM_OPTIONS_H_ */
+diff --git a/libsvm/Makefile b/libsvm/Makefile
+index 971375a..d190e49 100644
+--- a/libsvm/Makefile
++++ b/libsvm/Makefile
+@@ -14,7 +14,7 @@ lib: svm.o
+ 	else \
+ 		SHARED_LIB_FLAG="-shared -Wl,-soname,libsvm.so.$(SHVER)"; \
+ 	fi; \
+-	$(CXX) $${SHARED_LIB_FLAG} svm.o -o libsvm.so.$(SHVER)
++	$(CXX) -shared  svm.o -o libsvm.dll
+ 
+ svm-predict: svm-predict.c svm.o
+ 	$(CXX) $(CFLAGS) svm-predict.c svm.o -o svm-predict -lm
 diff --git a/ptools/Makefile.VMAF b/ptools/Makefile.VMAF
-index 0333768..b415c0c 100644
+index 0333768..2e392f5 100644
 --- a/ptools/Makefile.VMAF
 +++ b/ptools/Makefile.VMAF
-@@ -33,7 +33,7 @@ libptools : $(COM_OBJS)
+@@ -31,9 +31,9 @@ all: libptools
+ 
+ libptools : $(COM_OBJS)
  ifeq ($(shell uname),Darwin)
- 	$(CC) $(CCFLAGS) $(COM_OBJS) -dynamiclib -install_name $(shell pwd)/libptools.dylib -o libptools.dylib
+-	$(CC) $(CCFLAGS) $(COM_OBJS) -dynamiclib -install_name $(shell pwd)/libptools.dylib -o libptools.dylib
++	$(CC) $(CCFLAGS) $(COM_OBJS) -lstdc++ -shared -o libptools.dll
  else
 -	$(CC) $(CCFLAGS) $(COM_OBJS) -shared -o libptools.so
 +	$(CC) $(CCFLAGS) $(COM_OBJS) -lstdc++ -shared -o libptools.dll
@@ -55,3 +71,16 @@ index 0eb577a..7f22aa2 100644
  #elif defined(__MACH__) // OS X does not have clock_gettime, use clock_get_time
        clock_serv_t cclock;
        mach_timespec_t mts;
+diff --git a/wrapper/Makefile b/wrapper/Makefile
+index 9317515..5ba0a29 100644
+--- a/wrapper/Makefile
++++ b/wrapper/Makefile
+@@ -161,7 +161,7 @@ $(OBJDIR)/%.o: $(SRCDIR)/pugixml/%.cpp
+ 	$(CXX) -c -o $@ $(CXXFLAGS) $(CPPFLAGS) $<
+ 
+ $(LIBVMAF): $(OBJS) $(wildcard ../ptools/*.o)
+-	ar rcs $@ $^
++	$(AR) rcs $@ $^
+ 
+ vmafossexec: $(OBJDIR)/main.o $(LIBVMAF)
+ 	$(CXX) -s -o $@ $(LDFLAGS) $^ -pthread
