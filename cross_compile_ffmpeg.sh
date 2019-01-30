@@ -48,7 +48,7 @@ check_missing_packages () {
     VENDOR="redhat"
   fi
   # zeranoe's build scripts use wget, though we don't here...
-  local check_packages=('curl' 'pkg-config' 'make' 'git' 'svn' 'gcc' 'autoconf' 'automake' 'yasm' 'cvs' 'flex' 'bison' 'makeinfo' 'g++' 'ed' 'hg' 'pax' 'unzip' 'patch' 'wget' 'xz' 'nasm' 'gperf' 'autogen' 'bzip2')
+  local check_packages=('ragel' 'curl' 'pkg-config' 'make' 'git' 'svn' 'gcc' 'autoconf' 'automake' 'yasm' 'cvs' 'flex' 'bison' 'makeinfo' 'g++' 'ed' 'hg' 'pax' 'unzip' 'patch' 'wget' 'xz' 'nasm' 'gperf' 'autogen' 'bzip2')
   # autoconf-archive is just for leptonica FWIW
   # I'm not actually sure if VENDOR being set to centos is a thing or not. On all the centos boxes I can test on it's not been set at all.
   # that being said, if it where set I would imagine it would be set to centos... And this contition will satisfy the "Is not initially set"
@@ -75,18 +75,18 @@ check_missing_packages () {
     echo 'Install the missing packages before running this script.'
     determine_distro
     if [[ $DISTRO == "Ubuntu" ]]; then
-      echo -n "for ubuntu: $ sudo apt-get install subversion curl texinfo g++ bison flex cvs yasm automake libtool autoconf gcc cmake git make pkg-config zlib1g-dev mercurial unzip pax nasm gperf autogen bzip2 autoconf-archive p7zip-full"
+      echo -n "for ubuntu: $ sudo apt-get install subversion ragel curl texinfo g++ bison flex cvs yasm automake libtool autoconf gcc cmake git make pkg-config zlib1g-dev mercurial unzip pax nasm gperf autogen bzip2 autoconf-archive p7zip-full"
       if at_least_required_version "18.04" "$(lsb_release -rs)"; then
         echo -n " python3-distutils" # guess it's no longer built-in, lensfun requires it...
       fi
       echo " -y"
     else
       echo "for gentoo (a non ubuntu distro): same as above, but no g++, no gcc, git is dev-vcs/git, zlib1g-dev is zlib, pkg-config is dev-util/pkgconfig, add ed..."
-      echo "for OS X (homebrew): brew install wget cvs hg yasm autogen automake autoconf cmake libtool xz pkg-config nasm bzip2 autoconf-archive p7zip"
+      echo "for OS X (homebrew): brew install ragel wget cvs hg yasm autogen automake autoconf cmake libtool xz pkg-config nasm bzip2 autoconf-archive p7zip"
       echo "for debian: same as ubuntu, but also add libtool-bin, ed, autoconf-archive"
-      echo "for RHEL/CentOS: First ensure you have epel repos available, then run $ sudo yum install subversion texinfo mercurial libtool autogen gperf nasm patch unzip pax ed gcc-c++ bison flex yasm automake autoconf gcc zlib-devel cvs bzip2 cmake3 -y"
+      echo "for RHEL/CentOS: First ensure you have epel repos available, then run $ sudo yum install ragel subversion texinfo mercurial libtool autogen gperf nasm patch unzip pax ed gcc-c++ bison flex yasm automake autoconf gcc zlib-devel cvs bzip2 cmake3 -y"
       echo "for fedora: if your distribution comes with a modern version of cmake then use the same as RHEL/CentOS but replace cmake3 with cmake."
-      echo "for linux native: libva-dev"
+      echo "for linux native compiler option: add libva-dev"
     fi
     exit 1
   fi
@@ -788,14 +788,32 @@ build_libwebp() {
   cd ..
 }
 
+
+build_harfbuzz() {
+  do_git_checkout  https://github.com/harfbuzz/harfbuzz.git
+  # cmake no .pc file :|
+  #mkdir harfbuzz_git/build
+  #cd harfbuzz_git/build
+  #  do_cmake_from_build_dir ..
+  #  do_make_and_make_install
+  #cd ../..
+  cd harfbuzz_git
+    if [ ! -f configure ]; then
+      ./autogen.sh
+    fi
+    generic_configure_make_install
+  cd ..
+}
+
 build_freetype() {
+  build_harfbuzz
   download_and_unpack_file https://sourceforge.net/projects/freetype/files/freetype2/2.8/freetype-2.8.tar.bz2
   cd freetype-2.8
     if [[ `uname` == CYGWIN* ]]; then
-      generic_configure "--build=i686-pc-cygwin --with-bzip2" # hard to believe but needed...
+      generic_configure "--build=i686-pc-cygwin --with-bzip2 --with-harfbuzz" # hard to believe but needed...
       # 'configure' can't detect bzip2 without '--with-bzip2', because there's no 'bzip2.pc'.
     else
-      generic_configure "--with-bzip2"
+      generic_configure "--with-bzip2 --with-harfbuzz"
     fi
     do_make_and_make_install
   cd ..
