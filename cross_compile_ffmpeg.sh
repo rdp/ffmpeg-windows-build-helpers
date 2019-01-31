@@ -561,7 +561,7 @@ do_git_checkout_and_make_install() {
 
 generic_configure_make_install() {
   if [ $# -gt 0 ]; then
-    echo "cant pass parameters to this today"
+    echo "cant pass parameters to this method today, they'd be a bit ambiguous"
     echo "The following arguments where passed: ${@}"
     exit 1
   fi
@@ -790,6 +790,10 @@ build_libwebp() {
 
 
 build_harfbuzz() {
+  # https://gist.github.com/roxlu/0108d45308a0434e27d4320396399153
+  if [ ! -f done_harf ]; then
+  build_freetype "--without-harfbuzz"
+  
   do_git_checkout  https://github.com/harfbuzz/harfbuzz.git
   # cmake no .pc file :|
   #mkdir harfbuzz_git/build
@@ -799,22 +803,27 @@ build_harfbuzz() {
   #cd ../..
   cd harfbuzz_git
     if [ ! -f configure ]; then
-      ./autogen.sh
+      ./autogen.sh # :|
     fi
-    generic_configure_make_install
+    generic_configure "--with-freetype=yes --with-fontconfig=no" # avoid circular, it just hurts my head...
+    do_make_and_make_install
   cd ..
+  
+  build_freetype "--with-harfbuzz" # with harfbuzz now...
+  touch done_harf
+  fi
+  sed -i.bak 's/-lfreetype.*/-lfreetype -lharfbuzz/' "$PKG_CONFIG_PATH/freetype2.pc"
+  sed -i.bak 's/-lharfbuzz.*/-lharfbuzz -lfreetype/' "$PKG_CONFIG_PATH/harfbuzz.pc"
+  sed -i.bak 's/libfreetype.la -lbz2/libfreetype.la -lharfbuzz -lbz2/' "${mingw_w64_x86_64_prefix}/lib/libfreetype.la"
+  sed -i.bak 's/libfreetype.la -lbz2/libfreetype.la -lharfbuzz -lbz2/' "${mingw_w64_x86_64_prefix}/lib/libharfbuzz.la"
+  echo "done harfbuzz"
 }
 
 build_freetype() {
-  build_harfbuzz
   download_and_unpack_file https://sourceforge.net/projects/freetype/files/freetype2/2.8/freetype-2.8.tar.bz2
   cd freetype-2.8
-    if [[ `uname` == CYGWIN* ]]; then
-      generic_configure "--build=i686-pc-cygwin --with-bzip2 --with-harfbuzz" # hard to believe but needed...
-      # 'configure' can't detect bzip2 without '--with-bzip2', because there's no 'bzip2.pc'.
-    else
-      generic_configure "--with-bzip2 --with-harfbuzz"
-    fi
+    # harfbuzz autodetect :|
+    generic_configure "--with-bzip2 $1"
     do_make_and_make_install
   cd ..
 }
@@ -2079,7 +2088,8 @@ build_ffmpeg_dependencies() {
   #build_libjpeg_turbo # mplayer can use this, VLC qt might need it? [replaces libjpeg] (ffmpeg seems to not need it so commented out here)
   build_libpng # Needs zlib >= 1.0.4. Uses dlfcn.
   build_libwebp # Uses dlfcn.
-  build_freetype # Uses zlib, bzip2, and libpng.
+  build_harfbuzz
+  # harf does it now build_freetype # Uses zlib, bzip2, and libpng.
   build_libxml2 # Uses zlib, liblzma, iconv and dlfcn.
   build_libvmaf
   build_fontconfig # Needs freetype and libxml >= 2.6. Uses iconv and dlfcn.
