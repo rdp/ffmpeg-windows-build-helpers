@@ -791,7 +791,7 @@ build_libwebp() {
 
 build_harfbuzz() {
   # https://gist.github.com/roxlu/0108d45308a0434e27d4320396399153
-  if [ ! -f done_harf ]; then
+  if [ ! -f harfbuzz_git/done_harf ]; then
   build_freetype "--without-harfbuzz"
   
   do_git_checkout  https://github.com/harfbuzz/harfbuzz.git
@@ -810,7 +810,7 @@ build_harfbuzz() {
   cd ..
   
   build_freetype "--with-harfbuzz" # with harfbuzz now...
-  touch done_harf
+  touch harfbuzz_git/done_harf
   fi
   sed -i.bak 's/-lfreetype.*/-lfreetype -lharfbuzz/' "$PKG_CONFIG_PATH/freetype2.pc"
   sed -i.bak 's/-lharfbuzz.*/-lharfbuzz -lfreetype/' "$PKG_CONFIG_PATH/harfbuzz.pc"
