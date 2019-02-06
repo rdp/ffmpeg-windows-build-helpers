@@ -1926,6 +1926,7 @@ build_ffmpeg() {
       config_options+=" --enable-nvenc --enable-nvdec" # don't work OS X 
     fi
 
+    config_options+=" --extra-libs=-lharfbuzz" #  grr...needed for pre x264 build???
     config_options+=" --extra-libs=-lm" # libflite seemed to need this linux native...and have no .pc file huh?
     config_options+=" --extra-libs=-lpthread" # for some reason various and sundry needed this linux native
 
