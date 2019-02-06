@@ -1564,6 +1564,7 @@ build_libopenh264() {
 }
 
 build_libx264() {
+  # TODO there's no such thing as high and low bitdepth anymore here...
   local checkout_dir="x264"
   if [[ $build_x264_with_libav == "y" ]]; then
     build_ffmpeg static --disable-libx264 ffmpeg_git_pre_x264 # installs libav locally so we can use it within x264.exe FWIW...
