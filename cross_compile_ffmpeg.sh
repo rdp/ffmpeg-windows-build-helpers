@@ -1396,7 +1396,7 @@ build_fribidi() {
 build_libsrt() {
   do_git_checkout https://github.com/Haivision/srt.git
   cd srt_git
-    do_cmake_and_install "-DUSE_GNUTLS=ON -DENABLE_EXAMPLES=OFF -DENABLE_SHARED=OFF -DENABLE_CXX11=OFF"
+    do_cmake_and_install "-DUSE_GNUTLS=ON -DENABLE_SHARED=OFF -DENABLE_CXX11=OFF"
   cd ..
 }
 
