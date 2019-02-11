@@ -791,7 +791,7 @@ build_libwebp() {
 
 build_harfbuzz() {
   # https://gist.github.com/roxlu/0108d45308a0434e27d4320396399153
-  if [ ! -f harfbuzz_git/done_harf ]; then
+  if [ ! -f harfbuzz_git/done_harf ]; then # TODO make freetype into separate dirs so I don't need this weird double hack file...
   build_freetype "--without-harfbuzz"
   
   do_git_checkout  https://github.com/harfbuzz/harfbuzz.git
@@ -805,7 +805,7 @@ build_harfbuzz() {
     if [ ! -f configure ]; then
       ./autogen.sh # :|
     fi
-    generic_configure "--with-freetype=yes --with-fontconfig=no" # avoid circular, it just hurts my head...
+    generic_configure "--with-freetype=yes --with-fontconfig=no --with-icu=no" # no fontconfig, don't want another circular what? icu is #372
     do_make_and_make_install
   cd ..
   
