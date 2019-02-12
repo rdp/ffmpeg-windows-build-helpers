@@ -1396,7 +1396,10 @@ build_fribidi() {
 build_libsrt() {
   do_git_checkout https://github.com/Haivision/srt.git
   cd srt_git
-    do_cmake_and_install "-DUSE_GNUTLS=ON -DENABLE_SHARED=OFF -DENABLE_CXX11=OFF"
+    do_cmake "-DUSE_GNUTLS=ON -DENABLE_SHARED=OFF"
+    apply_patch file://$patch_dir/srt.app.patch -p1
+    sed -i.bak "s/-lgnutls.*-lz/-lgnutls -lcrypt32 -lnettle -lhogweed -lgmp -lz/"  CMakeFiles/srt-file-transmit.dir/linklibs.rsp
+    do_make_and_make_install
   cd ..
 }
 
