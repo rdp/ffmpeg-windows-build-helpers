@@ -914,7 +914,8 @@ build_gnutls() {
     generic_configure "--disable-doc --disable-tools --disable-cxx --disable-tests --disable-gtk-doc-html --disable-libdane --disable-nls --enable-local-libopts --disable-guile --with-included-libtasn1 --with-included-unistring --without-p11-kit"
     do_make_and_make_install
     if [[ $compiler_flavors != "native"  ]]; then
-      sed -i.bak 's/-lgnutls.*/-lgnutls -lcrypt32/' "$PKG_CONFIG_PATH/gnutls.pc" 
+      # libsrt doesn't know how to use its pkg deps :| https://github.com/Haivision/srt/issues/565
+      sed -i.bak 's/-lgnutls.*/-lgnutls -lcrypt32 -lnettle -lhogweed -lgmp/' "$PKG_CONFIG_PATH/gnutls.pc" 
     else
       if [[ $OSTYPE == darwin* ]]; then
         sed -i.bak 's/-lgnutls.*/-lgnutls -framework Security -framework Foundation/' "$PKG_CONFIG_PATH/gnutls.pc" 
@@ -1398,7 +1399,6 @@ build_libsrt() {
   cd srt_git
     do_cmake "-DUSE_GNUTLS=ON -DENABLE_SHARED=OFF"
     apply_patch file://$patch_dir/srt.app.patch -p1
-    sed -i.bak "s/-lgnutls.*-lz/-lgnutls -lcrypt32 -lnettle -lhogweed -lgmp -lz/"  CMakeFiles/srt-file-transmit.dir/linklibs.rsp
     do_make_and_make_install
   cd ..
 }
