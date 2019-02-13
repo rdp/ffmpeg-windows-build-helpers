@@ -1397,7 +1397,11 @@ build_fribidi() {
 build_libsrt() {
   do_git_checkout https://github.com/Haivision/srt.git
   cd srt_git
-    do_cmake "-DUSE_GNUTLS=ON -DENABLE_SHARED=OFF"
+    cd common/win
+      do_git_checkout https://github.com/meganz/mingw-std-threads.git mingw-std-threads
+      cp mingw-std-threads/*.h ..
+      cd ../..
+	do_cmake "-DUSE_GNUTLS=ON -DENABLE_SHARED=OFF"
     apply_patch file://$patch_dir/srt.app.patch -p1
     do_make_and_make_install
   cd ..
