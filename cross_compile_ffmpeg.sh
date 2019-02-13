@@ -339,8 +339,9 @@ do_git_checkout() {
   fi
   echo "doing git checkout $desired_branch" 
   git checkout "$desired_branch" || (git_hard_reset && git checkout "$desired_branch") || exit 1 # can't just use merge -f because might "think" patch files already applied when their changes have been lost, etc...
-  git merge "$desired_branch" || exit 1 # get incoming changes to a branch else if you do another git checkout it says "Already on 'xx'"
-
+  if git show-ref --verify --quiet "refs/remotes/origin/$desired_branch"; then # $desired_branch is actually a branch, not a tag or commit
+    git merge "origin/$desired_branch" || exit 1 # get incoming changes to a branch
+  fi
   new_git_version=`git rev-parse HEAD`
   if [[ "$old_git_version" != "$new_git_version" ]]; then
     echo "got upstream changes, forcing re-configure. Doing git clean -f"
