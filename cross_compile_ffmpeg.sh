@@ -1158,11 +1158,15 @@ build_libgme() {
   cd ..
 }
 
-build_opencv() {
+build_mingw_std_threads() {
   do_git_checkout https://github.com/meganz/mingw-std-threads.git # it needs std::mutex too :|
   cd mingw-std-threads_git
     cp *.h "$mingw_w64_x86_64_prefix/include"
   cd ..
+}
+
+build_opencv() {
+  build_mingw_std_threads
   #do_git_checkout https://github.com/opencv/opencv.git # too big :|
   download_and_unpack_file https://github.com/opencv/opencv/archive/3.4.5.zip opencv-3.4.5
   mkdir -p opencv-3.4.5/build
@@ -2082,6 +2086,7 @@ build_ffmpeg_dependencies() {
     build_dlfcn
     build_libxavs
   fi
+  build_mingw_std_threads
   build_zlib # Zlib in FFmpeg is autodetected.
   build_libcaca # Uses zlib and dlfcn (on windows).
   build_bzip2 # Bzlib (bzip2) in FFmpeg is autodetected.
@@ -2137,7 +2142,7 @@ build_ffmpeg_dependencies() {
   build_librubberband # Needs libsamplerate, libsndfile, fftw and vamp_plugin. 'configure' will fail otherwise. Eventhough librubberband doesn't necessarily need them (libsndfile only for 'rubberband.exe' and vamp_plugin only for "Vamp audio analysis plugin"). How to use the bundled libraries '-DUSE_SPEEX' and '-DUSE_KISSFFT'?
   build_frei0r # Needs dlfcn. could use opencv...
   build_vidstab
-  #build_facebooktransform360
+  #build_facebooktransform360 # needs modified ffmpeg to use it
   build_libmysofa # Needed for FFmpeg's SOFAlizer filter (https://ffmpeg.org/ffmpeg-filters.html#sofalizer). Uses dlfcn.
   if [[ "$non_free" = "y" ]]; then
     build_fdk-aac # Uses dlfcn.
@@ -2148,7 +2153,7 @@ build_ffmpeg_dependencies() {
   build_libass # Needs freetype >= 9.10.3 (see https://bugs.launchpad.net/ubuntu/+source/freetype1/+bug/78573 o_O) and fribidi >= 0.19.0. Uses fontconfig >= 2.10.92, iconv and dlfcn.
 
   build_libxvid # FFmpeg now has native support, but libxvid still provides a better image.
-  build_libsrt # requires gnutlbs
+  build_libsrt # requires gnutls, mingw-std-threads
   build_libtesseract
   build_lensfun  # requires png, zlib, iconv
   # build_libtensorflow # broken
