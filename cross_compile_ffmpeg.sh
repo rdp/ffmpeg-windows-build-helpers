@@ -904,6 +904,10 @@ build_libnettle() {
   cd ..
 }
 
+build_libidn() {
+  generic_download_and_make_and_install https://ftp.gnu.org/gnu/libidn/libidn-1.35.tar.gz
+}
+
 build_gnutls() {
   download_and_unpack_file https://www.gnupg.org/ftp/gcrypt/gnutls/v3.5/gnutls-3.5.19.tar.xz
   cd gnutls-3.5.19
@@ -2118,7 +2122,8 @@ build_ffmpeg_dependencies() {
   build_gmp # For rtmp support configure FFmpeg with '--enable-gmp'. Uses dlfcn.
   #build_librtmfp
   build_libnettle # Needs gmp >= 3.0. Uses dlfcn.
-  build_gnutls # Needs nettle >= 3.1, hogweed (nettle) >= 3.1. Uses zlib and dlfcn.
+  build_libidn
+  build_gnutls # Needs nettle >= 3.1, hogweed (nettle) >= 3.1. Uses libidn, zlib and dlfcn.
   #if [[ "$non_free" = "y" ]]; then
   #  build_openssl-1.0.2 # Nonfree alternative to GnuTLS. 'build_openssl-1.0.2 "dllonly"' to build shared libraries only.
   #  build_openssl-1.1.1 # Nonfree alternative to GnuTLS. Can't be used with LibRTMP. 'build_openssl-1.1.1 "dllonly"' to build shared libraries only.
