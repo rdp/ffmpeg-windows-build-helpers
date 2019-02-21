@@ -920,11 +920,11 @@ build_gnutls() {
     do_make_and_make_install
     if [[ $compiler_flavors != "native"  ]]; then
       # libsrt doesn't know how to use its pkg deps :| https://github.com/Haivision/srt/issues/565
-      sed -i.bak 's/-lgnutls.*/-lgnutls -lcrypt32 -lnettle -lhogweed -lgmp/' "$PKG_CONFIG_PATH/gnutls.pc" 
+      sed -i.bak 's/-lgnutls.*/-lgnutls -lcrypt32 -lnettle -lhogweed -lgmp -lidn -liconv/' "$PKG_CONFIG_PATH/gnutls.pc" 
     else
       if [[ $OSTYPE == darwin* ]]; then
         sed -i.bak 's/-lgnutls.*/-lgnutls -framework Security -framework Foundation/' "$PKG_CONFIG_PATH/gnutls.pc" 
-      fi # else linux do nothing...
+      fi # else linux needs nothing...
     fi
   cd ..
 }
@@ -2120,9 +2120,9 @@ build_ffmpeg_dependencies() {
   build_libvmaf
   build_fontconfig # Needs freetype and libxml >= 2.6. Uses iconv and dlfcn.
   build_gmp # For rtmp support configure FFmpeg with '--enable-gmp'. Uses dlfcn.
-  #build_librtmfp
+  #build_librtmfp # mainline ffmpeg doesn't use it yet
   build_libnettle # Needs gmp >= 3.0. Uses dlfcn.
-  build_libidn
+  build_libidn # needs iconv
   build_gnutls # Needs nettle >= 3.1, hogweed (nettle) >= 3.1. Uses libidn, zlib and dlfcn.
   #if [[ "$non_free" = "y" ]]; then
   #  build_openssl-1.0.2 # Nonfree alternative to GnuTLS. 'build_openssl-1.0.2 "dllonly"' to build shared libraries only.
