@@ -789,35 +789,28 @@ build_libwebp() {
   cd ..
 }
 
-
 build_harfbuzz() {
-  # https://gist.github.com/roxlu/0108d45308a0434e27d4320396399153
-  if [ ! -f harfbuzz_git/done_harf ]; then # TODO make freetype into separate dirs so I don't need this weird double hack file...
-  build_freetype "--without-harfbuzz"
+  # basically gleaned from https://gist.github.com/roxlu/0108d45308a0434e27d4320396399153
+  if [ ! -f harfbuzz_git/already_done_harf ]; then # TODO make freetype into separate dirs so I don't need this weird double hack file...
+    build_freetype "--without-harfbuzz"
+    do_git_checkout  https://github.com/harfbuzz/harfbuzz.git
+    # cmake no .pc file :|
+    cd harfbuzz_git
+      if [ ! -f configure ]; then
+        ./autogen.sh # :|
+      fi
+      generic_configure "--with-freetype=yes --with-fontconfig=no --with-icu=no" # no fontconfig, don't want another circular what? icu is #372
+      do_make_and_make_install
+    cd ..
   
-  do_git_checkout  https://github.com/harfbuzz/harfbuzz.git
-  # cmake no .pc file :|
-  #mkdir harfbuzz_git/build
-  #cd harfbuzz_git/build
-  #  do_cmake_from_build_dir ..
-  #  do_make_and_make_install
-  #cd ../..
-  cd harfbuzz_git
-    if [ ! -f configure ]; then
-      ./autogen.sh # :|
-    fi
-    generic_configure "--with-freetype=yes --with-fontconfig=no --with-icu=no" # no fontconfig, don't want another circular what? icu is #372
-    do_make_and_make_install
-  cd ..
-  
-  build_freetype "--with-harfbuzz" # with harfbuzz now...
-  touch harfbuzz_git/done_harf
+    build_freetype "--with-harfbuzz" # with harfbuzz now...
+    touch harfbuzz_git/already_done_harf
+    echo "done harfbuzz"
   fi
   sed -i.bak 's/-lfreetype.*/-lfreetype -lharfbuzz/' "$PKG_CONFIG_PATH/freetype2.pc"
   sed -i.bak 's/-lharfbuzz.*/-lharfbuzz -lfreetype/' "$PKG_CONFIG_PATH/harfbuzz.pc"
-  sed -i.bak 's/libfreetype.la -lbz2/libfreetype.la -lharfbuzz -lbz2/' "${mingw_w64_x86_64_prefix}/lib/libfreetype.la"
+  sed -i.bak 's/libfreetype.la -lbz2/libfreetype.la -lharfbuzz -lbz2/' "${mingw_w64_x86_64_prefix}/lib/libfreetype.la" # XXX what the..needed?
   sed -i.bak 's/libfreetype.la -lbz2/libfreetype.la -lharfbuzz -lbz2/' "${mingw_w64_x86_64_prefix}/lib/libharfbuzz.la"
-  echo "done harfbuzz"
 }
 
 build_freetype() {
@@ -845,6 +838,8 @@ build_libvmaf() {
   cd vmaf_git
     apply_patch file://$patch_dir/libvmaf.various.patch -p1
     do_make_and_make_install "$make_prefix_options INSTALL_PREFIX=$mingw_w64_x86_64_prefix"
+    # .pc seems broke
+    sed -i.bak "s:/usr/local:$mingw_w64_x86_64_prefix:" "$PKG_CONFIG_PATH/libvmaf.pc"
   cd .. 
 }
 
@@ -1945,7 +1940,7 @@ build_ffmpeg() {
       init_options+=" --disable-schannel"
       # Fix WinXP incompatibility by disabling Microsoft's Secure Channel, because Windows XP doesn't support TLS 1.1 and 1.2, but with GnuTLS or OpenSSL it does.  XP compat!
     fi
-    config_options="$init_options --enable-libcaca --enable-gray --enable-libtesseract --enable-fontconfig --enable-gmp --enable-gnutls --enable-libass --enable-libbluray --enable-libbs2b --enable-libflite --enable-libfreetype --enable-libfribidi --enable-libgme --enable-libgsm --enable-libilbc --enable-libmodplug --enable-libmp3lame --enable-libopencore-amrnb --enable-libopencore-amrwb --enable-libopus --enable-libsnappy --enable-libsoxr --enable-libspeex --enable-libtheora --enable-libtwolame --enable-libvo-amrwbenc --enable-libvorbis --enable-libvpx --enable-libwebp --enable-libzimg --enable-libzvbi --enable-libmysofa --enable-libaom --enable-libopenjpeg  --enable-libopenh264 --enable-liblensfun  --enable-libvmaf --enable-libsrt"
+    config_options="$init_options --enable-libcaca --enable-gray --enable-libtesseract --enable-fontconfig --enable-gmp --enable-gnutls --enable-libass --enable-libbluray --enable-libbs2b --enable-libflite --enable-libfreetype --enable-libfribidi --enable-libgme --enable-libgsm --enable-libilbc --enable-libmodplug --enable-libmp3lame --enable-libopencore-amrnb --enable-libopencore-amrwb --enable-libopus --enable-libsnappy --enable-libsoxr --enable-libspeex --enable-libtheora --enable-libtwolame --enable-libvo-amrwbenc --enable-libvorbis --enable-libvpx --enable-libwebp --enable-libzimg --enable-libzvbi --enable-libmysofa --enable-libaom --enable-libopenjpeg  --enable-libopenh264 --enable-liblensfun  --enable-libvmaf --enable-libsrt --enable-demuxer=dash --enable-libxml2"
     if [[ $compiler_flavors != "native" ]]; then
       config_options+=" --enable-nvenc --enable-nvdec" # don't work OS X 
     fi
