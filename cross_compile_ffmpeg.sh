@@ -1314,7 +1314,7 @@ build_frei0r() {
   do_git_checkout https://github.com/dyne/frei0r.git
   cd frei0r_git
     sed -i.bak 's/-arch i386//' CMakeLists.txt # OS X https://github.com/dyne/frei0r/issues/64
-    do_cmake_and_install
+    do_cmake_and_install "-DWITHOUT_OPENCV=1" # XXX could look at this more...
 
     mkdir -p $cur_dir/redist # Strip and pack shared libraries.
     if [ $bits_target = 32 ]; then
