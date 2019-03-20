@@ -1,5 +1,6 @@
 == actual todos ==
 
+== maybe/never do, more on the never... ==
 fix mplayer
 
 build "all" doesn't actually built low and high bitdepth x26x??
@@ -18,7 +19,6 @@ release fei0r filters once
 
 distro mp4box/anything else vaguely useful :|
 
-== maybe/never do, more on the never... ==
 release 7z options too? :)
 
 release "real" static libs: http://stackoverflow.com/questions/11701635/use-ffmpeg-in-visual-studio
