@@ -1575,7 +1575,6 @@ build_libopenh264() {
 }
 
 build_libx264() {
-  # TODO there's no such thing as high and low bitdepth anymore here...
   local checkout_dir="x264"
   if [[ $build_x264_with_libav == "y" ]]; then
     build_ffmpeg static --disable-libx264 ffmpeg_git_pre_x264 # installs libav locally so we can use it within x264.exe FWIW...
@@ -1587,17 +1586,13 @@ build_libx264() {
   fi
 
   local x264_profile_guided=n # or y -- haven't gotten this proven yet...TODO
-  if [[ $high_bitdepth == "y" ]]; then
-    checkout_dir="${checkout_dir}_high_bitdepth_10"
-  else
-    checkout_dir="${checkout_dir}_normal_bitdepth"
-  fi
+  checkout_dir="${checkout_dir}_all_bitdepth"
 
-  #if [[ $prefer_stable = "n" ]]; then
-  #  do_git_checkout "http://git.videolan.org/git/x264.git" $checkout_dir "origin/master" # During 'configure': "Found no assembler. Minimum version is nasm-2.13" so disable for now...
-  #else
+  if [[ $prefer_stable = "n" ]]; then
+    do_git_checkout "http://git.videolan.org/git/x264.git" $checkout_dir "origin/master" # During 'configure': "Found no assembler. Minimum version is nasm-2.13" so disable for now...
+  else
     do_git_checkout "http://git.videolan.org/git/x264.git" $checkout_dir  "origin/stable" # or "origin/stable" nasm again
-  #fi
+  fi
   cd $checkout_dir
     if [[ ! -f configure.bak ]]; then # Change CFLAGS.
       sed -i.bak "s/O3 -/O2 -/" configure
@@ -1607,9 +1602,7 @@ build_libx264() {
     if [[ $build_x264_with_libav == "n" ]]; then
       configure_flags+=" --disable-lavf" # lavf stands for libavformat, there is no --enable-lavf option, either auto or disable...
     fi
-    if [[ $high_bitdepth == "y" ]]; then
-      configure_flags+=" --bit-depth=10" # all?
-    fi
+    configure_flags+=" --bit-depth=all"
     for i in $CFLAGS; do
       configure_flags+=" --extra-cflags=$i" # needs it this way seemingly :|
     done
@@ -1626,11 +1619,9 @@ build_libx264() {
       sed -i.bak "s_\\, ./x264_, wine ./x264_" Makefile # in case they have wine auto-run disabled http://askubuntu.com/questions/344088/how-to-ensure-wine-does-not-auto-run-exe-files
       do_make_and_make_install "fprofiled VIDS=example.y4m" # guess it has its own make fprofiled, so we don't need to manually add -fprofile-generate here...
     else
-      # normal path
+      # normal path non profile guided
       do_configure "$configure_flags"
       do_make
-      echo force reinstall in case bit depth changed at all :|
-      rm already_ran_make_install*
       do_make_install
     fi
 
