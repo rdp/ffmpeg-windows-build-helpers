@@ -2346,6 +2346,9 @@ original_path="$PATH"
 if [[ $compiler_flavors == "native" ]]; then
   echo "starting native build..."
   # realpath so if you run it from a different symlink path it doesn't rebuild the world...
+  # mkdir required for realpath first time
+  mkdir -p $cur_dir/cross_compilers/native
+  mkdir -p $cur_dir/cross_compilers/native/bin
   mingw_w64_x86_64_prefix="$(realpath $cur_dir/cross_compilers/native)"
   mingw_bin_path="$(realpath $cur_dir/cross_compilers/native/bin)" # sdl needs somewhere to drop "binaries"??
   export PKG_CONFIG_PATH="$mingw_w64_x86_64_prefix/lib/pkgconfig"
@@ -2370,7 +2373,9 @@ if [[ $compiler_flavors == "multi" || $compiler_flavors == "win32" ]]; then
   echo
   echo "Starting 32-bit builds..."
   host_target='i686-w64-mingw32'
+  mkdir -p $cur_dir/cross_compilers/mingw-w64-i686/$host_target
   mingw_w64_x86_64_prefix="$(realpath $cur_dir/cross_compilers/mingw-w64-i686/$host_target)"
+  mkdir -p $cur_dir/cross_compilers/mingw-w64-i686/bin
   mingw_bin_path="$(realpath $cur_dir/cross_compilers/mingw-w64-i686/bin)"
   export PKG_CONFIG_PATH="$mingw_w64_x86_64_prefix/lib/pkgconfig"
   export PATH="$mingw_bin_path:$original_path"
@@ -2388,7 +2393,9 @@ if [[ $compiler_flavors == "multi" || $compiler_flavors == "win64" ]]; then
   echo
   echo "**************Starting 64-bit builds..." # make it have a bit easier to you can see when 32 bit is done
   host_target='x86_64-w64-mingw32'
+  mkdir -p $cur_dir/cross_compilers/mingw-w64-x86_64/$host_target
   mingw_w64_x86_64_prefix="$(realpath $cur_dir/cross_compilers/mingw-w64-x86_64/$host_target)"
+  mkdir -p $cur_dir/cross_compilers/mingw-w64-x86_64/bin 
   mingw_bin_path="$(realpath $cur_dir/cross_compilers/mingw-w64-x86_64/bin)"
   export PKG_CONFIG_PATH="$mingw_w64_x86_64_prefix/lib/pkgconfig"
   export PATH="$mingw_bin_path:$original_path"
