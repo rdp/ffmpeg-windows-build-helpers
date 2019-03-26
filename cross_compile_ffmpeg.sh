@@ -75,7 +75,9 @@ check_missing_packages () {
     echo 'Install the missing packages before running this script.'
     determine_distro
     if [[ $DISTRO == "Ubuntu" ]]; then
-      echo -n "for ubuntu: $ sudo apt-get install subversion ragel curl texinfo g++ bison flex cvs yasm automake libtool autoconf gcc cmake git make pkg-config zlib1g-dev mercurial unzip pax nasm gperf autogen bzip2 autoconf-archive p7zip-full"
+      echo "for ubuntu:"
+      echo "$ sudo apt-get update"
+      echo -n " $ sudo apt-get install subversion ragel curl texinfo g++ bison flex cvs yasm automake libtool autoconf gcc cmake git make pkg-config zlib1g-dev mercurial unzip pax nasm gperf autogen bzip2 autoconf-archive p7zip-full"
       if at_least_required_version "18.04" "$(lsb_release -rs)"; then
         echo -n " python3-distutils" # guess it's no longer built-in, lensfun requires it...
       fi
