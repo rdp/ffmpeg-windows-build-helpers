@@ -1313,7 +1313,7 @@ build_librubberband() {
 }
 
 build_frei0r() {
-  do_git_checkout https://github.com/dyne/frei0r.git frei0r_git 7bfc4161377a10
+  do_git_checkout https://github.com/dyne/frei0r.git 
   cd frei0r_git
     sed -i.bak 's/-arch i386//' CMakeLists.txt # OS X https://github.com/dyne/frei0r/issues/64
     do_cmake_and_install "-DWITHOUT_OPENCV=1" # XXX could look at this more...
@@ -1460,7 +1460,7 @@ build_libvpx() {
 }
 
 build_libaom() {
-  do_git_checkout https://aomedia.googlesource.com/aom aom_git df7131064bf # avoid collision with vp9 :|
+  do_git_checkout https://aomedia.googlesource.com/aom aom_git 
   if [[ $compiler_flavors == "native" ]]; then 
     local config_options=""
   elif [ "$bits_target" = "32" ]; then
@@ -1559,7 +1559,7 @@ build_libx265() {
 }
 
 build_libopenh264() {
-  do_git_checkout "https://github.com/cisco/openh264.git" openh264_git 8684722271a # 8684722271a avoid stack check freakiness
+  do_git_checkout "https://github.com/cisco/openh264.git" 
   cd openh264_git
     sed -i.bak "s/_M_X64/_M_DISABLED_X64/" codec/encoder/core/inc/param_svc.h # for 64 bit, avoid missing _set_FMA3_enable, it needed to link against msvcrt120 to get this or something weird?
     if [[ $bits_target == 32 ]]; then
