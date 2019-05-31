@@ -1547,7 +1547,7 @@ build_libx265() {
     cmake_params="$cmake_params -DENABLE_ASSEMBLY=OFF" # apparently required or build fails
   fi
   if [[ $high_bitdepth == "y" ]]; then
-    cmake_params+=" -DHIGH_BIT_DEPTH=1" # Enable 10 bits (main10) and 12 bits (???) per pixels profiles.
+    cmake_params+=" -DHIGH_BIT_DEPTH=1" # Enable 10 bits (main10) per pixels profiles. XXX have an option for 12 here too??? gah...
   fi
 
   do_cmake "$cmake_params"
