@@ -1401,8 +1401,10 @@ build_fribidi() {
 }
 
 build_libsrt() {
-  do_git_checkout https://github.com/Haivision/srt.git
-  cd srt_git
+  # do_git_checkout https://github.com/Haivision/srt.git
+  #cd srt_git
+  download_and_unpack_file https://codeload.github.com/Haivision/srt/tar.gz/v1.3.2 srt-1.3.2
+  cd srt-1.3.2 
     if [[ $compiler_flavors != "native" ]]; then
       do_cmake "-DUSE_GNUTLS=ON -DENABLE_SHARED=OFF"
       apply_patch file://$patch_dir/srt.app.patch -p1
