@@ -1903,15 +1903,30 @@ build_ffmpeg() {
   fi
 
   local postpend_configure_opts=""
+  local postpend_prefix=""
   # can't mix and match --enable-static --enable-shared unfortunately, or the final executable seems to just use shared if the're both present
   if [[ $1 == "shared" ]]; then
     output_dir+="_shared"
-    postpend_configure_opts="--enable-shared --disable-static --prefix=$(pwd)/${output_dir}"
+    postpend_prefix="$(pwd)/${output_dir}"
   else
-    postpend_configure_opts="--enable-static --disable-shared --prefix=$mingw_w64_x86_64_prefix"
+    postpend_prefix="${mingw_w64_x86_64_prefix}"
+  fi
+  
+  
+  #TODO allow using local source directory
+  if [[ -z $ffmpeg_source_dir ]]; then
+    do_git_checkout $ffmpeg_git_checkout $output_dir $ffmpeg_git_checkout_version || exit 1
+  else
+    output_dir="${ffmpeg_source_dir}"
+    postpend_prefix="${output_dir}"
+  fi
+  
+  if [[ $1 == "shared" ]]; then
+    postpend_configure_opts="--enable-shared --disable-static --prefix=${postpend_prefix}"
+  else
+    postpend_configure_opts="--enable-static --disable-shared --prefix=${postpend_prefix}"
   fi
 
-  do_git_checkout https://github.com/FFmpeg/FFmpeg.git $output_dir $ffmpeg_git_checkout_version
   cd $output_dir
     apply_patch file://$patch_dir/frei0r_load-shared-libraries-dynamically.diff
 
@@ -2079,6 +2094,11 @@ find_all_build_exes() {
 }
 
 build_ffmpeg_dependencies() {
+  if [[ $build_dependencies = "n" ]]; then
+    echo "Skip build ffmpeg dependency libraries..." 
+    return
+  fi
+
   echo "Building ffmpeg dependency libraries..." 
   if [[ $compiler_flavors != "native" ]]; then # build some stuff that don't build native...
     build_dlfcn
@@ -2226,6 +2246,7 @@ build_mp4box=n
 build_mplayer=n
 build_vlc=n
 build_lsw=n # To build x264 with L-Smash-Works.
+build_dependencies=y
 git_get_latest=y
 prefer_stable=y # Only for x264 and x265.
 build_intel_qsv=y # note: not windows xp friendly!
@@ -2250,6 +2271,8 @@ ffmpeg_git_checkout_version=
 build_ismindex=n
 enable_gpl=y
 build_x264_with_libav=n # To build x264 with Libavformat.
+ffmpeg_git_checkout="https://github.com/FFmpeg/FFmpeg.git"
+ffmpeg_source_dir=
 
 # parse command line parameters, if any
 while true; do
@@ -2258,6 +2281,8 @@ while true; do
       --build-ffmpeg-static=y  (ffmpeg.exe, ffplay.exe and ffprobe.exe)
       --build-ffmpeg-shared=n  (ffmpeg.exe (with libavformat-x.dll, etc., ffplay.exe, ffprobe.exe and dll-files)
       --ffmpeg-git-checkout-version=[master] if you want to build a particular version of FFmpeg, ex: n3.1.1 or a specific git hash
+      --ffmpeg-git-checkout=[https://github.com/FFmpeg/FFmpeg.git] if you want to clone FFmpeg from other repositories
+      --ffmpeg-source-dir=[default empty] specifiy the directory of ffmpeg source code. When specified, git will not be used.
       --gcc-cpu-count=[number of cpu cores set it higher than 1 if you have multiple cores and > 1GB RAM, this speeds up initial cross compiler build. FFmpeg build uses number of cores no matter what]
       --disable-nonfree=y (set to n to include nonfree like libfdk-aac,decklink)
       --build-intel-qsv=y (set to y to include the [non windows xp compat.] qsv library and ffmpeg module. NB this not not hevc_qsv...
@@ -2279,10 +2304,13 @@ while true; do
       --high-bitdepth=n Enable high bit depth for x264 (10 bits) and x265 (10 and 12 bits, x64 build. Not officially supported on x86 (win32), but enabled by disabling its assembly).
       --debug Make this script  print out each line as it executes
       --enable-gpl=[y] set to n to do an lgpl build
+      --build-dependencies=y [builds the ffmpeg dependencies. Disable it when the dependencies was built once and can greatly reduce build time. ]
        "; exit 0 ;;
     --sandbox-ok=* ) sandbox_ok="${1#*=}"; shift ;;
     --gcc-cpu-count=* ) gcc_cpu_count="${1#*=}"; shift ;;
     --ffmpeg-git-checkout-version=* ) ffmpeg_git_checkout_version="${1#*=}"; shift ;;
+    --ffmpeg-git-checkout=* ) ffmpeg_git_checkout="${1#*=}"; shift ;;
+    --ffmpeg-source-dir=* ) ffmpeg_source_dir="${1#*=}"; shift ;;
     --build-libmxf=* ) build_libmxf="${1#*=}"; shift ;;
     --build-mp4box=* ) build_mp4box="${1#*=}"; shift ;;
     --build-ismindex=* ) build_ismindex="${1#*=}"; shift ;;
@@ -2315,6 +2343,7 @@ while true; do
     --prefer-stable=* ) prefer_stable="${1#*=}"; shift ;;
     --enable-gpl=* ) enable_gpl="${1#*=}"; shift ;;
     --high-bitdepth=* ) high_bitdepth="${1#*=}"; shift ;;
+    --build-dependencies=* ) build_dependencies="${1#*=}"; shift ;;
     --debug ) set -x; shift ;;
     -- ) shift; break ;;
     -* ) echo "Error, unknown option: '$1'."; exit 1 ;;
