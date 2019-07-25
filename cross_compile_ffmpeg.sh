@@ -574,7 +574,7 @@ build_dlfcn() {
 }
 
 build_bzip2() {
-  download_and_unpack_file https://fossies.org/linux/misc/bzip2-1.0.6.tar.gz
+  download_and_unpack_file http://anduin.linuxfromscratch.org/LFS/bzip2-1.0.6.tar.gz 
   cd bzip2-1.0.6
     apply_patch file://$patch_dir/bzip2-1.0.6_brokenstuff.diff
     if [[ ! -f $mingw_w64_x86_64_prefix/lib/libbz2.a ]]; then # Library only.
