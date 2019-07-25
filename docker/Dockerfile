@@ -29,7 +29,8 @@ RUN apt-get update && \
     autogen \
     bzip2 \
     autoconf-archive \
-    p7zip-full
+    p7zip-full \
+    ragel
 
 COPY . ./ffmpeg-windows-build-helpers
 
