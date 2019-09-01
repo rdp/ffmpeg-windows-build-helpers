@@ -1964,7 +1964,6 @@ build_ffmpeg() {
       config_options+=" --disable-amf" # Since its autodetected we have to disable it if we do not want it. #unless we define no autodetection but.. we don't.
     else
       config_options+=" --enable-amf" # This is actually autodetected but for consistency.. we might as well set it.
-      config_options+=" --disable-amf" # This is actually autodetected but for consistency.. we might as well set it. broken
     fi
 
     if [[ $build_intel_qsv = y ]]; then
