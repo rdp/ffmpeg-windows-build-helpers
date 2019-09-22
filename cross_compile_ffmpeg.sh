@@ -1349,7 +1349,9 @@ build_svt-hevc() {
 
 build_svt-av1() {
   do_git_checkout https://github.com/OpenVisualCloud/SVT-AV1.git
-  cd SVT-AV1_git/Build
+  cd SVT-AV1_git
+  git apply $patch_dir/SVT-AV1-Windows-lowercase.patch
+  cd Build
     do_cmake_from_build_dir .. "-DCMAKE_BUILD_TYPE=Release"
     do_make_and_make_install
   cd ../..
@@ -1357,7 +1359,9 @@ build_svt-av1() {
 
 build_svt-vp9() {
   do_git_checkout https://github.com/OpenVisualCloud/SVT-VP9.git
-  cd SVT-VP9_git/Build
+  cd SVT-VP9_git
+  git apply $patch_dir/SVT-VP9-Windows-lowercase.patch
+  cd Build
     do_cmake_from_build_dir ..
     do_make_and_make_install
   cd ../..
@@ -1955,12 +1959,21 @@ build_ffmpeg() {
 
   cd $output_dir
     apply_patch file://$patch_dir/frei0r_load-shared-libraries-dynamically.diff
+    #SVT-HEVC
     wget https://raw.githubusercontent.com/OpenVisualCloud/SVT-HEVC/master/ffmpeg_plugin/0001-lavc-svt_hevc-add-libsvt-hevc-encoder-wrapper.patch
     git am 0001-lavc-svt_hevc-add-libsvt-hevc-encoder-wrapper.patch
+    #Add SVT-AV1 to SVT-HEVC
     #wget https://raw.githubusercontent.com/OpenVisualCloud/SVT-AV1/master/ffmpeg_plugin/0001-Add-ability-for-ffmpeg-to-run-svt-av1-with-svt-hevc.patch
     #git apply 0001-Add-ability-for-ffmpeg-to-run-svt-av1-with-svt-hevc.patch
+    #Add SVT-VP9 to SVT-HEVC & SVT-AV1
     #wget https://raw.githubusercontent.com/OpenVisualCloud/SVT-VP9/master/ffmpeg_plugin/0001-Add-ability-for-ffmpeg-to-run-svt-vp9-with-svt-hevc-av1.patch
     #git apply 0001-Add-ability-for-ffmpeg-to-run-svt-vp9-with-svt-hevc-av1.patch
+    #SVT-AV1 only
+    #wget https://raw.githubusercontent.com/OpenVisualCloud/SVT-AV1/master/ffmpeg_plugin/0001-Add-ability-for-ffmpeg-to-run-svt-av1.patch
+    #git apply 0001-Add-ability-for-ffmpeg-to-run-svt-av1.patch
+    #SVT-VP9 only
+    #wget https://raw.githubusercontent.com/OpenVisualCloud/SVT-VP9/master/ffmpeg_plugin/0001-Add-ability-for-ffmpeg-to-run-svt-vp9.patch
+    #git apply 0001-Add-ability-for-ffmpeg-to-run-svt-vp9.patch
 
     if [ "$bits_target" = "32" ]; then
       local arch=x86
