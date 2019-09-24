@@ -1545,9 +1545,9 @@ build_dav1d() {
   do_git_checkout https://code.videolan.org/videolan/dav1d.git libdav1d
   cd libdav1d
     apply_patch file://$patch_dir/david_no_asm.patch -p1
-    cpu_count=1
+    cpu_count=1 # XXX report :|
     generic_meson_ninja_install
-    cp build/src/libdav1d.a $mingw_w64_x86_64_prefix/lib || exit 1 # avoid 'run ranlib' weird failure :|
+    cp build/src/libdav1d.a $mingw_w64_x86_64_prefix/lib || exit 1 # avoid 'run ranlib' weird failure, possibly older meson's https://github.com/mesonbuild/meson/issues/4138 :|
     cpu_count=$original_cpu_count
   cd ..
 }
