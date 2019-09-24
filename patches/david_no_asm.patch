@@ -1,0 +1,13 @@
+diff --git a/meson_options.txt b/meson_options.txt
+index cdd27c2..9eab161 100644
+--- a/meson_options.txt
++++ b/meson_options.txt
+@@ -7,7 +7,7 @@ option('bitdepths',
+ 
+ option('enable_asm',
+     type: 'boolean',
+-    value: true,
++    value: false,
+     description: 'Build asm files, if available')
+ 
+ option('enable_tools',

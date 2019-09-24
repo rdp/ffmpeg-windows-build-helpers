@@ -77,18 +77,18 @@ check_missing_packages () {
     if [[ $DISTRO == "Ubuntu" ]]; then
       echo "for ubuntu:"
       echo "$ sudo apt-get update"
-      echo -n " $ sudo apt-get install subversion ragel curl texinfo g++ bison flex cvs yasm automake libtool autoconf gcc cmake git make pkg-config zlib1g-dev mercurial unzip pax nasm gperf autogen bzip2 autoconf-archive p7zip-full"
+      echo -n " $ sudo apt-get install subversion ragel curl texinfo g++ bison flex cvs yasm automake libtool autoconf gcc cmake git make pkg-config zlib1g-dev mercurial unzip pax nasm gperf autogen bzip2 autoconf-archive p7zip-full meson"
       if at_least_required_version "18.04" "$(lsb_release -rs)"; then
         echo -n " python3-distutils" # guess it's no longer built-in, lensfun requires it...
       fi
       echo " -y"
     else
       echo "for gentoo (a non ubuntu distro): same as above, but no g++, no gcc, git is dev-vcs/git, zlib1g-dev is zlib, pkg-config is dev-util/pkgconfig, add ed..."
-      echo "for OS X (homebrew): brew install ragel wget cvs hg yasm autogen automake autoconf cmake libtool xz pkg-config nasm bzip2 autoconf-archive p7zip coreutils"
+      echo "for OS X (homebrew): brew install ragel wget cvs hg yasm autogen automake autoconf cmake libtool xz pkg-config nasm bzip2 autoconf-archive p7zip coreutils meson"
       echo "for debian: same as ubuntu, but also add libtool-bin, ed, autoconf-archive"
       echo "for RHEL/CentOS: First ensure you have epel repos available, then run $ sudo yum install ragel subversion texinfo mercurial libtool autogen gperf nasm patch unzip pax ed gcc-c++ bison flex yasm automake autoconf gcc zlib-devel cvs bzip2 cmake3 -y"
       echo "for fedora: if your distribution comes with a modern version of cmake then use the same as RHEL/CentOS but replace cmake3 with cmake."
-      echo "for linux native compiler option: add libva-dev"
+      echo "for linux native compiler option: same as <your OS> above, add libva-dev"
     fi
     exit 1
   fi
@@ -477,7 +477,7 @@ do_cmake_and_install() {
 }
 
 do_meson() {
-    local configure_options="$1"
+    local configure_options="$1 --unity=off"
     local configure_name="$2"
     local configure_env="$3"
     local configure_noclean=""
@@ -518,7 +518,7 @@ do_ninja_and_ninja_install() {
     do_ninja "$extra_ninja_options"
     local touch_name=$(get_small_touchfile_name already_ran_make_install "$extra_ninja_options")
     if [ ! -f $touch_name ]; then
-        echo "ninja installing $(pwd) as $ PATH=$PATH ninja -C build install $extra_make_options"
+        echo "ninja installing $(pwd) as $PATH=$PATH ninja -C build install $extra_make_options"
         ninja -C build install || exit 1
         touch $touch_name || exit 1
     fi
@@ -1544,7 +1544,10 @@ build_libaom() {
 build_dav1d() {
   do_git_checkout https://code.videolan.org/videolan/dav1d.git libdav1d
   cd libdav1d
+    apply_patch file://$patch_dir/david_no_asm.patch -p1
+    cpu_count=1
     generic_meson_ninja_install
+    cpu_count=$original_cpu_count
   cd ..
 }
 
