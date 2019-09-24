@@ -476,6 +476,70 @@ do_cmake_and_install() {
   do_make_and_make_install
 }
 
+do_meson() {
+    local configure_options="$1"
+    local configure_name="$2"
+    local configure_env="$3"
+    local configure_noclean=""
+    if [[ "$configure_name" = "" ]]; then
+        configure_name="meson"
+    fi
+    local cur_dir2=$(pwd)
+    local english_name=$(basename $cur_dir2)
+    local touch_name=$(get_small_touchfile_name already_built "$configure_options $configure_name $LDFLAGS $CFLAGS")
+    if [ ! -f "$touch_name" ]; then
+        if [ "$configure_noclean" != "noclean" ]; then
+            make clean # just in case
+        fi
+        rm -f already_* # reset
+        echo "Using meson: $english_name ($PWD) as $ PATH=$PATH ${configure_env} $configure_name $configure_options"
+        #env
+        "$configure_name" $configure_options || exit 1
+        touch -- "$touch_name"
+        make clean # just in case
+    else
+        echo "Already used meson $(basename $cur_dir2)"
+    fi
+}
+
+generic_meson() {
+    local extra_configure_options="$1"
+    mkdir -pv build
+    do_meson "--prefix=${mingw_w64_x86_64_prefix} --libdir=${mingw_w64_x86_64_prefix}/lib --buildtype=release --strip --default-library=static --cross-file=${top_dir}/meson-cross.mingw.txt $extra_configure_options . build"
+}
+
+generic_meson_ninja_install() {
+    generic_meson "$1"
+    do_ninja_and_ninja_install
+}
+
+do_ninja_and_ninja_install() {
+    local extra_ninja_options="$1"
+    do_ninja "$extra_ninja_options"
+    local touch_name=$(get_small_touchfile_name already_ran_make_install "$extra_ninja_options")
+    if [ ! -f $touch_name ]; then
+        echo "ninja installing $(pwd) as $ PATH=$PATH ninja -C build install $extra_make_options"
+        ninja -C build install || exit 1
+        touch $touch_name || exit 1
+    fi
+}
+
+do_ninja() {
+  local extra_make_options=" -j $cpu_count"
+  local cur_dir2=$(pwd)
+  local touch_name=$(get_small_touchfile_name already_ran_make "${extra_make_options}")
+
+  if [ ! -f $touch_name ]; then
+    echo
+    echo "ninja-ing $cur_dir2 as $ PATH=$PATH ninja -C build "${extra_make_options}"
+    echo
+    ninja -C build "${extra_make_options} || exit 1
+    touch $touch_name || exit 1 # only touch if the build was OK
+  else
+    echo "already did ninja $(basename "$cur_dir2")"
+  fi
+}
+
 apply_patch() {
   local url=$1 # if you want it to use a local file instead of a url one [i.e. local file with local modifications] specify it like file://localhost/full/path/to/filename.patch
   local patch_type=$2
@@ -1338,35 +1402,6 @@ build_frei0r() {
   cd ..
 }
 
-build_svt-hevc() {
-  do_git_checkout https://github.com/OpenVisualCloud/SVT-HEVC.git
-  mkdir -p SVT-HEVC_git/release
-  cd SVT-HEVC_git/release
-    do_cmake_from_build_dir .. "-DCMAKE_BUILD_TYPE=Release"
-    do_make_and_make_install
-  cd ../..
-}
-
-build_svt-av1() {
-  do_git_checkout https://github.com/OpenVisualCloud/SVT-AV1.git
-  cd SVT-AV1_git
-  git apply $patch_dir/SVT-AV1-Windows-lowercase.patch
-  cd Build
-    do_cmake_from_build_dir .. "-DCMAKE_BUILD_TYPE=Release"
-    do_make_and_make_install
-  cd ../..
-}
-
-build_svt-vp9() {
-  do_git_checkout https://github.com/OpenVisualCloud/SVT-VP9.git
-  cd SVT-VP9_git
-  git apply $patch_dir/SVT-VP9-Windows-lowercase.patch
-  cd Build
-    do_cmake_from_build_dir ..
-    do_make_and_make_install
-  cd ../..
-}
-
 build_vidstab() {
   do_git_checkout https://github.com/georgmartius/vid.stab.git vid.stab_git
   cd vid.stab_git
@@ -1504,6 +1539,13 @@ build_libaom() {
     do_cmake_from_build_dir .. $config_options
     do_make_and_make_install
   cd ../..
+}
+
+build_dav1d() {
+  do_git_checkout https://code.videolan.org/videolan/dav1d.git libdav1d
+  cd libdav1d
+    generic_meson_ninja_install
+  cd ..
 }
 
 build_libx265() {
@@ -1838,6 +1880,26 @@ reset_cflags() {
   export CFLAGS=$original_cflags
 }
 
+build_meson_cross() {
+    rm -fv meson-cross.mingw.txt
+    echo "[binaries]" >> meson-cross.mingw.txt
+    echo "c = '${cross_prefix}gcc'" >> meson-cross.mingw.txt
+    echo "cpp = '${cross_prefix}g++'" >> meson-cross.mingw.txt
+    echo "ar = '${cross_prefix}ar'" >> meson-cross.mingw.txt
+    echo "strip = '${cross_prefix}strip'" >> meson-cross.mingw.txt
+    echo "pkgconfig = '${cross_prefix}pkg-config'" >> meson-cross.mingw.txt
+    echo "nm = '${cross_prefix}nm'" >> meson-cross.mingw.txt
+    echo "windres = '${cross_prefix}windres'" >> meson-cross.mingw.txt
+#    echo "[properties]" >> meson-cross.mingw.txt
+#    echo "needs_exe_wrapper = true" >> meson-cross.mingw.txt
+    echo "[host_machine]" >> meson-cross.mingw.txt
+    echo "system = 'windows'" >> meson-cross.mingw.txt
+    echo "cpu_family = 'x86_64'" >> meson-cross.mingw.txt
+    echo "cpu = 'x86_64'" >> meson-cross.mingw.txt
+    echo "endian = 'little'" >> meson-cross.mingw.txt
+    mv -v meson-cross.mingw.txt ../..
+}
+
 build_mplayer() {
   # pre requisites
   build_libjpeg_turbo
@@ -1959,21 +2021,6 @@ build_ffmpeg() {
 
   cd $output_dir
     apply_patch file://$patch_dir/frei0r_load-shared-libraries-dynamically.diff
-    #SVT-HEVC
-    wget https://raw.githubusercontent.com/OpenVisualCloud/SVT-HEVC/master/ffmpeg_plugin/0001-lavc-svt_hevc-add-libsvt-hevc-encoder-wrapper.patch
-    git am 0001-lavc-svt_hevc-add-libsvt-hevc-encoder-wrapper.patch
-    #Add SVT-AV1 to SVT-HEVC
-    #wget https://raw.githubusercontent.com/OpenVisualCloud/SVT-AV1/master/ffmpeg_plugin/0001-Add-ability-for-ffmpeg-to-run-svt-av1-with-svt-hevc.patch
-    #git apply 0001-Add-ability-for-ffmpeg-to-run-svt-av1-with-svt-hevc.patch
-    #Add SVT-VP9 to SVT-HEVC & SVT-AV1
-    #wget https://raw.githubusercontent.com/OpenVisualCloud/SVT-VP9/master/ffmpeg_plugin/0001-Add-ability-for-ffmpeg-to-run-svt-vp9-with-svt-hevc-av1.patch
-    #git apply 0001-Add-ability-for-ffmpeg-to-run-svt-vp9-with-svt-hevc-av1.patch
-    #SVT-AV1 only
-    #wget https://raw.githubusercontent.com/OpenVisualCloud/SVT-AV1/master/ffmpeg_plugin/0001-Add-ability-for-ffmpeg-to-run-svt-av1.patch
-    #git apply 0001-Add-ability-for-ffmpeg-to-run-svt-av1.patch
-    #SVT-VP9 only
-    #wget https://raw.githubusercontent.com/OpenVisualCloud/SVT-VP9/master/ffmpeg_plugin/0001-Add-ability-for-ffmpeg-to-run-svt-vp9.patch
-    #git apply 0001-Add-ability-for-ffmpeg-to-run-svt-vp9.patch
 
     if [ "$bits_target" = "32" ]; then
       local arch=x86
@@ -1995,9 +2042,7 @@ build_ffmpeg() {
       # Fix WinXP incompatibility by disabling Microsoft's Secure Channel, because Windows XP doesn't support TLS 1.1 and 1.2, but with GnuTLS or OpenSSL it does.  XP compat!
     fi
     config_options="$init_options --enable-libcaca --enable-gray --enable-libtesseract --enable-fontconfig --enable-gmp --enable-gnutls --enable-libass --enable-libbluray --enable-libbs2b --enable-libflite --enable-libfreetype --enable-libfribidi --enable-libgme --enable-libgsm --enable-libilbc --enable-libmodplug --enable-libmp3lame --enable-libopencore-amrnb --enable-libopencore-amrwb --enable-libopus --enable-libsnappy --enable-libsoxr --enable-libspeex --enable-libtheora --enable-libtwolame --enable-libvo-amrwbenc --enable-libvorbis --enable-libvpx --enable-libwebp --enable-libzimg --enable-libzvbi --enable-libmysofa --enable-libaom --enable-libopenjpeg  --enable-libopenh264 --enable-liblensfun  --enable-libvmaf --enable-libsrt --enable-demuxer=dash --enable-libxml2"
-    config_options+=" --enable-libsvthevc"
-    #config_options+=" --enable-libsvtav1"
-    #config_options+=" --enable-libsvtvp9"
+    config_options+=" --enable-libdav1d"
     if [[ $compiler_flavors != "native" ]]; then
       config_options+=" --enable-nvenc --enable-nvdec" # don't work OS X 
     fi
@@ -2152,6 +2197,7 @@ build_ffmpeg_dependencies() {
     build_dlfcn
     build_libxavs
   fi
+  build_meson_cross
   build_mingw_std_threads
   build_zlib # Zlib in FFmpeg is autodetected.
   build_libcaca # Uses zlib and dlfcn (on windows).
@@ -2208,9 +2254,6 @@ build_ffmpeg_dependencies() {
   build_libsamplerate # Needs libsndfile >= 1.0.6 and fftw >= 0.15.0 for tests. Uses dlfcn.
   build_librubberband # Needs libsamplerate, libsndfile, fftw and vamp_plugin. 'configure' will fail otherwise. Eventhough librubberband doesn't necessarily need them (libsndfile only for 'rubberband.exe' and vamp_plugin only for "Vamp audio analysis plugin"). How to use the bundled libraries '-DUSE_SPEEX' and '-DUSE_KISSFFT'?
   build_frei0r # Needs dlfcn. could use opencv...
-  build_svt-hevc
-  #build_svt-av1
-  #build_svt-vp9
   build_vidstab
   #build_facebooktransform360 # needs modified ffmpeg to use it
   build_libmysofa # Needed for FFmpeg's SOFAlizer filter (https://ffmpeg.org/ffmpeg-filters.html#sofalizer). Uses dlfcn.
@@ -2231,6 +2274,7 @@ build_ffmpeg_dependencies() {
   build_libx265
   build_libopenh264
   build_libaom
+  build_dav1d
   build_libx264 # at bottom as it might internally build a coy of ffmpeg (which needs all the above deps...
 }
 
@@ -2263,6 +2307,7 @@ build_apps() {
 }
 
 # set some parameters initial values
+top_dir="$(pwd)"
 cur_dir="$(pwd)/sandbox"
 patch_dir="$(pwd)/patches"
 cpu_count="$(grep -c processor /proc/cpuinfo 2>/dev/null)" # linux cpu count
