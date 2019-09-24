@@ -1338,6 +1338,35 @@ build_frei0r() {
   cd ..
 }
 
+build_svt-hevc() {
+  do_git_checkout https://github.com/OpenVisualCloud/SVT-HEVC.git
+  mkdir -p SVT-HEVC_git/release
+  cd SVT-HEVC_git/release
+    do_cmake_from_build_dir .. "-DCMAKE_BUILD_TYPE=Release"
+    do_make_and_make_install
+  cd ../..
+}
+
+build_svt-av1() {
+  do_git_checkout https://github.com/OpenVisualCloud/SVT-AV1.git
+  cd SVT-AV1_git
+  git apply $patch_dir/SVT-AV1-Windows-lowercase.patch
+  cd Build
+    do_cmake_from_build_dir .. "-DCMAKE_BUILD_TYPE=Release"
+    do_make_and_make_install
+  cd ../..
+}
+
+build_svt-vp9() {
+  do_git_checkout https://github.com/OpenVisualCloud/SVT-VP9.git
+  cd SVT-VP9_git
+  git apply $patch_dir/SVT-VP9-Windows-lowercase.patch
+  cd Build
+    do_cmake_from_build_dir ..
+    do_make_and_make_install
+  cd ../..
+}
+
 build_vidstab() {
   do_git_checkout https://github.com/georgmartius/vid.stab.git vid.stab_git
   cd vid.stab_git
@@ -1930,6 +1959,21 @@ build_ffmpeg() {
 
   cd $output_dir
     apply_patch file://$patch_dir/frei0r_load-shared-libraries-dynamically.diff
+    #SVT-HEVC
+    wget https://raw.githubusercontent.com/OpenVisualCloud/SVT-HEVC/master/ffmpeg_plugin/0001-lavc-svt_hevc-add-libsvt-hevc-encoder-wrapper.patch
+    git am 0001-lavc-svt_hevc-add-libsvt-hevc-encoder-wrapper.patch
+    #Add SVT-AV1 to SVT-HEVC
+    #wget https://raw.githubusercontent.com/OpenVisualCloud/SVT-AV1/master/ffmpeg_plugin/0001-Add-ability-for-ffmpeg-to-run-svt-av1-with-svt-hevc.patch
+    #git apply 0001-Add-ability-for-ffmpeg-to-run-svt-av1-with-svt-hevc.patch
+    #Add SVT-VP9 to SVT-HEVC & SVT-AV1
+    #wget https://raw.githubusercontent.com/OpenVisualCloud/SVT-VP9/master/ffmpeg_plugin/0001-Add-ability-for-ffmpeg-to-run-svt-vp9-with-svt-hevc-av1.patch
+    #git apply 0001-Add-ability-for-ffmpeg-to-run-svt-vp9-with-svt-hevc-av1.patch
+    #SVT-AV1 only
+    #wget https://raw.githubusercontent.com/OpenVisualCloud/SVT-AV1/master/ffmpeg_plugin/0001-Add-ability-for-ffmpeg-to-run-svt-av1.patch
+    #git apply 0001-Add-ability-for-ffmpeg-to-run-svt-av1.patch
+    #SVT-VP9 only
+    #wget https://raw.githubusercontent.com/OpenVisualCloud/SVT-VP9/master/ffmpeg_plugin/0001-Add-ability-for-ffmpeg-to-run-svt-vp9.patch
+    #git apply 0001-Add-ability-for-ffmpeg-to-run-svt-vp9.patch
 
     if [ "$bits_target" = "32" ]; then
       local arch=x86
@@ -1951,6 +1995,9 @@ build_ffmpeg() {
       # Fix WinXP incompatibility by disabling Microsoft's Secure Channel, because Windows XP doesn't support TLS 1.1 and 1.2, but with GnuTLS or OpenSSL it does.  XP compat!
     fi
     config_options="$init_options --enable-libcaca --enable-gray --enable-libtesseract --enable-fontconfig --enable-gmp --enable-gnutls --enable-libass --enable-libbluray --enable-libbs2b --enable-libflite --enable-libfreetype --enable-libfribidi --enable-libgme --enable-libgsm --enable-libilbc --enable-libmodplug --enable-libmp3lame --enable-libopencore-amrnb --enable-libopencore-amrwb --enable-libopus --enable-libsnappy --enable-libsoxr --enable-libspeex --enable-libtheora --enable-libtwolame --enable-libvo-amrwbenc --enable-libvorbis --enable-libvpx --enable-libwebp --enable-libzimg --enable-libzvbi --enable-libmysofa --enable-libaom --enable-libopenjpeg  --enable-libopenh264 --enable-liblensfun  --enable-libvmaf --enable-libsrt --enable-demuxer=dash --enable-libxml2"
+    config_options+=" --enable-libsvthevc"
+    #config_options+=" --enable-libsvtav1"
+    #config_options+=" --enable-libsvtvp9"
     if [[ $compiler_flavors != "native" ]]; then
       config_options+=" --enable-nvenc --enable-nvdec" # don't work OS X 
     fi
@@ -2161,6 +2208,9 @@ build_ffmpeg_dependencies() {
   build_libsamplerate # Needs libsndfile >= 1.0.6 and fftw >= 0.15.0 for tests. Uses dlfcn.
   build_librubberband # Needs libsamplerate, libsndfile, fftw and vamp_plugin. 'configure' will fail otherwise. Eventhough librubberband doesn't necessarily need them (libsndfile only for 'rubberband.exe' and vamp_plugin only for "Vamp audio analysis plugin"). How to use the bundled libraries '-DUSE_SPEEX' and '-DUSE_KISSFFT'?
   build_frei0r # Needs dlfcn. could use opencv...
+  build_svt-hevc
+  #build_svt-av1
+  #build_svt-vp9
   build_vidstab
   #build_facebooktransform360 # needs modified ffmpeg to use it
   build_libmysofa # Needed for FFmpeg's SOFAlizer filter (https://ffmpeg.org/ffmpeg-filters.html#sofalizer). Uses dlfcn.
