@@ -2102,7 +2102,7 @@ build_ffmpeg() {
     config_options+=" --enable-libaom"
     #config_options+=" --enable-libsvtav1"
 
-    #vpx must be disabled to use SVT-VP9
+    #vpx and xvid must be disabled to use SVT-VP9
     config_options+=" --enable-libvpx"
     #config_options+=" --enable-libsvtvp9" #not currently working
 
