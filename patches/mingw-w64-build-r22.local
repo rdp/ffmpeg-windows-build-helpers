@@ -76,7 +76,7 @@ gcc_host=''
 
 ## Versions
 mingw_w64_release_ver='6.0.0'
-gcc_release_ver='8.2.0' # we usually specify this with a param too...
+gcc_release_ver='8.3.0' # we usually specify this with a param too...
 gcc_old_release_ver='4.9.3'
 mpfr_release_ver='3.1.5'
 mpc_release_ver='1.0.3'
