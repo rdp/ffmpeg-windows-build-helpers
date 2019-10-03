@@ -2059,6 +2059,7 @@ build_ffmpeg() {
 
   cd $output_dir
     apply_patch file://$patch_dir/frei0r_load-shared-libraries-dynamically.diff
+    if [ "$bits_target" != "32" ]; then
     #SVT-HEVC
     wget https://raw.githubusercontent.com/OpenVisualCloud/SVT-HEVC/master/ffmpeg_plugin/0001-lavc-svt_hevc-add-libsvt-hevc-encoder-wrapper.patch
     git apply 0001-lavc-svt_hevc-add-libsvt-hevc-encoder-wrapper.patch
@@ -2074,7 +2075,7 @@ build_ffmpeg() {
     #Add SVT-VP9 to SVT-HEVC & SVT-AV1
     #wget https://raw.githubusercontent.com/OpenVisualCloud/SVT-VP9/master/ffmpeg_plugin/0001-Add-ability-for-ffmpeg-to-run-svt-vp9-with-svt-hevc-av1.patch
     #git apply 0001-Add-ability-for-ffmpeg-to-run-svt-vp9-with-svt-hevc-av1.patch
-
+    fi
     if [ "$bits_target" = "32" ]; then
       local arch=x86
     else
@@ -2097,8 +2098,10 @@ build_ffmpeg() {
     config_options="$init_options --enable-libcaca --enable-gray --enable-libtesseract --enable-fontconfig --enable-gmp --enable-gnutls --enable-libass --enable-libbluray --enable-libbs2b --enable-libflite --enable-libfreetype --enable-libfribidi --enable-libgme --enable-libgsm --enable-libilbc --enable-libmodplug --enable-libmp3lame --enable-libopencore-amrnb --enable-libopencore-amrwb --enable-libopus --enable-libsnappy --enable-libsoxr --enable-libspeex --enable-libtheora --enable-libtwolame --enable-libvo-amrwbenc --enable-libvorbis --enable-libwebp --enable-libzimg --enable-libzvbi --enable-libmysofa --enable-libopenjpeg  --enable-libopenh264 --enable-liblensfun  --enable-libvmaf --enable-libsrt --enable-demuxer=dash --enable-libxml2"
     config_options+=" --enable-libdav1d"
 
-    #SVT-HEVC must be disabled to use the other svt???  But there are patches that are supposed to combine to allow using all of them
-    config_options+=" --enable-libsvthevc"
+    if [ "$bits_target" != "32" ]; then
+      #SVT-HEVC [following line] must be disabled to use the other svt???  But there are patches that are supposed to combine to allow using all of them
+      config_options+=" --enable-libsvthevc"
+    fi
 
     #aom must be disabled to use SVT-AV1
     config_options+=" --enable-libaom"
@@ -2320,9 +2323,11 @@ build_ffmpeg_dependencies() {
   build_libsamplerate # Needs libsndfile >= 1.0.6 and fftw >= 0.15.0 for tests. Uses dlfcn.
   build_librubberband # Needs libsamplerate, libsndfile, fftw and vamp_plugin. 'configure' will fail otherwise. Eventhough librubberband doesn't necessarily need them (libsndfile only for 'rubberband.exe' and vamp_plugin only for "Vamp audio analysis plugin"). How to use the bundled libraries '-DUSE_SPEEX' and '-DUSE_KISSFFT'?
   build_frei0r # Needs dlfcn. could use opencv...
-  build_svt-hevc
-  build_svt-av1
-  build_svt-vp9
+  if [ "$bits_target" != "32" ]; then
+    build_svt-hevc
+    build_svt-av1
+    build_svt-vp9
+  fi
   build_vidstab
   #build_facebooktransform360 # needs modified ffmpeg to use it
   build_libmysofa # Needed for FFmpeg's SOFAlizer filter (https://ffmpeg.org/ffmpeg-filters.html#sofalizer). Uses dlfcn.
