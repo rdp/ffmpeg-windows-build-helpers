@@ -900,7 +900,7 @@ build_libxml2() {
 }
 
 build_libvmaf() {
-  do_git_checkout https://github.com/Netflix/vmaf.git
+  do_git_checkout https://github.com/Netflix/vmaf.git vmaf_git 2ded988de0356a09b65bbb8e14bd625aff29c332 # before "reorg" killed our patch
   cd vmaf_git
     apply_patch file://$patch_dir/libvmaf.various.patch -p1
     do_make_and_make_install "$make_prefix_options INSTALL_PREFIX=$mingw_w64_x86_64_prefix"
