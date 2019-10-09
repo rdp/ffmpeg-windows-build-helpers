@@ -1426,9 +1426,6 @@ build_svt-vp9() {
   do_git_checkout https://github.com/OpenVisualCloud/SVT-VP9.git
   cd SVT-VP9_git
   git apply $patch_dir/SVT-VP9-Windows-lowercase.patch
-  #Comment From DeadSix27's implementation: "StaticLib: Add static library support #59" not yet merged, but seems finished.
-  wget https://github.com/OpenVisualCloud/SVT-VP9/pull/59.patch
-  git apply 59.patch
   cd Build
     do_cmake_from_build_dir .. "-DCMAKE_BUILD_TYPE=Release -DCPPAN_BUILD=OFF"
     do_make_and_make_install
