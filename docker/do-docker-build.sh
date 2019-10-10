@@ -15,7 +15,7 @@ if [ $? -eq 0 ]; then
 
     mkdir -p $OUTPUTDIR
     echo [`date +'%Y%m%dT%H%M%S'`] Starting container..
-    # When rerunning use docker start
+    # When rerunning use docker start ...
     docker run --name ffmpegbuilder -it ffmpeg-windows-build-helpers
 
     if [ $? -eq 0 ]; then
