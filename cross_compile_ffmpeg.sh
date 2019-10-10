@@ -2093,25 +2093,24 @@ build_ffmpeg() {
       init_options+=" --disable-schannel"
       # Fix WinXP incompatibility by disabling Microsoft's Secure Channel, because Windows XP doesn't support TLS 1.1 and 1.2, but with GnuTLS or OpenSSL it does.  XP compat!
     fi
-    config_options="$init_options --enable-libcaca --enable-gray --enable-libtesseract --enable-fontconfig --enable-gmp --enable-gnutls --enable-libass --enable-libbluray --enable-libbs2b --enable-libflite --enable-libfreetype --enable-libfribidi --enable-libgme --enable-libgsm --enable-libilbc --enable-libmodplug --enable-libmp3lame --enable-libopencore-amrnb --enable-libopencore-amrwb --enable-libopus --enable-libsnappy --enable-libsoxr --enable-libspeex --enable-libtheora --enable-libtwolame --enable-libvo-amrwbenc --enable-libvorbis --enable-libwebp --enable-libzimg --enable-libzvbi --enable-libmysofa --enable-libopenjpeg  --enable-libopenh264 --enable-liblensfun  --enable-libvmaf --enable-libsrt --enable-demuxer=dash --enable-libxml2"
-    config_options+=" --enable-libdav1d"
+    config_options="$init_options "
 
-    if [ "$bits_target" != "32" ]; then
+    #if [ "$bits_target" != "32" ]; then
       #SVT-HEVC [following line] must be disabled to use the other svt???  But there are patches that are supposed to combine to allow using all of them
-      config_options+=" --enable-libsvthevc"
-    fi
+      #config_options+=" --enable-libsvthevc"
+    #fi
 
     #aom must be disabled to use SVT-AV1
-    config_options+=" --enable-libaom"
+    #config_options+=" --enable-libaom"
     #config_options+=" --enable-libsvtav1"
 
     #vpx and xvid must be disabled to use SVT-VP9
-    config_options+=" --enable-libvpx"
+    #config_options+=" --enable-libvpx"
     #config_options+=" --enable-libsvtvp9" #not currently working
 
-    if [[ $compiler_flavors != "native" ]]; then
-      config_options+=" --enable-nvenc --enable-nvdec" # don't work OS X 
-    fi
+    #if [[ $compiler_flavors != "native" ]]; then
+    #  config_options+=" --enable-nvenc --enable-nvdec" # don't work OS X 
+    #fi
 
     config_options+=" --extra-libs=-lharfbuzz" #  grr...needed for pre x264 build???
     config_options+=" --extra-libs=-lm" # libflite seemed to need this linux native...and have no .pc file huh?
@@ -2121,25 +2120,25 @@ build_ffmpeg() {
     if [[ $build_amd_amf = n ]]; then
       config_options+=" --disable-amf" # Since its autodetected we have to disable it if we do not want it. #unless we define no autodetection but.. we don't.
     else
-      config_options+=" --enable-amf" # This is actually autodetected but for consistency.. we might as well set it.
+      config_options+=" --disable-amf" # This is actually autodetected but for consistency.. we might as well set it.
     fi
 
     if [[ $build_intel_qsv = y ]]; then
-      config_options+=" --enable-libmfx"
+      config_options+=" --disable-libmfx"
     else
       config_options+=" --disable-libmfx"
     fi
-    if [[ $enable_gpl == 'y' ]]; then
-      config_options+=" --enable-gpl --enable-avisynth --enable-frei0r --enable-filter=frei0r --enable-librubberband --enable-libvidstab --enable-libx264 --enable-libx265"
-      config_options+=" --enable-libxvid"
-      if [[ $compiler_flavors != "native" ]]; then
-        config_options+=" --enable-libxavs" # don't compile OS X 
-      fi
-    fi
+    #if [[ $enable_gpl == 'y' ]]; then
+      #config_options+=" --enable-gpl --enable-avisynth --enable-frei0r --enable-filter=frei0r --enable-librubberband --enable-libvidstab --enable-libx264 --enable-libx265"
+      #config_options+=" --enable-libxvid"
+      #if [[ $compiler_flavors != "native" ]]; then
+      #  config_options+=" --enable-libxavs" # don't compile OS X 
+      #fi
+    #fi
     local licensed_gpl=n # lgpl build with libx264 included for those with "commercial" license :)
     if [[ $licensed_gpl == 'y' ]]; then
       apply_patch file://$patch_dir/x264_non_gpl.diff -p1
-      config_options+=" --enable-libx264"
+      #config_options+=" --enable-libx264"
     fi 
     # other possibilities:
     #   --enable-w32threads # [worse UDP than pthreads, so not using that]
@@ -2151,10 +2150,10 @@ build_ffmpeg() {
 
     config_options+=" $postpend_configure_opts"
 
-    if [[ "$non_free" = "y" ]]; then
-      config_options+=" --enable-nonfree --enable-decklink --enable-libfdk-aac"
-      # other possible options: --enable-openssl [unneeded since we use gnutls]
-    fi
+    #if [[ "$non_free" = "y" ]]; then
+    #  config_options+=" --enable-nonfree --enable-decklink --enable-libfdk-aac"
+    #  # other possible options: --enable-openssl [unneeded since we use gnutls]
+    #fi
 
     do_debug_build=n # if you need one for backtraces/examining segfaults using gdb.exe ... change this to y :) XXXX make it affect x264 too...and make it real param :)
     if [[ "$do_debug_build" = "y" ]]; then
