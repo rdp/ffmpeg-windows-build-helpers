@@ -1428,7 +1428,9 @@ build_svt-vp9() {
   git apply $patch_dir/SVT-VP9-Windows-lowercase.patch
   cd Build
     do_cmake_from_build_dir .. "-DCMAKE_BUILD_TYPE=Release -DCPPAN_BUILD=OFF"
+    cpu_count=1
     do_make_and_make_install
+    cpu_count=$original_cpu_count
   cd ../..
 }
 

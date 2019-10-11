@@ -43,7 +43,7 @@ if [ $? -eq 0 ]; then
     echo [`date +'%Y%m%dT%H%M%S'`] Stopping and removing container...
     docker stop ffmpegbuilder
     # Comment this if you want to keep your sandbox data and rerun the container at a later time.
-    docker rm ffmpegbuilder
+    # docker rm ffmpegbuilder
 else
     echo [`date +'%Y%m%dT%H%M%S'`] Docker build failed. Started: $STARTTIME
     exit 1
