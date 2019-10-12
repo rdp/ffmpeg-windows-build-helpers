@@ -2324,8 +2324,8 @@ build_ffmpeg_dependencies() {
   build_frei0r # Needs dlfcn. could use opencv...
   if [ "$bits_target" != "32" ]; then
     build_svt-hevc
-    build_svt-av1
-    build_svt-vp9
+    # build_svt-av1 # unused at present
+    # build_svt-vp9 # unused at present, broken ubuntu 18.04 as well, for whatever reason... :|
   fi
   build_vidstab
   #build_facebooktransform360 # needs modified ffmpeg to use it
