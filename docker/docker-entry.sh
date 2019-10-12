@@ -12,3 +12,8 @@ cp -R -f ./sandbox/win64/ffmpeg_git_with_fdk_aac/ffplay.exe $OUTPUTDIR/static/bi
 
 mkdir -p $OUTPUTDIR/shared
 cp -R -f ./sandbox/win64/ffmpeg_git_with_fdk_aac_shared/bin/ $OUTPUTDIR/shared
+
+if [[ -f /tmp/loop ]]; then
+  echo 'sleeping forever so you can attach to this docker if desired' # without this if there's a build failure the docker exits and can't get in to tweak stuff??? :|
+  sleep
+fi

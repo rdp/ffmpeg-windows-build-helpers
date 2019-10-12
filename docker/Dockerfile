@@ -31,12 +31,11 @@ RUN apt-get update && \
     bzip2 \
     autoconf-archive \
     p7zip-full \
-    ragel
+    ragel \
+    python3-distutils
 
+# copy the entire git dir into the new docker container
 COPY . ./ffmpeg-windows-build-helpers
-
-#COPY ./do-custom-build.sh /ffmpeg-windows-build-helpers/do-custom-build.sh
 
 WORKDIR /ffmpeg-windows-build-helpers
 ENTRYPOINT [ "bash", "./docker/docker-entry.sh" ]
-    

@@ -83,12 +83,11 @@ check_missing_packages () {
       fi
       echo " -y"
     else
-      echo "for gentoo (a non ubuntu distro): same as above, but no g++, no gcc, git is dev-vcs/git, zlib1g-dev is zlib, pkg-config is dev-util/pkgconfig, add ed..."
-      echo "for OS X (homebrew): brew install ragel wget cvs hg yasm autogen automake autoconf cmake libtool xz pkg-config nasm bzip2 autoconf-archive p7zip coreutils meson"
-      echo "for debian: same as ubuntu, but also add libtool-bin, ed, autoconf-archive"
-      echo "for RHEL/CentOS: First ensure you have epel repos available, then run $ sudo yum install ragel subversion texinfo mercurial libtool autogen gperf nasm patch unzip pax ed gcc-c++ bison flex yasm automake autoconf gcc zlib-devel cvs bzip2 cmake3 -y"
+      echo "for OS X (homebrew): brew install ragel wget cvs hg yasm autogen automake autoconf cmake libtool xz pkg-config nasm bzip2 autoconf-archive p7zip coreutils meson" # if edit this edit docker/Dockerfile also :|
+      echo "for debian: same as ubuntu, but also add libtool-bin, ed"
+      echo "for RHEL/CentOS: First ensure you have epel repo available, then run $ sudo yum install ragel subversion texinfo mercurial libtool autogen gperf nasm patch unzip pax ed gcc-c++ bison flex yasm automake autoconf gcc zlib-devel cvs bzip2 cmake3 -y"
       echo "for fedora: if your distribution comes with a modern version of cmake then use the same as RHEL/CentOS but replace cmake3 with cmake."
-      echo "for linux native compiler option: same as <your OS> above, add libva-dev"
+      echo "for linux native compiler option: same as <your OS> above, also add libva-dev"
     fi
     exit 1
   fi
@@ -124,6 +123,8 @@ check_missing_packages () {
     echo "warning: you may need to install zlib development headers first if you want to build mp4-box [on ubuntu: $ apt-get install zlib1g-dev] [on redhat/fedora distros: $ yum install zlib-devel]" # XXX do like configure does and attempt to compile and include zlib.h instead?
     sleep 1
   fi
+
+  # TODO meson version, nasm version :|
 
   # doing the cut thing with an assigned variable dies on the version of yasm I have installed (which I'm pretty sure is the RHEL default)
   # because of all the trailing lines of stuff
