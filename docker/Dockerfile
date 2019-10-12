@@ -1,4 +1,4 @@
-FROM ubuntu:18.04
+FROM ubuntu:19.04
 
 RUN apt-get update && \
     apt-get install -y \
@@ -25,6 +25,7 @@ RUN apt-get update && \
     unzip \
     pax \
     nasm \
+    meson \
     gperf \
     autogen \
     bzip2 \
