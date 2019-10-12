@@ -17,7 +17,7 @@ if [ $? -eq 0 ]; then
     mkdir -p $OUTPUTDIR
     echo [`date +'%Y%m%dT%H%M%S'`] Creating and starting container...
     # When rerunning use docker start ffmpegbuilder -it, then in other terminal docker exec -it ffmpegbuilder touch /tmp/loop; docker exec -it ffmpegbuilder /bin/bash" while the first is still running...
-    docker run --name ffmpegbuilder -it ffmpeg-windows-build-helpers-image
+    docker run --name ffmpegbuilder -it ffmpeg-windows-build-helpers-image || docker start ffmpegbuilder -it
 
     if [ $? -eq 0 ]; then
         echo [`date +'%Y%m%dT%H%M%S'`] Build successful
