@@ -723,8 +723,9 @@ generic_configure "--bindir=$mingw_bin_path"
 build_amd_amf_headers() {
   # was https://github.com/GPUOpen-LibrariesAndSDKs/AMF.git too big
   # or https://github.com/DeadSix27/AMF smaller
-  # just right...
-  do_git_checkout https://github.com/DeadSix27/AMF.git amf_headers_git
+  # but even smaller!
+  do_git_checkout https://github.com/rdp/amf_headers.git amf_headers_git
+
   cd amf_headers_git
     if [ ! -f "already_installed" ]; then
       #rm -rf "./Thirdparty" # ?? plus too chatty...
