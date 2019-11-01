@@ -37,7 +37,9 @@ function sortable_version { echo "$@" | awk -F. '{ printf("%d%03d%03d%03d\n", $1
 
 at_least_required_version() { # params: required actual
   local sortable_required=$(sortable_version $1)
+  sortable_required=$(echo $sortable_required | sed 's/^0*//') # remove preceding zeroes, which bash later interprets as octal or screwy
   local sortable_actual=$(sortable_version $2)
+  sortable_actual=$(echo $sortable_actual | sed 's/^0*//')
   [[ "$sortable_actual" -ge "$sortable_required" ]]
 }
 
@@ -48,7 +50,7 @@ check_missing_packages () {
     VENDOR="redhat"
   fi
   # zeranoe's build scripts use wget, though we don't here...
-  local check_packages=('ragel' 'curl' 'pkg-config' 'make' 'git' 'svn' 'gcc' 'autoconf' 'automake' 'yasm' 'cvs' 'flex' 'bison' 'makeinfo' 'g++' 'ed' 'hg' 'pax' 'unzip' 'patch' 'wget' 'xz' 'nasm' 'gperf' 'autogen' 'bzip2' 'realpath')
+  local check_packages=('ragel' 'curl' 'pkg-config' 'make' 'git' 'svn' 'gcc' 'autoconf' 'automake' 'yasm' 'cvs' 'flex' 'bison' 'makeinfo' 'g++' 'ed' 'hg' 'pax' 'unzip' 'patch' 'wget' 'xz' 'nasm' 'gperf' 'autogen' 'bzip2' 'realpath' 'meson')
   # autoconf-archive is just for leptonica FWIW
   # I'm not actually sure if VENDOR being set to centos is a thing or not. On all the centos boxes I can test on it's not been set at all.
   # that being said, if it where set I would imagine it would be set to centos... And this contition will satisfy the "Is not initially set"
@@ -124,17 +126,23 @@ check_missing_packages () {
     sleep 1
   fi
 
-  # TODO meson version, nasm version :|
+  # TODO nasm version :|
 
   # doing the cut thing with an assigned variable dies on the version of yasm I have installed (which I'm pretty sure is the RHEL default)
   # because of all the trailing lines of stuff
-  export REQUIRED_YASM_VERSION="1.2.0"
-  yasm_binary=yasm
-  yasm_version="$( "${yasm_binary}" --version |sed -e "s#${yasm_binary}##g" | head -n 1 | tr -dc '[0-9.\n]' )"
+  export REQUIRED_YASM_VERSION="1.2.0" # export ???
+  local yasm_binary=yasm
+  local yasm_version="$( "${yasm_binary}" --version |sed -e "s#${yasm_binary}##g" | head -n 1 | tr -dc '[0-9.\n]' )"
   if ! at_least_required_version "${REQUIRED_YASM_VERSION}" "${yasm_version}"; then
     echo "your yasm version is too old $yasm_version wanted ${REQUIRED_YASM_VERSION}"
     exit 1
   fi
+  local meson_version=`meson --version`
+  if ! at_least_required_version "0.47" "${meson_version}"; then
+    echo "your meson version is too old $meson_version wanted 0.47"
+    exit 1
+  fi
+
 }
 
 determine_distro() { 
