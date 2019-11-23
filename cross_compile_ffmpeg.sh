@@ -2551,6 +2551,15 @@ if [[ $OSTYPE == darwin* ]]; then
   cd ..
 fi
 
+if uname -a | grep  -q -- "-Microsoft " ; then
+  if cat /proc/sys/fs/binfmt_misc/WSLInterop | grep -q enabled ; then
+    echo "windows WSL detected: you must first disable 'binfmt' by running this 
+    sudo bash -c 'echo 0 > /proc/sys/fs/binfmt_misc/WSLInterop'
+    then try again"
+    exit 1
+  fi
+fi
+
 original_path="$PATH"
 
 if [[ $compiler_flavors == "native" ]]; then
