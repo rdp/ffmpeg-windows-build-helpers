@@ -118,7 +118,9 @@ check_missing_packages () {
     exit 1
   else
     # If cmake_command is set then either one of the cmake's is adequate.
-    echo "cmake binary for this build will be ${cmake_command}"
+    if [[ $cmake_command != "cmake" ]]; then # don't echo if it's the normal default
+      echo "cmake binary for this build will be ${cmake_command}"
+    fi
   fi
 
   if [[ ! -f /usr/include/zlib.h ]]; then
@@ -166,7 +168,6 @@ unset UNAME
 
 
 intro() {
-  echo `date`
   cat <<EOL
      ##################### Welcome ######################
   Welcome to the ffmpeg cross-compile builder-helper script.
@@ -177,6 +178,7 @@ intro() {
   the sandbox directory, since it will have some hard coded paths in there.
   You can, of course, rebuild ffmpeg from within it, etc.
 EOL
+  echo `date` # for timestamping super long builds LOL
   if [[ $sandbox_ok != 'y' && ! -d sandbox ]]; then
     echo
     echo "Building in $PWD/sandbox, will use ~ 4GB space!"
