@@ -144,6 +144,15 @@ check_missing_packages () {
     echo "your meson version is too old $meson_version wanted 0.47"
     exit 1
   fi
+  # also check missing "setup" so it's early LOL
+  if uname -a | grep  -q -- "-Microsoft " ; then
+    if cat /proc/sys/fs/binfmt_misc/WSLInterop | grep -q enabled ; then
+      echo "windows WSL detected: you must first disable 'binfmt' by running this 
+      sudo bash -c 'echo 0 > /proc/sys/fs/binfmt_misc/WSLInterop'
+      then try again"
+      exit 1
+    fi
+  fi
 
 }
 
@@ -280,6 +289,10 @@ install_cross_compiler() {
         echo "Failure building 32 bit gcc? Recommend nuke sandbox (rm -rf sandbox) and start over..."
         exit 1
       fi
+      if [[ ! -f  $mingw_w64_x86_64_prefix/lib/libmingwex.a ]]; then
+	      echo "failure building mingw? 32 bit"
+	      exit 1
+      fi
     fi
     if [[ ($compiler_flavors == "win64" || $compiler_flavors == "multi") && ! -f ../$win64_gcc ]]; then
       echo "Building win64 x86_64 cross compiler..."
@@ -288,6 +301,10 @@ install_cross_compiler() {
       if [[ ! -f ../$win64_gcc ]]; then
         echo "Failure building 64 bit gcc? Recommend nuke sandbox (rm -rf sandbox) and start over..."
         exit 1
+      fi
+      if [[ ! -f  $mingw_w64_x86_64_prefix/lib/libmingwex.a ]]; then
+	      echo "failure building mingw? 64 bit"
+	      exit 1
       fi
     fi
 
@@ -2551,15 +2568,6 @@ if [[ $OSTYPE == darwin* ]]; then
     fi
     export PATH=`pwd`:$PATH
   cd ..
-fi
-
-if uname -a | grep  -q -- "-Microsoft " ; then
-  if cat /proc/sys/fs/binfmt_misc/WSLInterop | grep -q enabled ; then
-    echo "windows WSL detected: you must first disable 'binfmt' by running this 
-    sudo bash -c 'echo 0 > /proc/sys/fs/binfmt_misc/WSLInterop'
-    then try again"
-    exit 1
-  fi
 fi
 
 original_path="$PATH"
