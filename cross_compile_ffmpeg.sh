@@ -289,8 +289,8 @@ install_cross_compiler() {
         echo "Failure building 32 bit gcc? Recommend nuke sandbox (rm -rf sandbox) and start over..."
         exit 1
       fi
-      if [[ ! -f  $mingw_w64_x86_64_prefix/lib/libmingwex.a ]]; then
-	      echo "failure building mingw? 32 bit"
+      if [[ ! -f  ../cross_compilers/mingw-w64-i686/i686-w64-mingw32/lib/libmingwex.a ]]; then
+	      echo "failure building mingwex? 32 bit"
 	      exit 1
       fi
     fi
@@ -302,8 +302,8 @@ install_cross_compiler() {
         echo "Failure building 64 bit gcc? Recommend nuke sandbox (rm -rf sandbox) and start over..."
         exit 1
       fi
-      if [[ ! -f  $mingw_w64_x86_64_prefix/lib/libmingwex.a ]]; then
-	      echo "failure building mingw? 64 bit"
+      if [[ ! -f  ../cross_compilers/mingw-w64-x86_64/x86_64-w64-mingw32/lib/libmingwex.a ]]; then
+	      echo "failure building mingwex? 64 bit"
 	      exit 1
       fi
     fi
