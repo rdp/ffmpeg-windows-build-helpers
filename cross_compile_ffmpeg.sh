@@ -1604,7 +1604,7 @@ build_libaom() {
 build_dav1d() {
   do_git_checkout https://code.videolan.org/videolan/dav1d.git libdav1d
   cd libdav1d
-    if [[ $bits_target == 32 ]]; then
+    if [[ $bits_target == 32 || $bits_target == 64 ]]; then
       apply_patch file://$patch_dir/david_no_asm.patch -p1 # XXX report
     fi
     cpu_count=1 # XXX report :|
