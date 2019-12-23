@@ -766,7 +766,7 @@ build_amd_amf_headers() {
 }
 
 build_nv_headers() {
-  do_git_checkout https://git.videolan.org/?p=ffmpeg/nv-codec-headers.git
+  do_git_checkout https://git.videolan.org/git/ffmpeg/nv-codec-headers.git
   cd nv-codec-headers_git
     do_make_install "PREFIX=$mingw_w64_x86_64_prefix" # just copies in headers
   cd ..
