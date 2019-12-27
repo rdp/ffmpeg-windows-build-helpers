@@ -867,6 +867,14 @@ build_libopenjpeg() {
   cd ..
 }
 
+build_glew() {
+  download_and_unpack_file https://sourceforge.net/projects/glew/files/glew/2.1.0/glew-2.1.0.tgz glew-2.1.0
+  cd glew-2.1.0/build
+    do_cmake_from_build_dir ./cmake "-DWIN32=1 -DBUILD_SHARED_LIBS=0 " # "-DWITH_FFMPEG=0 -DOPENCV_GENERATE_PKGCONFIG=1 -DHAVE_DSHOW=0"
+    do_make_and_make_install
+  cd ../..
+}
+
 build_libpng() {
   do_git_checkout https://github.com/glennrp/libpng.git
   cd libpng_git
@@ -2310,6 +2318,7 @@ build_ffmpeg_dependencies() {
   build_nv_headers
   build_libzimg # Uses dlfcn.
   build_libopenjpeg
+  build_glew
   #build_libjpeg_turbo # mplayer can use this, VLC qt might need it? [replaces libjpeg] (ffmpeg seems to not need it so commented out here)
   build_libpng # Needs zlib >= 1.0.4. Uses dlfcn.
   build_libwebp # Uses dlfcn.
