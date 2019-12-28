@@ -875,6 +875,13 @@ build_glew() {
   cd ../..
 }
 
+build_glfw() {
+  download_and_unpack_file https://github.com/glfw/glfw/releases/download/3.3/glfw-3.3.zip glfw-3.3
+  cd glfw-3.3
+    do_cmake_and_install
+  cd ..
+}
+
 build_libpng() {
   do_git_checkout https://github.com/glennrp/libpng.git
   cd libpng_git
@@ -2319,6 +2326,7 @@ build_ffmpeg_dependencies() {
   build_libzimg # Uses dlfcn.
   build_libopenjpeg
   build_glew
+  build_glfw
   #build_libjpeg_turbo # mplayer can use this, VLC qt might need it? [replaces libjpeg] (ffmpeg seems to not need it so commented out here)
   build_libpng # Needs zlib >= 1.0.4. Uses dlfcn.
   build_libwebp # Uses dlfcn.
