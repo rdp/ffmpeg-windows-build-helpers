@@ -2139,6 +2139,9 @@ build_ffmpeg() {
     fi
     config_options="$init_options --enable-libcaca --enable-gray --enable-libtesseract --enable-fontconfig --enable-gmp --enable-gnutls --enable-libass --enable-libbluray --enable-libbs2b --enable-libflite --enable-libfreetype --enable-libfribidi --enable-libgme --enable-libgsm --enable-libilbc --enable-libmodplug --enable-libmp3lame --enable-libopencore-amrnb --enable-libopencore-amrwb --enable-libopus --enable-libsnappy --enable-libsoxr --enable-libspeex --enable-libtheora --enable-libtwolame --enable-libvo-amrwbenc --enable-libvorbis --enable-libwebp --enable-libzimg --enable-libzvbi --enable-libmysofa --enable-libopenjpeg  --enable-libopenh264 --enable-liblensfun  --enable-libvmaf --enable-libsrt --enable-demuxer=dash --enable-libxml2 --enable-opengl --enable-libdav1d"
 
+    # glsl shtuff ffmpeg-gl-transition non EGL option
+    config_options+=" --enable-filter=gltransition --extra-cflags=-DGLEW_STATIC --extra-libs=-lopengl32 --extra-libs=-lglfw3 --extra-libs=-lglew32" # it's backward order to what gets passed to the linker...weird...
+
     if [ "$bits_target" != "32" ]; then
       #SVT-HEVC [following line] must be disabled to use the other svt???  But there are patches that are supposed to combine to allow using all of them
       config_options+=" --enable-libsvthevc"
