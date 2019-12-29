@@ -37,7 +37,9 @@ function sortable_version { echo "$@" | awk -F. '{ printf("%d%03d%03d%03d\n", $1
 
 at_least_required_version() { # params: required actual
   local sortable_required=$(sortable_version $1)
+  sortable_required=$(echo $sortable_required | sed 's/^0*//') # remove preceding zeroes, which bash later interprets as octal or screwy
   local sortable_actual=$(sortable_version $2)
+  sortable_actual=$(echo $sortable_actual | sed 's/^0*//')
   [[ "$sortable_actual" -ge "$sortable_required" ]]
 }
 
@@ -48,7 +50,7 @@ check_missing_packages () {
     VENDOR="redhat"
   fi
   # zeranoe's build scripts use wget, though we don't here...
-  local check_packages=('ragel' 'curl' 'pkg-config' 'make' 'git' 'svn' 'gcc' 'autoconf' 'automake' 'yasm' 'cvs' 'flex' 'bison' 'makeinfo' 'g++' 'ed' 'hg' 'pax' 'unzip' 'patch' 'wget' 'xz' 'nasm' 'gperf' 'autogen' 'bzip2' 'realpath')
+  local check_packages=('ragel' 'curl' 'pkg-config' 'make' 'git' 'svn' 'gcc' 'autoconf' 'automake' 'yasm' 'cvs' 'flex' 'bison' 'makeinfo' 'g++' 'ed' 'hg' 'pax' 'unzip' 'patch' 'wget' 'xz' 'nasm' 'gperf' 'autogen' 'bzip2' 'realpath' 'meson')
   # autoconf-archive is just for leptonica FWIW
   # I'm not actually sure if VENDOR being set to centos is a thing or not. On all the centos boxes I can test on it's not been set at all.
   # that being said, if it where set I would imagine it would be set to centos... And this contition will satisfy the "Is not initially set"
@@ -83,12 +85,11 @@ check_missing_packages () {
       fi
       echo " -y"
     else
-      echo "for gentoo (a non ubuntu distro): same as above, but no g++, no gcc, git is dev-vcs/git, zlib1g-dev is zlib, pkg-config is dev-util/pkgconfig, add ed..."
-      echo "for OS X (homebrew): brew install ragel wget cvs hg yasm autogen automake autoconf cmake libtool xz pkg-config nasm bzip2 autoconf-archive p7zip coreutils meson"
-      echo "for debian: same as ubuntu, but also add libtool-bin, ed, autoconf-archive"
-      echo "for RHEL/CentOS: First ensure you have epel repos available, then run $ sudo yum install ragel subversion texinfo mercurial libtool autogen gperf nasm patch unzip pax ed gcc-c++ bison flex yasm automake autoconf gcc zlib-devel cvs bzip2 cmake3 -y"
+      echo "for OS X (homebrew): brew install ragel wget cvs hg yasm autogen automake autoconf cmake libtool xz pkg-config nasm bzip2 autoconf-archive p7zip coreutils meson" # if edit this edit docker/Dockerfile also :|
+      echo "for debian: same as ubuntu, but also add libtool-bin, ed"
+      echo "for RHEL/CentOS: First ensure you have epel repo available, then run $ sudo yum install ragel subversion texinfo mercurial libtool autogen gperf nasm patch unzip pax ed gcc-c++ bison flex yasm automake autoconf gcc zlib-devel cvs bzip2 cmake3 -y"
       echo "for fedora: if your distribution comes with a modern version of cmake then use the same as RHEL/CentOS but replace cmake3 with cmake."
-      echo "for linux native compiler option: same as <your OS> above, add libva-dev"
+      echo "for linux native compiler option: same as <your OS> above, also add libva-dev"
     fi
     exit 1
   fi
@@ -117,7 +118,9 @@ check_missing_packages () {
     exit 1
   else
     # If cmake_command is set then either one of the cmake's is adequate.
-    echo "cmake binary for this build will be ${cmake_command}"
+    if [[ $cmake_command != "cmake" ]]; then # don't echo if it's the normal default
+      echo "cmake binary for this build will be ${cmake_command}"
+    fi
   fi
 
   if [[ ! -f /usr/include/zlib.h ]]; then
@@ -125,15 +128,32 @@ check_missing_packages () {
     sleep 1
   fi
 
+  # TODO nasm version :|
+
   # doing the cut thing with an assigned variable dies on the version of yasm I have installed (which I'm pretty sure is the RHEL default)
   # because of all the trailing lines of stuff
-  export REQUIRED_YASM_VERSION="1.2.0"
-  yasm_binary=yasm
-  yasm_version="$( "${yasm_binary}" --version |sed -e "s#${yasm_binary}##g" | head -n 1 | tr -dc '[0-9.\n]' )"
+  export REQUIRED_YASM_VERSION="1.2.0" # export ???
+  local yasm_binary=yasm
+  local yasm_version="$( "${yasm_binary}" --version |sed -e "s#${yasm_binary}##g" | head -n 1 | tr -dc '[0-9.\n]' )"
   if ! at_least_required_version "${REQUIRED_YASM_VERSION}" "${yasm_version}"; then
     echo "your yasm version is too old $yasm_version wanted ${REQUIRED_YASM_VERSION}"
     exit 1
   fi
+  local meson_version=`meson --version`
+  if ! at_least_required_version "0.47" "${meson_version}"; then
+    echo "your meson version is too old $meson_version wanted 0.47"
+    exit 1
+  fi
+  # also check missing "setup" so it's early LOL
+  if uname -a | grep  -q -- "-Microsoft " ; then
+    if cat /proc/sys/fs/binfmt_misc/WSLInterop | grep -q enabled ; then
+      echo "windows WSL detected: you must first disable 'binfmt' by running this 
+      sudo bash -c 'echo 0 > /proc/sys/fs/binfmt_misc/WSLInterop'
+      then try again"
+      exit 1
+    fi
+  fi
+
 }
 
 determine_distro() { 
@@ -157,7 +177,6 @@ unset UNAME
 
 
 intro() {
-  echo `date`
   cat <<EOL
      ##################### Welcome ######################
   Welcome to the ffmpeg cross-compile builder-helper script.
@@ -168,6 +187,7 @@ intro() {
   the sandbox directory, since it will have some hard coded paths in there.
   You can, of course, rebuild ffmpeg from within it, etc.
 EOL
+  echo `date` # for timestamping super long builds LOL
   if [[ $sandbox_ok != 'y' && ! -d sandbox ]]; then
     echo
     echo "Building in $PWD/sandbox, will use ~ 4GB space!"
@@ -269,6 +289,10 @@ install_cross_compiler() {
         echo "Failure building 32 bit gcc? Recommend nuke sandbox (rm -rf sandbox) and start over..."
         exit 1
       fi
+      if [[ ! -f  ../cross_compilers/mingw-w64-i686/i686-w64-mingw32/lib/libmingwex.a ]]; then
+	      echo "failure building mingwex? 32 bit"
+	      exit 1
+      fi
     fi
     if [[ ($compiler_flavors == "win64" || $compiler_flavors == "multi") && ! -f ../$win64_gcc ]]; then
       echo "Building win64 x86_64 cross compiler..."
@@ -277,6 +301,10 @@ install_cross_compiler() {
       if [[ ! -f ../$win64_gcc ]]; then
         echo "Failure building 64 bit gcc? Recommend nuke sandbox (rm -rf sandbox) and start over..."
         exit 1
+      fi
+      if [[ ! -f  ../cross_compilers/mingw-w64-x86_64/x86_64-w64-mingw32/lib/libmingwex.a ]]; then
+	      echo "failure building mingwex? 64 bit"
+	      exit 1
       fi
     fi
 
@@ -722,8 +750,9 @@ generic_configure "--bindir=$mingw_bin_path"
 build_amd_amf_headers() {
   # was https://github.com/GPUOpen-LibrariesAndSDKs/AMF.git too big
   # or https://github.com/DeadSix27/AMF smaller
-  # just right...
-  do_git_checkout https://github.com/DeadSix27/AMF.git amf_headers_git
+  # but even smaller!
+  do_git_checkout https://github.com/rdp/amf_headers.git amf_headers_git
+
   cd amf_headers_git
     if [ ! -f "already_installed" ]; then
       #rm -rf "./Thirdparty" # ?? plus too chatty...
@@ -835,6 +864,21 @@ build_libopenjpeg() {
   do_git_checkout https://github.com/uclouvain/openjpeg.git # basically v2.3+ 
   cd openjpeg_git
     do_cmake_and_install "-DBUILD_CODEC=0"
+  cd ..
+}
+
+build_glew() {
+  download_and_unpack_file https://sourceforge.net/projects/glew/files/glew/2.1.0/glew-2.1.0.tgz glew-2.1.0
+  cd glew-2.1.0/build
+    do_cmake_from_build_dir ./cmake "-DWIN32=1 -DBUILD_SHARED_LIBS=0 " # "-DWITH_FFMPEG=0 -DOPENCV_GENERATE_PKGCONFIG=1 -DHAVE_DSHOW=0"
+    do_make_and_make_install
+  cd ../..
+}
+
+build_glfw() {
+  download_and_unpack_file https://github.com/glfw/glfw/releases/download/3.3/glfw-3.3.zip glfw-3.3
+  cd glfw-3.3
+    do_cmake_and_install
   cd ..
 }
 
@@ -1265,14 +1309,13 @@ build_facebooktransform360() {
 
 build_libbluray() {
   unset JDK_HOME # #268 was causing failure
-  do_git_checkout https://git.videolan.org/git/libbluray.git
+  do_git_checkout https://code.videolan.org/videolan/libbluray.git
   cd libbluray_git
-    sed -i.bak 's_git://git.videolan.org/libudfread.git_https://git.videolan.org/git/libudfread.git_' .gitmodules
     if [[ ! -d .git/modules ]]; then
       git submodule update --init --remote # For UDF support [default=enabled], which strangely enough is in another repository.
     else
       local local_git_version=`git --git-dir=.git/modules/contrib/libudfread rev-parse HEAD`
-      local remote_git_version=`git ls-remote -h https://git.videolan.org/git/libudfread.git | sed "s/[[:space:]].*//"`
+      local remote_git_version=`git ls-remote -h https://code.videolan.org/videolan/libudfread.git | sed "s/[[:space:]].*//"`
       if [[ "$local_git_version" != "$remote_git_version" ]]; then
         echo "doing git clean -f"
         git clean -f # Throw away local changes; 'already_*' in this case.
@@ -1426,9 +1469,6 @@ build_svt-vp9() {
   do_git_checkout https://github.com/OpenVisualCloud/SVT-VP9.git
   cd SVT-VP9_git
   git apply $patch_dir/SVT-VP9-Windows-lowercase.patch
-  #Comment From DeadSix27's implementation: "StaticLib: Add static library support #59" not yet merged, but seems finished.
-  wget https://github.com/OpenVisualCloud/SVT-VP9/pull/59.patch
-  git apply 59.patch
   cd Build
     do_cmake_from_build_dir .. "-DCMAKE_BUILD_TYPE=Release -DCPPAN_BUILD=OFF"
     do_make_and_make_install
@@ -1500,8 +1540,9 @@ build_fribidi() {
 build_libsrt() {
   # do_git_checkout https://github.com/Haivision/srt.git
   #cd srt_git
-  download_and_unpack_file https://codeload.github.com/Haivision/srt/tar.gz/v1.3.2 srt-1.3.2
-  cd srt-1.3.2 
+  #download_and_unpack_file https://codeload.github.com/Haivision/srt/tar.gz/v1.3.2 srt-1.3.2
+  download_and_unpack_file https://github.com/Haivision/srt/archive/v1.4.1.tar.gz srt-1.4.1
+  cd srt-1.4.1 
     if [[ $compiler_flavors != "native" ]]; then
       do_cmake "-DUSE_GNUTLS=ON -DENABLE_SHARED=OFF"
       apply_patch file://$patch_dir/srt.app.patch -p1
@@ -1551,8 +1592,8 @@ build_libvpx() {
     else
       local config_options="--target=x86_64-win64-gcc"
     fi
-    export CROSS="$cross_prefix"
-    do_configure "$config_options --prefix=$mingw_w64_x86_64_prefix --enable-static --disable-shared --disable-examples --disable-tools --disable-docs --disable-unit-tests --enable-vp9-highbitdepth --extra-cflags=-fno-asynchronous-unwind-tables" # fno for Error: invalid register for .seh_savexmm
+    export CROSS="$cross_prefix"  # XXX investigate/report ssse3? huh wuh?
+    do_configure "$config_options --prefix=$mingw_w64_x86_64_prefix --disable-ssse3 --enable-static --disable-shared --disable-examples --disable-tools --disable-docs --disable-unit-tests --enable-vp9-highbitdepth --extra-cflags=-fno-asynchronous-unwind-tables --extra-cflags=-mstackrealign" # fno for Error: invalid register for .seh_savexmm
     do_make_and_make_install
     unset CROSS
   cd ..
@@ -1577,7 +1618,7 @@ build_libaom() {
 build_dav1d() {
   do_git_checkout https://code.videolan.org/videolan/dav1d.git libdav1d
   cd libdav1d
-    if [[ $bits_target == 32 ]]; then
+    if [[ $bits_target == 32 || $bits_target == 64 ]]; then # XXX why 64???
       apply_patch file://$patch_dir/david_no_asm.patch -p1 # XXX report
     fi
     cpu_count=1 # XXX report :|
@@ -1703,9 +1744,9 @@ build_libx264() {
   checkout_dir="${checkout_dir}_all_bitdepth"
 
   if [[ $prefer_stable = "n" ]]; then
-    do_git_checkout "http://git.videolan.org/git/x264.git" $checkout_dir "origin/master" # During 'configure': "Found no assembler. Minimum version is nasm-2.13" so disable for now...
+    do_git_checkout "https://code.videolan.org/videolan/x264.git" $checkout_dir "origin/master" # During 'configure': "Found no assembler. Minimum version is nasm-2.13" so disable for now...
   else
-    do_git_checkout "http://git.videolan.org/git/x264.git" $checkout_dir  "origin/stable" # or "origin/stable" nasm again
+    do_git_checkout "https://code.videolan.org/videolan/x264.git" $checkout_dir  "origin/stable" # or "origin/stable" nasm again
   fi
   cd $checkout_dir
     if [[ ! -f configure.bak ]]; then # Change CFLAGS.
@@ -2284,6 +2325,8 @@ build_ffmpeg_dependencies() {
   build_nv_headers
   build_libzimg # Uses dlfcn.
   build_libopenjpeg
+  build_glew
+  build_glfw
   #build_libjpeg_turbo # mplayer can use this, VLC qt might need it? [replaces libjpeg] (ffmpeg seems to not need it so commented out here)
   build_libpng # Needs zlib >= 1.0.4. Uses dlfcn.
   build_libwebp # Uses dlfcn.
@@ -2326,8 +2369,8 @@ build_ffmpeg_dependencies() {
   build_frei0r # Needs dlfcn. could use opencv...
   if [ "$bits_target" != "32" ]; then
     build_svt-hevc
-    build_svt-av1
-    build_svt-vp9
+    # build_svt-av1 # unused at present
+    # build_svt-vp9 # unused at present, broken ubuntu 18.04 as well, for whatever reason... :|
   fi
   build_vidstab
   #build_facebooktransform360 # needs modified ffmpeg to use it

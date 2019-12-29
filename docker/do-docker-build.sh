@@ -7,16 +7,18 @@ if [ -d "../git" ]; then
   git pull
 fi
 
-docker build .. -f Dockerfile -t ffmpeg-windows-build-helpers 
+# XX don't recreate this every time?!
+docker build .. -f Dockerfile -t ffmpeg-windows-build-helpers-image # builds an image
 
 if [ $? -eq 0 ]; then
     ## TODO make better so it doe snot clone everytime, but also no nested repositories. .dockerignore and self copy should also work.
     #rm -rf ./ffmpeg-windows-build-helpers
 
     mkdir -p $OUTPUTDIR
-    echo [`date +'%Y%m%dT%H%M%S'`] Starting container..
-    # When rerunning use docker start
-    docker run --name ffmpegbuilder -it ffmpeg-windows-build-helpers
+    echo [`date +'%Y%m%dT%H%M%S'`] Creating and starting container...
+    # When rerunning use $ docker start ffmpegbuilder -i, then in other terminal $ docker exec -it ffmpegbuilder touch /tmp/loop; docker exec -it ffmpegbuilder /bin/bash
+    # while the first is still running...
+    docker run --name ffmpegbuilder -it ffmpeg-windows-build-helpers-image || docker start ffmpegbuilder -i
 
     if [ $? -eq 0 ]; then
         echo [`date +'%Y%m%dT%H%M%S'`] Build successful
@@ -40,10 +42,12 @@ if [ $? -eq 0 ]; then
     else
         echo [`date +'%Y%m%dT%H%M%S'`] Build failed. Started: $STARTTIME
     fi
-    echo [`date +'%Y%m%dT%H%M%S'`] Stopping and removing container...
-    docker stop ffmpegbuilder
+    echo [`date +'%Y%m%dT%H%M%S'`] Stopping container...
+    docker stop ffmpegbuilder # this should never be needed tho?
     # Comment this if you want to keep your sandbox data and rerun the container at a later time.
-    docker rm ffmpegbuilder
+    # echo [`date +'%Y%m%dT%H%M%S'`] Removing container...
+    # docker rm ffmpegbuilder
+    echo 'done'
 else
     echo [`date +'%Y%m%dT%H%M%S'`] Docker build failed. Started: $STARTTIME
     exit 1

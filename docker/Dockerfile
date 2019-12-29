@@ -1,4 +1,4 @@
-FROM ubuntu:18.04
+FROM ubuntu:19.04
 
 RUN apt-get update && \
     apt-get install -y \
@@ -25,17 +25,17 @@ RUN apt-get update && \
     unzip \
     pax \
     nasm \
+    meson \
     gperf \
     autogen \
     bzip2 \
     autoconf-archive \
     p7zip-full \
-    ragel
+    ragel \
+    python3-distutils
 
+# copy the entire git dir into the new docker container
 COPY . ./ffmpeg-windows-build-helpers
-
-#COPY ./do-custom-build.sh /ffmpeg-windows-build-helpers/do-custom-build.sh
 
 WORKDIR /ffmpeg-windows-build-helpers
 ENTRYPOINT [ "bash", "./docker/docker-entry.sh" ]
-    
