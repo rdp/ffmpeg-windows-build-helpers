@@ -13,7 +13,8 @@ check_missing_packages () {
   if [[ -n "${missing_packages[@]}" ]]; then
     clear
     echo "Could not find the following execs: ${missing_packages[@]}"
-    echo "on ubuntu: sudo apt-get install gcc-mingw-w64-i686 g++-mingw-w64-i686 yasm make automake autoconf git pkg-config libtool"
+    echo ""
+    echo "on ubuntu: sudo apt-get install gcc-mingw-w64-i686 g++-mingw-w64-i686 yasm make automake autoconf git pkg-config libtool-bin"
     echo 'Install the missing packages before running this script.'
     exit 1
   fi
@@ -23,11 +24,11 @@ check_missing_packages
 set -x
 
 host=i686-w64-mingw32
-prefix=$(pwd)/sandbox/win32/quick_install/install_root
+prefix=$(pwd)/sandbox_native/win32/quick_install/install_root
 export PKG_CONFIG_PATH="$prefix/lib/pkgconfig" # let ffmpeg find our dependencies [currently not working :| ]
 
-mkdir -p sandbox/win32/quick_install
-cd sandbox/win32/quick_install
+mkdir -p sandbox_native/win32/quick_install
+cd sandbox_native/win32/quick_install
 
 # fdk-aac
 if [[ ! -f $prefix/lib/libfdk-aac.a ]]; then
@@ -36,7 +37,7 @@ if [[ ! -f $prefix/lib/libfdk-aac.a ]]; then
   cd fdk-aac
     ./autogen.sh
     ./configure --host=$host --prefix=$prefix --enable-static --disable-shared
-    make -j5 install
+    make -j8 install
   cd ..
 fi
 
@@ -48,7 +49,7 @@ if [[ ! -f $prefix/lib/libx264.a ]]; then
     # --enable-static       library is built by default but not installed
     # --enable-win32thread  avoid installing pthread
     ./configure --host=$host --enable-static --enable-win32thread --cross-prefix=$host- --prefix=$prefix
-    make -j5 install
+    make -j8 install
   cd ..
 fi
 
@@ -67,6 +68,6 @@ cd ffmpeg_fdk_aac
       --cross-prefix=$host- --pkg-config=pkg-config --prefix=$prefix/ffmpeg_static_fdk_aac
   fi
   rm **/*.a # attempt force a rebuild...
-  make -j5 install && echo "created runnable ffmpeg.exe in $prefix/ffmpeg_static/ffmpeg.exe!"
-  
+  make -j8 install && echo "created runnable ffmpeg.exe in $prefix/ffmpeg_static/ffmpeg.exe!"
 cd ..
+
