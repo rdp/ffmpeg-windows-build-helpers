@@ -37,7 +37,8 @@ if [[ ! -f $prefix/lib/libfdk-aac.a ]]; then
   cd fdk-aac
     ./autogen.sh
     ./configure --host=$host --prefix=$prefix --enable-static --disable-shared
-    make -j8 install
+    make -j8
+    make install
   cd ..
 fi
 
@@ -49,7 +50,8 @@ if [[ ! -f $prefix/lib/libx264.a ]]; then
     # --enable-static       library is built by default but not installed
     # --enable-win32thread  avoid installing pthread
     ./configure --host=$host --enable-static --enable-win32thread --cross-prefix=$host- --prefix=$prefix
-    make -j8 install
+    make -j8
+    make install
   cd ..
 fi
 
@@ -62,12 +64,12 @@ fi
 
 cd ffmpeg_fdk_aac
   # not ready for this since we don't reconfigure after changes: # git pull
-  if [[ ! -f config.mak ]]; then
+  if [[ ! -f ffbuild/config.mak ]]; then
     ./configure --enable-gpl --enable-libx264 --enable-nonfree \
       --enable-libfdk-aac --arch=x86 --target-os=mingw32 \
       --cross-prefix=$host- --pkg-config=pkg-config --prefix=$prefix/ffmpeg_static_fdk_aac
   fi
-  rm **/*.a # attempt force a rebuild...
-  make -j8 install && echo "created runnable ffmpeg.exe in $prefix/ffmpeg_static/ffmpeg.exe!"
+  rm **/*.a # attempt force a kind of rebuild...
+  make -j8 && make install && echo "created runnable ffmpeg.exe in $prefix/ffmpeg_static/ffmpeg.exe!"
 cd ..
 
