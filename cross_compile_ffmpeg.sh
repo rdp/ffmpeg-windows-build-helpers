@@ -2103,20 +2103,16 @@ build_ffmpeg() {
     apply_patch file://$patch_dir/frei0r_load-shared-libraries-dynamically.diff
     if [ "$bits_target" != "32" ]; then
     #SVT-HEVC
-    wget https://raw.githubusercontent.com/OpenVisualCloud/SVT-HEVC/master/ffmpeg_plugin/0001-lavc-svt_hevc-add-libsvt-hevc-encoder-wrapper.patch
-    git apply 0001-lavc-svt_hevc-add-libsvt-hevc-encoder-wrapper.patch
+    git apply "../SVT-HEVC_git/ffmpeg_plugin/0001-lavc-svt_hevc-add-libsvt-hevc-encoder-wrapper.patch"
     #SVT-AV1 only
-    #wget https://raw.githubusercontent.com/OpenVisualCloud/SVT-AV1/master/ffmpeg_plugin/0001-Add-ability-for-ffmpeg-to-run-svt-av1.patch
-    #git apply 0001-Add-ability-for-ffmpeg-to-run-svt-av1.patch
+    #git apply "../SVT-AV1_git/ffmpeg_plugin/0001-Add-ability-for-ffmpeg-to-run-svt-av1.patch"
     #SVT-VP9 only
-    #wget https://raw.githubusercontent.com/OpenVisualCloud/SVT-VP9/master/ffmpeg_plugin/0001-Add-ability-for-ffmpeg-to-run-svt-vp9.patch
-    #git apply 0001-Add-ability-for-ffmpeg-to-run-svt-vp9.patch
+    #git apply "../SVT-VP9_git/ffmpeg_plugin/0001-Add-ability-for-ffmpeg-to-run-svt-vp9.patch"
+
     #Add SVT-AV1 to SVT-HEVC
-    #wget https://raw.githubusercontent.com/OpenVisualCloud/SVT-AV1/master/ffmpeg_plugin/0001-Add-ability-for-ffmpeg-to-run-svt-av1-with-svt-hevc.patch
-    #git apply 0001-Add-ability-for-ffmpeg-to-run-svt-av1-with-svt-hevc.patch
+    #git apply "../SVT-AV1_git/ffmpeg_plugin/0001-Add-ability-for-ffmpeg-to-run-svt-av1-with-svt-hevc.patch"
     #Add SVT-VP9 to SVT-HEVC & SVT-AV1
-    #wget https://raw.githubusercontent.com/OpenVisualCloud/SVT-VP9/master/ffmpeg_plugin/0001-Add-ability-for-ffmpeg-to-run-svt-vp9-with-svt-hevc-av1.patch
-    #git apply 0001-Add-ability-for-ffmpeg-to-run-svt-vp9-with-svt-hevc-av1.patch
+    #git apply "../SVT-VP9_git/ffmpeg_plugin/0001-Add-ability-for-ffmpeg-to-run-svt-vp9-with-svt-hevc-av1.patch"
     fi
     if [ "$bits_target" = "32" ]; then
       local arch=x86
@@ -2140,17 +2136,17 @@ build_ffmpeg() {
     config_options="$init_options --enable-libcaca --enable-gray --enable-libtesseract --enable-fontconfig --enable-gmp --enable-gnutls --enable-libass --enable-libbluray --enable-libbs2b --enable-libflite --enable-libfreetype --enable-libfribidi --enable-libgme --enable-libgsm --enable-libilbc --enable-libmodplug --enable-libmp3lame --enable-libopencore-amrnb --enable-libopencore-amrwb --enable-libopus --enable-libsnappy --enable-libsoxr --enable-libspeex --enable-libtheora --enable-libtwolame --enable-libvo-amrwbenc --enable-libvorbis --enable-libwebp --enable-libzimg --enable-libzvbi --enable-libmysofa --enable-libopenjpeg  --enable-libopenh264 --enable-liblensfun  --enable-libvmaf --enable-libsrt --enable-demuxer=dash --enable-libxml2 --enable-opengl --enable-libdav1d"
 
     if [ "$bits_target" != "32" ]; then
-      #SVT-HEVC [following line] must be disabled to use the other svt???  But there are patches that are supposed to combine to allow using all of them
+      #SVT-HEVC no longer needs to be disabled to configure with svt-av1, but svt-vp9 still conflicts with svt-av1 so svt-vp9 can only be compiled alone
       config_options+=" --enable-libsvthevc"
     fi
 
     #aom must be disabled to use SVT-AV1
     config_options+=" --enable-libaom"
-    #config_options+=" --enable-libsvtav1"
+    #config_options+=" --enable-libsvtav1" #not currently working but compiles if configured
 
-    #vpx and xvid must be disabled to use SVT-VP9
+    #libxvid must be disabled to use SVT-VP9 (26 lines below); working alongside libvpx was added in https://github.com/OpenVisualCloud/SVT-VP9/pull/71 so vpx no longer needs to be disabled
     config_options+=" --enable-libvpx"
-    #config_options+=" --enable-libsvtvp9" #not currently working
+    #config_options+=" --enable-libsvtvp9" #not currently working but compiles if configured
 
     if [[ $compiler_flavors != "native" ]]; then
       config_options+=" --enable-nvenc --enable-nvdec" # don't work OS X 
