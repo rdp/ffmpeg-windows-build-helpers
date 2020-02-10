@@ -70,6 +70,6 @@ cd ffmpeg_fdk_aac
       --cross-prefix=$host- --pkg-config=pkg-config --prefix=$prefix/ffmpeg_static_fdk_aac
   fi
   rm **/*.a # attempt force a kind of rebuild...
-  make -j8 && make install && echo "created runnable ffmpeg.exe in $prefix/ffmpeg_static/ffmpeg.exe!"
+  make -j8 && make install && echo "./sandbox_native/win32/quick_install/install_root/ffmpeg_static_fdk_aac/bin/ffmpeg.exe"
 cd ..
 
