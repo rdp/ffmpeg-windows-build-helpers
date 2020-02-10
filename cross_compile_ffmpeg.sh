@@ -1528,7 +1528,7 @@ build_zvbi() {
 }
 
 build_fribidi() {
-  do_git_checkout https://github.com/fribidi/fribidi.git
+  do_git_checkout https://github.com/fribidi/fribidi.git fribidi_git 79581cc93b26c84edf74c9b51511126e0aacec9e
   cd fribidi_git
     cpu_count=1 # needed apparently with git master
     generic_configure "--disable-debug --disable-deprecated --disable-docs"
