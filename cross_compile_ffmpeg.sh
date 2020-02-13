@@ -791,7 +791,7 @@ build_intel_quicksync_mfx() { # i.e. qsv, disableable via command line switch...
 
 build_libleptonica() {
   build_libjpeg_turbo
-  do_git_checkout https://github.com/DanBloomberg/leptonica.git 
+  do_git_checkout https://github.com/DanBloomberg/leptonica.git  leptonica_git 387d398138783222148a5866514ae9e4eda872a5
   cd leptonica_git
     generic_configure "--without-libopenjpeg" # never could quite figure out how to get it to work with jp2 stuffs...I think OPJ_STATIC or something, see issue for tesseract
     do_make_and_make_install
