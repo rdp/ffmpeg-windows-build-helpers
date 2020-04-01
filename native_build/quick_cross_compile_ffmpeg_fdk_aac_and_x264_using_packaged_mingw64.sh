@@ -14,7 +14,7 @@ check_missing_packages () {
     clear
     echo "Could not find the following execs: ${missing_packages[@]}"
     echo ""
-    echo "on ubuntu: sudo apt-get install gcc-mingw-w64-i686 g++-mingw-w64-i686 yasm make automake autoconf git pkg-config libtool-bin"
+    echo "on ubuntu: sudo apt-get install gcc-mingw-w64-i686 g++-mingw-w64-i686 yasm make automake autoconf git pkg-config libtool-bin -y"
     echo 'Install the missing packages before running this script.'
     exit 1
   fi
