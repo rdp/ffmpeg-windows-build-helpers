@@ -30,18 +30,6 @@ export PKG_CONFIG_PATH="$prefix/lib/pkgconfig" # let ffmpeg find our dependencie
 mkdir -p sandbox_native/win32/quick_install
 cd sandbox_native/win32/quick_install
 
-# fdk-aac
-if [[ ! -f $prefix/lib/libfdk-aac.a ]]; then
-  rm -rf fdk-aac
-  git clone --depth 1 https://github.com/mstorsjo/fdk-aac.git || exit 1
-  cd fdk-aac
-    ./autogen.sh
-    ./configure --host=$host --prefix=$prefix --enable-static --disable-shared
-    make -j8
-    make install
-  cd ..
-fi
-
 # x264
 if [[ ! -f $prefix/lib/libx264.a ]]; then
   rm -rf x264
@@ -56,17 +44,17 @@ if [[ ! -f $prefix/lib/libx264.a ]]; then
 fi
 
 # and ffmpeg
-if [[ ! -d ffmpeg_fdk_aac ]]; then
+if [[ ! -d ffmpeg_simple ]]; then
   rm -rf ffmpeg.tmp.git
   git clone --depth 1 https://github.com/FFmpeg/FFmpeg.git ffmpeg.tmp.git
-  mv ffmpeg.tmp.git ffmpeg_fdk_aac
+  mv ffmpeg.tmp.git ffmpeg_simple
 fi
 
-cd ffmpeg_fdk_aac
+cd ffmpeg_simple
   # not ready for this since we don't reconfigure after changes: # git pull
   if [[ ! -f ffbuild/config.mak ]]; then
     ./configure --enable-gpl --enable-libx264 --enable-nonfree \
-      --enable-libfdk-aac --arch=x86 --target-os=mingw32 \
+      --arch=x86 --target-os=mingw32 \
       --cross-prefix=$host- --pkg-config=pkg-config --prefix=$prefix/ffmpeg_static_fdk_aac
   fi
   rm **/*.a # attempt force a kind of rebuild...
