@@ -4,7 +4,7 @@
 
 check_missing_packages () {
 
-  local check_packages=('pkg-config' 'make' 'git' 'autoconf' 'automake' 'yasm' 'i686-w64-mingw32-gcc' 'i686-w64-mingw32-g++' 'libtool')
+  local check_packages=('pkg-config' 'make' 'git' 'autoconf' 'automake' 'yasm' 'i686-w64-mingw32-gcc' 'i686-w64-mingw32-g++' 'libtool' 'nasm')
 
   for package in "${check_packages[@]}"; do
     type -P "$package" >/dev/null || missing_packages=("$package" "${missing_packages[@]}")
@@ -14,7 +14,7 @@ check_missing_packages () {
     clear
     echo "Could not find the following execs: ${missing_packages[@]}"
     echo ""
-    echo "on ubuntu: sudo apt-get install gcc-mingw-w64-i686 g++-mingw-w64-i686 yasm make automake autoconf git pkg-config libtool-bin -y"
+    echo "on ubuntu: sudo apt-get install gcc-mingw-w64-i686 g++-mingw-w64-i686 yasm make automake autoconf git pkg-config libtool-bin nasm -y"
     echo 'Install the missing packages before running this script.'
     exit 1
   fi
@@ -37,7 +37,7 @@ if [[ ! -f $prefix/lib/libx264.a ]]; then
   cd x264
     # --enable-static       library is built by default but not installed
     # --enable-win32thread  avoid installing pthread
-    ./configure --host=$host --enable-static --enable-win32thread --cross-prefix=$host- --prefix=$prefix
+    ./configure --host=$host --enable-static --enable-win32thread --cross-prefix=$host- --prefix=$prefix || exit 1
     make -j8
     make install
   cd ..
@@ -55,7 +55,7 @@ cd ffmpeg_simple
   if [[ ! -f ffbuild/config.mak ]]; then
     ./configure --enable-gpl --enable-libx264 --enable-nonfree \
       --arch=x86 --target-os=mingw32 \
-      --cross-prefix=$host- --pkg-config=pkg-config --prefix=$prefix/ffmpeg_static_fdk_aac
+      --cross-prefix=$host- --pkg-config=pkg-config --prefix=$prefix/ffmpeg_static_fdk_aac || exit 1
   fi
   rm **/*.a # attempt force a kind of rebuild...
   make -j8 && make install && echo "./sandbox_native/win32/quick_install/install_root/ffmpeg_static_fdk_aac/bin/ffmpeg.exe"
