@@ -55,6 +55,7 @@ cd ffmpeg_simple
   if [[ ! -f ffbuild/config.mak ]]; then
     ./configure --enable-gpl --enable-libx264 --enable-nonfree \
       --arch=x86 --target-os=mingw32 \
+      --enable-debug=3 --disable-optimizations \
       --cross-prefix=$host- --pkg-config=pkg-config --prefix=$prefix/ffmpeg_static_fdk_aac || exit 1
   fi
   rm **/*.a # attempt force a kind of rebuild...
