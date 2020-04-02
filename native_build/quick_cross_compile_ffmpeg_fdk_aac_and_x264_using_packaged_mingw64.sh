@@ -1,6 +1,6 @@
 #!/bin/bash
 # based on the script install-ffmpeg from svnpenn/a/install-ffmpeg.sh (givin' credit where it's due :)
-# uses an (assumed installed via package) cross compiler to compile ffmpeg with fdk-aac
+# uses an (assumed installed via package) cross compiler to compile ffmpeg
 
 check_missing_packages () {
 
@@ -56,9 +56,9 @@ cd ffmpeg_simple
     ./configure --enable-gpl --enable-libx264 --enable-nonfree \
       --arch=x86 --target-os=mingw32 \
       --enable-debug=3 --disable-optimizations \
-      --cross-prefix=$host- --pkg-config=pkg-config --prefix=$prefix/ffmpeg_static_fdk_aac || exit 1
+      --cross-prefix=$host- --pkg-config=pkg-config --prefix=$prefix/ffmpeg_simple_install || exit 1
   fi
   rm **/*.a # attempt force a kind of rebuild...
-  make -j8 && make install && echo "./sandbox_native/win32/quick_install/install_root/ffmpeg_static_fdk_aac/bin/ffmpeg.exe"
+  make -j8 && make install && echo "./sandbox_native/win32/quick_install/install_root/ffmpeg_simple_install/bin/ffmpeg.exe"
 cd ..
 
