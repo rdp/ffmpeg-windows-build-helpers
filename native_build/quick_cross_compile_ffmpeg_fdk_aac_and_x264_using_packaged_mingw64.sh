@@ -23,7 +23,8 @@ check_missing_packages () {
 check_missing_packages
 set -x
 
-host=i686-w64-mingw32
+#host=i686-w64-mingw32
+host=x86_64-w64-mingw32
 prefix=$(pwd)/sandbox_native/win32/quick_install/install_root
 export PKG_CONFIG_PATH="$prefix/lib/pkgconfig" # let ffmpeg find our dependencies [currently not working :| ]
 
@@ -44,21 +45,23 @@ if [[ ! -f $prefix/lib/libx264.a ]]; then
 fi
 
 # and ffmpeg
-if [[ ! -d ffmpeg_simple ]]; then
-  rm -rf ffmpeg.tmp.git
-  git clone --depth 1 https://github.com/FFmpeg/FFmpeg.git ffmpeg.tmp.git
-  mv ffmpeg.tmp.git ffmpeg_simple
+ffmpeg_dir=ffmpeg_simple_win64
+if [[ ! -d $ffmpeg_dir ]]; then
+  rm -rf $ffmpeg_dir.tmp.git
+  git clone --depth 1 https://github.com/FFmpeg/FFmpeg.git $ffmpeg_dir.tmp.git
+  mv $ffmpeg_dir.tmp.git $ffmpeg_dir
 fi
 
-cd ffmpeg_simple
+cd $ffmpeg_dir
   # not ready for this since we don't reconfigure after changes: # git pull
   if [[ ! -f ffbuild/config.mak ]]; then
-    ./configure --enable-gpl --enable-libx264 --enable-nonfree \
-      --arch=x86 --target-os=mingw32 \
+#      --arch=x86 --target-os=mingw32 \
 # shouldn't need it?      --enable-debug=3 --disable-optimizations \
+    ./configure --enable-gpl --enable-libx264 --enable-nonfree \
+      --arch=x86_64 --target-os=mingw32 \
       --cross-prefix=$host- --pkg-config=pkg-config --prefix=$prefix/ffmpeg_simple_install || exit 1
   fi
   rm **/*.a # attempt force a kind of rebuild...
-  make -j8 && make install && echo "./sandbox_native/win32/quick_install/install_root/ffmpeg_simple_install/bin/ffmpeg.exe"
+  make -j8 && make install && echo "done installing it $prefix/ffmpeg_simple_install
 cd ..
 
