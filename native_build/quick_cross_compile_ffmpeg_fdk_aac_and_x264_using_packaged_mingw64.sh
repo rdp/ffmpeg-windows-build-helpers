@@ -4,7 +4,7 @@
 
 check_missing_packages () {
 
-  local check_packages=('pkg-config' 'make' 'git' 'autoconf' 'automake' 'yasm' 'i686-w64-mingw32-gcc' 'i686-w64-mingw32-g++' 'libtool' 'nasm')
+  local check_packages=('pkg-config' 'make' 'git' 'autoconf' 'automake' 'yasm' 'i686-w64-mingw32-gcc' 'i686-w64-mingw32-g++' 'x86_64-w64-mingw32-g++' 'libtool' 'nasm')
 
   for package in "${check_packages[@]}"; do
     type -P "$package" >/dev/null || missing_packages=("$package" "${missing_packages[@]}")
@@ -14,7 +14,7 @@ check_missing_packages () {
     clear
     echo "Could not find the following execs: ${missing_packages[@]}"
     echo ""
-    echo "on ubuntu: sudo apt-get install gcc-mingw-w64-i686 g++-mingw-w64-i686 yasm make automake autoconf git pkg-config libtool-bin nasm -y"
+    echo "on ubuntu: sudo apt-get install gcc-mingw-w64-i686 g++-mingw-w64-i686 yasm make automake autoconf git pkg-config libtool-bin nasm gcc-mingw-w64-x86-64 g++-mingw-w64-x86-64 -y"
     echo 'Install the missing packages before running this script.'
     exit 1
   fi
@@ -55,7 +55,7 @@ cd ffmpeg_simple
   if [[ ! -f ffbuild/config.mak ]]; then
     ./configure --enable-gpl --enable-libx264 --enable-nonfree \
       --arch=x86 --target-os=mingw32 \
-      --enable-debug=3 --disable-optimizations \
+# shouldn't need it?      --enable-debug=3 --disable-optimizations \
       --cross-prefix=$host- --pkg-config=pkg-config --prefix=$prefix/ffmpeg_simple_install || exit 1
   fi
   rm **/*.a # attempt force a kind of rebuild...
