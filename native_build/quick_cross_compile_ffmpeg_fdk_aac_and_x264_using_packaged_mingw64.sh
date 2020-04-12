@@ -25,7 +25,8 @@ set -x
 
 #host=i686-w64-mingw32
 host=x86_64-w64-mingw32
-prefix=$(pwd)/sandbox_native/win32/quick_install/install_root
+#prefix=$(pwd)/sandbox_native/win64/quick_install/install_root
+prefix=$(pwd)/sandbox_native/win64/quick_install/install_root
 export PKG_CONFIG_PATH="$prefix/lib/pkgconfig" # let ffmpeg find our dependencies [currently not working :| ]
 
 mkdir -p sandbox_native/win32/quick_install

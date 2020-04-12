@@ -1373,7 +1373,7 @@ build_libflite() {
 }
 
 build_libsnappy() {
-  do_git_checkout https://github.com/google/snappy.git snappy_git
+  do_git_checkout https://github.com/google/snappy.git snappy_git e9e11b84e629c3e06fbaa4f0a86de02ceb9d6992 # got weird failure once
   cd snappy_git
     do_cmake_and_install "-DBUILD_BINARY=OFF -DCMAKE_BUILD_TYPE=Release -DSNAPPY_BUILD_TESTS=OFF" # extra params from deadsix27 and from new cMakeLists.txt content
     rm -f $mingw_w64_x86_64_prefix/lib/libsnappy.dll.a # unintall shared :|
