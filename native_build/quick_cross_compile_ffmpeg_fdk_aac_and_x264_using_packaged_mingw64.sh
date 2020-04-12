@@ -62,6 +62,6 @@ cd $ffmpeg_dir
       --cross-prefix=$host- --pkg-config=pkg-config --prefix=$prefix/ffmpeg_simple_install || exit 1
   fi
   rm **/*.a # attempt force a kind of rebuild...
-  make -j8 && make install && echo "done installing it $prefix/ffmpeg_simple_install
+  make -j8 && make install && echo "done installing it $prefix/ffmpeg_simple_install"
 cd ..
 
