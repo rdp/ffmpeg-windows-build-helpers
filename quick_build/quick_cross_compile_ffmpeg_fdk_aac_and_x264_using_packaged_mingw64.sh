@@ -23,6 +23,16 @@ check_missing_packages () {
 check_missing_packages
 set -x
 
+cpu_count="$(grep -c processor /proc/cpuinfo 2>/dev/null)" # linux cpu count
+if [ -z "$cpu_count" ]; then
+  cpu_count=`sysctl -n hw.ncpu | tr -d '\n'` # OS X cpu count
+  if [ -z "$cpu_count" ]; then
+    echo "warning, unable to determine cpu count, defaulting to 1"
+    cpu_count=1 # else default to just 1, instead of blank, which means infinite
+  fi
+fi
+
+
 #host=i686-w64-mingw32
 host=x86_64-w64-mingw32
 #prefix=$(pwd)/sandbox_native/win64/quick_install/install_root
@@ -40,7 +50,7 @@ if [[ ! -f $prefix/lib/libx264.a ]]; then
     # --enable-static       library is built by default but not installed
     # --enable-win32thread  avoid installing pthread
     ./configure --host=$host --enable-static --enable-win32thread --cross-prefix=$host- --prefix=$prefix || exit 1
-    make -j8
+    make -j$cpu_count
     make install
   cd ..
 fi
@@ -63,6 +73,6 @@ cd $ffmpeg_dir
       --cross-prefix=$host- --pkg-config=pkg-config --prefix=$prefix/ffmpeg_simple_install || exit 1
   fi
   rm **/*.a # attempt force a kind of rebuild...
-  make -j8 && make install && echo "done installing it $prefix/ffmpeg_simple_install"
+  make -j$cpu_count && make install && echo "done installing it $prefix/ffmpeg_simple_install"
 cd ..
 
