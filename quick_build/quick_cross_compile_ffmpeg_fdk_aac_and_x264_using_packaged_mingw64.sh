@@ -58,7 +58,7 @@ if [[ ! -f $prefix/lib/libx264.a ]]; then
 fi
 
 # and ffmpeg
-ffmpeg_dir=ffmpeg_simple_$type_git
+ffmpeg_dir=ffmpeg_simple_${type}_git
 if [[ ! -d $ffmpeg_dir ]]; then
   rm -rf $ffmpeg_dir.tmp.git
   git clone --depth 1 https://github.com/FFmpeg/FFmpeg.git $ffmpeg_dir.tmp.git
