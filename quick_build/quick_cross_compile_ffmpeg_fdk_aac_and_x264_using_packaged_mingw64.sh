@@ -68,12 +68,13 @@ fi
 cd $ffmpeg_dir
   # not ready for this since we don't reconfigure after changes: # git pull
   if [[ ! -f ffbuild/config.mak ]]; then
-    # shouldn't really ever need these?  --enable-debug=3 --disable-optimizations \
     arch=x86_64
     if [[ $type == win32 ]]; then
       arch=x86
     fi
+    # shouldn't really ever need these? \
     ./configure --enable-gpl --enable-libx264 --enable-nonfree \
+      --enable-debug=3 --disable-optimizations \
       --arch=$arch --target-os=mingw32 \
       --cross-prefix=$host- --pkg-config=pkg-config --prefix=$prefix/ffmpeg_simple_installed || exit 1
   fi
