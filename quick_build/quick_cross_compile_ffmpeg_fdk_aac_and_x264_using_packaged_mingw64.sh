@@ -58,7 +58,7 @@ if [[ ! -f $prefix/lib/libx264.a ]]; then
 fi
 
 # and ffmpeg
-ffmpeg_dir=ffmpeg_simple_$type
+ffmpeg_dir=ffmpeg_simple_$type_git
 if [[ ! -d $ffmpeg_dir ]]; then
   rm -rf $ffmpeg_dir.tmp.git
   git clone --depth 1 https://github.com/FFmpeg/FFmpeg.git $ffmpeg_dir.tmp.git
@@ -68,8 +68,7 @@ fi
 cd $ffmpeg_dir
   # not ready for this since we don't reconfigure after changes: # git pull
   if [[ ! -f ffbuild/config.mak ]]; then
-#      --arch=x86 --target-os=mingw32 \
-# shouldn't need it?      --enable-debug=3 --disable-optimizations \
+    # shouldn't really ever need these?  --enable-debug=3 --disable-optimizations \
     arch=x86_64
     if [[ $type == win32 ]]; then
       arch=x86
