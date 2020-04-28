@@ -905,7 +905,7 @@ build_harfbuzz() {
   # basically gleaned from https://gist.github.com/roxlu/0108d45308a0434e27d4320396399153
   if [ ! -f harfbuzz_git/already_done_harf ]; then # TODO make freetype into separate dirs so I don't need this weird double hack file...
     build_freetype "--without-harfbuzz"
-    do_git_checkout  https://github.com/harfbuzz/harfbuzz.git harfbuzz_git 8b6eb6cf465032d0ca747f4b75f6e9155082bc45
+    do_git_checkout  https://github.com/harfbuzz/harfbuzz.git harfbuzz_git
     # cmake no .pc file :|
     cd harfbuzz_git
       if [ ! -f configure ]; then
