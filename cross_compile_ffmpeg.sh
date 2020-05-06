@@ -911,7 +911,9 @@ build_harfbuzz() {
       if [ ! -f configure ]; then
         ./autogen.sh # :|
       fi
+      export LDFLAGS=-lpthread # :|
       generic_configure "--with-freetype=yes --with-fontconfig=no --with-icu=no" # no fontconfig, don't want another circular what? icu is #372
+      unset LDFLAGS
       do_make_and_make_install
     cd ..
   
