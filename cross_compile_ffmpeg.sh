@@ -906,7 +906,7 @@ build_harfbuzz() {
   if [ ! -f harfbuzz_git/already_done_harf ]; then # TODO make freetype into separate dirs so I don't need this weird double hack file...
     build_freetype "--without-harfbuzz"
     do_git_checkout  https://github.com/harfbuzz/harfbuzz.git harfbuzz_git
-    # cmake no .pc file :|
+    # cmake no .pc file so use configure :|
     cd harfbuzz_git
       if [ ! -f configure ]; then
         ./autogen.sh # :|
@@ -921,8 +921,8 @@ build_harfbuzz() {
     touch harfbuzz_git/already_done_harf
     echo "done harfbuzz"
   fi
-  sed -i.bak 's/-lfreetype.*/-lfreetype -lharfbuzz/' "$PKG_CONFIG_PATH/freetype2.pc"
-  sed -i.bak 's/-lharfbuzz.*/-lharfbuzz -lfreetype/' "$PKG_CONFIG_PATH/harfbuzz.pc"
+  sed -i.bak 's/-lfreetype.*/-lfreetype -lharfbuzz -lpthread/' "$PKG_CONFIG_PATH/freetype2.pc" # for some reason it lists harfbuzz as Requires.private only??
+  sed -i.bak 's/-lharfbuzz.*/-lharfbuzz -lfreetype/' "$PKG_CONFIG_PATH/harfbuzz.pc" # does anything even use this?
   sed -i.bak 's/libfreetype.la -lbz2/libfreetype.la -lharfbuzz -lbz2/' "${mingw_w64_x86_64_prefix}/lib/libfreetype.la" # XXX what the..needed?
   sed -i.bak 's/libfreetype.la -lbz2/libfreetype.la -lharfbuzz -lbz2/' "${mingw_w64_x86_64_prefix}/lib/libharfbuzz.la"
 }
