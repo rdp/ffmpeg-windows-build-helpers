@@ -2542,7 +2542,7 @@ while true; do
                  high_bitdepth=y; build_ffmpeg_static=y; build_ffmpeg_shared=y; build_lws=y;
                  disable_nonfree=n; git_get_latest=y; sandbox_ok=y; build_amd_amf=y; build_intel_qsv=y; 
                  build_dvbtee=y; build_x264_with_libav=y; shift ;;
-    -d         ) gcc_cpu_count=$cpu_count; disable_nonfree="y"; sandbox_ok="y"; compiler_flavors="win32"; git_get_latest="n"; shift ;;
+    -d         ) gcc_cpu_count=$cpu_count; disable_nonfree="y"; sandbox_ok="y"; compiler_flavors="win64"; git_get_latest="n"; shift ;;
     --compiler-flavors=* ) 
          compiler_flavors="${1#*=}"; 
          if [[ $compiler_flavors == "native" && $OSTYPE == darwin* ]]; then
