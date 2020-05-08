@@ -2140,7 +2140,8 @@ build_ffmpeg() {
 
     if [ "$bits_target" != "32" ]; then
       #SVT-HEVC no longer needs to be disabled to configure with svt-av1, but svt-vp9 still conflicts with svt-av1 so svt-vp9 can only be compiled alone
-      config_options+=" --enable-libsvthevc"
+      #config_options+=" --enable-libsvthevc"
+      echo " not sure how to enable svthevc"
     fi
 
     #aom must be disabled to use SVT-AV1
