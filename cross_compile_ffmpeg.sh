@@ -83,6 +83,9 @@ check_missing_packages () {
       if at_least_required_version "18.04" "$(lsb_release -rs)"; then
         echo -n " python3-distutils" # guess it's no longer built-in, lensfun requires it...
       fi
+      if at_least_required_version "20.04" "$(lsb_release -rs)"; then
+        echo -n " python-is-python3"  # needed
+      fi
       echo " -y"
     else
       echo "for OS X (homebrew): brew install ragel wget cvs hg yasm autogen automake autoconf cmake libtool xz pkg-config nasm bzip2 autoconf-archive p7zip coreutils meson llvm" # if edit this edit docker/Dockerfile also :|
