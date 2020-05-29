@@ -1774,7 +1774,7 @@ echo "volunt"
     local licensed_gpl=y # lgpl build with libx264 included for those with "commercial" license :)
     if [[ $licensed_gpl == 'y' ]]; then
       apply_patch file://$patch_dir/x264_non_gpl.diff -p1
-      config_options+=" --enable-libx264 --disable-gpl --disable-decoder=hevc --disable-decoder=dca --disable-decoder=ac3  --disable-decoder=ac3_fixed --disable-decoder=atrac3 --disable-decoder=atrac3p --disable-decoder=eac3"
+      config_options+=" --enable-libx264 --disable-gpl --enable-decoder=hevc --disable-decoder=dca --disable-decoder=ac3  --disable-decoder=ac3_fixed --disable-decoder=atrac3 --disable-decoder=atrac3p --disable-decoder=eac3"
     fi 
     # other possibilities:
     #   --enable-w32threads # [worse UDP than pthreads, so not using that]
