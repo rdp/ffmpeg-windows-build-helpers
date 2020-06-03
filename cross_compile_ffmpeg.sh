@@ -1636,10 +1636,7 @@ build_dav1d() {
 
 build_libx265() {
   # the only one that uses mercurial, so there's some extra initial junk in this method... XXX needs some cleanup :|
-  local checkout_dir=x265
-  if [[ $high_bitdepth == "y" ]]; then
-    checkout_dir=x265_high_bitdepth_10
-  fi
+  local checkout_dir=x265_all_bitdepth
 
   if [[ $prefer_stable = "n" ]]; then
     local old_hg_version
@@ -1660,12 +1657,11 @@ build_libx265() {
       cd $checkout_dir
       old_hg_version=none-yet
     fi
-    cd source
 
     local new_hg_version=`hg --debug id -i`
     if [[ "$old_hg_version" != "$new_hg_version" ]]; then
       echo "got upstream hg changes, forcing rebuild...x265"
-      rm -f already*
+      rm -f 8bit/already* 10bit/already* 12bit/already*
     else
       echo "still at hg $new_hg_version x265"
     fi
@@ -1689,30 +1685,53 @@ build_libx265() {
       cd $checkout_dir
       old_hg_version=none-yet
     fi
-    cd source
 
     local new_hg_version=`hg --debug id -i`
     if [[ "$old_hg_version" != "$new_hg_version" ]]; then
       echo "got upstream hg changes, forcing rebuild...x265"
-      rm -f already*
+      rm -f 8bit/already* 10bit/already* 12bit/already*
     else
       echo "still at hg $new_hg_version x265"
     fi
-  fi # dont with prefer_stable = [y|n]
+  fi # done with prefer_stable = [y|n]
 
-  local cmake_params="-DENABLE_SHARED=0 -DENABLE_CLI=1" # build x265.exe
+
+  local cmake_params="-DENABLE_SHARED=0" # build x265.exe
   if [ "$bits_target" = "32" ]; then
     cmake_params+=" -DWINXP_SUPPORT=1" # enable windows xp/vista compatibility in x86 build
     cmake_params="$cmake_params -DENABLE_ASSEMBLY=OFF" # apparently required or build fails
   fi
-  if [[ $high_bitdepth == "y" ]]; then
-    cmake_params+=" -DHIGH_BIT_DEPTH=1" # Enable 10 bits (main10) per pixels profiles. XXX have an option for 12 here too??? gah...
-  fi
 
-  do_cmake "$cmake_params"
+  mkdir -p 8bit 10bit 12bit
+
+  # Build 12bit (main12)
+  cd 12bit
+  local cmake_12bit_params="$cmake_params -DENABLE_CLI=0 -DHIGH_BIT_DEPTH=1 -DMAIN12=1 -DEXPORT_C_API=0"
+  do_cmake_from_build_dir ../source "$cmake_12bit_params"
   do_make
-  echo force reinstall in case bit depth changed at all :|
-  rm already_ran_make_install*
+  cp libx265.a ../8bit/libx265_main12.a
+
+  # Build 10bit (main10)
+  cd ../10bit
+  local cmake_10bit_params="$cmake_params -DENABLE_CLI=0 -DHIGH_BIT_DEPTH=1 -DENABLE_HDR10_PLUS=1 -DEXPORT_C_API=0"
+  do_cmake_from_build_dir ../source "$cmake_10bit_params"
+  do_make
+  cp libx265.a ../8bit/libx265_main10.a
+
+  # Build 8 bit (main) with linked 10 and 12 bit then install
+  cd ../8bit
+  cmake_params="$cmake_params -DENABLE_CLI=1 -DEXTRA_LINK_FLAGS=-L -DLINKED_10BIT=1 -DLINKED_12BIT=1 -DEXTRA_LIB='$(pwd)/libx265_main10.a;$(pwd)/libx265_main12.a'"
+  do_cmake_from_build_dir ../source "$cmake_params"
+  do_make
+  mv libx265.a libx265_main.a
+  ${cross_prefix}ar -M <<EOF
+CREATE libx265.a
+ADDLIB libx265_main.a
+ADDLIB libx265_main10.a
+ADDLIB libx265_main12.a
+SAVE
+END
+EOF
   do_make_install
   cd ../..
 }
