@@ -1636,10 +1636,7 @@ build_dav1d() {
 
 build_libx265() {
   # the only one that uses mercurial, so there's some extra initial junk in this method... XXX needs some cleanup :|
-  local checkout_dir=x265
-  if [[ $high_bitdepth == "y" ]]; then
-    checkout_dir=x265_high_bitdepth_10
-  fi
+  local checkout_dir=x265_all_bitdepth
 
   if [[ $prefer_stable = "n" ]]; then
     local old_hg_version
@@ -1660,12 +1657,11 @@ build_libx265() {
       cd $checkout_dir
       old_hg_version=none-yet
     fi
-    cd source
 
     local new_hg_version=`hg --debug id -i`
     if [[ "$old_hg_version" != "$new_hg_version" ]]; then
       echo "got upstream hg changes, forcing rebuild...x265"
-      rm -f already*
+      rm -f 8bit/already* 10bit/already* 12bit/already*
     else
       echo "still at hg $new_hg_version x265"
     fi
@@ -1689,30 +1685,53 @@ build_libx265() {
       cd $checkout_dir
       old_hg_version=none-yet
     fi
-    cd source
 
     local new_hg_version=`hg --debug id -i`
     if [[ "$old_hg_version" != "$new_hg_version" ]]; then
       echo "got upstream hg changes, forcing rebuild...x265"
-      rm -f already*
+      rm -f 8bit/already* 10bit/already* 12bit/already*
     else
       echo "still at hg $new_hg_version x265"
     fi
-  fi # dont with prefer_stable = [y|n]
+  fi # done with prefer_stable = [y|n]
 
-  local cmake_params="-DENABLE_SHARED=0 -DENABLE_CLI=1" # build x265.exe
+
+  local cmake_params="-DENABLE_SHARED=0" # build x265.exe
   if [ "$bits_target" = "32" ]; then
     cmake_params+=" -DWINXP_SUPPORT=1" # enable windows xp/vista compatibility in x86 build
     cmake_params="$cmake_params -DENABLE_ASSEMBLY=OFF" # apparently required or build fails
   fi
-  if [[ $high_bitdepth == "y" ]]; then
-    cmake_params+=" -DHIGH_BIT_DEPTH=1" # Enable 10 bits (main10) per pixels profiles. XXX have an option for 12 here too??? gah...
-  fi
 
-  do_cmake "$cmake_params"
+  mkdir -p 8bit 10bit 12bit
+
+  # Build 12bit (main12)
+  cd 12bit
+  local cmake_12bit_params="$cmake_params -DENABLE_CLI=0 -DHIGH_BIT_DEPTH=1 -DMAIN12=1 -DEXPORT_C_API=0"
+  do_cmake_from_build_dir ../source "$cmake_12bit_params"
   do_make
-  echo force reinstall in case bit depth changed at all :|
-  rm already_ran_make_install*
+  cp libx265.a ../8bit/libx265_main12.a
+
+  # Build 10bit (main10)
+  cd ../10bit
+  local cmake_10bit_params="$cmake_params -DENABLE_CLI=0 -DHIGH_BIT_DEPTH=1 -DENABLE_HDR10_PLUS=1 -DEXPORT_C_API=0"
+  do_cmake_from_build_dir ../source "$cmake_10bit_params"
+  do_make
+  cp libx265.a ../8bit/libx265_main10.a
+
+  # Build 8 bit (main) with linked 10 and 12 bit then install
+  cd ../8bit
+  cmake_params="$cmake_params -DENABLE_CLI=1 -DEXTRA_LINK_FLAGS=-L -DLINKED_10BIT=1 -DLINKED_12BIT=1 -DEXTRA_LIB='$(pwd)/libx265_main10.a;$(pwd)/libx265_main12.a'"
+  do_cmake_from_build_dir ../source "$cmake_params"
+  do_make
+  mv libx265.a libx265_main.a
+  ${cross_prefix}ar -M <<EOF
+CREATE libx265.a
+ADDLIB libx265_main.a
+ADDLIB libx265_main10.a
+ADDLIB libx265_main12.a
+SAVE
+END
+EOF
   do_make_install
   cd ../..
 }
@@ -2066,9 +2085,6 @@ build_ffmpeg() {
   fi
   if [[ "$non_free" = "y" ]]; then
     output_dir+="_with_fdk_aac"
-  fi
-  if [[ $high_bitdepth == "y" ]]; then
-    output_dir+="_x26x_high_bitdepth"
   fi
   if [[ $build_intel_qsv == "n" ]]; then
     output_dir+="_xp_compat"
@@ -2517,7 +2533,6 @@ while true; do
       --git-get-latest=y [do a git pull for latest code from repositories like FFmpeg--can force a rebuild if changes are detected]
       --build-x264-with-libav=n build x264.exe with bundled/included "libav" ffmpeg libraries within it
       --prefer-stable=y build a few libraries from releases instead of git master
-      --high-bitdepth=n Enable high bit depth for x264 (10 bits) and x265 (10 and 12 bits, x64 build. Not officially supported on x86 (win32), but enabled by disabling its assembly).
       --debug Make this script  print out each line as it executes
       --enable-gpl=[y] set to n to do an lgpl build
       --build-dependencies=y [builds the ffmpeg dependencies. Disable it when the dependencies was built once and can greatly reduce build time. ]
@@ -2543,9 +2558,8 @@ while true; do
     --disable-nonfree=* ) disable_nonfree="${1#*=}"; shift ;;
     # this doesn't actually "build all", like doesn't build 10 high-bit LGPL ffmpeg, but it does exercise the "non default" type build options...
     -a         ) compiler_flavors="multi"; build_mplayer=n; build_libmxf=y; build_mp4box=y; build_vlc=y; build_lsw=y; 
-                 high_bitdepth=y; build_ffmpeg_static=y; build_ffmpeg_shared=y; build_lws=y;
-                 disable_nonfree=n; git_get_latest=y; sandbox_ok=y; build_amd_amf=y; build_intel_qsv=y; 
-                 build_dvbtee=y; build_x264_with_libav=y; shift ;;
+                 build_ffmpeg_static=y; build_ffmpeg_shared=y; build_lws=y; disable_nonfree=n; git_get_latest=y; 
+                 sandbox_ok=y; build_amd_amf=y; build_intel_qsv=y; build_dvbtee=y; build_x264_with_libav=y; shift ;;
     -d         ) gcc_cpu_count=$cpu_count; disable_nonfree="y"; sandbox_ok="y"; compiler_flavors="win64"; git_get_latest="n"; shift ;;
     --compiler-flavors=* ) 
          compiler_flavors="${1#*=}"; 
@@ -2558,7 +2572,6 @@ while true; do
     --build-ffmpeg-shared=* ) build_ffmpeg_shared="${1#*=}"; shift ;;
     --prefer-stable=* ) prefer_stable="${1#*=}"; shift ;;
     --enable-gpl=* ) enable_gpl="${1#*=}"; shift ;;
-    --high-bitdepth=* ) high_bitdepth="${1#*=}"; shift ;;
     --build-dependencies=* ) build_dependencies="${1#*=}"; shift ;;
     --debug ) set -x; shift ;;
     -- ) shift; break ;;

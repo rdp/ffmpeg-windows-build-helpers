@@ -64,15 +64,6 @@ create_zip() {
   zip -qr $1 $2 # without  -q for quiet it was kind of screen chatty
 }
 
-do_high_bitdepth_and_zip() {
-  copy_ffmpeg_binaries ./sandbox/win32/ffmpeg_git_x26x_high_bitdepth "$root/32-bit/ffmpeg-static-x26x-high-bitdepth"  
-  copy_ffmpeg_binaries ./sandbox/x86_64/ffmpeg_git_x26x_high_bitdepth "$root/64-bit/ffmpeg-static-x26x-high-bitdepth" 
-  cd sandbox/distros
-    create_zip ffmpeg.static.$date.32-bit.x26x-high-bitdepth.zip "$date_version/32-bit/ffmpeg-static-x26x-high-bitdepth/*"
-    create_zip ffmpeg.static.$date.64-bit.x26x-high-bitdepth.zip "$date_version/64-bit/ffmpeg-static-x26x-high-bitdepth/*"
-  cd ../..
-}
-
 do_xp_compat_and_zip() {
   copy_ffmpeg_binaries ./sandbox/win32/ffmpeg_git_xp_compat "$root/32-bit/ffmpeg-static-xp-compatible"
   copy_ffmpeg_binaries ./sandbox/x86_64/ffmpeg_git_xp_compat "$root/64-bit/ffmpeg-static-xp-compatible"
@@ -92,7 +83,6 @@ do_statics() {
 }
 
 do_statics
-do_high_bitdepth_and_zip
 do_xp_compat_and_zip
 do_shareds
 

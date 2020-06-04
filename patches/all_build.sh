@@ -26,7 +26,7 @@ done
 ./cross_compile_ffmpeg.sh --compiler-flavors=multi --disable-nonfree=y --git-get-latest=n --build-ffmpeg-shared=y --build-ffmpeg-static=y $desired_ffmpeg_ver 
 ./cross_compile_ffmpeg.sh --compiler-flavors=multi --disable-nonfree=y --git-get-latest=n --build-ffmpeg-shared=y --build-ffmpeg-static=y --enable-gpl=n $desired_ffmpeg_ver  # lgpl
 ./cross_compile_ffmpeg.sh --compiler-flavors=multi --disable-nonfree=y --git-get-latest=n --build-intel-qsv=n --build-ffmpeg-shared=y --build-ffmpeg-static=y $desired_ffmpeg_ver # windows xp :|
-./cross_compile_ffmpeg.sh --compiler-flavors=multi --disable-nonfree=y --git-get-latest=n --build-ffmpeg-static=y --build-ffmpeg-shared=n --high-bitdepth=y $desired_ffmpeg_ver # high bitdepth
+./cross_compile_ffmpeg.sh --compiler-flavors=multi --disable-nonfree=y --git-get-latest=n --build-ffmpeg-static=y --build-ffmpeg-shared=n $desired_ffmpeg_ver # intel-qsv
 
 rm -rf sandbox/distros # free up space from any previous distros
 if [[ $1 != "" ]]; then
