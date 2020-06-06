@@ -872,8 +872,8 @@ build_libopenjpeg() {
 }
 
 build_glew() {
-  download_and_unpack_file https://sourceforge.net/projects/glew/files/glew/2.1.0/glew-2.1.0.tgz glew-2.1.0
-  cd glew-2.1.0/build
+  download_and_unpack_file https://sourceforge.net/projects/glew/files/glew/2.2.0/glew-2.2.0.tgz glew-2.2.0
+  cd glew-2.2.0/build
     do_cmake_from_build_dir ./cmake "-DWIN32=1 -DBUILD_SHARED_LIBS=0 " # "-DWITH_FFMPEG=0 -DOPENCV_GENERATE_PKGCONFIG=1 -DHAVE_DSHOW=0"
     do_make_and_make_install
   cd ../..
