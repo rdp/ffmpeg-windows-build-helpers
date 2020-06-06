@@ -858,7 +858,7 @@ build_libtesseract() {
 }
 
 build_libzimg() {
-  do_git_checkout https://github.com/sekrit-twc/zimg.git zimg_git 8e87f5a4b88e16ccafb2e7ade8ef45
+  do_git_checkout https://github.com/sekrit-twc/zimg.git zimg_git release-2.9.3
   cd zimg_git
     generic_configure_make_install
   cd ..
