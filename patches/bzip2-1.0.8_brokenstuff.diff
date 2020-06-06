@@ -1,15 +1,3 @@
-diff -u bzip2.c.bak bzip2.c
---- bzip2.c.bak	2010-09-11 01:04:53.000000000 +0200
-+++ bzip2.c	2013-02-06 04:03:34.782383139 +0100
-@@ -128,7 +128,7 @@
- #if BZ_LCCWIN32
- #   include <io.h>
- #   include <fcntl.h>
--#   include <sys\stat.h>
-+#   include <sys/stat.h>
- 
- #   define NORETURN       /**/
- #   define PATH_SEP       '\\'
 diff -u bzlib.h.bak bzlib.h
 --- bzlib.h.bak	2010-09-11 01:08:42.000000000 +0200
 +++ bzlib.h	2013-02-06 04:03:34.782383139 +0100
