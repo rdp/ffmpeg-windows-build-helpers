@@ -880,8 +880,8 @@ build_glew() {
 }
 
 build_glfw() {
-  download_and_unpack_file https://github.com/glfw/glfw/releases/download/3.3/glfw-3.3.zip glfw-3.3
-  cd glfw-3.3
+  download_and_unpack_file https://github.com/glfw/glfw/releases/download/3.3.2/glfw-3.3.2.zip glfw-3.3.2
+  cd glfw-3.3.2
     do_cmake_and_install
   cd ..
 }
