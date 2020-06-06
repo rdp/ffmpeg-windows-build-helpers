@@ -734,15 +734,15 @@ build_iconv() {
 }
 
 build_sdl2() {
-  download_and_unpack_file http://libsdl.org/release/SDL2-2.0.5.tar.gz
-  cd SDL2-2.0.5
-    apply_patch file://$patch_dir/SDL2-2.0.5_lib-only.diff
+  download_and_unpack_file https://www.libsdl.org/release/SDL2-2.0.12.tar.gz
+  cd SDL2-2.0.12
+    apply_patch file://$patch_dir/SDL2-2.0.12_lib-only.diff
     #apply_patch file://$patch_dir/sdl2.xinput.diff # mingw-w64 master needs it?
     if [[ ! -f configure.bak ]]; then
       sed -i.bak "s/ -mwindows//" configure # Allow ffmpeg to output anything to console.
     fi
-    export CFLAGS=-DDECLSPEC=  # avoid SDL trac tickets 939 and 282 [broken shared builds], and not worried about optimizing yet...
-generic_configure "--bindir=$mingw_bin_path"
+    export CFLAGS="$CFLAGS -DDECLSPEC="  # avoid SDL trac tickets 939 and 282 [broken shared builds]
+    generic_configure "--bindir=$mingw_bin_path"
     do_make_and_make_install
     if [[ ! -f $mingw_bin_path/$host_target-sdl2-config ]]; then
       mv "$mingw_bin_path/sdl2-config" "$mingw_bin_path/$host_target-sdl2-config" # At the moment FFmpeg's 'configure' doesn't use 'sdl2-config', because it gives priority to 'sdl2.pc', but when it does, it expects 'i686-w64-mingw32-sdl2-config' in 'cross_compilers/mingw-w64-i686/bin'.
