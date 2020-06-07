@@ -905,10 +905,17 @@ build_libwebp() {
 }
 
 build_harfbuzz() {
+  local new_build=false
+  do_git_checkout https://github.com/harfbuzz/harfbuzz.git harfbuzz_git
+  if [ ! -f harfbuzz_git/already_done_harf ]; then # Not done or new master, so build
+    new_build=true
+  fi
+
   # basically gleaned from https://gist.github.com/roxlu/0108d45308a0434e27d4320396399153
-  if [ ! -f harfbuzz_git/already_done_harf ]; then # TODO make freetype into separate dirs so I don't need this weird double hack file...
-    build_freetype "--without-harfbuzz"
-    do_git_checkout  https://github.com/harfbuzz/harfbuzz.git harfbuzz_git
+  build_freetype "--without-harfbuzz" $new_build # Check for new freetype or force rebuild if needed
+  local new_freetype=$?
+  if $new_build || [ $new_freetype = 0 ]; then # 0 is true
+    rm -f harfbuzz_git/already* # Force rebuilding in case only freetype has changed
     # cmake no .pc file so use configure :|
     cd harfbuzz_git
       if [ ! -f configure ]; then
@@ -919,10 +926,12 @@ build_harfbuzz() {
       unset LDFLAGS
       do_make_and_make_install
     cd ..
-  
-    build_freetype "--with-harfbuzz" # with harfbuzz now...
+
+    build_freetype "--with-harfbuzz" true # with harfbuzz now...
     touch harfbuzz_git/already_done_harf
-    echo "done harfbuzz"
+    echo "Done harfbuzz"
+  else
+    echo "Already done harfbuzz"
   fi
   sed -i.bak 's/-lfreetype.*/-lfreetype -lharfbuzz -lpthread/' "$PKG_CONFIG_PATH/freetype2.pc" # for some reason it lists harfbuzz as Requires.private only??
   sed -i.bak 's/-lharfbuzz.*/-lharfbuzz -lfreetype/' "$PKG_CONFIG_PATH/harfbuzz.pc" # does anything even use this?
@@ -931,12 +940,20 @@ build_harfbuzz() {
 }
 
 build_freetype() {
-  download_and_unpack_file https://sourceforge.net/projects/freetype/files/freetype2/2.8/freetype-2.8.tar.bz2
-  cd freetype-2.8
-    # harfbuzz autodetect :|
-    generic_configure "--with-bzip2 $1"
-    do_make_and_make_install
-  cd ..
+  local force_build=$2
+  local new_build=1
+  if [[ ! -f freetype-2.10.2/already_done_freetype || $force_build = true ]]; then
+    download_and_unpack_file https://sourceforge.net/projects/freetype/files/freetype2/2.10.2/freetype-2.10.2.tar.xz
+    rm -f freetype-2.10.2/already*
+    cd freetype-2.10.2
+        # harfbuzz autodetect :|
+        generic_configure "--with-bzip2 $1"
+        do_make_and_make_install
+        touch already_done_freetype
+        new_build=0
+    cd ..
+  fi
+  return $new_build # Give caller a way to know if a new build was done
 }
 
 build_libxml2() {
