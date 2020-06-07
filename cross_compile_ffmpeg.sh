@@ -957,11 +957,8 @@ build_freetype() {
 }
 
 build_libxml2() {
-  download_and_unpack_file http://xmlsoft.org/sources/libxml2-2.9.4.tar.gz libxml2-2.9.4
-  cd libxml2-2.9.4
-    if [[ ! -f libxml.h.bak ]]; then # Otherwise you'll get "libxml.h:...: warning: "LIBXML_STATIC" redefined". Not an error, but still.
-      sed -i.bak "/NOLIBTOOL/s/.*/& \&\& !defined(LIBXML_STATIC)/" libxml.h
-    fi
+  download_and_unpack_file http://xmlsoft.org/sources/libxml2-2.9.10.tar.gz libxml2-2.9.10
+  cd libxml2-2.9.10
     generic_configure "--with-ftp=no --with-http=no --with-python=no"
     do_make_and_make_install
   cd ..
