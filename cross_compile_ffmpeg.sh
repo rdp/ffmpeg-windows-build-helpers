@@ -1223,13 +1223,11 @@ build_libsndfile() {
 }
 
 build_lame() {
-  do_git_checkout https://github.com/rbrito/lame.git
-  cd lame_git
-    apply_patch file://$patch_dir/lame3.patch # work on mtune=generic type builds :| TODO figure out why, report back to https://sourceforge.net/p/lame/bugs/443/
+  do_svn_checkout https://svn.code.sf.net/p/lame/svn/trunk/lame lame_svn
+  cd lame_svn
+    sed -i.bak "1{/^\xef\xbb\xbf$/d}" libmp3lame/i386/nasm.h # Remove a UTF-8 BOM that breaks nasm if it's still there; should be fixed in trunk eventually https://sourceforge.net/p/lame/patches/81/
     generic_configure "--enable-nasm"
-    cpu_count=1 # can't handle it apparently... http://betterlogic.com/roger/2017/07/mp3lame-woe/
     do_make_and_make_install
-    cpu_count=$original_cpu_count
   cd ..
 }
 
