@@ -1280,11 +1280,8 @@ build_libmodplug() {
 
 build_libgme() {
   # do_git_checkout https://bitbucket.org/mpyne/game-music-emu.git
-  download_and_unpack_file https://bitbucket.org/mpyne/game-music-emu/downloads/game-music-emu-0.6.2.tar.xz
-  cd game-music-emu-0.6.2
-    if [[ ! -f CMakeLists.txt.bak ]]; then
-      sed -i.bak "s/ __declspec.*//" gme/blargg_source.h # Needed for building shared FFmpeg libraries.
-    fi
+  download_and_unpack_file https://bitbucket.org/mpyne/game-music-emu/downloads/game-music-emu-0.6.3.tar.xz
+  cd game-music-emu-0.6.3
     do_cmake_and_install "-DENABLE_UBSAN=0"
   cd ..
 }
