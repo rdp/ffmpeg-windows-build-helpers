@@ -1375,14 +1375,10 @@ build_libsoxr() {
 }
 
 build_libflite() {
-  download_and_unpack_file http://www.festvox.org/flite/packed/flite-2.0/flite-2.0.0-release.tar.bz2
-  cd flite-2.0.0-release
-    if [[ ! -f configure.bak ]]; then
-      sed -i.bak "s|i386-mingw32-|$cross_prefix|" configure
-      #sed -i.bak "/define const/i\#include <windows.h>" tools/find_sts_main.c # Needed for x86_64? Untested.
-      sed -i.bak "128,134d" main/Makefile # Library only. else fails with cannot copy bin/libflite or someodd
-      sed -i.bak "s/cp -pd/cp -p/" main/Makefile # friendlier cp for OS X
-    fi
+  download_and_unpack_file http://www.festvox.org/flite/packed/flite-2.1/flite-2.1-release.tar.bz2
+  cd flite-2.1-release
+    apply_patch file://$patch_dir/flite-2.1.0_mingw-w64-fixes.patch
+    sed -i.bak "s/cp -pd/cp -p/" main/Makefile # friendlier cp for OS X
     generic_configure
     do_make_and_make_install
   cd ..

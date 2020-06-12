@@ -1,0 +1,98 @@
+--- configure.bak	2020-05-11 18:30:54.909379626 +0000
++++ configure	2020-05-11 18:32:22.906040345 +0000
+@@ -4081,7 +4081,7 @@
+                 # http://www.mingw.org
+ 		shared=false
+      	        CFLAGS="$CFLAGS -DCST_NO_SOCKETS -DUNDER_WINDOWS -DWIN32 -shared"
+-                MINGWPREF="i386-mingw32-"
++                MINGWPREF="${host_alias}-"
+                 CC="${MINGWPREF}gcc"
+                 RANLIB="${MINGWPREF}ranlib"
+                 AR="${MINGWPREF}ar"
+--- main/Makefile.bak	2020-05-11 20:18:26.039219862 +0000
++++ main/Makefile	2020-05-11 20:19:09.207549064 +0000
+@@ -133,12 +133,12 @@
+ 
+ install:
+ #       The basic binaries
+-	@ $(INSTALL) -m 755 $(BINDIR)/flite $(DESTDIR)$(INSTALLBINDIR)
++	@ $(INSTALL) -m 755 $(BINDIR)/flite$(EXEEXT) $(DESTDIR)$(INSTALLBINDIR)
+ 	@ for i in $(VOICES) ; \
+ 	do \
+-	   $(INSTALL) $(BINDIR)/flite_$$i $(DESTDIR)$(INSTALLBINDIR); \
++	   $(INSTALL) $(BINDIR)/flite_$$i$(EXEEXT) $(DESTDIR)$(INSTALLBINDIR); \
+ 	done
+-	$(INSTALL) -m 755 $(BINDIR)/flite_time $(DESTDIR)$(INSTALLBINDIR)
++	$(INSTALL) -m 755 $(BINDIR)/flite_time$(EXEEXT) $(DESTDIR)$(INSTALLBINDIR)
+ #       The libraries: static and shared (if built)
+ 	cp -pd $(flite_LIBS_deps) $(DESTDIR)$(INSTALLLIBDIR)
+ ifdef SHFLAGS
+--- include/cst_file.h.bak	2020-05-11 18:34:47.403125914 +0000
++++ include/cst_file.h	2020-05-11 19:18:42.268404656 +0000
+@@ -99,6 +99,9 @@
+ int cst_fprintf(cst_file fh, const char *fmt, ...);
+ int cst_sprintf(char *s, const char *fmt, ...);
+ #ifdef _WIN32
++#include <windows.h>
++/* Not needed if this is mingw-w64 */
++#ifndef __MINGW64_VERSION_MAJOR
+ #define snprintf c99_snprintf
+ 
+ __inline int c99_vsnprintf(char* str, size_t size, const char* format,
+@@ -121,6 +124,7 @@
+        return count;
+    }
+ #endif
++#endif
+ #define cst_snprintf snprintf
+ 
+ #if defined(__palmos__)
+--- lang/cmu_indic_lang/cmu_indic_lang.h.bak	2020-05-11 20:09:14.767028537 +0000
++++ lang/cmu_indic_lang/cmu_indic_lang.h	2020-05-11 20:09:52.695315800 +0000
+@@ -57,5 +57,11 @@
+ } /* extern "C" */
+ #endif /* __cplusplus */
+ 
++#ifdef _WIN32
++__inline int ts_utf8_sequence_length(char c0);
++#else
++int ts_utf8_sequence_length(char c0);
++#endif
++
+ #endif
+ 
+--- lang/cmu_indic_lang/cmu_indic_lang.c.bak	2020-05-11 20:09:18.039053308 +0000
++++ lang/cmu_indic_lang/cmu_indic_lang.c	2020-05-11 20:11:17.127956086 +0000
+@@ -115,23 +115,16 @@
+ #include "indic_tam_num_table.h"
+ #include "indic_pan_num_table.h"
+ 
+-
+-int ts_utf8_sequence_length(char c0);
+-// inline int utf8_sequence_length(char c0)
+-// {
+-    // Get the expected length of UTF8 sequence given its most
+-    // significant byte
+-//    return (( 0xE5000000 >> (( c0 >> 3 ) & 0x1E )) & 3 ) + 1;
+-// }
+-
+-
++#ifdef _WIN32
++__inline int ts_utf8_sequence_length(char c0)
++{
++   /* Get the expected length of UTF8 sequence given its most */
++   /* significant byte */
++    return (( 0xE5000000 >> (( c0 >> 3 ) & 0x1E )) & 3 ) + 1;
++}
++#else
+ int ts_utf8_sequence_length(char c0);
+-// inline int utf8_sequence_length(char c0)
+-// {
+-    // Get the expected length of UTF8 sequence given its most
+-    // significant byte
+-//    return (( 0xE5000000 >> (( c0 >> 3 ) & 0x1E )) & 3 ) + 1;
+-// }
++#endif
+ 
+ int indic_digit_to_offset(const char *ind_digit) 
+ {
