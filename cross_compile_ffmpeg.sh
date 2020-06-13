@@ -1406,8 +1406,8 @@ build_vamp_plugin() {
 }
 
 build_fftw() {
-  download_and_unpack_file http://fftw.org/fftw-3.3.6-pl2.tar.gz
-  cd fftw-3.3.6-pl2
+  download_and_unpack_file http://fftw.org/fftw-3.3.8.tar.gz
+  cd fftw-3.3.8
     generic_configure "--disable-doc"
     do_make_and_make_install
   cd ..
