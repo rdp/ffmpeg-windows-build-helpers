@@ -1542,12 +1542,10 @@ build_zvbi() {
 }
 
 build_fribidi() {
-  do_git_checkout https://github.com/fribidi/fribidi.git fribidi_git edb58d3fbd99726673b821f708a99182928bd452
-  cd fribidi_git
-    cpu_count=1 # needed apparently with git master
+  download_and_unpack_file https://github.com/fribidi/fribidi/releases/download/v1.0.9/fribidi-1.0.9.tar.xz # Get c2man errors building from repo
+  cd fribidi-1.0.9
     generic_configure "--disable-debug --disable-deprecated --disable-docs"
     do_make_and_make_install
-    cpu_count=$original_cpu_count
   cd ..
 }
 
