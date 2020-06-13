@@ -38,3 +38,14 @@ diff -ur Makefile.in.bak Makefile.in
  install:	$(SDK_STATIC) $(SDK_DYNAMIC) $(HOSTSDK_STATIC) $(HOSTSDK_DYNAMIC) $(PLUGIN_TARGET) $(HOST_TARGET) $(RDFGEN_TARGET)
  		mkdir -p $(DESTDIR)$(INSTALL_API_HEADERS)
  		mkdir -p $(DESTDIR)$(INSTALL_SDK_HEADERS)
+--- src/vamp-sdk/PluginAdapter.cpp.bak	2020-05-11 21:14:07.830515129 +0000
++++ src/vamp-sdk/PluginAdapter.cpp	2020-05-11 21:14:23.742635544 +0000
+@@ -39,7 +39,7 @@
+ #include <cstring>
+ #include <cstdlib>
+ 
+-#include <mutex>
++#include <mingw.mutex.h>
+ 
+ #if ( VAMP_SDK_MAJOR_VERSION != 2 || VAMP_SDK_MINOR_VERSION != 10 )
+ #error Unexpected version of Vamp SDK header included

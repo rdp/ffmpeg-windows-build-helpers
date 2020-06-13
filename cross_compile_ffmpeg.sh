@@ -1393,11 +1393,12 @@ build_libsnappy() {
 }
 
 build_vamp_plugin() {
-  download_and_unpack_file https://github.com/c4dm/vamp-plugin-sdk/archive/vamp-plugin-sdk-v2.7.1.tar.gz vamp-plugin-sdk-vamp-plugin-sdk-v2.7.1
-  cd vamp-plugin-sdk-vamp-plugin-sdk-v2.7.1
-    apply_patch file://$patch_dir/vamp-plugin-sdk-2.7.1_static-lib.diff
+  download_and_unpack_file https://github.com/c4dm/vamp-plugin-sdk/archive/vamp-plugin-sdk-v2.10.tar.gz vamp-plugin-sdk-vamp-plugin-sdk-v2.10
+  cd vamp-plugin-sdk-vamp-plugin-sdk-v2.10
+    apply_patch file://$patch_dir/vamp-plugin-sdk-2.10_static-lib_mutex.diff
     if [[ ! -f configure.bak ]]; then # Fix for "'M_PI' was not declared in this scope" (see https://stackoverflow.com/a/29264536).
-      sed -i.bak "s/c++98/gnu++98/" configure
+      sed -i.bak "s/c++11/gnu++11/" configure
+      sed -i.bak "s/c++11/gnu++11/" Makefile.in
     fi
     do_configure "--host=$host_target --prefix=$mingw_w64_x86_64_prefix --disable-programs"
     do_make "install-static" # No need for 'do_make_install', because 'install-static' already has install-instructions.
