@@ -281,7 +281,7 @@ install_cross_compiler() {
 
     # --disable-shared allows c++ to be distributed at all...which seemed necessary for some random dependency which happens to use/require c++...
     local zeranoe_script_name=mingw-w64-build-r22.local
-    local zeranoe_script_options="--gcc-ver=8.3.0 --default-configure --cpu-count=$gcc_cpu_count --pthreads-w32-ver=2-9-1 --disable-shared --clean-build --verbose --allow-overwrite" # allow-overwrite to avoid some crufty prompts if I do rebuilds [or maybe should just nuke everything...]
+    local zeranoe_script_options="--gcc-ver=9.3.0 --mingw-w64-ver=7.0.0 --default-configure --cpu-count=$gcc_cpu_count --pthreads-w32-ver=2-9-1 --disable-shared --clean-build --verbose --allow-overwrite" # allow-overwrite to avoid some crufty prompts if I do rebuilds [or maybe should just nuke everything...]
     if [[ ($compiler_flavors == "win32" || $compiler_flavors == "multi") && ! -f ../$win32_gcc ]]; then
       echo "Building win32 cross compiler..."
       download_gcc_build_script $zeranoe_script_name
@@ -813,19 +813,19 @@ build_libtensorflow() {
 }
 
 build_glib() {
-  export CPPFLAGS='-DLIBXML_STATIC' # gettext build...
+  export CPPFLAGS="$CPPFLAGS -DLIBXML_STATIC" # gettext build...
   generic_download_and_make_and_install  https://ftp.gnu.org/pub/gnu/gettext/gettext-0.19.8.1.tar.xz
-  unset CPPFLAGS
+  reset_cppflags
   generic_download_and_make_and_install  http://sourceware.org/pub/libffi/libffi-3.2.1.tar.gz # also dep
   download_and_unpack_file https://ftp.gnome.org/pub/gnome/sources/glib/2.56/glib-2.56.3.tar.xz # there's a 2.58 but guess I'd need to use meson for that, too complicated...also didn't yet contain the DllMain patch I believe, so no huge win...
   cd glib-2.56.3
-    export CPPFLAGS='-liconv -pthread' # I think gettext wanted this but has no .pc file??
+    export CPPFLAGS="$CPPFLAGS -liconv -pthread" # I think gettext wanted this but has no .pc file??
     if [[ $compiler_flavors != "native" ]]; then # seemingly unneeded for OS X
       apply_patch file://$patch_dir/glib_msg_fmt.patch # needed for configure
       apply_patch  file://$patch_dir/glib-prefer-constructors-over-DllMain.patch # needed for static. weird.
     fi
     generic_configure "--with-pcre=internal" # too lazy for pcre :) XXX
-    unset CPPFLAGS
+    reset_cppflags
     do_make_and_make_install
   cd ..
 }
@@ -1985,6 +1985,10 @@ reset_cflags() {
   export CFLAGS=$original_cflags
 }
 
+reset_cppflags() {
+  export CPPFLAGS=$original_cppflags
+}
+
 build_meson_cross() {
     rm -fv meson-cross.mingw.txt
     echo "[binaries]" >> meson-cross.mingw.txt
@@ -2485,6 +2489,7 @@ build_intel_qsv=y # note: not windows xp friendly!
 build_amd_amf=y
 disable_nonfree=y # comment out to force user y/n selection
 original_cflags='-mtune=generic -O3' # high compatible by default, see #219, some other good options are listed below, or you could use -march=native to target your local box:
+original_cppflags='-U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=0' # Needed for mingw-w64 7 as FORTIFY_SOURCE is now partially implemented, but not actually working
 # if you specify a march it needs to first so x264's configure will use it :| [ is that still the case ?]
 
 #flags=$(cat /proc/cpuinfo | grep flags)
@@ -2581,6 +2586,7 @@ while true; do
 done
 
 reset_cflags # also overrides any "native" CFLAGS, which we may need if there are some 'linux only' settings in there
+reset_cppflags # Ensure CPPFLAGS are cleared and set to what is configured
 check_missing_packages # do this first since it's annoying to go through prompts then be rejected
 intro # remember to always run the intro, since it adjust pwd
 install_cross_compiler
