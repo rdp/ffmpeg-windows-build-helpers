@@ -1863,12 +1863,19 @@ build_libdvdcss() {
 }
 
 build_libjpeg_turbo() {
-  download_and_unpack_file https://sourceforge.net/projects/libjpeg-turbo/files/1.5.0/libjpeg-turbo-1.5.0.tar.gz
-  cd libjpeg-turbo-1.5.0
-    #do_cmake_and_install "-DNASM=yasm" # couldn't figure out a static only build with cmake...maybe you can these days dunno
-    generic_configure "NASM=yasm"
-    do_make_and_make_install
-    sed -i.bak 's/typedef long INT32/typedef long XXINT32/' "$mingw_w64_x86_64_prefix/include/jmorecfg.h" # breaks VLC build without this...freaky...theoretically using cmake instead would be enough, but that installs .dll.a file... XXXX maybe no longer needed :|
+  local target_proc=AMD64
+  if [ "$bits_target" = "32" ]; then
+    target_proc=X86
+  fi
+  download_and_unpack_file https://sourceforge.net/projects/libjpeg-turbo/files/2.0.4/libjpeg-turbo-2.0.4.tar.gz
+  cd libjpeg-turbo-2.0.4
+    cat > toolchain.cmake << EOF
+set(CMAKE_SYSTEM_NAME Windows)
+set(CMAKE_SYSTEM_PROCESSOR ${target_proc})
+set(CMAKE_C_COMPILER ${cross_prefix}gcc)
+set(CMAKE_RC_COMPILER ${cross_prefix}windres)
+EOF
+    do_cmake_and_install "-DCMAKE_TOOLCHAIN_FILE=toolchain.cmake -DENABLE_SHARED=0 -DCMAKE_ASM_NASM_COMPILER=yasm"
   cd ..
 }
 
