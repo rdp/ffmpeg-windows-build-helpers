@@ -1,7 +1,7 @@
-diff --git a/feature/src/adm_options.h b/feature/src/adm_options.h
+diff --git a/libvmaf/src/feature/adm_options.h b/libvmaf/src/feature/adm_options.h
 index 72f8fa7..0b4ab75 100644
---- a/feature/src/adm_options.h
-+++ b/feature/src/adm_options.h
+--- a/libvmaf/src/feature/adm_options.h
++++ b/libvmaf/src/feature/adm_options.h
 @@ -32,5 +32,6 @@
  
  /* Whether to perform division by reciprocal-multiplication. */
@@ -9,10 +9,10 @@ index 72f8fa7..0b4ab75 100644
 +#undef ADM_OPT_RECIP_DIVISION
  
  #endif /* ADM_OPTIONS_H_ */
-diff --git a/libsvm/Makefile b/libsvm/Makefile
+diff --git a/third_party/libsvm/Makefile b/third_party/libsvm/Makefile
 index 971375a..d190e49 100644
---- a/libsvm/Makefile
-+++ b/libsvm/Makefile
+--- a/third_party/libsvm/Makefile
++++ b/third_party/libsvm/Makefile
 @@ -14,7 +14,7 @@ lib: svm.o
  	else \
  		SHARED_LIB_FLAG="-shared -Wl,-soname,libsvm.so.$(SHVER)"; \
@@ -22,10 +22,10 @@ index 971375a..d190e49 100644
  
  svm-predict: svm-predict.c svm.o
  	$(CXX) $(CFLAGS) svm-predict.c svm.o -o svm-predict -lm
-diff --git a/ptools/Makefile.VMAF b/ptools/Makefile.VMAF
+diff --git a/libvmaf/src/third_party/ptools/Makefile.VMAF b/libvmaf/src/third_party/ptools/Makefile.VMAF
 index 0333768..2e392f5 100644
---- a/ptools/Makefile.VMAF
-+++ b/ptools/Makefile.VMAF
+--- a/libvmaf/src/third_party/ptools/Makefile.VMAF
++++ b/libvmaf/src/third_party/ptools/Makefile.VMAF
 @@ -31,9 +31,9 @@ all: libptools
  
  libptools : $(COM_OBJS)
@@ -38,29 +38,25 @@ index 0333768..2e392f5 100644
  endif
  
  clean :
-diff --git a/ptools/fdtools.h b/ptools/fdtools.h
-index 01fa9ae..d169028 100644
---- a/ptools/fdtools.h
-+++ b/ptools/fdtools.h
-@@ -4,7 +4,7 @@
- extern "C" {
- #if defined(_MSC_VER) || defined(__MINGW32__)
-     #include <io.h>
--    #include <Winsock2.h>
-+    #include <winsock2.h>
-     #include <string.h>
- #else
-     #include <unistd.h>
-diff --git a/ptools/opencontainers_1_8_4/include/ocsynchronizer.h b/ptools/opencontainers_1_8_4/include/ocsynchronizer.h
+diff --git a/libvmaf/src/third_party/ptools/opencontainers_1_8_4/include/ocsynchronizer.h b/libvmaf/src/third_party/ptools/opencontainers_1_8_4/include/ocsynchronizer.h
 index 0eb577a..7f22aa2 100644
---- a/ptools/opencontainers_1_8_4/include/ocsynchronizer.h
-+++ b/ptools/opencontainers_1_8_4/include/ocsynchronizer.h
-@@ -215,11 +215,11 @@ struct CondVar {
-       struct timespec current_time;
- 
- 
+--- a/libvmaf/src/third_party/ptools/opencontainers_1_8_4/include/ocsynchronizer.h
++++ b/libvmaf/src/third_party/ptools/opencontainers_1_8_4/include/ocsynchronizer.h
+@@ -11,7 +11,7 @@
+ #include "ocport.h"
+ #include <stdlib.h>
+ #include <stdio.h>
 -#if defined(_MSC_VER)
-+#if defined(_MSC_VER)  || defined(__MINGW32__)
++#if defined(_MSC_VER) || defined(_WIN32) || defined(__MINGW32__)
+ #define HAVE_STRUCT_TIMESPEC 0
+ #include <pthread.h>
+ #include <winsock2.h>
+@@ -215,11 +215,11 @@
+       struct timespec current_time;
+
+
+-#if defined(_MSC_VER)
++#if defined(_MSC_VER) || defined(_WIN32) || defined(__MINGW32__)
          __int64 wintime; GetSystemTimeAsFileTime((FILETIME*)&wintime);
 -        wintime      -=116444736000000000i64;  //1jan1601 to 1jan1970
 -        current_time.tv_sec  =wintime / 10000000i64;           //seconds
@@ -71,16 +67,3 @@ index 0eb577a..7f22aa2 100644
  #elif defined(__MACH__) // OS X does not have clock_gettime, use clock_get_time
        clock_serv_t cclock;
        mach_timespec_t mts;
-diff --git a/wrapper/Makefile b/wrapper/Makefile
-index 9317515..5ba0a29 100644
---- a/wrapper/Makefile
-+++ b/wrapper/Makefile
-@@ -161,7 +161,7 @@ $(OBJDIR)/%.o: $(SRCDIR)/pugixml/%.cpp
- 	$(CXX) -c -o $@ $(CXXFLAGS) $(CPPFLAGS) $<
- 
- $(LIBVMAF): $(OBJS) $(wildcard ../ptools/*.o)
--	ar rcs $@ $^
-+	$(AR) rcs $@ $^
- 
- vmafossexec: $(OBJDIR)/main.o $(LIBVMAF)
- 	$(CXX) -s -o $@ $(LDFLAGS) $^ -pthread

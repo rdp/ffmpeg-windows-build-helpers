@@ -821,20 +821,14 @@ build_glib() {
   cd glib-2.64.3
     apply_patch  file://$patch_dir/glib-2.64.3_mingw-static.patch -p1
     export CPPFLAGS="$CPPFLAGS -pthread -DGLIB_STATIC_COMPILATION"
+    export CXXFLAGS="$CFLAGS" # Not certain this is needed, but it doesn't hurt
     export LDFLAGS="-L${mingw_w64_x86_64_prefix}/lib" # For some reason the frexp configure checks fail without this as math.h isn't found
-    cp ${top_dir}/meson-cross.mingw.txt . # Need to add flags to meson properties; otherwise ran into some issues
-    cat >> meson-cross.mingw.txt << EOF
-
-[properties]
-c_args = ['${CFLAGS// /\',\'}']
-c_link_args = ['${LDFLAGS// /\',\'}']
-cpp_args = ['${CFLAGS// /\',\'}']
-cpp_link_args = ['${LDFLAGS// /\',\'}']
-EOF
+    get_local_meson_cross_with_propeties # Need to add flags to meson properties; otherwise ran into some issues
     do_meson "--prefix=${mingw_w64_x86_64_prefix} --libdir=${mingw_w64_x86_64_prefix}/lib --buildtype=release --strip --default-library=static --cross-file=meson-cross.mingw.txt -Dinternal_pcre=true -Dforce_posix_threads=true . build"
     do_ninja_and_ninja_install
     sed -i.bak 's/-lglib-2.0.*$/-lglib-2.0 -lintl -pthread -lws2_32 -lwinmm -lm -liconv -lole32/' $PKG_CONFIG_PATH/glib-2.0.pc
     reset_cppflags
+    unset CXXFLAGS
     unset LDFLAGS
   cd ..
 }
@@ -974,13 +968,23 @@ build_libxml2() {
 }
 
 build_libvmaf() {
-  do_git_checkout https://github.com/Netflix/vmaf.git vmaf_git 2ded988de0356a09b65bbb8e14bd625aff29c332 # before "reorg" killed our patch
+  do_git_checkout https://github.com/Netflix/vmaf.git vmaf_git v1.5.1
   cd vmaf_git
-    apply_patch file://$patch_dir/libvmaf.various.patch -p1
-    do_make_and_make_install "$make_prefix_options INSTALL_PREFIX=$mingw_w64_x86_64_prefix"
-    # .pc seems broke
-    sed -i.bak "s:/usr/local:$mingw_w64_x86_64_prefix:" "$PKG_CONFIG_PATH/libvmaf.pc"
-  cd .. 
+    apply_patch file://$patch_dir/libvmaf.various-1.5.1.patch -p1
+    cd libvmaf
+    export CFLAGS="$CFLAGS -pthread"
+    export CXXFLAGS="$CFLAGS -pthread"
+    export LDFLAGS="-pthread" # Needed here too for some reason
+    get_local_meson_cross_with_propeties # Need to add flags to meson properties; otherwise ran into some issues
+    mkdir build
+    do_meson "--prefix=${mingw_w64_x86_64_prefix} --libdir=${mingw_w64_x86_64_prefix}/lib --buildtype=release --strip --default-library=static --cross-file=meson-cross.mingw.txt . build"
+    do_ninja_and_ninja_install
+    reset_cflags
+    unset CXXFLAGS
+    unset LDFLAGS
+    rm -f ${mingw_w64_x86_64_prefix}/lib/libvmaf.dll.a # Can't find a way to not build this
+    sed -i.bak "s/Libs.private.*/& -lstdc++/" "$PKG_CONFIG_PATH/libvmaf.pc" # .pc is still broken
+  cd ../..
 }
 
 build_fontconfig() {
@@ -2002,12 +2006,12 @@ reset_cppflags() {
 }
 
 build_meson_cross() {
-    local cpu_family="x86_64"
-    if [ $bits_target = 32 ]; then
-      cpu_family="x86"
-    fi
-    rm -fv meson-cross.mingw.txt
-    cat >> meson-cross.mingw.txt << EOF
+  local cpu_family="x86_64"
+  if [ $bits_target = 32 ]; then
+    cpu_family="x86"
+  fi
+  rm -fv meson-cross.mingw.txt
+  cat >> meson-cross.mingw.txt << EOF
 [binaries]
 c = '${cross_prefix}gcc'
 cpp = '${cross_prefix}g++'
@@ -2024,7 +2028,23 @@ cpu_family = '$cpu_family'
 cpu = '$cpu_family'
 endian = 'little'
 EOF
-    mv -v meson-cross.mingw.txt ../..
+  mv -v meson-cross.mingw.txt ../..
+}
+
+get_local_meson_cross_with_propeties() {
+  local local_dir="$1"
+  if [[ -z $local_dir ]]; then
+    local_dir="."
+  fi
+  cp ${top_dir}/meson-cross.mingw.txt "$local_dir"
+  cat >> meson-cross.mingw.txt << EOF
+
+[properties]
+c_args = ['${CFLAGS// /\',\'}']
+c_link_args = ['${LDFLAGS// /\',\'}']
+cpp_args = ['${CXXFLAGS// /\',\'}']
+cpp_link_args = ['${LDFLAGS// /\',\'}']
+EOF
 }
 
 build_mplayer() {
