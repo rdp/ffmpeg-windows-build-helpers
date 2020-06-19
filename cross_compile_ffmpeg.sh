@@ -804,7 +804,7 @@ build_libleptonica() {
 
 build_libtiff() {
   build_libjpeg_turbo # auto uses it?
-  generic_download_and_make_and_install http://download.osgeo.org/libtiff/tiff-4.0.9.tar.gz
+  generic_download_and_make_and_install http://download.osgeo.org/libtiff/tiff-4.1.0.tar.gz
   sed -i.bak 's/-ltiff.*$/-ltiff -llzma -ljpeg -lz/' $PKG_CONFIG_PATH/libtiff-4.pc # static deps
 } 
 
