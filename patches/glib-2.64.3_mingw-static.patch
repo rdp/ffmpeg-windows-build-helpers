@@ -1,0 +1,506 @@
+--- a/meson.build	2020-05-12 23:30:19.810615008 +0000
++++ b/meson.build	2020-05-12 23:36:12.505293638 +0000
+@@ -11,6 +11,7 @@
+
+ cc = meson.get_compiler('c')
+ cxx = meson.get_compiler('cpp')
++add_project_link_arguments('-liconv', language: 'c')
+
+ cc_can_run = not meson.is_cross_build() or meson.has_exe_wrapper()
+
+@@ -1893,7 +1893,13 @@
+ endif
+ 
+ libm = cc.find_library('m', required : false)
+-libffi_dep = dependency('libffi', version : '>= 3.0.0', fallback : ['libffi', 'ffi_dep'])
++libffi_dep = dependency('libffi', version : '>= 3.0.0', required : false)
++if not libffi_dep.found()
++  libffi_dep = cc.find_library('ffi', required : false)
++  if not libffi_dep.found() or not cc.has_header('ffi.h')
++    libffi_dep = subproject('libffi').get_variable('ffi_dep')
++  endif
++endif
+ 
+ # Don't use the bundled ZLib sources until we are sure that we can't find it on
+ # the system
+From a137bb56674eca0b8d2592e870a1d2595a9eb934 Mon Sep 17 00:00:00 2001
+From: Jeremy Tan <jtanx@outlook.com>
+Date: Sat, 15 Jun 2019 14:40:52 +1000
+Subject: [PATCH] Update g_fopen, g_open and g_creat to open with
+ FILE_SHARE_DELETE sharing access
+
+Very loosely based on the patches in
+https://gitlab.gnome.org/GNOME/glib/issues/539
+
+but with much more robust file mode parsing and error handling.
+Implements most of the definition as provided on msdn for fopen.
+
+If charcter conversion is requested (via _O_U8TEXT, _O_U16TEXT, _O_WTEXT or any
+of the 'ccs=utf8/utf-16le/unicode'), g_fopen and g_open fall back to use
+_wfopen and _wopen respectively, as there is no easy way to replicate the
+expected behaviour of those modes, particularly around BOM handling.
+---
+ glib/gstdio.c | 304 ++++++++++++++++++++++++++++++++++++++++++++------
+ 1 file changed, 267 insertions(+), 37 deletions(-)
+
+diff --git a/glib/gstdio.c b/glib/gstdio.c
+index 653c8a3a1..c34440424 100644
+--- a/glib/gstdio.c
++++ b/glib/gstdio.c
+@@ -1036,21 +1036,146 @@ g_open (const gchar *filename,
+ 	int          mode)
+ {
+ #ifdef G_OS_WIN32
+-  wchar_t *wfilename = g_utf8_to_utf16 (filename, -1, NULL, NULL, NULL);
++  HANDLE file_handle;
++  DWORD disposition;
++  DWORD desired_access;
++  DWORD flags_and_attributes;
++  DWORD last_error;
++  SECURITY_ATTRIBUTES security_attributes;
++  wchar_t *wfilename;
++  int r;
+   int retval;
+   int save_errno;
+-    
++
++  wfilename = g_utf8_to_utf16 (filename, -1, NULL, NULL, NULL);
+   if (wfilename == NULL)
+     {
+       errno = EINVAL;
+       return -1;
+     }
+ 
+-  retval = _wopen (wfilename, flags, mode);
+-  save_errno = errno;
++  /* If any of these flags are specified, fall back to _wopen */
++  if (flags & (_O_U8TEXT | _O_U16TEXT | _O_WTEXT))
++    {
++      retval = _wopen (wfilename, flags, mode);
++      save_errno = errno;
++
++      g_free (wfilename);
++      errno = save_errno;
++      return retval;
++    }
++
++  /* Set up the access mode; exactly one of these must be specified */
++  switch (flags & (_O_RDONLY | _O_WRONLY | _O_RDWR))
++    {
++    case _O_RDONLY:
++      desired_access = GENERIC_READ;
++      break;
++    case _O_WRONLY:
++      desired_access = GENERIC_WRITE;
++      break;
++    case _O_RDWR:
++      desired_access = GENERIC_READ | GENERIC_WRITE;
++      break;
++    default:
++      g_free (wfilename);
++      errno = EINVAL;
++      return -1;
++    }
++
++  /* Parse the creation disposition */
++  switch (flags & (_O_CREAT | _O_EXCL | _O_TRUNC))
++    {
++    case _O_CREAT:
++      disposition = OPEN_ALWAYS;
++      break;
++    case _O_CREAT | _O_TRUNC:
++      disposition = CREATE_ALWAYS;
++      break;
++    case _O_CREAT | _O_EXCL:
++    case _O_CREAT | _O_TRUNC | _O_EXCL:
++      disposition = CREATE_NEW;
++      break;
++    case _O_TRUNC:
++    case _O_TRUNC | _O_EXCL:
++      disposition = TRUNCATE_EXISTING;
++      break;
++    default:
++      disposition = OPEN_EXISTING;
++    }
+ 
++  if (!(desired_access & GENERIC_WRITE) && disposition == TRUNCATE_EXISTING)
++    {
++      /* Must have GENERIC_WRITE to be able to truncate */
++      g_free (wfilename);
++      errno = EINVAL;
++      return -1;
++    }
++
++  /* Set up the security descriptor */
++  security_attributes.nLength = sizeof(security_attributes);
++  security_attributes.lpSecurityDescriptor = NULL;
++  security_attributes.bInheritHandle = (flags & _O_NOINHERIT) != _O_NOINHERIT;
++
++  flags_and_attributes = 0;
++  if ((flags & _O_CREAT) && !(mode & _S_IWRITE))
++    flags_and_attributes |= FILE_ATTRIBUTE_READONLY;
++  if (flags & _O_TEMPORARY)
++    {
++      flags_and_attributes |= FILE_FLAG_DELETE_ON_CLOSE;
++      desired_access |= DELETE;
++    }
++  if (flags & _O_SHORT_LIVED)
++    flags_and_attributes |= FILE_ATTRIBUTE_TEMPORARY;
++  if (flags & _O_SEQUENTIAL)
++    flags_and_attributes |= FILE_FLAG_SEQUENTIAL_SCAN;
++  if (flags & _O_RANDOM)
++    flags_and_attributes |= FILE_FLAG_RANDOM_ACCESS;
++
++  file_handle = CreateFileW (wfilename,
++                             desired_access,
++                             FILE_SHARE_READ|FILE_SHARE_WRITE|FILE_SHARE_DELETE,
++                             &security_attributes,
++                             disposition,
++                             flags_and_attributes,
++                             NULL);
++  last_error = GetLastError ();
+   g_free (wfilename);
+ 
++  if (file_handle == INVALID_HANDLE_VALUE)
++  {
++    errno = w32_error_to_errno (last_error);
++    return -1;
++  }
++
++  retval = _open_osfhandle ((intptr_t)file_handle, flags);
++  save_errno = errno;
++
++  if (retval == -1)
++    {
++      CloseHandle (file_handle);
++      errno = save_errno;
++      return -1;
++    }
++
++  flags &= _O_BINARY | _O_TEXT;
++  if (!flags)
++    /* No explicit specification; try the global mode */
++    flags = _fmode & (_O_BINARY | _O_TEXT);
++
++  if (flags & _O_BINARY)
++    r = _setmode (retval, _O_BINARY);
++  else
++    r = _setmode (retval, _O_TEXT);
++
++  if (r == -1)
++    {
++      save_errno = errno;
++      close (retval);
++      errno = save_errno;
++      return -1;
++    }
++
+   errno = save_errno;
+   return retval;
+ #else
+@@ -1099,23 +1224,7 @@ g_creat (const gchar *filename,
+ 	 int          mode)
+ {
+ #ifdef G_OS_WIN32
+-  wchar_t *wfilename = g_utf8_to_utf16 (filename, -1, NULL, NULL, NULL);
+-  int retval;
+-  int save_errno;
+-    
+-  if (wfilename == NULL)
+-    {
+-      errno = EINVAL;
+-      return -1;
+-    }
+-
+-  retval = _wcreat (wfilename, mode);
+-  save_errno = errno;
+-
+-  g_free (wfilename);
+-
+-  errno = save_errno;
+-  return retval;
++  return g_open (filename, _O_WRONLY|_O_CREAT|_O_TRUNC, mode);
+ #else
+   return creat (filename, mode);
+ #endif
+@@ -1556,35 +1665,155 @@ g_fopen (const gchar *filename,
+ 	 const gchar *mode)
+ {
+ #ifdef G_OS_WIN32
+-  wchar_t *wfilename = g_utf8_to_utf16 (filename, -1, NULL, NULL, NULL);
+-  wchar_t *wmode;
+-  FILE *retval;
++  const gchar *orig_mode = mode;
++  char filtered_mode[5];
++  char *filtered_mode_iter;
++  gboolean has_ccs;
++  gboolean has_commit;
++  int fd;
++  int flags;
+   int save_errno;
++  FILE *retval;
+ 
+-  if (wfilename == NULL)
++  if (filename == NULL || mode == NULL)
++    goto err_einval;
++
++  filtered_mode_iter = filtered_mode;
++
++  while (*mode == ' ') ++mode;
++
++  switch (*mode)
+     {
+-      errno = EINVAL;
+-      return NULL;
++    case 'r':
++      flags = _O_RDONLY;
++      break;
++    case 'w':
++      flags = _O_WRONLY | _O_CREAT | _O_TRUNC;
++      break;
++    case 'a':
++      flags = _O_WRONLY | _O_CREAT | _O_APPEND;
++      break;
++    default:
++      goto err_einval;
+     }
+ 
+-  wmode = g_utf8_to_utf16 (mode, -1, NULL, NULL, NULL);
++  *filtered_mode_iter++ = *mode++;
+ 
+-  if (wmode == NULL)
++#define CHECK_AND_ADD(chk, add) \
++  do { \
++    if (flags & (chk)) \
++      goto err_einval; \
++    flags |= (add); \
++  } while (0)
++
++  for (has_ccs = FALSE, has_commit = FALSE; *mode && !has_ccs; ++mode)
++    {
++    switch (*mode)
++      {
++      case '+':
++        CHECK_AND_ADD (_O_RDWR, _O_RDWR);
++        flags &= ~(_O_RDONLY | _O_WRONLY);
++        if ((filtered_mode_iter - filtered_mode) > 1)
++          {
++            *filtered_mode_iter++ = filtered_mode[1];
++            filtered_mode[1] = '+';
++          }
++        else
++          *filtered_mode_iter++ = '+';
++        break;
++      case 't':
++        CHECK_AND_ADD (_O_TEXT | _O_BINARY, _O_TEXT);
++        *filtered_mode_iter++ = 't';
++        break;
++      case 'b':
++        CHECK_AND_ADD (_O_TEXT | _O_BINARY, _O_BINARY);
++        *filtered_mode_iter++ = 'b';
++        break;
++      case 'N':
++        CHECK_AND_ADD (_O_NOINHERIT, _O_NOINHERIT);
++        break;
++      case 'S':
++        CHECK_AND_ADD (_O_SEQUENTIAL, _O_SEQUENTIAL);
++        break;
++      case 'R':
++        CHECK_AND_ADD (_O_RANDOM, _O_RANDOM);
++        break;
++      case 'T':
++        CHECK_AND_ADD (_O_SHORT_LIVED, _O_SHORT_LIVED);
++        break;
++      case 'D':
++        CHECK_AND_ADD (_O_TEMPORARY, _O_TEMPORARY);
++        break;
++      case 'x':
++        CHECK_AND_ADD (_O_EXCL, _O_EXCL);
++        break;
++
++      case 'c':
++      case 'n':
++        if (has_commit)
++          goto err_einval;
++        has_commit = TRUE;
++        *filtered_mode_iter++ = *mode;
++      /* fallthrough */
++      case ' ':
++        break;
++
++      case ',':
++        has_ccs = TRUE;
++        break;
++
++      default:
++        goto err_einval;
++      }
++    }
++
++#undef CHECK_AND_ADD
++
++  *filtered_mode_iter = 0;
++  while (*mode == ' ') ++mode;
++
++  /*
++   * If a ccs is specified, fall back to using _wfopen, as
++   * there's no easy way to handle this
++   */
++  if (has_ccs)
+     {
++      wchar_t *wfilename = g_utf8_to_utf16 (filename, -1, NULL, NULL, NULL);
++      wchar_t *wmode = g_utf8_to_utf16 (orig_mode, -1, NULL, NULL, NULL);
++
++      _g_win32_fix_mode (wmode);
++      retval = _wfopen (wfilename, wmode);
++      save_errno = errno;
++
++      g_free (wmode);
+       g_free (wfilename);
+-      errno = EINVAL;
+-      return NULL;
++
++      errno = save_errno;
++      return retval;
+     }
+ 
+-  _g_win32_fix_mode (wmode);
+-  retval = _wfopen (wfilename, wmode);
+-  save_errno = errno;
++  if (*mode)
++    goto err_einval;
+ 
+-  g_free (wfilename);
+-  g_free (wmode);
++  fd = g_open (filename, flags, (_S_IREAD | _S_IWRITE));
++
++  if (fd == -1)
++    /* 'errno' will have already been set by 'g_open()' */
++    return NULL;
++
++  retval = _fdopen (fd, filtered_mode);
++  if (retval == NULL)
++    {
++      save_errno = errno;
++      close (fd);
++      errno = save_errno;
++    }
+ 
+-  errno = save_errno;
+   return retval;
++
++err_einval:
++  errno = EINVAL;
++  return NULL;
+ #else
+   return fopen (filename, mode);
+ #endif
+@@ -1625,6 +1854,7 @@ g_freopen (const gchar *filename,
+     }
+ 
+   wmode = g_utf8_to_utf16 (mode, -1, NULL, NULL, NULL);
++  _g_win32_fix_mode (wmode);
+ 
+   if (wmode == NULL)
+     {
+-- 
+2.22.0
+
+From 7cf2af987f9a2379b28f5d3426e9dc6633fa29a5 Mon Sep 17 00:00:00 2001
+From: Christoph Reiter <reiter.christoph@gmail.com>
+Date: Sat, 6 Jan 2018 22:04:23 +0100
+Subject: [PATCH] win32: Make the static build work with MinGW when posix
+ threads are used
+
+MinGW does not support the use of DllMain() for static builds, but that
+is currently always used on Windows, partly because it is needed for
+handling win32 threads and because there are problems with MSVC
+optimizing constructors away (see 7a29771a743a8b5337).
+
+To make the static build at least work in case mingw+posix threads are used,
+switch to using constructors for that. The g_clock_win32_init() call is
+moved into glib_init(), so it's also called in that case.
+
+If mingw+static+win32 threads are used abort the build early and print
+an error message.
+
+https://bugzilla.gnome.org/show_bug.cgi?id=792297
+---
+ glib/glib-init.c | 15 ++++++++++++---
+ gobject/gtype.c  |  2 +-
+ 2 files changed, 13 insertions(+), 4 deletions(-)
+
+diff --git a/glib/glib-init.c b/glib/glib-init.c
+index ed800dca1..4866b5239 100644
+--- a/glib/glib-init.c
++++ b/glib/glib-init.c
+@@ -264,19 +264,29 @@ glib_init (void)
+ 
+   glib_inited = TRUE;
+ 
++#ifdef G_OS_WIN32
++  g_clock_win32_init ();
++#endif
+   g_messages_prefixed_init ();
+   g_debug_init ();
+   g_quark_init ();
+ }
+ 
+ #if defined (G_OS_WIN32)
++HMODULE glib_dll;
++#endif
++
++#if defined(__MINGW32__) && defined(GLIB_STATIC_COMPILATION) && !defined(THREADS_POSIX)
++/* MinGW static builds do not work with DllMain, but win32 threads need it atm */
++#error "Static build under MinGW only supported when build with posix threads"
++#endif
++
++#if defined (G_OS_WIN32) && (!defined(__MINGW32__) || defined(DLL_EXPORT))
+ 
+ BOOL WINAPI DllMain (HINSTANCE hinstDLL,
+                      DWORD     fdwReason,
+                      LPVOID    lpvReserved);
+ 
+-HMODULE glib_dll;
+-
+ BOOL WINAPI
+ DllMain (HINSTANCE hinstDLL,
+          DWORD     fdwReason,
+@@ -287,7 +297,6 @@ DllMain (HINSTANCE hinstDLL,
+     case DLL_PROCESS_ATTACH:
+       glib_dll = hinstDLL;
+       g_crash_handler_win32_init ();
+-      g_clock_win32_init ();
+ #ifdef THREADS_WIN32
+       g_thread_win32_init ();
+ #endif
+diff --git a/gobject/gtype.c b/gobject/gtype.c
+index 425c6195d..91cd7e2cf 100644
+--- a/gobject/gtype.c
++++ b/gobject/gtype.c
+@@ -4456,7 +4456,7 @@ gobject_init (void)
+   _g_signal_init ();
+ }
+ 
+-#if defined (G_OS_WIN32)
++#if defined (G_OS_WIN32) && (!defined(__MINGW32__) || defined(DLL_EXPORT))
+ 
+ BOOL WINAPI DllMain (HINSTANCE hinstDLL,
+                      DWORD     fdwReason,
+-- 
+2.22.0
+
+diff --git a/gio/tests/meson.build b/gio/tests/meson.build
+index dca33bd44..47a95b7b3 100644
+--- a/gio/tests/meson.build
++++ b/gio/tests/meson.build
+@@ -549,7 +549,8 @@
+   endforeach
+ endif
+ 
+-if not meson.is_cross_build() or meson.has_exe_wrapper()
++windows_static = host_system == 'windows' and get_option('default_library') == 'static'
++if (not meson.is_cross_build() or meson.has_exe_wrapper()) and not windows_static
+ 
+   plugin_resources_c = custom_target('plugin-resources.c',
+     input : 'test4.gresource.xml',

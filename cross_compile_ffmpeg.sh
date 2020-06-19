@@ -817,16 +817,25 @@ build_glib() {
   generic_download_and_make_and_install  https://ftp.gnu.org/pub/gnu/gettext/gettext-0.20.2.tar.gz
   reset_cppflags
   generic_download_and_make_and_install  https://github.com/libffi/libffi/releases/download/v3.3/libffi-3.3.tar.gz # also dep
-  download_and_unpack_file https://ftp.gnome.org/pub/gnome/sources/glib/2.56/glib-2.56.3.tar.xz # there's a 2.58 but guess I'd need to use meson for that, too complicated...also didn't yet contain the DllMain patch I believe, so no huge win...
-  cd glib-2.56.3
-    export CPPFLAGS="$CPPFLAGS -liconv -pthread" # I think gettext wanted this but has no .pc file??
-    if [[ $compiler_flavors != "native" ]]; then # seemingly unneeded for OS X
-      apply_patch file://$patch_dir/glib_msg_fmt.patch # needed for configure
-      apply_patch  file://$patch_dir/glib-prefer-constructors-over-DllMain.patch # needed for static. weird.
-    fi
-    generic_configure "--with-pcre=internal" # too lazy for pcre :) XXX
+  download_and_unpack_file https://gitlab.gnome.org/GNOME/glib/-/archive/2.64.3/glib-2.64.3.tar.gz
+  cd glib-2.64.3
+    apply_patch  file://$patch_dir/glib-2.64.3_mingw-static.patch -p1
+    export CPPFLAGS="$CPPFLAGS -pthread -DGLIB_STATIC_COMPILATION"
+    export LDFLAGS="-L${mingw_w64_x86_64_prefix}/lib" # For some reason the frexp configure checks fail without this as math.h isn't found
+    cp ${top_dir}/meson-cross.mingw.txt . # Need to add flags to meson properties; otherwise ran into some issues
+    cat >> meson-cross.mingw.txt << EOF
+
+[properties]
+c_args = ['${CFLAGS// /\',\'}']
+c_link_args = ['${LDFLAGS// /\',\'}']
+cpp_args = ['${CFLAGS// /\',\'}']
+cpp_link_args = ['${LDFLAGS// /\',\'}']
+EOF
+    do_meson "--prefix=${mingw_w64_x86_64_prefix} --libdir=${mingw_w64_x86_64_prefix}/lib --buildtype=release --strip --default-library=static --cross-file=meson-cross.mingw.txt -Dinternal_pcre=true -Dforce_posix_threads=true . build"
+    do_ninja_and_ninja_install
+    sed -i.bak 's/-lglib-2.0.*$/-lglib-2.0 -lintl -pthread -lws2_32 -lwinmm -lm -liconv -lole32/' $PKG_CONFIG_PATH/glib-2.0.pc
     reset_cppflags
-    do_make_and_make_install
+    unset LDFLAGS
   cd ..
 }
 
@@ -1993,22 +2002,28 @@ reset_cppflags() {
 }
 
 build_meson_cross() {
+    local cpu_family="x86_64"
+    if [ $bits_target = 32 ]; then
+      cpu_family="x86"
+    fi
     rm -fv meson-cross.mingw.txt
-    echo "[binaries]" >> meson-cross.mingw.txt
-    echo "c = '${cross_prefix}gcc'" >> meson-cross.mingw.txt
-    echo "cpp = '${cross_prefix}g++'" >> meson-cross.mingw.txt
-    echo "ar = '${cross_prefix}ar'" >> meson-cross.mingw.txt
-    echo "strip = '${cross_prefix}strip'" >> meson-cross.mingw.txt
-    echo "pkgconfig = '${cross_prefix}pkg-config'" >> meson-cross.mingw.txt
-    echo "nm = '${cross_prefix}nm'" >> meson-cross.mingw.txt
-    echo "windres = '${cross_prefix}windres'" >> meson-cross.mingw.txt
-#    echo "[properties]" >> meson-cross.mingw.txt
-#    echo "needs_exe_wrapper = true" >> meson-cross.mingw.txt
-    echo "[host_machine]" >> meson-cross.mingw.txt
-    echo "system = 'windows'" >> meson-cross.mingw.txt
-    echo "cpu_family = 'x86_64'" >> meson-cross.mingw.txt
-    echo "cpu = 'x86_64'" >> meson-cross.mingw.txt
-    echo "endian = 'little'" >> meson-cross.mingw.txt
+    cat >> meson-cross.mingw.txt << EOF
+[binaries]
+c = '${cross_prefix}gcc'
+cpp = '${cross_prefix}g++'
+ld = '${cross_prefix}ld'
+ar = '${cross_prefix}ar'
+strip = '${cross_prefix}strip'
+pkgconfig = '${cross_prefix}pkg-config'
+nm = '${cross_prefix}nm'
+windres = '${cross_prefix}windres'
+
+[host_machine]
+system = 'windows'
+cpu_family = '$cpu_family'
+cpu = '$cpu_family'
+endian = 'little'
+EOF
     mv -v meson-cross.mingw.txt ../..
 }
 
