@@ -848,14 +848,17 @@ build_lensfun() {
 }
 
 build_libtesseract() {
-  build_libleptonica
   build_libtiff # no disable configure option for this in tesseract? odd...
-  do_git_checkout https://github.com/tesseract-ocr/tesseract.git tesseract_git a2e72f258a3bd6811cae226a01802d # #315
+  build_libleptonica
+  do_git_checkout https://github.com/tesseract-ocr/tesseract.git tesseract_git 4.1.1
   cd tesseract_git
-    generic_configure_make_install
     if [[ $compiler_flavors != "native"  ]]; then
+      apply_patch file://$patch_dir/tesseract-4.1.1_mingw-std-threads.patch
+      generic_configure "--disable-openmp"
+      do_make_and_make_install
       sed -i.bak 's/-ltesseract.*$/-ltesseract -lstdc++ -lws2_32 -llept -ltiff -llzma -ljpeg -lz/' $PKG_CONFIG_PATH/tesseract.pc # why does it needs winsock? LOL plus all of libtiff's <sigh>
     else
+      generic_configure_make_install
       sed -i.bak 's/-ltesseract.*$/-ltesseract -lstdc++ -llept -ltiff -llzma -ljpeg -lz -lgomp/' $PKG_CONFIG_PATH/tesseract.pc # see above, gomp for linux native
     fi
   cd ..

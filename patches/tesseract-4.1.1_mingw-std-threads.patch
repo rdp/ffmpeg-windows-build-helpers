@@ -1,0 +1,33 @@
+--- src/viewer/svutil.cpp.bak	2020-05-12 19:01:52.564756952 +0000
++++ src/viewer/svutil.cpp	2020-05-12 19:02:22.172975935 +0000
+@@ -31,7 +31,7 @@
+ #include <iostream>
+ #include <memory>
+ #include <string>
+-#include <thread>        // for std::this_thread
++#include <mingw.thread.h>        // for std::this_thread
+ #include <vector>
+ 
+ #ifdef _WIN32
+--- src/training/lstmtester.cpp.bak	2020-05-12 19:02:43.605134452 +0000
++++ src/training/lstmtester.cpp	2020-05-12 19:04:43.658022655 +0000
+@@ -16,7 +16,7 @@
+ // limitations under the License.
+ ///////////////////////////////////////////////////////////////////////
+ 
+-#include <thread>               // for std::thread
++#include <mingw.thread.h>               // for std::thread
+ #include "fileio.h"             // for LoadFileLinesToStrings
+ #include "lstmtester.h"
+ #include "genericvector.h"
+--- src/ccstruct/imagedata.cpp.bak	2020-05-12 19:05:28.882357325 +0000
++++ src/ccstruct/imagedata.cpp	2020-05-12 19:05:43.954468876 +0000
+@@ -26,7 +26,7 @@
+ #if defined(__MINGW32__)
+ #include <unistd.h>
+ #else
+-#include <thread>
++#include <mingw.thread.h>
+ #endif
+ 
+ #include "allheaders.h"  // for pixDestroy, pixGetHeight, pixGetWidth, lept_...
