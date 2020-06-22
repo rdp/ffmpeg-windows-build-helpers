@@ -716,11 +716,18 @@ build_liblzma() {
 build_zlib() {
   download_and_unpack_file https://github.com/madler/zlib/archive/v1.2.11.tar.gz zlib-1.2.11
   cd zlib-1.2.11
-    do_configure "--prefix=$mingw_w64_x86_64_prefix --static"
+    local make_options
     if [[ $compiler_flavors == "native" ]]; then
-      do_make_and_make_install "$make_prefix_options" # can't take ARFLAGS...
+      export CFLAGS="$CFLAGS -fPIC" # For some reason glib needs this even though we build a static library
     else
-      do_make_and_make_install "$make_prefix_options ARFLAGS=rcs" # https://stackoverflow.com/questions/21396988/zlib-build-not-configuring-properly-with-cross-compiler-ignores-ar
+      export ARFLAGS=rcs # Native can't take ARFLAGS; https://stackoverflow.com/questions/21396988/zlib-build-not-configuring-properly-with-cross-compiler-ignores-ar
+    fi
+    do_configure "--prefix=$mingw_w64_x86_64_prefix --static"
+    do_make_and_make_install "$make_prefix_options"
+    if [[ $compiler_flavors == "native" ]]; then
+      reset_cflags
+    else
+      unset ARFLAGS
     fi
   cd ..
 }
@@ -742,8 +749,14 @@ build_sdl2() {
       sed -i.bak "s/ -mwindows//" configure # Allow ffmpeg to output anything to console.
     fi
     export CFLAGS="$CFLAGS -DDECLSPEC="  # avoid SDL trac tickets 939 and 282 [broken shared builds]
+    if [[ $compiler_flavors == "native" ]]; then
+      unset PKG_CONFIG_LIBDIR # Allow locally installed things for native builds; libpulse-dev is an important one otherwise no audio for most Linux
+    fi
     generic_configure "--bindir=$mingw_bin_path"
     do_make_and_make_install
+    if [[ $compiler_flavors == "native" ]]; then
+      export PKG_CONFIG_LIBDIR=
+    fi
     if [[ ! -f $mingw_bin_path/$host_target-sdl2-config ]]; then
       mv "$mingw_bin_path/sdl2-config" "$mingw_bin_path/$host_target-sdl2-config" # At the moment FFmpeg's 'configure' doesn't use 'sdl2-config', because it gives priority to 'sdl2.pc', but when it does, it expects 'i686-w64-mingw32-sdl2-config' in 'cross_compilers/mingw-w64-i686/bin'.
     fi
@@ -823,11 +836,19 @@ build_glib() {
     apply_patch  file://$patch_dir/glib-2.64.3_mingw-static.patch -p1
     export CPPFLAGS="$CPPFLAGS -pthread -DGLIB_STATIC_COMPILATION"
     export CXXFLAGS="$CFLAGS" # Not certain this is needed, but it doesn't hurt
-    export LDFLAGS="-L${mingw_w64_x86_64_prefix}/lib" # For some reason the frexp configure checks fail without this as math.h isn't found
-    get_local_meson_cross_with_propeties # Need to add flags to meson properties; otherwise ran into some issues
-    do_meson "--prefix=${mingw_w64_x86_64_prefix} --libdir=${mingw_w64_x86_64_prefix}/lib --buildtype=release --strip --default-library=static --cross-file=meson-cross.mingw.txt -Dinternal_pcre=true -Dforce_posix_threads=true . build"
+    export LDFLAGS="-L${mingw_w64_x86_64_prefix}/lib" # For some reason the frexp configure checks fail without this as math.h isn't found when cross-compiling; no negative impact for native builds
+    local meson_options="--prefix=${mingw_w64_x86_64_prefix} --libdir=${mingw_w64_x86_64_prefix}/lib --buildtype=release --strip --default-library=static -Dinternal_pcre=true -Dforce_posix_threads=true . build"
+    if [[ $compiler_flavors != "native" ]]; then
+      get_local_meson_cross_with_propeties # Need to add flags to meson properties; otherwise ran into some issues
+      meson_options+=" --cross-file=meson-cross.mingw.txt"
+    fi
+    do_meson "$meson_options"
     do_ninja_and_ninja_install
-    sed -i.bak 's/-lglib-2.0.*$/-lglib-2.0 -lintl -pthread -lws2_32 -lwinmm -lm -liconv -lole32/' $PKG_CONFIG_PATH/glib-2.0.pc
+    if [[ $compiler_flavors == "native" ]]; then
+      sed -i.bak 's/-lglib-2.0.*$/-lglib-2.0 -pthread -lm -liconv/' $PKG_CONFIG_PATH/glib-2.0.pc
+    else
+      sed -i.bak 's/-lglib-2.0.*$/-lglib-2.0 -lintl -pthread -lws2_32 -lwinmm -lm -liconv -lole32/' $PKG_CONFIG_PATH/glib-2.0.pc
+    fi
     reset_cppflags
     unset CXXFLAGS
     unset LDFLAGS
@@ -881,7 +902,11 @@ build_libopenjpeg() {
 build_glew() {
   download_and_unpack_file https://sourceforge.net/projects/glew/files/glew/2.2.0/glew-2.2.0.tgz glew-2.2.0
   cd glew-2.2.0/build
-    do_cmake_from_build_dir ./cmake "-DWIN32=1 -DBUILD_SHARED_LIBS=0 " # "-DWITH_FFMPEG=0 -DOPENCV_GENERATE_PKGCONFIG=1 -DHAVE_DSHOW=0"
+    local cmake_params=""
+    if [[ $compiler_flavors != "native" ]]; then
+      cmake_params+=" -DWIN32=1"
+    fi
+    do_cmake_from_build_dir ./cmake "$cmake_params" # "-DWITH_FFMPEG=0 -DOPENCV_GENERATE_PKGCONFIG=1 -DHAVE_DSHOW=0"
     do_make_and_make_install
   cd ../..
 }
@@ -979,14 +1004,22 @@ build_libvmaf() {
     export CFLAGS="$CFLAGS -pthread"
     export CXXFLAGS="$CFLAGS -pthread"
     export LDFLAGS="-pthread" # Needed here too for some reason
-    get_local_meson_cross_with_propeties # Need to add flags to meson properties; otherwise ran into some issues
     mkdir build
-    do_meson "--prefix=${mingw_w64_x86_64_prefix} --libdir=${mingw_w64_x86_64_prefix}/lib --buildtype=release --strip --default-library=static --cross-file=meson-cross.mingw.txt . build"
+    local meson_options="--prefix=${mingw_w64_x86_64_prefix} --libdir=${mingw_w64_x86_64_prefix}/lib --buildtype=release --strip --default-library=static . build"
+    if [[ $compiler_flavors != "native" ]]; then
+      get_local_meson_cross_with_propeties # Need to add flags to meson properties; otherwise ran into some issues
+      meson_options+=" --cross-file=meson-cross.mingw.txt"
+    fi
+    do_meson "$meson_options"
     do_ninja_and_ninja_install
     reset_cflags
     unset CXXFLAGS
     unset LDFLAGS
-    rm -f ${mingw_w64_x86_64_prefix}/lib/libvmaf.dll.a # Can't find a way to not build this
+    if [[ $compiler_flavors == "native" ]]; then # Can't find a way to not build these; meson is already set to --default-library=static but it still builds both
+      rm -f ${mingw_w64_x86_64_prefix}/lib/libvmaf.so
+    else
+      rm -f ${mingw_w64_x86_64_prefix}/lib/libvmaf.dll.a
+    fi
     sed -i.bak "s/Libs.private.*/& -lstdc++/" "$PKG_CONFIG_PATH/libvmaf.pc" # .pc is still broken
   cd ../..
 }
@@ -1042,7 +1075,11 @@ build_librtmfp() {
 build_libnettle() {
   download_and_unpack_file https://ftp.gnu.org/gnu/nettle/nettle-3.6.tar.gz
   cd nettle-3.6
-    generic_configure "--disable-openssl --disable-documentation" # in case we have both gnutls and openssl, just use gnutls [except that gnutls uses this so...huh? https://github.com/rdp/ffmpeg-windows-build-helpers/issues/25#issuecomment-28158515
+    local config_options="--disable-openssl --disable-documentation" # in case we have both gnutls and openssl, just use gnutls [except that gnutls uses this so...huh?
+    if [[ $compiler_flavors == "native" ]]; then
+      config_options+=" --libdir=${mingw_w64_x86_64_prefix}/lib" # Otherwise native builds install to /lib32 or /lib64 which gnutls doesn't find
+    fi
+    generic_configure "$config_options" # in case we have both gnutls and openssl, just use gnutls [except that gnutls uses this so...huh? https://github.com/rdp/ffmpeg-windows-build-helpers/issues/25#issuecomment-28158515
     do_make_and_make_install # What's up with "Configured with: ... --with-gmp=/cygdrive/d/ffmpeg-windows-build-helpers-master/native_build/windows/ffmpeg_local_builds/sandbox/cross_compilers/pkgs/gmp/gmp-6.1.2-i686" in 'config.log'? Isn't the 'gmp-6.1.2' above being used?
   cd ..
 }
@@ -1068,8 +1105,9 @@ build_gnutls() {
     if [[ $compiler_flavors != "native"  ]]; then
       # libsrt doesn't know how to use its pkg deps :| https://github.com/Haivision/srt/issues/565
       sed -i.bak 's/-lgnutls.*/-lgnutls -lcrypt32 -lnettle -lhogweed -lgmp -lidn2 -liconv -lunistring/' "$PKG_CONFIG_PATH/gnutls.pc" 
-    elif [[ $OSTYPE == darwin* ]]; then
+      if [[ $OSTYPE == darwin* ]]; then
         sed -i.bak 's/-lgnutls.*/-lgnutls -framework Security -framework Foundation/' "$PKG_CONFIG_PATH/gnutls.pc" 
+      fi
     fi
   cd ..
 }
@@ -1395,7 +1433,9 @@ build_libflite() {
   download_and_unpack_file http://www.festvox.org/flite/packed/flite-2.1/flite-2.1-release.tar.bz2
   cd flite-2.1-release
     apply_patch file://$patch_dir/flite-2.1.0_mingw-w64-fixes.patch
-    sed -i.bak "s/cp -pd/cp -p/" main/Makefile # friendlier cp for OS X
+    if [[ ! -f main/Makefile.bak ]]; then
+      sed -i.bak "s/cp -pd/cp -p/" main/Makefile # friendlier cp for OS X
+    fi
     generic_configure
     do_make_and_make_install
   cd ..
@@ -1412,7 +1452,10 @@ build_libsnappy() {
 build_vamp_plugin() {
   download_and_unpack_file https://github.com/c4dm/vamp-plugin-sdk/archive/vamp-plugin-sdk-v2.10.tar.gz vamp-plugin-sdk-vamp-plugin-sdk-v2.10
   cd vamp-plugin-sdk-vamp-plugin-sdk-v2.10
-    apply_patch file://$patch_dir/vamp-plugin-sdk-2.10_static-lib_mutex.diff
+    apply_patch file://$patch_dir/vamp-plugin-sdk-2.10_static-lib.diff
+    if [[ $compiler_flavors != "native" && ! -f src/vamp-sdk/PluginAdapter.cpp.bak ]]; then
+      sed -i.bak "s/#include <mutex>/#include <mingw.mutex.h>/" src/vamp-sdk/PluginAdapter.cpp
+    fi
     if [[ ! -f configure.bak ]]; then # Fix for "'M_PI' was not declared in this scope" (see https://stackoverflow.com/a/29264536).
       sed -i.bak "s/c++11/gnu++11/" configure
       sed -i.bak "s/c++11/gnu++11/" Makefile.in
@@ -1519,7 +1562,11 @@ build_vidstab() {
 build_libmysofa() {
   do_git_checkout https://github.com/hoene/libmysofa.git libmysofa_git
   cd libmysofa_git
-    do_cmake "-DBUILD_TESTS=0"
+    local cmake_params="-DBUILD_TESTS=0"
+    if [[ $compiler_flavors == "native" ]]; then
+      cmake_params+=" -DCODE_COVERAGE=0"
+    fi
+    do_cmake "$cmake_params"
     apply_patch file://$patch_dir/libmysofa.patch -p1 # maybe unneeded now that double cmake no longer...hmm...
     do_make_and_make_install
   cd ..
@@ -1535,6 +1582,9 @@ build_libcaca() {
     cd ..
     generic_configure "--libdir=$mingw_w64_x86_64_prefix/lib --disable-csharp --disable-java --disable-cxx --disable-python --disable-ruby --disable-doc --disable-cocoa --disable-ncurses"
     do_make_and_make_install
+    if [[ $compiler_flavors == "native" ]]; then
+      sed -i.bak "s/-lcaca.*/-lcaca -lX11/" $PKG_CONFIG_PATH/caca.pc
+    fi
   cd ..
 }
 
@@ -1648,7 +1698,12 @@ build_dav1d() {
       apply_patch file://$patch_dir/david_no_asm.patch -p1 # XXX report
     fi
     cpu_count=1 # XXX report :|
-    generic_meson_ninja_install
+    local meson_options="--prefix=${mingw_w64_x86_64_prefix} --libdir=${mingw_w64_x86_64_prefix}/lib --buildtype=release --strip --default-library=static . build"
+    if [[ $compiler_flavors != "native" ]]; then
+      meson_options+=" --cross-file=${top_dir}/meson-cross.mingw.txt"
+    fi
+    do_meson "$meson_options"
+    do_ninja_and_ninja_install
     cp build/src/libdav1d.a $mingw_w64_x86_64_prefix/lib || exit 1 # avoid 'run ranlib' weird failure, possibly older meson's https://github.com/mesonbuild/meson/issues/4138 :|
     cpu_count=$original_cpu_count
   cd ..
@@ -1740,11 +1795,19 @@ build_libx265() {
 
   # Build 8 bit (main) with linked 10 and 12 bit then install
   cd ../8bit
-  cmake_params="$cmake_params -DENABLE_CLI=1 -DEXTRA_LINK_FLAGS=-L -DLINKED_10BIT=1 -DLINKED_12BIT=1 -DEXTRA_LIB='$(pwd)/libx265_main10.a;$(pwd)/libx265_main12.a'"
+  cmake_params="$cmake_params -DENABLE_CLI=1 -DEXTRA_LINK_FLAGS=-L. -DLINKED_10BIT=1 -DLINKED_12BIT=1"
+  if [[ $compiler_flavors == "native" && $OSTYPE != darwin* ]]; then
+    cmake_params+=" -DENABLE_SHARED=0 -DEXTRA_LIB='$(pwd)/libx265_main10.a;$(pwd)/libx265_main12.a;-ldl'" # Native multi-lib CLI builds are slightly broken right now; other option is to -DENABLE_CLI=0, but this seems to work (https://bitbucket.org/multicoreware/x265/issues/520)
+  else
+    cmake_params+=" -DEXTRA_LIB='$(pwd)/libx265_main10.a;$(pwd)/libx265_main12.a'"
+  fi
   do_cmake_from_build_dir ../source "$cmake_params"
   do_make
   mv libx265.a libx265_main.a
-  ${cross_prefix}ar -M <<EOF
+  if [[ $compiler_flavors == "native" && $OSTYPE == darwin* ]]; then
+    libtool -static -o libx265.a libx265_main.a libx265_main10.a libx265_main12.a 2>/dev/null
+  else 
+    ${cross_prefix}ar -M <<EOF
 CREATE libx265.a
 ADDLIB libx265_main.a
 ADDLIB libx265_main10.a
@@ -1752,6 +1815,7 @@ ADDLIB libx265_main12.a
 SAVE
 END
 EOF
+  fi
   do_make_install
   cd ../..
 }
@@ -1867,20 +1931,24 @@ build_libdvdcss() {
 }
 
 build_libjpeg_turbo() {
-  local target_proc=AMD64
-  if [ "$bits_target" = "32" ]; then
-    target_proc=X86
-  fi
   download_and_unpack_file https://sourceforge.net/projects/libjpeg-turbo/files/2.0.4/libjpeg-turbo-2.0.4.tar.gz
   cd libjpeg-turbo-2.0.4
-    cat > toolchain.cmake << EOF
+    local cmake_params="-DENABLE_SHARED=0 -DCMAKE_ASM_NASM_COMPILER=yasm"
+    if [[ $compiler_flavors != "native" ]]; then
+      cmake_params+=" -DCMAKE_TOOLCHAIN_FILE=toolchain.cmake"
+      local target_proc=AMD64
+      if [ "$bits_target" = "32" ]; then
+        target_proc=X86
+      fi
+      cat > toolchain.cmake << EOF
 set(CMAKE_SYSTEM_NAME Windows)
 set(CMAKE_SYSTEM_PROCESSOR ${target_proc})
 set(CMAKE_C_COMPILER ${cross_prefix}gcc)
 set(CMAKE_RC_COMPILER ${cross_prefix}windres)
 EOF
-    do_cmake_and_install "-DCMAKE_TOOLCHAIN_FILE=toolchain.cmake -DENABLE_SHARED=0 -DCMAKE_ASM_NASM_COMPILER=yasm"
-  cd ..
+    fi
+    do_cmake_and_install "$cmake_params"
+    cd ..
 }
 
 build_libproxy() {
@@ -2239,7 +2307,7 @@ build_ffmpeg() {
       config_options+=" --enable-amf" # This is actually autodetected but for consistency.. we might as well set it.
     fi
 
-    if [[ $build_intel_qsv = y ]]; then
+    if [[ $build_intel_qsv = y && $compiler_flavors != "native" ]]; then # Broken for native builds right now: https://github.com/lu-zero/mfx_dispatch/issues/71
       config_options+=" --enable-libmfx"
     else
       config_options+=" --disable-libmfx"
@@ -2267,7 +2335,10 @@ build_ffmpeg() {
     config_options+=" $postpend_configure_opts"
 
     if [[ "$non_free" = "y" ]]; then
-      config_options+=" --enable-nonfree --enable-decklink --enable-libfdk-aac"
+      config_options+=" --enable-nonfree --enable-libfdk-aac"
+      if [[ $compiler_flavors != "native" ]]; then
+        config_options+=" --enable-decklink" # Error finding rpc.h in native builds even if it's available
+      fi
       # other possible options: --enable-openssl [unneeded since we use gnutls]
     fi
 
@@ -2294,7 +2365,7 @@ build_ffmpeg() {
 
     # XXX really ffmpeg should have set this up right but doesn't, patch FFmpeg itself instead...
     if [[ $1 == "static" ]]; then
-      if [[ $build_intel_qsv = y ]]; then
+      if [[ $build_intel_qsv = y  && $compiler_flavors != "native" ]]; then # Broken for native builds right now: https://github.com/lu-zero/mfx_dispatch/issues/71
         sed -i.bak 's/-lavutil -lm.*/-lavutil -lm -lmfx -lstdc++ -lpthread/' "$PKG_CONFIG_PATH/libavutil.pc"
       else
         sed -i.bak 's/-lavutil -lm.*/-lavutil -lm -lpthread/' "$PKG_CONFIG_PATH/libavutil.pc"
@@ -2390,7 +2461,7 @@ build_ffmpeg_dependencies() {
   if [[ $build_amd_amf = y ]]; then
     build_amd_amf_headers
   fi
-  if [[ $build_intel_qsv = y ]]; then
+  if [[ $build_intel_qsv = y && $compiler_flavors != "native" ]]; then # Broken for native builds right now: https://github.com/lu-zero/mfx_dispatch/issues/71
     build_intel_quicksync_mfx
   fi
   build_nv_headers
@@ -2449,7 +2520,9 @@ build_ffmpeg_dependencies() {
   build_libmysofa # Needed for FFmpeg's SOFAlizer filter (https://ffmpeg.org/ffmpeg-filters.html#sofalizer). Uses dlfcn.
   if [[ "$non_free" = "y" ]]; then
     build_fdk-aac # Uses dlfcn.
-    build_libdecklink
+    if [[ $compiler_flavors != "native" ]]; then
+      build_libdecklink # Error finding rpc.h in native builds even if it's available
+    fi
   fi
   build_zvbi # Uses iconv, libpng and dlfcn.
   build_fribidi # Uses dlfcn.
