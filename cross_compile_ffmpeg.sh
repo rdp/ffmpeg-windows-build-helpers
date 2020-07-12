@@ -997,9 +997,9 @@ build_libxml2() {
 }
 
 build_libvmaf() {
-  do_git_checkout https://github.com/Netflix/vmaf.git vmaf_git v1.5.1
+  do_git_checkout https://github.com/Netflix/vmaf.git vmaf_git v1.5.2
   cd vmaf_git
-    apply_patch file://$patch_dir/libvmaf.various-1.5.1.patch -p1
+    apply_patch file://$patch_dir/libvmaf.various-1.5.2.patch -p1
     cd libvmaf
     export CFLAGS="$CFLAGS -pthread"
     export CXXFLAGS="$CFLAGS -pthread"
