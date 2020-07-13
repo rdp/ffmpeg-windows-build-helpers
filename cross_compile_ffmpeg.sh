@@ -2251,21 +2251,24 @@ build_ffmpeg() {
         archive+="_legacy"
       fi
       if [[ $1 == "shared" ]]; then
-        echo "Done! You will find $bits_target-bit $1 binaries in $(pwd)/bin."
+        echo "Done! You will find $bits_target-bit $1 binaries in $(pwd)/bin"
+        # Some manual package stuff because the install_root may be cluttered with static as well...
+        # XXX this misses the docs and share?
         if [[ ! -f $archive.7z ]]; then
-          sed "s/$/\r/" COPYING.GPLv3 > bin/COPYING.GPLv3.txt
+          sed "s/$/\r/" COPYING.GPLv3 > bin/COPYING.GPLv3.txt # XXX we include this even if it's not a GPL build?
+          cp -r include bin
           cd bin
-            7z a -mx=9 $archive.7z *.exe *.dll COPYING.GPLv3.txt && rm -f COPYING.GPLv3.txt
+            7z a -mx=9 $archive.7z include *.exe *.dll COPYING.GPLv3.txt && rm -f COPYING.GPLv3.txt
           cd ..
         fi
       else
-        echo "Done! You will find $bits_target-bit $1 binaries in $(pwd)."
+        echo "Done! You will find $bits_target-bit $1 binaries in $(pwd)"
         if [[ ! -f $archive.7z ]]; then
           sed "s/$/\r/" COPYING.GPLv3 > COPYING.GPLv3.txt
           7z a -mx=9 $archive.7z ffmpeg.exe ffplay.exe ffprobe.exe COPYING.GPLv3.txt && rm -f COPYING.GPLv3.txt
         fi
       fi
-      echo "You will find redistributable archives in $cur_dir/redist."
+      echo "You will find redistributable archive .7z file in $cur_dir/redist"
     fi
     echo `date`
   cd ..
