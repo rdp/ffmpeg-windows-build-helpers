@@ -2395,7 +2395,7 @@ build_ffmpeg() {
           sed "s/$/\r/" COPYING.GPLv3 > bin/COPYING.GPLv3.txt # XXX we include this even if it's not a GPL build?
           cp -r include bin
           cd bin
-            7z a -mx=9 $archive.7z include *.exe *.dll COPYING.GPLv3.txt && rm -f COPYING.GPLv3.txt
+            7z a -mx=9 $archive.7z include *.exe *.dll *.lib COPYING.GPLv3.txt && rm -f COPYING.GPLv3.txt
           cd ..
         fi
       else
