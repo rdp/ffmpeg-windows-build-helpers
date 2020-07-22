@@ -1772,16 +1772,19 @@ build_libx265() {
 
 
   local cmake_params="-DENABLE_SHARED=0" # build x265.exe
+
   if [ "$bits_target" = "32" ]; then
     cmake_params+=" -DWINXP_SUPPORT=1" # enable windows xp/vista compatibility in x86 build
     cmake_params="$cmake_params -DENABLE_ASSEMBLY=OFF" # apparently required or build fails
   fi
-
   mkdir -p 8bit 10bit 12bit
 
   # Build 12bit (main12)
   cd 12bit
   local cmake_12bit_params="$cmake_params -DENABLE_CLI=0 -DHIGH_BIT_DEPTH=1 -DMAIN12=1 -DEXPORT_C_API=0"
+  if [ "$bits_target" = "32" ]; then
+    cmake_12bit_params="$cmake_12bit_params -DENABLE_ASSEMBLY=OFF" # apparently required or build fails
+  fi
   do_cmake_from_build_dir ../source "$cmake_12bit_params"
   do_make
   cp libx265.a ../8bit/libx265_main12.a
@@ -1789,6 +1792,9 @@ build_libx265() {
   # Build 10bit (main10)
   cd ../10bit
   local cmake_10bit_params="$cmake_params -DENABLE_CLI=0 -DHIGH_BIT_DEPTH=1 -DENABLE_HDR10_PLUS=1 -DEXPORT_C_API=0"
+  if [ "$bits_target" = "32" ]; then
+    cmake_10bit_params="$cmake_10bit_params -DENABLE_ASSEMBLY=OFF" # apparently required or build fails
+  fi
   do_cmake_from_build_dir ../source "$cmake_10bit_params"
   do_make
   cp libx265.a ../8bit/libx265_main10.a
