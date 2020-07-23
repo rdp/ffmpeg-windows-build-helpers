@@ -1648,6 +1648,22 @@ build_libxavs() {
   cd ..
 }
 
+build_libxavs2() {
+  do_git_checkout https://github.com/pkuvcl/xavs2.git
+  cd xavs2_git/build/linux
+  do_configure "--cross-prefix=$cross_prefix --host=$host_target --prefix=$mingw_w64_x86_64_prefix --enable-pic"
+  do_make_and_make_install
+  cd ../../..
+}
+
+build_libdavs2() {
+  do_git_checkout https://github.com/pkuvcl/davs2.git
+  cd davs2_git/build/linux
+  do_configure "--cross-prefix=$cross_prefix --host=$host_target --prefix=$mingw_w64_x86_64_prefix --enable-pic"
+  do_make_and_make_install
+  cd ../../..
+}
+
 build_libxvid() {
   download_and_unpack_file https://downloads.xvid.com/downloads/xvidcore-1.3.7.tar.gz xvidcore
   cd xvidcore/build/generic
@@ -2322,7 +2338,7 @@ build_ffmpeg() {
       config_options+=" --enable-gpl --enable-frei0r --enable-filter=frei0r --enable-librubberband --enable-libvidstab --enable-libx264 --enable-libx265"
       config_options+=" --enable-libxvid"
       if [[ $compiler_flavors != "native" ]]; then
-        config_options+=" --enable-libxavs" # don't compile OS X 
+        config_options+=" --enable-libxavs --enable-libdavs2 --enable-libxavs2 " # don't compile OS X 
       fi
     fi
     local licensed_gpl=n # lgpl build with libx264 included for those with "commercial" license :)
@@ -2458,6 +2474,8 @@ build_ffmpeg_dependencies() {
   if [[ $compiler_flavors != "native" ]]; then # build some stuff that don't build native...
     build_dlfcn
     build_libxavs
+    build_libxavs2
+    build_libdavs2
   fi
   build_meson_cross
   build_mingw_std_threads
@@ -2548,7 +2566,7 @@ build_ffmpeg_dependencies() {
   build_libaom
   build_dav1d
   build_libx264 # at bottom as it might internally build a coy of ffmpeg (which needs all the above deps...
-}
+ }
 
 build_apps() {
   if [[ $build_dvbtee = "y" ]]; then
