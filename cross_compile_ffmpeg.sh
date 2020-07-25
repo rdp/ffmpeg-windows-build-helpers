@@ -1659,7 +1659,7 @@ build_libxavs2() {
 build_libdavs2() {
   do_git_checkout https://github.com/pkuvcl/davs2.git
   cd davs2_git/build/linux
-  if [[ $compiler_flavors == "win32" ]]; then
+  if [[ $host_target == 'i686-w64-mingw32' ]]; then
     do_configure "--cross-prefix=$cross_prefix --host=$host_target --prefix=$mingw_w64_x86_64_prefix --enable-pic --disable-asm"
   else
     do_configure "--cross-prefix=$cross_prefix --host=$host_target --prefix=$mingw_w64_x86_64_prefix --enable-pic"
@@ -2340,7 +2340,7 @@ build_ffmpeg() {
     if [[ $enable_gpl == 'y' ]]; then
       config_options+=" --enable-gpl --enable-frei0r --enable-filter=frei0r --enable-librubberband --enable-libvidstab --enable-libx264 --enable-libx265"
       config_options+=" --enable-libxvid --enable-libdavs2"
-      if [[ $compiler_flavors != "win32" ]]; then
+      if [[ $host_target != 'i686-w64-mingw32' ]]; then
         config_options+=" --enable-libxavs2"
       fi
       if [[ $compiler_flavors != "native" ]]; then
@@ -2483,7 +2483,7 @@ build_ffmpeg_dependencies() {
   fi
 
   build_libdavs2
-  if [[ $compiler_flavors != "win32" ]]; then
+  if [[ $host_target != 'i686-w64-mingw32' ]]; then
     build_libxavs2
   fi
 
