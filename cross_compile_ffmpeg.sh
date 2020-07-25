@@ -1791,7 +1791,6 @@ build_libx265() {
 
   if [ "$bits_target" = "32" ]; then
     cmake_params+=" -DWINXP_SUPPORT=1" # enable windows xp/vista compatibility in x86 build
-    cmake_params="$cmake_params -DENABLE_ASSEMBLY=OFF" # apparently required or build fails
   fi
   mkdir -p 8bit 10bit 12bit
 
