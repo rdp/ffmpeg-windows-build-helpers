@@ -1659,13 +1659,11 @@ build_libxavs2() {
 build_libdavs2() {
   do_git_checkout https://github.com/pkuvcl/davs2.git
   cd davs2_git/build/linux
-
   if [[ $compiler_flavors == "win32" ]]; then
     do_configure "--cross-prefix=$cross_prefix --host=$host_target --prefix=$mingw_w64_x86_64_prefix --enable-pic --disable-asm"
-  elif
+  else
     do_configure "--cross-prefix=$cross_prefix --host=$host_target --prefix=$mingw_w64_x86_64_prefix --enable-pic"
   fi
-
   do_make_and_make_install
   cd ../../..
 }
