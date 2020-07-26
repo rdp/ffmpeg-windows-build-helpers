@@ -1659,7 +1659,11 @@ build_libxavs2() {
 build_libdavs2() {
   do_git_checkout https://github.com/pkuvcl/davs2.git
   cd davs2_git/build/linux
-  do_configure "--cross-prefix=$cross_prefix --host=$host_target --prefix=$mingw_w64_x86_64_prefix --enable-pic"
+  if [[ $host_target == 'i686-w64-mingw32' ]]; then
+    do_configure "--cross-prefix=$cross_prefix --host=$host_target --prefix=$mingw_w64_x86_64_prefix --enable-pic --disable-asm"
+  else
+    do_configure "--cross-prefix=$cross_prefix --host=$host_target --prefix=$mingw_w64_x86_64_prefix --enable-pic"
+  fi
   do_make_and_make_install
   cd ../../..
 }
@@ -2335,9 +2339,12 @@ build_ffmpeg() {
     fi
     if [[ $enable_gpl == 'y' ]]; then
       config_options+=" --enable-gpl --enable-frei0r --enable-filter=frei0r --enable-librubberband --enable-libvidstab --enable-libx264 --enable-libx265"
-      config_options+=" --enable-libxvid"
+      config_options+=" --enable-libxvid --enable-libdavs2"
+      if [[ $host_target != 'i686-w64-mingw32' ]]; then
+        config_options+=" --enable-libxavs2"
+      fi
       if [[ $compiler_flavors != "native" ]]; then
-        config_options+=" --enable-libxavs --enable-libdavs2 --enable-libxavs2 " # don't compile OS X 
+        config_options+=" --enable-libxavs" # don't compile OS X 
       fi
     fi
     local licensed_gpl=n # lgpl build with libx264 included for those with "commercial" license :)
@@ -2473,9 +2480,13 @@ build_ffmpeg_dependencies() {
   if [[ $compiler_flavors != "native" ]]; then # build some stuff that don't build native...
     build_dlfcn
     build_libxavs
-    build_libxavs2
-    build_libdavs2
   fi
+
+  build_libdavs2
+  if [[ $host_target != 'i686-w64-mingw32' ]]; then
+    build_libxavs2
+  fi
+
   build_meson_cross
   build_mingw_std_threads
   build_zlib # Zlib in FFmpeg is autodetected.
