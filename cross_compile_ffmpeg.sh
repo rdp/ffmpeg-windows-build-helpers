@@ -1636,6 +1636,13 @@ build_libass() {
   do_git_checkout_and_make_install https://github.com/libass/libass.git
 }
 
+build_libaribb24() {
+  do_git_checkout https://github.com/nkoriyama/aribb24
+  cd aribb24
+    generic_configure_make_install
+  cd ..
+}
+
 build_libxavs() {
   do_svn_checkout https://svn.code.sf.net/p/xavs/code/trunk xavs_svn
   cd xavs_svn
@@ -2309,6 +2316,9 @@ build_ffmpeg() {
       echo " not sure how to enable svthevc"
     fi
 
+    # libaribb24 is supported by ffmpeg 4.2 series or later, so comment it out when building ffmpeg 4.1 series or lower.
+    config_options+=" --enable-libaribb24"
+
     #aom must be disabled to use SVT-AV1
     config_options+=" --enable-libaom"
     #config_options+=" --enable-libsvtav1" #not currently working but compiles if configured
@@ -2572,6 +2582,7 @@ build_ffmpeg_dependencies() {
 
   build_libxvid # FFmpeg now has native support, but libxvid still provides a better image.
   build_libsrt # requires gnutls, mingw-std-threads
+  build_libaribb24
   build_libtesseract
   build_lensfun  # requires png, zlib, iconv
   # build_libtensorflow # broken
