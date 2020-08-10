@@ -2144,17 +2144,29 @@ EOF
 
 get_local_meson_cross_with_propeties() {
   local local_dir="$1"
+  local c_args=
+  local cpp_args=
+  local link_args=
   if [[ -z $local_dir ]]; then
     local_dir="."
   fi
   cp ${top_dir}/meson-cross.mingw.txt "$local_dir"
+  if [[ -n "$CFLAGS" ]]; then
+    c_args="'$(echo ${CFLAGS} | sed "s/ /\',\'/g")'"
+  fi
+  if [[ -n "$CXXFLAGS" ]]; then
+    cpp_args="'$(echo ${CXXFLAGS} | sed "s/ /\',\'/g")'"
+  fi
+  if [[ -n "$LDFLAGS" ]]; then
+    link_args="'$(echo ${LDFLAGS} | sed "s/ /\',\'/g")'"
+  fi
   cat >> meson-cross.mingw.txt << EOF
 
 [properties]
-c_args = ['${CFLAGS// /\',\'}']
-c_link_args = ['${LDFLAGS// /\',\'}']
-cpp_args = ['${CXXFLAGS// /\',\'}']
-cpp_link_args = ['${LDFLAGS// /\',\'}']
+c_args = [$c_args]
+c_link_args = [$link_args]
+cpp_args = [$cpp_args]
+cpp_link_args = [$link_args]
 EOF
 }
 
