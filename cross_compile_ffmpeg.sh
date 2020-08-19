@@ -944,11 +944,11 @@ build_harfbuzz() {
   fi
 
   # basically gleaned from https://gist.github.com/roxlu/0108d45308a0434e27d4320396399153
-  build_freetype "--without-harfbuzz" $new_build # Check for new freetype or force rebuild if needed
+  build_freetype "--without-harfbuzz" $new_build # Check for initial or new freetype or force rebuild if needed
   local new_freetype=$?
   if $new_build || [ $new_freetype = 0 ]; then # 0 is true
     rm -f harfbuzz_git/already* # Force rebuilding in case only freetype has changed
-    # cmake no .pc file so use configure :|
+    # cmake no .pc file generated so use configure :|
     cd harfbuzz_git
       if [ ! -f configure ]; then
         ./autogen.sh # :|
@@ -2534,7 +2534,7 @@ build_ffmpeg_dependencies() {
   build_libpng # Needs zlib >= 1.0.4. Uses dlfcn.
   build_libwebp # Uses dlfcn.
   build_harfbuzz
-  # harf does it now build_freetype # Uses zlib, bzip2, and libpng.
+  # harf does now include build_freetype # Uses zlib, bzip2, and libpng.
   build_libxml2 # Uses zlib, liblzma, iconv and dlfcn.
   build_libvmaf
   build_fontconfig # Needs freetype and libxml >= 2.6. Uses iconv and dlfcn.
