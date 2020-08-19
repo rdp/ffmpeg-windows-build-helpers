@@ -1755,7 +1755,7 @@ build_libx265() {
       fi
     else
       echo "doing hg clone x265"
-      hg clone https://bitbucket.org/multicoreware/x265 $checkout_dir || exit 1
+      hg clone http://hg.videolan.org/x265 $checkout_dir || exit 1
       cd $checkout_dir
       old_hg_version=none-yet
     fi
@@ -1783,7 +1783,7 @@ build_libx265() {
       fi
     else
       echo "doing hg clone x265"
-      hg clone https://bitbucket.org/multicoreware/x265 -r stable $checkout_dir || exit 1
+      hg clone http://hg.videolan.org/x265 -r stable $checkout_dir || exit 1
       cd $checkout_dir
       old_hg_version=none-yet
     fi
