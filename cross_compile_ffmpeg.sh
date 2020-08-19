@@ -145,7 +145,7 @@ check_missing_packages () {
   fi
   local meson_version=`meson --version`
   if ! at_least_required_version "0.49.2" "${meson_version}"; then
-    echo "your meson version is too old $meson_version wanted 0.53.0"
+    echo "your meson version is too old $meson_version wanted 0.49.2"
     exit 1
   fi
   # also check missing "setup" so it's early LOL
@@ -948,21 +948,15 @@ build_harfbuzz() {
   local new_freetype=$?
   if $new_build || [ $new_freetype = 0 ]; then # 0 is true
     rm -f harfbuzz_git/already* # Force rebuilding in case only freetype has changed
+    # cmake no .pc file so use configure :|
     cd harfbuzz_git
-      sed -i.bak "s/if not freetype_dep.found() and cpp.get_id() == 'msvc'/if not freetype_dep.found()/" meson.build # Can't find freetype otherwise when cross-compiling
-      export CFLAGS="$CFLAGS -I$mingw_w64_x86_64_prefix/include/freetype2"
-      export CXXFLAGS="$CFLAGS"
-      export LDFLAGS=-lpthread # :|
-      local meson_options="--prefix=${mingw_w64_x86_64_prefix} --libdir=${mingw_w64_x86_64_prefix}/lib --buildtype=release --default-library=static -Dfreetype=enabled -Dfontconfig=disabled -Dicu=disabled -Dtests=disabled -Ddocs=disabled -Dbenchmark=disabled . build" # no fontconfig, don't want another circular what? icu is #372
-      if [[ $compiler_flavors != "native" ]]; then
-        get_local_meson_cross_with_propeties
-        meson_options+=" --cross-file=meson-cross.mingw.txt"
+      if [ ! -f configure ]; then
+        ./autogen.sh # :|
       fi
-      reset_cflags
-      unset CXXFLAGS
+      export LDFLAGS=-lpthread # :|
+      generic_configure "--with-freetype=yes --with-fontconfig=no --with-icu=no" # no fontconfig, don't want another circular what? icu is #372
       unset LDFLAGS
-      do_meson "$meson_options"
-      do_ninja_and_ninja_install
+      do_make_and_make_install
     cd ..
 
     build_freetype "--with-harfbuzz" true # with harfbuzz now...
@@ -973,6 +967,8 @@ build_harfbuzz() {
   fi
   sed -i.bak 's/-lfreetype.*/-lfreetype -lharfbuzz -lpthread/' "$PKG_CONFIG_PATH/freetype2.pc" # for some reason it lists harfbuzz as Requires.private only??
   sed -i.bak 's/-lharfbuzz.*/-lharfbuzz -lfreetype/' "$PKG_CONFIG_PATH/harfbuzz.pc" # does anything even use this?
+  sed -i.bak 's/libfreetype.la -lbz2/libfreetype.la -lharfbuzz -lbz2/' "${mingw_w64_x86_64_prefix}/lib/libfreetype.la" # XXX what the..needed?
+  sed -i.bak 's/libfreetype.la -lbz2/libfreetype.la -lharfbuzz -lbz2/' "${mingw_w64_x86_64_prefix}/lib/libharfbuzz.la"
 }
 
 build_freetype() {
@@ -2130,6 +2126,7 @@ build_meson_cross() {
 [binaries]
 c = '${cross_prefix}gcc'
 cpp = '${cross_prefix}g++'
+ld = '${cross_prefix}ld'
 ar = '${cross_prefix}ar'
 strip = '${cross_prefix}strip'
 pkgconfig = '${cross_prefix}pkg-config'
