@@ -2383,10 +2383,12 @@ build_ffmpeg() {
 
     if [[ "$non_free" = "y" ]]; then
       config_options+=" --enable-nonfree --enable-libfdk-aac"
+
       if [[ $compiler_flavors != "native" ]]; then
         config_options+=" --enable-decklink" # Error finding rpc.h in native builds even if it's available
       fi
       # other possible options: --enable-openssl [unneeded since we use gnutls]
+
     fi
 
     do_debug_build=n # if you need one for backtraces/examining segfaults using gdb.exe ... change this to y :) XXXX make it affect x264 too...and make it real param :)
