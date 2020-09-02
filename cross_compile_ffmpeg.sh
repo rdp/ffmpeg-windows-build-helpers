@@ -1963,8 +1963,8 @@ build_libdvdcss() {
 }
 
 build_libjpeg_turbo() {
-  download_and_unpack_file https://sourceforge.net/projects/libjpeg-turbo/files/2.0.4/libjpeg-turbo-2.0.4.tar.gz
-  cd libjpeg-turbo-2.0.4
+  do_git_checkout https://github.com/libjpeg-turbo/libjpeg-turbo libjpeg-turbo_git
+  cd libjpeg-turbo_git  
     local cmake_params="-DENABLE_SHARED=0 -DCMAKE_ASM_NASM_COMPILER=yasm"
     if [[ $compiler_flavors != "native" ]]; then
       cmake_params+=" -DCMAKE_TOOLCHAIN_FILE=toolchain.cmake"
