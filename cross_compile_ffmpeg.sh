@@ -723,7 +723,7 @@ build_zlib() {
       export ARFLAGS=rcs # Native can't take ARFLAGS; https://stackoverflow.com/questions/21396988/zlib-build-not-configuring-properly-with-cross-compiler-ignores-ar
     fi
     do_configure "--prefix=$mingw_w64_x86_64_prefix --static"
-    do_make_and_make_install "$make_prefix_options"
+    do_make_and_make_install "$make_prefix_options ARFLAGS=rcs"
     if [[ $compiler_flavors == "native" ]]; then
       reset_cflags
     else
