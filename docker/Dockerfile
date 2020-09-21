@@ -1,10 +1,11 @@
-FROM ubuntu:19.04
+ROM ubuntu:20.04
+
+ARG DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update && \
     apt-get install -y \
-    wget \
-    ed \
     subversion \
+    ragel \
     curl \
     texinfo \
     g++ \
@@ -25,14 +26,17 @@ RUN apt-get update && \
     unzip \
     pax \
     nasm \
-    meson \
     gperf \
     autogen \
     bzip2 \
     autoconf-archive \
     p7zip-full \
-    ragel \
-    python3-distutils
+    meson \
+    clang \
+    python \
+    python3-setuptools \
+    wget \
+    ed
 
 # copy the entire git dir into the new docker container
 COPY . ./ffmpeg-windows-build-helpers
