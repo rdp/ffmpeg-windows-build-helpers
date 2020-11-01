@@ -149,11 +149,21 @@ check_missing_packages () {
     exit 1
   fi
   # also check missing "setup" so it's early LOL
-  if uname -a | grep  -q -- "-Microsoft " ; then
+
+  #check if WSL
+  # check WSL for interop setting make sure its disabled
+  # check WSL for kernel version look for version 4.19.128 current as of 11/01/2020
+  if uname -a | grep  -q -- "-microsoft" ; then
     if cat /proc/sys/fs/binfmt_misc/WSLInterop | grep -q enabled ; then
       echo "windows WSL detected: you must first disable 'binfmt' by running this 
       sudo bash -c 'echo 0 > /proc/sys/fs/binfmt_misc/WSLInterop'
       then try again"
+      exit 1
+    fi
+    export MINIMUM_KERNEL_VERSION = "4.19.128"
+    if uname -a | awk -F'[ ]' '{ print $3 }' | awk -F- '{ print $1 }' != $MINIMUM_KERNEL_VERSION then
+      echo "windows WSL detected: kernel not at minumum version required $MINIMUM_KERNEL_VERSION 
+      please update via windows update then try again"        
       exit 1
     fi
   fi
