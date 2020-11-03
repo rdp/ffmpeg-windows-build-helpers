@@ -974,10 +974,10 @@ build_harfbuzz() {
 build_freetype() {
   local force_build=$2
   local new_build=1
-  if [[ ! -f freetype-2.10.2/already_done_freetype || $force_build = true ]]; then
-    download_and_unpack_file https://sourceforge.net/projects/freetype/files/freetype2/2.10.2/freetype-2.10.2.tar.xz
-    rm -f freetype-2.10.2/already*
-    cd freetype-2.10.2
+  if [[ ! -f freetype-2.10.4/already_done_freetype || $force_build = true ]]; then
+    download_and_unpack_file https://sourceforge.net/projects/freetype/files/freetype2/2.10.4/freetype-2.10.4.tar.xz
+    rm -f freetype-2.10.4/already*
+    cd freetype-2.10.4
         # harfbuzz autodetect :|
         generic_configure "--with-bzip2 $1"
         do_make_and_make_install
