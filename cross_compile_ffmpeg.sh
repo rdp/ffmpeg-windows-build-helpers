@@ -161,9 +161,11 @@ check_missing_packages () {
       exit 1
     fi
     export MINIMUM_KERNEL_VERSION = "4.19.128"
-    if uname -a | awk -F'[ ]' '{ print $3 }' | awk -F- '{ print $1 }' != $MINIMUM_KERNEL_VERSION ; then
-      echo "windows WSL detected: kernel not at minumum version required $MINIMUM_KERNEL_VERSION 
-      please update via windows update then try again"        
+    KERNVER=$(uname -a | awk -F'[ ]' '{ print $3 }' | awk -F- '{ print $1 }')
+    
+    if [ $KERNVER != $MINIMUM_KERNEL_VERSION ]; then
+      echo "Windows Subsystem for Linux (WSL) detected - kernel not at minumum version required: $MINIMUM_KERNEL_VERSION 
+      Please update via windows update then try again"        
       exit 1
     fi
   fi
