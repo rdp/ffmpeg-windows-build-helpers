@@ -756,7 +756,6 @@ build_sdl2() {
   download_and_unpack_file https://www.libsdl.org/release/SDL2-2.0.12.tar.gz
   cd SDL2-2.0.12
     apply_patch file://$patch_dir/SDL2-2.0.12_lib-only.diff
-    #apply_patch file://$patch_dir/sdl2.xinput.diff # mingw-w64 master needs it?
     if [[ ! -f configure.bak ]]; then
       sed -i.bak "s/ -mwindows//" configure # Allow ffmpeg to output anything to console.
     fi
@@ -1950,7 +1949,6 @@ build_libdvdread() {
   cd libdvdread-4.9.9
     # XXXX better CFLAGS here...
     generic_configure "CFLAGS=-DHAVE_DVDCSS_DVDCSS_H LDFLAGS=-ldvdcss --enable-dlfcn" # vlc patch: "--enable-libdvdcss" # XXX ask how I'm *supposed* to do this to the dvdread peeps [svn?]
-    #apply_patch file://$patch_dir/dvdread-win32.patch # has been reported to them...
     do_make_and_make_install
     sed -i.bak 's/-ldvdread.*/-ldvdread -ldvdcss/' "$PKG_CONFIG_PATH/dvdread.pc"
   cd ..
