@@ -1564,9 +1564,6 @@ build_svt-vp9() {
 build_vidstab() {
   do_git_checkout https://github.com/georgmartius/vid.stab.git vid.stab_git
   cd vid.stab_git
-    if [[ ! -f CMakeLists.txt.bak ]]; then # Change CFLAGS.
-      sed -i.bak "s/O3/O2/;s/ -fPIC//" CMakeLists.txt
-    fi
     do_cmake_and_install "-DUSE_OMP=0" # '-DUSE_OMP' is on by default, but somehow libgomp ('cygwin_local_install/lib/gcc/i686-pc-cygwin/5.4.0/include/omp.h') can't be found, so '-DUSE_OMP=0' to prevent a compilation error.
   cd ..
 }
