@@ -756,7 +756,6 @@ build_sdl2() {
   download_and_unpack_file https://www.libsdl.org/release/SDL2-2.0.12.tar.gz
   cd SDL2-2.0.12
     apply_patch file://$patch_dir/SDL2-2.0.12_lib-only.diff
-    #apply_patch file://$patch_dir/sdl2.xinput.diff # mingw-w64 master needs it?
     if [[ ! -f configure.bak ]]; then
       sed -i.bak "s/ -mwindows//" configure # Allow ffmpeg to output anything to console.
     fi
@@ -820,7 +819,7 @@ build_intel_quicksync_mfx() { # i.e. qsv, disableable via command line switch...
 
 build_libleptonica() {
   build_libjpeg_turbo
-  do_git_checkout https://github.com/DanBloomberg/leptonica.git leptonica_git 1.79.0
+  do_git_checkout https://github.com/DanBloomberg/leptonica.git leptonica_git 1.80.0
   cd leptonica_git
     export CPPFLAGS="-DOPJ_STATIC"
     generic_configure_make_install
@@ -840,7 +839,7 @@ build_libtensorflow() {
 
 build_glib() {
   export CPPFLAGS="$CPPFLAGS -DLIBXML_STATIC -liconv" # gettext build...
-  generic_download_and_make_and_install  https://ftp.gnu.org/pub/gnu/gettext/gettext-0.20.2.tar.gz
+  generic_download_and_make_and_install  https://ftp.gnu.org/pub/gnu/gettext/gettext-0.21.tar.gz
   reset_cppflags
   generic_download_and_make_and_install  https://github.com/libffi/libffi/releases/download/v3.3/libffi-3.3.tar.gz # also dep
   download_and_unpack_file https://gitlab.gnome.org/GNOME/glib/-/archive/2.64.3/glib-2.64.3.tar.gz
@@ -1105,8 +1104,8 @@ build_libidn2() {
 }
 
 build_gnutls() {
-  download_and_unpack_file https://www.gnupg.org/ftp/gcrypt/gnutls/v3.6/gnutls-3.6.14.tar.xz
-  cd gnutls-3.6.14
+  download_and_unpack_file https://www.gnupg.org/ftp/gcrypt/gnutls/v3.6/gnutls-3.6.15.tar.xz
+  cd gnutls-3.6.15
     # --disable-cxx don't need the c++ version, in an effort to cut down on size... XXXX test size difference...
     # --enable-local-libopts to allow building with local autogen installed,
     # --disable-guile is so that if it finds guile installed (cygwin did/does) it won't try and link/build to it and fail...
@@ -1696,7 +1695,7 @@ build_libxvid() {
 build_libvpx() {
   do_git_checkout https://chromium.googlesource.com/webm/libvpx.git
   cd libvpx_git
-     apply_patch https://raw.githubusercontent.com/rdp/ffmpeg-windows-build-helpers/master/patches/vpx_160_semaphore.patch -p1 # perhaps someday can remove this after 1.6.0 or mingw fixes it LOL
+     apply_patch file://$patch_dir/vpx_160_semaphore.patch -p1 # perhaps someday can remove this after 1.6.0 or mingw fixes it LOL
     if [[ $compiler_flavors == "native" ]]; then
       local config_options=""
     elif [[ "$bits_target" = "32" ]]; then
@@ -1950,7 +1949,6 @@ build_libdvdread() {
   cd libdvdread-4.9.9
     # XXXX better CFLAGS here...
     generic_configure "CFLAGS=-DHAVE_DVDCSS_DVDCSS_H LDFLAGS=-ldvdcss --enable-dlfcn" # vlc patch: "--enable-libdvdcss" # XXX ask how I'm *supposed* to do this to the dvdread peeps [svn?]
-    #apply_patch file://$patch_dir/dvdread-win32.patch # has been reported to them...
     do_make_and_make_install
     sed -i.bak 's/-ldvdread.*/-ldvdread -ldvdcss/' "$PKG_CONFIG_PATH/dvdread.pc"
   cd ..
