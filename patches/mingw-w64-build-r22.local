@@ -75,14 +75,14 @@ gcc='gcc'
 gcc_host=''
 
 ## Versions
-mingw_w64_release_ver='7.0.0'
-gcc_release_ver='10.1.0' # we usually specify this with a param too...
+mingw_w64_release_ver='8.0.0'
+gcc_release_ver='10.2.0' # we usually specify this with a param too...
 gcc_old_release_ver='8.3.0'
-mpfr_release_ver='4.0.2'
-mpc_release_ver='1.1.0'
-binutils_release_ver='2.34'
-gmp_release_ver='6.2.0'
-isl_release_ver='0.22'
+mpfr_release_ver='4.1.0'
+mpc_release_ver='1.2.1'
+binutils_release_ver='2.35.1'
+gmp_release_ver='6.2.1'
+isl_release_ver='0.23'
 pthreads_w32_release_ver='2-9-1'
 
 ## Locations
