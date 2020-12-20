@@ -1325,7 +1325,7 @@ build_libopencore() {
 }
 
 build_libilbc() {
-  do_git_checkout https://github.com/TimothyGu/libilbc.git
+  do_git_checkout https://github.com/TimothyGu/libilbc.git libilbc_git v2.0.2
   cd libilbc_git
     generic_configure_make_install
   cd ..
