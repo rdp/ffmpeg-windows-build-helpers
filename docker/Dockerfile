@@ -22,7 +22,6 @@ RUN apt-get update && \
     make \
     pkg-config \
     zlib1g-dev \
-    mercurial \
     unzip \
     pax \
     nasm \

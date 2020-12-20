@@ -73,11 +73,11 @@ check_missing_packages () {
   fi
   if [[ -n "${missing_packages[@]}" ]]; then
     clear
-    echo "Could not find the following execs (svn is actually package subversion, makeinfo is actually package texinfo, hg is actually package mercurial if you're missing them): ${missing_packages[*]}"
+    echo "Could not find the following execs (svn is actually package subversion, makeinfo is actually package texinfo, hg is actually package  if you're missing them): ${missing_packages[*]}"
     echo 'Install the missing packages before running this script.'
     determine_distro
 
-    apt_pkgs='subversion ragel curl texinfo g++ bison flex cvs yasm automake libtool autoconf gcc cmake git make pkg-config zlib1g-dev mercurial unzip pax nasm gperf autogen bzip2 autoconf-archive p7zip-full meson clang'
+    apt_pkgs='subversion ragel curl texinfo g++ bison flex cvs yasm automake libtool autoconf gcc cmake git make pkg-config zlib1g-dev unzip pax nasm gperf autogen bzip2 autoconf-archive p7zip-full meson clang'
 
     [[ $DISTRO == "debian" ]] && apt_pkgs="$apt_pkgs libtool-bin ed"
     case "$DISTRO" in
@@ -108,7 +108,7 @@ check_missing_packages () {
       *)
         echo "for OS X (homebrew): brew install ragel wget cvs hg yasm autogen automake autoconf cmake libtool xz pkg-config nasm bzip2 autoconf-archive p7zip coreutils meson llvm" # if edit this edit docker/Dockerfile also :|
         echo "   and set llvm to your PATH if on catalina"
-        echo "for RHEL/CentOS: First ensure you have epel repo available, then run $ sudo yum install ragel subversion texinfo mercurial libtool autogen gperf nasm patch unzip pax ed gcc-c++ bison flex yasm automake autoconf gcc zlib-devel cvs bzip2 cmake3 -y"
+        echo "for RHEL/CentOS: First ensure you have epel repo available, then run $ sudo yum install ragel subversion texinfo libtool autogen gperf nasm patch unzip pax ed gcc-c++ bison flex yasm automake autoconf gcc zlib-devel cvs bzip2 cmake3 -y"
         echo "for fedora: if your distribution comes with a modern version of cmake then use the same as RHEL/CentOS but replace cmake3 with cmake."
         echo "for linux native compiler option: same as <your OS> above, also add libva-dev"
         ;;
@@ -1772,66 +1772,13 @@ build_avisynth() {
 }
 
 build_libx265() {
-  # the only one that uses mercurial, so there's some extra initial junk in this method... XXX needs some cleanup :|
   local checkout_dir=x265_all_bitdepth
-
   if [[ $prefer_stable = "n" ]]; then
-    local old_hg_version
-    if [[ -d $checkout_dir ]]; then
-      cd $checkout_dir
-      if [[ $git_get_latest = "y" ]]; then
-        echo "doing hg pull -u x265"
-        old_hg_version=`hg --debug id -i`
-        hg pull -u || exit 1
-        hg update || exit 1 # guess you need this too if no new changes are brought down [what the...]
-      else
-        echo "not doing hg pull x265"
-        old_hg_version=`hg --debug id -i`
-      fi
-    else
-      echo "doing hg clone x265"
-      hg clone http://hg.videolan.org/x265 $checkout_dir || exit 1
-      cd $checkout_dir
-      old_hg_version=none-yet
-    fi
-
-    local new_hg_version=`hg --debug id -i`
-    if [[ "$old_hg_version" != "$new_hg_version" ]]; then
-      echo "got upstream hg changes, forcing rebuild...x265"
-      rm -f 8bit/already* 10bit/already* 12bit/already*
-    else
-      echo "still at hg $new_hg_version x265"
-    fi
+    do_git_checkout "https://github.com/videolan/x265" $checkout_dir "origin/master" 
   else
-    # i.e. prefer_stable == "y" TODO clean this up these two branches are pretty similar...
-    local old_hg_version
-    if [[ -d $checkout_dir ]]; then
-      cd $checkout_dir
-      if [[ $git_get_latest = "y" ]]; then
-        echo "doing hg pull -u x265"
-        old_hg_version=`hg --debug id -i`
-        hg pull -u || exit 1
-        hg update || exit 1 # guess you need this too if no new changes are brought down [what the...]
-      else
-        echo "not doing hg pull x265"
-        old_hg_version=`hg --debug id -i`
-      fi
-    else
-      echo "doing hg clone x265"
-      hg clone http://hg.videolan.org/x265 -r stable $checkout_dir || exit 1
-      cd $checkout_dir
-      old_hg_version=none-yet
-    fi
-
-    local new_hg_version=`hg --debug id -i`
-    if [[ "$old_hg_version" != "$new_hg_version" ]]; then
-      echo "got upstream hg changes, forcing rebuild...x265"
-      rm -f 8bit/already* 10bit/already* 12bit/already*
-    else
-      echo "still at hg $new_hg_version x265"
-    fi
-  fi # done with prefer_stable = [y|n]
-
+    do_git_checkout " https://github.com/videolan/x265" $checkout_dir "origin/stable"
+  fi
+  cd $checkout_dir
 
   local cmake_params="-DENABLE_SHARED=0" # build x265.exe
 
