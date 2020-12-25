@@ -1333,7 +1333,7 @@ local checkout_dir=fdk-aac_git
 		checkout_dir+="_$fdk_aac_git_checkout_version"
 		do_git_checkout "https://github.com/mstorsjo/fdk-aac.git" $checkout_dir "refs/tags/$fdk_aac_git_checkout_version"
 		else
-		do_git_checkout https://github.com/mstorsjo/fdk-aac.git
+		do_git_checkout "https://github.com/mstorsjo/fdk-aac.git" $checkout_dir
 	fi
   cd $checkout_dir
     if [[ ! -f "configure" ]]; then
