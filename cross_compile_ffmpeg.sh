@@ -1344,12 +1344,12 @@ build_twolame() {
 
 build_fdk-aac() {
 local checkout_dir=fdk-aac_git
-	if [[ ! -z $fdk_aac_git_checkout_version ]]; then
-		checkout_dir+="_$fdk_aac_git_checkout_version"
-		do_git_checkout "https://github.com/mstorsjo/fdk-aac.git" $checkout_dir "refs/tags/$fdk_aac_git_checkout_version"
-		else
-		do_git_checkout "https://github.com/mstorsjo/fdk-aac.git" $checkout_dir
-	fi
+    if [[ ! -z $fdk_aac_git_checkout_version ]]; then
+      checkout_dir+="_$fdk_aac_git_checkout_version"
+      do_git_checkout "https://github.com/mstorsjo/fdk-aac.git" $checkout_dir "refs/tags/$fdk_aac_git_checkout_version"
+    else
+      do_git_checkout "https://github.com/mstorsjo/fdk-aac.git" $checkout_dir
+    fi
   cd $checkout_dir
     if [[ ! -f "configure" ]]; then
       autoreconf -fiv || exit 1
@@ -1794,16 +1794,16 @@ build_avisynth() {
 
 build_libx265() {
   local checkout_dir=x265_all_bitdepth
-	if [[ ! -z $x265_git_checkout_version ]]; then
-		checkout_dir+="_$x265_git_checkout_version"
-		do_git_checkout "https://github.com/videolan/x265" $checkout_dir "$x265_git_checkout_version"
-	fi
-	if [[ $prefer_stable = "n" ]] && [[ -z $x265_git_checkout_version ]] ; then
-	  do_git_checkout "https://github.com/videolan/x265" $checkout_dir "origin/master"
+  if [[ ! -z $x265_git_checkout_version ]]; then
+    checkout_dir+="_$x265_git_checkout_version"
+    do_git_checkout "https://github.com/videolan/x265" $checkout_dir "$x265_git_checkout_version"
   fi
-	if [[ $prefer_stable = "y" ]] && [[ -z $x265_git_checkout_version ]] ; then
-		do_git_checkout "https://github.com/videolan/x265" $checkout_dir "origin/stable"
-	fi
+  if [[ $prefer_stable = "n" ]] && [[ -z $x265_git_checkout_version ]] ; then
+    do_git_checkout "https://github.com/videolan/x265" $checkout_dir "origin/master"
+  fi
+  if [[ $prefer_stable = "y" ]] && [[ -z $x265_git_checkout_version ]] ; then
+    do_git_checkout "https://github.com/videolan/x265" $checkout_dir "origin/stable"
+  fi
   cd $checkout_dir
 
   local cmake_params="-DENABLE_SHARED=0" # build x265.exe
