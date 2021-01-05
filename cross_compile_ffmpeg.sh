@@ -43,6 +43,15 @@ at_least_required_version() { # params: required actual
   [[ "$sortable_actual" -ge "$sortable_required" ]]
 }
 
+apt_not_installed() {
+  for x in "$@"; do
+    if ! dpkg -l "$x" | grep -q '^.i'; then
+      need_install="$need_install $x"
+    fi
+  done
+  echo "$need_install"
+}
+
 check_missing_packages () {
   # We will need this later if we don't want to just constantly be grepping the /etc/os-release file
   if [ -z "${VENDOR}" ] && grep -E '(centos|rhel)' /etc/os-release &> /dev/null; then
@@ -91,7 +100,8 @@ check_missing_packages () {
         if at_least_required_version "20.04" "$ubuntu_ver"; then
           apt_pkgs="$apt_pkgs python-is-python3" # needed
         fi
-        echo "$ sudo apt-get install $apt_pkgs -y"
+        apt_missing="$(apt_not_installed "$apt_pkgs")"
+        echo "$ sudo apt-get install $apt_missing -y"
         ;;
       debian)
         echo "for debian:"
@@ -118,7 +128,8 @@ check_missing_packages () {
         if at_least_required_version "11" "$deb_ver"; then
           apt_pkgs="$apt_pkgs python-is-python3" # needed
         fi
-        echo "$ sudo apt-get install $apt_pkgs -y"
+        apt_missing="$(apt_not_installed "$apt_pkgs")"
+        echo "$ sudo apt-get install $apt_missing -y"
         ;;
       *)
         echo "for OS X (homebrew): brew install ragel wget cvs hg yasm autogen automake autoconf cmake libtool xz pkg-config nasm bzip2 autoconf-archive p7zip coreutils meson llvm" # if edit this edit docker/Dockerfile also :|
