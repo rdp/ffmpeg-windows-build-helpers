@@ -1343,8 +1343,14 @@ build_twolame() {
 }
 
 build_fdk-aac() {
-  do_git_checkout https://github.com/mstorsjo/fdk-aac.git
-  cd fdk-aac_git
+local checkout_dir=fdk-aac_git
+    if [[ ! -z $fdk_aac_git_checkout_version ]]; then
+      checkout_dir+="_$fdk_aac_git_checkout_version"
+      do_git_checkout "https://github.com/mstorsjo/fdk-aac.git" $checkout_dir "refs/tags/$fdk_aac_git_checkout_version"
+    else
+      do_git_checkout "https://github.com/mstorsjo/fdk-aac.git" $checkout_dir
+    fi
+  cd $checkout_dir
     if [[ ! -f "configure" ]]; then
       autoreconf -fiv || exit 1
     fi
@@ -1788,15 +1794,16 @@ build_avisynth() {
 
 build_libx265() {
   local checkout_dir=x265_all_bitdepth
-	if [[ ! -z $x265_git_checkout_version ]]; then
-	do_git_checkout " https://github.com/videolan/x265" $checkout_dir "$x265_git_checkout_version"
-	fi
-	if [[ $prefer_stable = "n" ]] && [[ -z $x265_git_checkout_version ]] ; then
-	do_git_checkout "https://github.com/videolan/x265" $checkout_dir "origin/master"
-	fi
-	if [[ $prefer_stable = "y" ]] && [[ -z $x265_git_checkout_version ]] ; then
-	do_git_checkout " https://github.com/videolan/x265" $checkout_dir "origin/stable"
-	fi
+  if [[ ! -z $x265_git_checkout_version ]]; then
+    checkout_dir+="_$x265_git_checkout_version"
+    do_git_checkout "https://github.com/videolan/x265" $checkout_dir "$x265_git_checkout_version"
+  fi
+  if [[ $prefer_stable = "n" ]] && [[ -z $x265_git_checkout_version ]] ; then
+    do_git_checkout "https://github.com/videolan/x265" $checkout_dir "origin/master"
+  fi
+  if [[ $prefer_stable = "y" ]] && [[ -z $x265_git_checkout_version ]] ; then
+    do_git_checkout "https://github.com/videolan/x265" $checkout_dir "origin/stable"
+  fi
   cd $checkout_dir
 
   local cmake_params="-DENABLE_SHARED=0" # build x265.exe
@@ -2709,6 +2716,7 @@ while true; do
       --ffmpeg-git-checkout=[https://github.com/FFmpeg/FFmpeg.git] if you want to clone FFmpeg from other repositories
       --ffmpeg-source-dir=[default empty] specifiy the directory of ffmpeg source code. When specified, git will not be used.
       --x265-git-checkout-version=[master] if you want to build a particular version of x265, ex: --x265-git-checkout-version=Release_3.2 or a specific git hash
+      --fdk-aac-git-checkout-version= if you want to build a particular version of fdk-aac, ex: --fdk-aac-git-checkout-version=v2.0.1 or another tag
       --gcc-cpu-count=[number of cpu cores set it higher than 1 if you have multiple cores and > 1GB RAM, this speeds up initial cross compiler build. FFmpeg build uses number of cores no matter what]
       --disable-nonfree=y (set to n to include nonfree like libfdk-aac,decklink)
       --build-intel-qsv=y (set to y to include the [non windows xp compat.] qsv library and ffmpeg module. NB this not not hevc_qsv...
@@ -2737,6 +2745,7 @@ while true; do
     --ffmpeg-git-checkout=* ) ffmpeg_git_checkout="${1#*=}"; shift ;;
     --ffmpeg-source-dir=* ) ffmpeg_source_dir="${1#*=}"; shift ;;
     --x265-git-checkout-version=* ) x265_git_checkout_version="${1#*=}"; shift ;;
+    --fdk-aac-git-checkout-version=* ) fdk_aac_git_checkout_version="${1#*=}"; shift ;;
     --build-libmxf=* ) build_libmxf="${1#*=}"; shift ;;
     --build-mp4box=* ) build_mp4box="${1#*=}"; shift ;;
     --build-ismindex=* ) build_ismindex="${1#*=}"; shift ;;
