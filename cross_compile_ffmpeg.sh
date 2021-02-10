@@ -2265,7 +2265,8 @@ build_ffmpeg() {
     output_dir+="_lgpl"
   fi
   if [[ ! -z $ffmpeg_git_checkout_version ]]; then
-    output_dir+="_$ffmpeg_git_checkout_version"
+    local output_dir_version=$(echo ${ffmpeg_git_checkout_version} | sed "s/\//_/g")
+    output_dir+="_$output_dir_version"
   fi
 
   local postpend_configure_opts=""
