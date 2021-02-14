@@ -473,11 +473,6 @@ if [[ -d "$package_name" ]]; then
   return 0
 fi
 
-case "$archive" in
-  *.tar.gz ) archive_type='gzip' ;;
-  *.tar.bz2 ) archive_type='bzip2' ;;
-  *.tar.xz ) archive_type='xz' ;;
-esac
 if [[ ! -f "$archive" ]]; then
   build_progress "$archive" 'Downloading'
   wget -nv -t 5 "$download_url" > >(build_log) 2>&1
@@ -490,7 +485,7 @@ fi
 
 if [[ ! -d "$package_name" ]]; then
   build_progress "$archive" 'Extracting'
-  if "$archive_type" -d <"$archive" | pax -r ; then
+  if tar -xf "$archive" ; then
     build_progress 'done'
     return 0
   else
@@ -499,7 +494,7 @@ if [[ ! -d "$package_name" ]]; then
     wget -nv "$download_url" > >(build_log) 2>&1
     build_progress 'done'
     build_progress "$archive" 'Extracting'
-    "$archive_type" -d <"$archive" | pax -r
+    tar -xf "$archive"
     build_progress 'done'
   fi
 fi
