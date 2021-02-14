@@ -912,8 +912,8 @@ build_glib() {
 
 build_lensfun() {
   build_glib
-  download_and_unpack_file https://sourceforge.net/projects/lensfun/files/0.3.95/lensfun-0.3.95.tar.gz
-  cd lensfun-0.3.95
+  do_git_checkout https://github.com/lensfun/lensfun.git lensfun_git
+  cd lensfun_git
     export CMAKE_STATIC_LINKER_FLAGS='-lws2_32 -pthread'
     do_cmake "-DBUILD_STATIC=on -DCMAKE_INSTALL_DATAROOTDIR=$mingw_w64_x86_64_prefix"
     do_make
@@ -1546,7 +1546,7 @@ build_libsamplerate() {
 }
 
 build_librubberband() {
-  do_git_checkout https://github.com/breakfastquay/rubberband.git
+  do_git_checkout https://github.com/breakfastquay/rubberband.git rubberband_git default
   cd rubberband_git
     apply_patch file://$patch_dir/rubberband_git_static-lib.diff # create install-static target
     do_configure "--host=$host_target --prefix=$mingw_w64_x86_64_prefix --disable-ladspa"
