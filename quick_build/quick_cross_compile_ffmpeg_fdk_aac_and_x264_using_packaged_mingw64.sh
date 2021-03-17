@@ -47,11 +47,10 @@ cd sandbox_quick/$type/quick_install
 # x264
 if [[ ! -f $prefix/lib/libx264.a ]]; then
   rm -rf x264
-  git clone --depth 1 http://repo.or.cz/r/x264.git || exit 1
+  git clone --depth 1 https://code.videolan.org/videolan/x264.git || exit 1
   cd x264
     # --enable-static       library is built by default but not installed
-    # --enable-win32thread  avoid installing pthread
-    ./configure --host=$host --enable-static --enable-win32thread --cross-prefix=$host- --prefix=$prefix || exit 1
+    ./configure --host=$host --enable-static --cross-prefix=$host- --prefix=$prefix || exit 1
     make -j$cpu_count
     make install
   cd ..
@@ -72,7 +71,7 @@ cd $ffmpeg_dir
     if [[ $type == win32 ]]; then
       arch=x86
     fi
-    # shouldn't really ever need these? \
+    # shouldn't really ever need these?
     ./configure --enable-gpl --enable-libx264 --enable-nonfree \
       --enable-debug=3 --disable-optimizations \
       --arch=$arch --target-os=mingw32 \
