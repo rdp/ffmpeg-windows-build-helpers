@@ -32,12 +32,27 @@ if [ -z "$cpu_count" ]; then
   fi
 fi
 
-type=win64 # win32 or win64
+type=win64 # win32 or win64 or winarm64
 
-host=x86_64-w64-mingw32
-if [[ $type == win32 ]]; then
-  host=i686-w64-mingw32
-fi
+case $type in
+  win32)
+    arch=x86
+    host=i686-w64-mingw32
+    ;;
+  win64)
+    arch=x86_64
+    host=x86_64-w64-mingw32
+    ;;
+  winarm64)
+    arch=aarch64
+    host=aarch64-w64-mingw32
+    ;;
+  *)
+    echo "The provided CPU architecture is not supported."
+    exit 1
+    ;;
+esac
+
 prefix=$(pwd)/sandbox_quick/$type/quick_install/install_root
 export PKG_CONFIG_PATH="$prefix/lib/pkgconfig" # let ffmpeg find our dependencies [currently not working :| ]
 
@@ -67,10 +82,6 @@ fi
 cd $ffmpeg_dir
   # not ready for this since we don't reconfigure after changes: # git pull
   if [[ ! -f ffbuild/config.mak ]]; then
-    arch=x86_64
-    if [[ $type == win32 ]]; then
-      arch=x86
-    fi
     # shouldn't really ever need these?
     ./configure --enable-gpl --enable-libx264 --enable-nonfree \
       --enable-debug=3 --disable-optimizations \
