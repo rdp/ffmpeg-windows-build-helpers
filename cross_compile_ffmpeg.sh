@@ -100,8 +100,7 @@ check_missing_packages () {
         if at_least_required_version "20.04" "$ubuntu_ver"; then
           apt_pkgs="$apt_pkgs python-is-python3" # needed
         fi
-        apt_missing="$(apt_not_installed "$apt_pkgs")"
-        echo "$ sudo apt-get install $apt_missing -y"
+        echo "$ sudo apt-get install $apt_pkgs -y"
         ;;
       debian)
         echo "for debian:"
