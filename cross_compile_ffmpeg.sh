@@ -2224,7 +2224,7 @@ build_mp4box() { # like build_gpac
     sed -i.bak "s/`uname -s`/MINGW32/g" configure
     # XXX do I want to disable more things here?
     # ./sandbox/cross_compilers/mingw-w64-i686/bin/i686-w64-mingw32-sdl-config
-    generic_configure "--static-mp4box --enable-static-bin --disable-oss-audio --extra-ldflags=-municode --disable-x11 --sdl-cfg=${cross_prefix}sdl-config"
+    generic_configure "--static-mp4box --static-bin --disable-oss-audio --extra-ldflags=-municode --disable-x11 --sdl-cfg=${cross_prefix}sdl-config"
     # I seem unable to pass 3 libs into the same config line so do it with sed...
     sed -i.bak "s/EXTRALIBS=.*/EXTRALIBS=-lws2_32 -lwinmm -lz/g" config.mak
     cd src
