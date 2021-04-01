@@ -2306,6 +2306,7 @@ build_ffmpeg() {
 
   cd $output_dir
     apply_patch file://$patch_dir/frei0r_load-shared-libraries-dynamically.diff
+    apply_patch file://$patch_dir/ffmpeg-windres-fix.patch
     if [ "$bits_target" != "32" ]; then
     #SVT-HEVC
     git apply "../SVT-HEVC_git/ffmpeg_plugin/0001-lavc-svt_hevc-add-libsvt-hevc-encoder-wrapper.patch"

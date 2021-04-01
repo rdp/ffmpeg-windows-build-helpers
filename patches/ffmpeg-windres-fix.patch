@@ -1,0 +1,13 @@
+diff --git a/ffbuild/common.mak b/ffbuild/common.mak
+index e070b6b5e2..ab536e157d 100644
+--- ffbuild/common.mak
++++ ffbuild/common.mak
+@@ -90,7 +90,7 @@ COMPILE_MSA = $(call COMPILE,CC,MSAFLAGS)
+ 	-$(if $(ASMSTRIPFLAGS), $(STRIP) $(ASMSTRIPFLAGS) $@)
+ 
+ %.o: %.rc
+-	$(WINDRES) $(IFLAGS) --preprocessor "$(DEPWINDRES) -E -xc-header -DRC_INVOKED $(CC_DEPFLAGS)" -o $@ $<
++	$(WINDRES) $(IFLAGS) -o $@ $<
+ 
+ %.i: %.c
+ 	$(CC) $(CCFLAGS) $(CC_E) $<
