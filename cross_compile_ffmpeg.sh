@@ -1584,7 +1584,7 @@ build_svt-hevc() {
   do_git_checkout https://github.com/OpenVisualCloud/SVT-HEVC.git
   mkdir -p SVT-HEVC_git/release
   cd SVT-HEVC_git/release
-    do_cmake_from_build_dir .. "-DCMAKE_BUILD_TYPE=Release"
+    do_cmake_from_build_dir .. "-DCMAKE_BUILD_TYPE=Release -DCMAKE_SYSTEM_PROCESSOR=AMD64"
     do_make_and_make_install
   cd ../..
 }
@@ -1592,9 +1592,8 @@ build_svt-hevc() {
 build_svt-av1() {
   do_git_checkout https://github.com/OpenVisualCloud/SVT-AV1.git
   cd SVT-AV1_git
-  git apply $patch_dir/SVT-AV1-Windows-lowercase.patch
   cd Build
-    do_cmake_from_build_dir .. "-DCMAKE_BUILD_TYPE=Release -DCPPAN_BUILD=OFF"
+    do_cmake_from_build_dir .. "-DCMAKE_BUILD_TYPE=Release -DCMAKE_SYSTEM_PROCESSOR=AMD64"
     do_make_and_make_install
   cd ../..
 }
@@ -1602,9 +1601,8 @@ build_svt-av1() {
 build_svt-vp9() {
   do_git_checkout https://github.com/OpenVisualCloud/SVT-VP9.git
   cd SVT-VP9_git
-  git apply $patch_dir/SVT-VP9-Windows-lowercase.patch
   cd Build
-    do_cmake_from_build_dir .. "-DCMAKE_BUILD_TYPE=Release -DCPPAN_BUILD=OFF"
+    do_cmake_from_build_dir .. "-DCMAKE_BUILD_TYPE=Release -DCMAKE_SYSTEM_PROCESSOR=AMD64"
     do_make_and_make_install
   cd ../..
 }
@@ -2309,15 +2307,9 @@ build_ffmpeg() {
     if [ "$bits_target" != "32" ]; then
     #SVT-HEVC
     git apply "../SVT-HEVC_git/ffmpeg_plugin/0001-lavc-svt_hevc-add-libsvt-hevc-encoder-wrapper.patch"
-    #SVT-AV1 only
-    #git apply "../SVT-AV1_git/ffmpeg_plugin/0001-Add-ability-for-ffmpeg-to-run-svt-av1.patch"
-    #SVT-VP9 only
-    #git apply "../SVT-VP9_git/ffmpeg_plugin/0001-Add-ability-for-ffmpeg-to-run-svt-vp9.patch"
+    git apply "$patch_dir/SVT-HEVC-0002-doc-Add-libsvt_hevc-encoder-docs.patch"  # upstream patch does not apply on current ffmpeg master
+    git apply "../SVT-VP9_git/ffmpeg_plugin/master-0001-Add-ability-for-ffmpeg-to-run-svt-vp9.patch"
 
-    #Add SVT-AV1 to SVT-HEVC
-    #git apply "../SVT-AV1_git/ffmpeg_plugin/0001-Add-ability-for-ffmpeg-to-run-svt-av1-with-svt-hevc.patch"
-    #Add SVT-VP9 to SVT-HEVC & SVT-AV1
-    #git apply "../SVT-VP9_git/ffmpeg_plugin/0001-Add-ability-for-ffmpeg-to-run-svt-vp9-with-svt-hevc-av1.patch"
     fi
     if [ "$bits_target" = "32" ]; then
       local arch=x86
@@ -2341,9 +2333,9 @@ build_ffmpeg() {
     config_options="$init_options --enable-libcaca --enable-gray --enable-libtesseract --enable-fontconfig --enable-gmp --enable-gnutls --enable-libass --enable-libbluray --enable-libbs2b --enable-libflite --enable-libfreetype --enable-libfribidi --enable-libgme --enable-libgsm --enable-libilbc --enable-libmodplug --enable-libmp3lame --enable-libopencore-amrnb --enable-libopencore-amrwb --enable-libopus --enable-libsnappy --enable-libsoxr --enable-libspeex --enable-libtheora --enable-libtwolame --enable-libvo-amrwbenc --enable-libvorbis --enable-libwebp --enable-libzimg --enable-libzvbi --enable-libmysofa --enable-libopenjpeg  --enable-libopenh264 --enable-liblensfun  --enable-libvmaf --enable-libsrt --enable-demuxer=dash --enable-libxml2 --enable-opengl --enable-libdav1d --enable-cuda-llvm"
 
     if [ "$bits_target" != "32" ]; then
-      #SVT-HEVC no longer needs to be disabled to configure with svt-av1, but svt-vp9 still conflicts with svt-av1 so svt-vp9 can only be compiled alone
-      #config_options+=" --enable-libsvthevc"
-      echo " not sure how to enable svthevc"
+      config_options+=" --enable-libsvthevc"
+      config_options+=" --enable-libsvtav1"
+      config_options+=" --enable-libsvtvp9"
     fi
 
     #aom must be disabled to use SVT-AV1
@@ -2592,8 +2584,8 @@ build_ffmpeg_dependencies() {
   build_frei0r # Needs dlfcn. could use opencv...
   if [ "$bits_target" != "32" ]; then
     build_svt-hevc
-    # build_svt-av1 # unused at present
-    # build_svt-vp9 # unused at present, broken ubuntu 18.04 as well, for whatever reason... :|
+    build_svt-av1
+    build_svt-vp9
   fi
   build_vidstab
   #build_facebooktransform360 # needs modified ffmpeg to use it
