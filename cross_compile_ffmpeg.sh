@@ -455,6 +455,19 @@ get_small_touchfile_name() { # have to call with assignment like a=$(get_small..
   echo "$touch_name" # bash cruddy return system LOL
 }
 
+check_ffmpeg_git_version() {
+  # If ffmpeg_git_checkout_version is set, check ffmpeg version
+  # Usage: check_ffmpeg_git_version <major version> <minor version>
+  # How to use in if statement: if [ $ffmpeg_git_version_check -eq 1 ]; then
+  ffmpeg_git_version_check=0
+  if [ $ffmpeg_git_checkout_version_major -ge $1 ] && [ $ffmpeg_git_checkout_version_minor -ge $2 ]; then
+      ffmpeg_git_version_check=1
+  fi
+  if [ $ffmpeg_git_checkout_version_major -eq 0 ] && [ $ffmpeg_git_checkout_version_minor -eq 0 ]; then
+      ffmpeg_git_version_check=1
+  fi
+}
+
 do_configure() {
   local configure_options="$1"
   local configure_name="$2"
@@ -2334,7 +2347,9 @@ build_ffmpeg() {
     fi
     config_options="$init_options --enable-libcaca --enable-gray --enable-libtesseract --enable-fontconfig --enable-gmp --enable-gnutls --enable-libass --enable-libbluray --enable-libbs2b --enable-libflite --enable-libfreetype --enable-libfribidi --enable-libgme --enable-libgsm --enable-libilbc --enable-libmodplug --enable-libmp3lame --enable-libopencore-amrnb --enable-libopencore-amrwb --enable-libopus --enable-libsnappy --enable-libsoxr --enable-libspeex --enable-libtheora --enable-libtwolame --enable-libvo-amrwbenc --enable-libvorbis --enable-libwebp --enable-libzimg --enable-libzvbi --enable-libmysofa --enable-libopenjpeg  --enable-libopenh264 --enable-liblensfun  --enable-libvmaf --enable-libsrt --enable-demuxer=dash --enable-libxml2 --enable-opengl --enable-libdav1d --enable-cuda-llvm"
 
-    if [ "$bits_target" != "32" ]; then
+    # --enable-libsvtxxx can be used ffmpeg 4.4 or later, so check ffmpeg version
+    check_ffmpeg_git_version 4 4
+    if [ "$bits_target" != "32" ] && [ $ffmpeg_git_version_check -eq 1 ]; then
       config_options+=" --enable-libsvthevc"
       config_options+=" --enable-libsvtav1"
       config_options+=" --enable-libsvtvp9"
@@ -2584,7 +2599,9 @@ build_ffmpeg_dependencies() {
   build_libsamplerate # Needs libsndfile >= 1.0.6 and fftw >= 0.15.0 for tests. Uses dlfcn.
   build_librubberband # Needs libsamplerate, libsndfile, fftw and vamp_plugin. 'configure' will fail otherwise. Eventhough librubberband doesn't necessarily need them (libsndfile only for 'rubberband.exe' and vamp_plugin only for "Vamp audio analysis plugin"). How to use the bundled libraries '-DUSE_SPEEX' and '-DUSE_KISSFFT'?
   build_frei0r # Needs dlfcn. could use opencv...
-  if [ "$bits_target" != "32" ]; then
+  # libsvtxxx can be used ffmpeg 4.4 or later, so check ffmpeg version
+  check_ffmpeg_git_version 4 4
+  if [ "$bits_target" != "32" ] && [ $ffmpeg_git_version_check -eq 1 ]; then
     build_svt-hevc
     build_svt-av1
     build_svt-vp9
@@ -2812,6 +2829,16 @@ if [[ $OSTYPE == darwin* ]]; then
 fi
 
 original_path="$PATH"
+
+# Extract ffmpeg major and minor version
+if [[ $ffmpeg_git_checkout_version =~ [^0-9]*([0-9]*)\.([0-9]*).* ]]; then
+    ffmpeg_git_checkout_version_major=$(echo $ffmpeg_git_checkout_version | sed 's/[^0-9]*\([0-9]*\)\.\([0-9]*\).*$/\1/g')
+    ffmpeg_git_checkout_version_minor=$(echo $ffmpeg_git_checkout_version | sed 's/[^0-9]*\([0-9]*\)\.\([0-9]*\).*$/\2/g')
+    if [ "$ffmpeg_git_checkout_version_major" = "" -a "$ffmpeg_git_checkout_version_minor" = "" ]; then
+        ffmpeg_git_checkout_version_major=0
+        ffmpeg_git_checkout_version_minor=0
+    fi
+fi
 
 if [[ $compiler_flavors == "native" ]]; then
   echo "starting native build..."
