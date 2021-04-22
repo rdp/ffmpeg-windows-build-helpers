@@ -2310,7 +2310,7 @@ build_ffmpeg() {
     #SVT-HEVC
     git apply "../SVT-HEVC_git/ffmpeg_plugin/0001-lavc-svt_hevc-add-libsvt-hevc-encoder-wrapper.patch"
     git apply "$patch_dir/SVT-HEVC-0002-doc-Add-libsvt_hevc-encoder-docs.patch"  # upstream patch does not apply on current ffmpeg master
-    git apply "../SVT-VP9_git/ffmpeg_plugin/master-0001-Add-ability-for-ffmpeg-to-run-svt-vp9.patch"
+    # git apply "../SVT-VP9_git/ffmpeg_plugin/master-0001-Add-ability-for-ffmpeg-to-run-svt-vp9.patch"
 
     fi
     if [ "$bits_target" = "32" ]; then
@@ -2337,7 +2337,7 @@ build_ffmpeg() {
     if [ "$bits_target" != "32" ]; then
       config_options+=" --enable-libsvthevc"
       config_options+=" --enable-libsvtav1"
-      config_options+=" --enable-libsvtvp9"
+      # config_options+=" --enable-libsvtvp9"
     fi
 
     #aom must be disabled to use SVT-AV1
