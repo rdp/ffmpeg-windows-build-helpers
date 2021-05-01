@@ -2385,7 +2385,6 @@ build_ffmpeg() {
     fi
     # other possibilities:
     #   --enable-w32threads # [worse UDP than pthreads, so not using that]
-    config_options+=" --enable-avresample" # guess this is some kind of libav specific thing (the FFmpeg fork) but L-Smash needs it so why not always build it :)
 
     for i in $CFLAGS; do
       config_options+=" --extra-cflags=$i" # --extra-cflags may not be needed here, but adds it to the final console output which I like for debugging purposes
