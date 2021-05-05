@@ -203,7 +203,7 @@ check_missing_packages () {
       then try again"
       exit 1
     fi
-    export MINIMUM_KERNEL_VERSION = "4.19.128"
+    export MINIMUM_KERNEL_VERSION="4.19.128"
     KERNVER=$(uname -a | awk -F'[ ]' '{ print $3 }' | awk -F- '{ print $1 }')
 
     if [ $KERNVER != $MINIMUM_KERNEL_VERSION ]; then
