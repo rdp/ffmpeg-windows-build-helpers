@@ -203,10 +203,14 @@ check_missing_packages () {
       then try again"
       exit 1
     fi
-    export MINIMUM_KERNEL_VERSION = "4.19.128"
+    export MINIMUM_KERNEL_VERSION="4.19.128"
     KERNVER=$(uname -a | awk -F'[ ]' '{ print $3 }' | awk -F- '{ print $1 }')
 
-    if [ $KERNVER != $MINIMUM_KERNEL_VERSION ]; then
+    function version { # for version comparison @ stackoverflow.com/a/37939589
+      echo "$@" | awk -F. '{ printf("%d%03d%03d%03d\n", $1,$2,$3,$4); }'
+    }
+
+    if [ $(version $KERNVER) -lt $(version $MINIMUM_KERNEL_VERSION) ]; then
       echo "Windows Subsystem for Linux (WSL) detected - kernel not at minumum version required: $MINIMUM_KERNEL_VERSION
       Please update via windows update then try again"
       exit 1
