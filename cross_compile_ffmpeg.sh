@@ -1806,15 +1806,16 @@ build_avisynth() {
 
 build_libx265() {
   local checkout_dir=x265_all_bitdepth
+  local remote="https://bitbucket.org/multicoreware/x265_git"
   if [[ ! -z $x265_git_checkout_version ]]; then
     checkout_dir+="_$x265_git_checkout_version"
-    do_git_checkout "https://github.com/videolan/x265" $checkout_dir "$x265_git_checkout_version"
+    do_git_checkout "$remote" $checkout_dir "$x265_git_checkout_version"
   fi
   if [[ $prefer_stable = "n" ]] && [[ -z $x265_git_checkout_version ]] ; then
-    do_git_checkout "https://github.com/videolan/x265" $checkout_dir "origin/master"
+    do_git_checkout "$remote" $checkout_dir "origin/master"
   fi
   if [[ $prefer_stable = "y" ]] && [[ -z $x265_git_checkout_version ]] ; then
-    do_git_checkout "https://github.com/videolan/x265" $checkout_dir "origin/stable"
+    do_git_checkout "$remote" $checkout_dir "origin/stable"
   fi
   cd $checkout_dir
 
