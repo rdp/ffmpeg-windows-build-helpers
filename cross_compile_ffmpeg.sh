@@ -1983,7 +1983,7 @@ build_libdvdcss() {
 }
 
 build_libjpeg_turbo() {
-  do_git_checkout https://github.com/libjpeg-turbo/libjpeg-turbo libjpeg-turbo_git
+  do_git_checkout https://github.com/libjpeg-turbo/libjpeg-turbo libjpeg-turbo_git "origin/main"
   cd libjpeg-turbo_git
     local cmake_params="-DENABLE_SHARED=0 -DCMAKE_ASM_NASM_COMPILER=yasm"
     if [[ $compiler_flavors != "native" ]]; then
