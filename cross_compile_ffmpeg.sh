@@ -2313,7 +2313,6 @@ build_ffmpeg() {
 
   cd $output_dir
     apply_patch file://$patch_dir/frei0r_load-shared-libraries-dynamically.diff
-    apply_patch file://$patch_dir/ffmpeg-windres-fix.patch
     if [ "$bits_target" != "32" ]; then
 
       # SVT-VP9
