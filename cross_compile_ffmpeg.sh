@@ -1345,7 +1345,7 @@ build_lame() {
 }
 
 build_twolame() {
-  do_git_checkout https://github.com/njh/twolame.git
+  do_git_checkout https://github.com/njh/twolame.git twolame_git "origin/main"
   cd twolame_git
     if [[ ! -f Makefile.am.bak ]]; then # Library only, front end refuses to build for some reason with git master
       sed -i.bak "/^SUBDIRS/s/ frontend.*//" Makefile.am || exit 1
