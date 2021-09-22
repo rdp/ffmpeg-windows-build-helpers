@@ -1682,11 +1682,12 @@ build_libsrt() {
   download_and_unpack_file https://github.com/Haivision/srt/archive/v1.4.1.tar.gz srt-1.4.1
   cd srt-1.4.1
     if [[ $compiler_flavors != "native" ]]; then
-      do_cmake "-DUSE_GNUTLS=ON -DENABLE_SHARED=OFF"
       apply_patch file://$patch_dir/srt.app.patch -p1
-    else
-      do_cmake "-DUSE_GNUTLS=ON -DENABLE_SHARED=OFF -DENABLE_CXX11=OFF"
     fi
+    # CMake Warning at CMakeLists.txt:893 (message):
+    #   On MinGW, some C++11 apps are blocked due to lacking proper C++11 headers
+    #   for <thread>.  FIX IF POSSIBLE.
+    do_cmake "-DUSE_GNUTLS=ON -DENABLE_SHARED=OFF -DENABLE_CXX11=OFF"
     do_make_and_make_install
   cd ..
 }
