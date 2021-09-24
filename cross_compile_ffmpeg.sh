@@ -2264,8 +2264,9 @@ build_libMXF() {
 
 build_ffmpeg() {
   local extra_postpend_configure_options=$2
+  local build_type=$1
   if [[ -z $3 ]]; then
-    local output_dir="ffmpeg_git"
+    local output_dir="ffmpeg_git" # XXX rename ffmpeg_diry?
   else
     local output_dir=$3
   fi
@@ -2278,37 +2279,37 @@ build_ffmpeg() {
   if [[ $enable_gpl == 'n' ]]; then
     output_dir+="_lgpl"
   fi
+
   if [[ ! -z $ffmpeg_git_checkout_version ]]; then
-    local output_dir_version=$(echo ${ffmpeg_git_checkout_version} | sed "s/\//_/g")
-    output_dir+="_$output_dir_version"
+    local output_branch_sanitized=$(echo ${ffmpeg_git_checkout_version} | sed "s/\//_/g") # release/4.3 to release_4.3
+    output_dir+="_$output_branch_sanitized"
   else
-    # If version not provided, assume master branch
+    # If version not provided, assume master branch desired
     ffmpeg_git_checkout_version="master"
   fi
 
   local postpend_configure_opts=""
-  local postpend_prefix=""
+  local install_prefix=""
   # can't mix and match --enable-static --enable-shared unfortunately, or the final executable seems to just use shared if the're both present
-  if [[ $1 == "shared" ]]; then
+  if [[ $build_type == "shared" ]]; then
     output_dir+="_shared"
-    postpend_prefix="$(pwd)/${output_dir}"
+    install_prefix="$(pwd)/${output_dir}" # install them to their a separate dir
   else
-    postpend_prefix="${mingw_w64_x86_64_prefix}"
+    install_prefix="${mingw_w64_x86_64_prefix}" # don't really care since we just pluck ffmpeg.exe out of the src dir for static, but x264 pre wants it installed...
   fi
 
-
-  #TODO allow using local source directory
+  # allow using local source directory version of ffmpeg
   if [[ -z $ffmpeg_source_dir ]]; then
     do_git_checkout $ffmpeg_git_checkout $output_dir $ffmpeg_git_checkout_version || exit 1
   else
     output_dir="${ffmpeg_source_dir}"
-    postpend_prefix="${output_dir}"
+    install_prefix="${output_dir}"
   fi
 
-  if [[ $1 == "shared" ]]; then
-    postpend_configure_opts="--enable-shared --disable-static --prefix=${postpend_prefix}"
+  if [[ $build_type == "shared" ]]; then
+    postpend_configure_opts="--enable-shared --disable-static --prefix=${install_prefix}" # I guess this doesn't have to be at the end...
   else
-    postpend_configure_opts="--enable-static --disable-shared --prefix=${postpend_prefix}"
+    postpend_configure_opts="--enable-static --disable-shared --prefix=${install_prefix}"
   fi
 
   cd $output_dir
@@ -2326,6 +2327,7 @@ build_ffmpeg() {
       elif [[ $ffmpeg_git_checkout_version == *"n4.4"* ]] || [[ $ffmpeg_git_checkout_version == *"n4.3"* ]] || [[ $ffmpeg_git_checkout_version == *"n4.2"* ]]; then
         git apply "$work_dir/SVT-HEVC_git/ffmpeg_plugin/n4.4-0001-lavc-svt_hevc-add-libsvt-hevc-encoder-wrapper.patch"
         git apply "$patch_dir/SVT-HEVC-0002-doc-Add-libsvt_hevc-encoder-docs.patch"  # upstream patch does not apply on current ffmpeg master
+        postpend_configure_opts="${postpend_configure_opts} --disable-libdav1d " # dav1d has diverged since
       else
         # PUT PATCHES FOR OTHER VERSIONS HERE
         :
@@ -2454,7 +2456,7 @@ build_ffmpeg() {
     sed -i.bak 's/-lswresample -lm.*/-lswresample -lm -lsoxr/' "$PKG_CONFIG_PATH/libswresample.pc" # XXX patch ffmpeg
 
     if [[ $non_free == "y" ]]; then
-      if [[ $1 == "shared" ]]; then
+      if [[ $build_type == "shared" ]]; then
         echo "Done! You will find $bits_target-bit $1 non-redistributable binaries in $(pwd)/bin"
       else
         echo "Done! You will find $bits_target-bit $1 non-redistributable binaries in $(pwd)"
@@ -2465,7 +2467,7 @@ build_ffmpeg() {
       if [[ $original_cflags =~ "pentium3" ]]; then
         archive+="_legacy"
       fi
-      if [[ $1 == "shared" ]]; then
+      if [[ $build_type == "shared" ]]; then
         echo "Done! You will find $bits_target-bit $1 binaries in $(pwd)/bin"
         # Some manual package stuff because the install_root may be cluttered with static as well...
         # XXX this misses the docs and share?
@@ -2608,7 +2610,7 @@ build_ffmpeg_dependencies() {
     build_svt-vp9
   fi
   build_vidstab
-  #build_facebooktransform360 # needs modified ffmpeg to use it
+  #build_facebooktransform360 # needs modified ffmpeg to use it so not typically useful
   build_libmysofa # Needed for FFmpeg's SOFAlizer filter (https://ffmpeg.org/ffmpeg-filters.html#sofalizer). Uses dlfcn.
   if [[ "$non_free" = "y" ]]; then
     build_fdk-aac # Uses dlfcn.
@@ -2632,7 +2634,7 @@ build_ffmpeg_dependencies() {
   build_libaom
   build_dav1d
   build_avisynth
-  build_libx264 # at bottom as it might internally build a coy of ffmpeg (which needs all the above deps...
+  build_libx264 # at bottom as it might internally build a copy of ffmpeg (which needs all the above deps...
  }
 
 build_apps() {
