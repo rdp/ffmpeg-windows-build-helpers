@@ -2313,6 +2313,10 @@ build_ffmpeg() {
     postpend_configure_opts="--enable-static --disable-shared --prefix=${install_prefix}"
   fi
 
+  if [[ $ffmpeg_git_checkout_version == *"n4.4"* ]] || [[ $ffmpeg_git_checkout_version == *"n4.3"* ]] || [[ $ffmpeg_git_checkout_version == *"n4.2"* ]]; then
+    postpend_configure_opts="${postpend_configure_opts} --disable-libdav1d " # dav1d has diverged since
+  fi
+
   cd $output_dir
     apply_patch file://$patch_dir/frei0r_load-shared-libraries-dynamically.diff
     if [ "$bits_target" != "32" ]; then
@@ -2328,7 +2332,6 @@ build_ffmpeg() {
       elif [[ $ffmpeg_git_checkout_version == *"n4.4"* ]] || [[ $ffmpeg_git_checkout_version == *"n4.3"* ]] || [[ $ffmpeg_git_checkout_version == *"n4.2"* ]]; then
         git apply "$work_dir/SVT-HEVC_git/ffmpeg_plugin/n4.4-0001-lavc-svt_hevc-add-libsvt-hevc-encoder-wrapper.patch"
         git apply "$patch_dir/SVT-HEVC-0002-doc-Add-libsvt_hevc-encoder-docs.patch"  # upstream patch does not apply on current ffmpeg master
-        postpend_configure_opts="${postpend_configure_opts} --disable-libdav1d " # dav1d has diverged since
       else
         # PUT PATCHES FOR OTHER VERSIONS HERE
         :
