@@ -1093,13 +1093,13 @@ build_fontconfig() {
 }
 
 build_gmp() {
-  download_and_unpack_file https://ftp.gnu.org/pub/gnu/gmp/gmp-6.2.0.tar.xz
-  cd gmp-6.2.0
-    #export CC_FOR_BUILD=/usr/bin/gcc # Are these needed?
-    #export CPP_FOR_BUILD=usr/bin/cpp
+  download_and_unpack_file https://ftp.gnu.org/pub/gnu/gmp/gmp-6.2.1.tar.xz
+  cd gmp-6.2.1
+    export CC_FOR_BUILD=/usr/bin/gcc # WSL seems to need this..
+    export CPP_FOR_BUILD=usr/bin/cpp
     generic_configure "ABI=$bits_target"
-    #unset CC_FOR_BUILD
-    #unset CPP_FOR_BUILD
+    unset CC_FOR_BUILD
+    unset CPP_FOR_BUILD
     do_make_and_make_install
   cd ..
 }
