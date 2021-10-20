@@ -5,7 +5,7 @@ This helper script lets you cross compile a windows-based 32 or 64-bit version o
 Note that I do offer custom builds, price negotiable. Ping me at rogerdpack@gmail.com and I'll do the work for you :) 
 
 The script allows the user to either build on a Linux host (which uses cross compiles to build windows binaries).  Windows users can use windows bash or virtualbox.
-Building on linux takes less time overall. On Windows 10, you can use the bash shell (provided that you've installed the Windows Subsystem for Linux as explained [here](http://www.howtogeek.com/249966/how-to-install-and-use-the-linux-bash-shell-on-windows-10/).
+Building on linux takes less time overall. On Windows 10, you can use the bash shell (provided that you've installed the Windows Subsystem for Linux as explained [here](http://www.howtogeek.com/249966/how-to-install-and-use-the-linux-bash-shell-on-windows-10/).  NB if you use WSL Ubuntu 20.04 you need to do an extra step: https://github.com/rdp/ffmpeg-windows-build-helpers/issues/452
 Building in windows takes longer but avoids the need of deploying a  Linux installation for the same purpose.
 I do have some "distribution release builds" of running the script here: https://sourceforge.net/projects/ffmpegwindowsbi/files
 

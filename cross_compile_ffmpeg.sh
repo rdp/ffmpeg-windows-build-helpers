@@ -215,6 +215,7 @@ check_missing_packages () {
       Please update via windows update then try again"
       exit 1
     fi
+    echo "for WSL ubuntu 20.04 you need to do an extra step https://github.com/rdp/ffmpeg-windows-build-helpers/issues/452"
   fi
 
 }
