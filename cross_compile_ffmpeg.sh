@@ -2539,7 +2539,7 @@ build_ffmpeg_dependencies() {
     echo "Skip build ffmpeg dependency libraries..."
     return
   fi
-build_libleptonica
+
   echo "Building ffmpeg dependency libraries..."
   if [[ $compiler_flavors != "native" ]]; then # build some stuff that don't build native...
     build_dlfcn
