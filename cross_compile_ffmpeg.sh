@@ -86,9 +86,9 @@ check_missing_packages () {
     echo 'Install the missing packages before running this script.'
     determine_distro
 
-    apt_pkgs='subversion ragel curl texinfo g++ bison flex cvs yasm automake libtool autoconf gcc cmake git make pkg-config zlib1g-dev unzip pax nasm gperf autogen bzip2 autoconf-archive p7zip-full meson clang'
+    apt_pkgs='subversion ragel curl texinfo g++ ed bison flex cvs yasm automake libtool autoconf gcc cmake git make pkg-config zlib1g-dev unzip pax nasm gperf autogen bzip2 autoconf-archive p7zip-full meson clang'
 
-    [[ $DISTRO == "debian" ]] && apt_pkgs="$apt_pkgs libtool-bin ed"
+    [[ $DISTRO == "debian" ]] && apt_pkgs="$apt_pkgs libtool-bin ed" # extra for debian
     case "$DISTRO" in
       Ubuntu)
         echo "for ubuntu:"
