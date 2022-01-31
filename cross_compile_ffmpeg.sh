@@ -1059,7 +1059,7 @@ build_libxml2() {
 }
 
 build_libvmaf() {
-  do_git_checkout https://github.com/Netflix/vmaf.git vmaf_git v1.5.2
+  do_git_checkout https://github.com/Netflix/vmaf.git vmaf_git
   cd vmaf_git
     apply_patch file://$patch_dir/libvmaf.various-1.5.2.patch -p1
     cd libvmaf
