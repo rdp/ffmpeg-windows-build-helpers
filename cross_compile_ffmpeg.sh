@@ -1803,7 +1803,7 @@ build_avisynth() {
   mkdir -p avisynth_git/avisynth-build
   cd avisynth_git/avisynth-build
     do_cmake_from_build_dir .. -DHEADERS_ONLY:bool=on
-    do_make_install
+    do_make "$make_prefix_options VersionGen install"
   cd ../..
 }
 
