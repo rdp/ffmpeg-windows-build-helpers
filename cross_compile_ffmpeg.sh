@@ -1338,11 +1338,19 @@ build_libsndfile() {
   cd ..
 }
 
+build_mpg123() {
+  do_svn_checkout svn://scm.orgis.org/mpg123/trunk mpg123_svn
+  cd mpg123_svn
+    generic_configure
+    do_make_and_make_install
+  cd ..
+}
+
 build_lame() {
   do_svn_checkout https://svn.code.sf.net/p/lame/svn/trunk/lame lame_svn 
   cd lame_svn
     sed -i.bak '1s/^\xEF\xBB\xBF//' libmp3lame/i386/nasm.h # Remove a UTF-8 BOM that breaks nasm if it's still there; should be fixed in trunk eventually https://sourceforge.net/p/lame/patches/81/
-    generic_configure "--enable-nasm --disable-decoder"
+    generic_configure "--enable-nasm --enable-libmpg123"
     do_make_and_make_install
   cd ..
 }
@@ -2272,7 +2280,7 @@ build_ffmpeg() {
   local extra_postpend_configure_options=$2
   local build_type=$1
   if [[ -z $3 ]]; then
-    local output_dir="ffmpeg_git" # XXX rename ffmpeg_diry?
+    local output_dir="ffmpeg_git"
   else
     local output_dir=$3
   fi
@@ -2383,6 +2391,8 @@ build_ffmpeg() {
 
     config_options+=" --extra-libs=-lharfbuzz" #  grr...needed for pre x264 build???
     config_options+=" --extra-libs=-lm" # libflite seemed to need this linux native...and have no .pc file huh?
+    config_options+=" --extra-libs=-lshlwapi" # lame needed this, no .pc file?
+    config_options+=" --extra-libs=-lmpg123" # ditto
     config_options+=" --extra-libs=-lpthread" # for some reason various and sundry needed this linux native
 
     config_options+=" --extra-cflags=-DLIBTWOLAME_STATIC --extra-cflags=-DMODPLUG_STATIC --extra-cflags=-DCACA_STATIC" # if we ever do a git pull then it nukes changes, which overrides manual changes to configure, so just use these for now :|
@@ -2596,7 +2606,8 @@ build_ffmpeg_dependencies() {
   build_libspeex # Uses libspeexdsp and dlfcn.
   build_libtheora # Needs libogg >= 1.1. Needs libvorbis >= 1.0.1, sdl and libpng for test, programs and examples [disabled]. Uses dlfcn.
   build_libsndfile "install-libgsm" # Needs libogg >= 1.1.3 and libvorbis >= 1.2.3 for external support [disabled]. Uses dlfcn. 'build_libsndfile "install-libgsm"' to install the included LibGSM 6.10.
-  build_lame # Uses dlfcn.
+  build_mpg123
+  build_lame # Uses dlfcn, mpg123
   build_twolame # Uses libsndfile >= 1.0.0 and dlfcn.
   build_libopencore # Uses dlfcn.
   build_libilbc # Uses dlfcn.
