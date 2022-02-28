@@ -29,7 +29,9 @@ It should end up with a working, statically-built ffmpeg.exe binary within the "
 
 Another option instead of running `./cross_compile_ffmpeg.sh` is to run 
 
-    $ quick_build/quick_cross_compile_ffmpeg_fdk_aac_and_x264_using_packaged_mingw64.sh script.
+    $ quick_build/quick_cross_compile_ffmpeg_fdk_aac_and_x264_using_packaged_mingw64.sh
+    
+script.
 
 Note the "quick" part here which attempts to use the locally installed `mingw-w64` package from your distribution for the cross compiler, thus skipping the time-intensive cross-compiler toolchain build step.  It's not as well tested as running the normal one, however, which builds gcc from scratch.
 
