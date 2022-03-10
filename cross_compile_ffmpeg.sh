@@ -464,7 +464,7 @@ get_small_touchfile_name() { # have to call with assignment like a=$(get_small..
 }
 
 do_configure() {
-  local configure_options="$1 --enable-max-arg-list-hack"
+  local configure_options="$1"
   local configure_name="$2"
   if [[ "$configure_name" = "" ]]; then
     configure_name="./configure"
