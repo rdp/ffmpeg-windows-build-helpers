@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/bash
 # ffmpeg windows cross compile helper/download script, see github repo README
 # Copyright (C) 2012 Roger Pack, the script is under the GPLv3, but output FFmpeg's executables aren't
 # set -x
