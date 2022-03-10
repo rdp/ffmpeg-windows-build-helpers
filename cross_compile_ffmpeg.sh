@@ -2413,9 +2413,9 @@ build_ffmpeg() {
     if [[ $enable_gpl == 'y' ]]; then
       config_options+=" --enable-gpl --enable-frei0r --enable-librubberband --enable-libvidstab --enable-libx264 --enable-libx265 --enable-avisynth --enable-libaribb24"
       config_options+=" --enable-libxvid --enable-libdavs2"
-      if [[ $host_target != 'i686-w64-mingw32' ]]; then
-        # config_options+=" --enable-libxavs2"
-      fi
+      # if [[ $host_target != 'i686-w64-mingw32' ]]; then
+      #   config_options+=" --enable-libxavs2"
+      # fi
       if [[ $compiler_flavors != "native" ]]; then
         config_options+=" --enable-libxavs" # don't compile OS X
       fi
@@ -2561,9 +2561,9 @@ build_ffmpeg_dependencies() {
   fi
 
   build_libdavs2
-  if [[ $host_target != 'i686-w64-mingw32' ]]; then
-    # build_libxavs2
-  fi
+  # if [[ $host_target != 'i686-w64-mingw32' ]]; then
+  #   build_libxavs2
+  # fi
 
   build_meson_cross
   build_mingw_std_threads
