@@ -1339,7 +1339,7 @@ build_libsndfile() {
 }
 
 build_mpg123() {
-  do_svn_checkout svn://scm.orgis.org/mpg123/trunk mpg123_svn
+  do_svn_checkout svn://scm.orgis.org/mpg123/trunk mpg123_svn r5008 # avoid Think again failure
   cd mpg123_svn
     generic_configure
     do_make_and_make_install
