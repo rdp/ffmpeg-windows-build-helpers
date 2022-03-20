@@ -512,7 +512,7 @@ do_make() {
     nice make $extra_make_options || exit 1
     touch $touch_name || exit 1 # only touch if the build was OK
   else
-    echo "Already made $(basename "$cur_dir2") ..."
+    echo "Already made $(dirname "$cur_dir2") $(basename "$cur_dir2") ..."
   fi
 }
 
