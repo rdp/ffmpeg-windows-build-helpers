@@ -1504,7 +1504,10 @@ build_libsoxr() {
 }
 
 build_libflite() {
-  download_and_unpack_file http://www.festvox.org/flite/packed/flite-2.1/flite-2.1-release.tar.bz2
+  # download_and_unpack_file http://www.festvox.org/flite/packed/flite-2.1/flite-2.1-release.tar.bz2
+  # original link is not working so using a substitute
+  # from a trusted source
+  download_and_unpack_file http://deb.debian.org/debian/pool/main/f/flite/flite_2.1-release.orig.tar.bz2 flite-2.1-release
   cd flite-2.1-release
     apply_patch file://$patch_dir/flite-2.1.0_mingw-w64-fixes.patch
     if [[ ! -f main/Makefile.bak ]]; then
