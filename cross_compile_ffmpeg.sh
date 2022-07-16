@@ -415,7 +415,7 @@ do_git_checkout() {
   if [ ! -d $to_dir ]; then
     echo "Downloading (via git clone) $to_dir from $repo_url"
     rm -rf $to_dir.tmp # just in case it was interrupted previously...
-    git clone $repo_url $to_dir.tmp || exit 1
+    git clone $repo_url $to_dir.tmp --recurse-submodules || exit 1
     # prevent partial checkouts by renaming it only after success
     mv $to_dir.tmp $to_dir
     echo "done git cloning to $to_dir"
