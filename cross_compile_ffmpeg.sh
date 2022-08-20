@@ -2375,12 +2375,8 @@ build_ffmpeg() {
         fi
         config_options+=" --enable-libsvthevc"
         config_options+=" --enable-libsvtav1"
-        # config_options+=" --enable-libsvtvp9"
-        #aom must be disabled to use SVT-AV1, just below
-        #config_options+=" --enable-libsvtav1" #not currently working but compiles if configured
-
-        #config_options+=" --enable-libvpx"
-        #config_options+=" --enable-libsvtvp9" #not currently working but compiles if configured
+        # config_options+=" --enable-libsvtvp9" #not currently working but compiles if configured
+        config_options+=" --enable-libvpx"
       fi # else doesn't work/matter with 32 bit
     fi
     config_options+=" --enable-libaom"
