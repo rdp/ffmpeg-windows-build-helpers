@@ -2743,7 +2743,7 @@ enable_gpl=y
 build_x264_with_libav=n # To build x264 with Libavformat.
 ffmpeg_git_checkout="https://github.com/FFmpeg/FFmpeg.git"
 ffmpeg_source_dir=
-build_svt=y
+build_svt=n
 
 # parse command line parameters, if any
 while true; do
