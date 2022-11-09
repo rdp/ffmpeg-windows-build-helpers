@@ -2509,8 +2509,8 @@ build_ffmpeg() {
 }
 
 build_lsw() {
-   # Build L-Smash-Works, which are plugins based on lsmash
-   #build_ffmpeg static # dependency, assume already built
+   # Build L-Smash-Works, which are AviSynth plugins based on lsmash/ffmpeg
+   #build_ffmpeg static # dependency, assume already built since it builds before this does...
    build_lsmash # dependency
    do_git_checkout https://github.com/VFR-maniac/L-SMASH-Works.git lsw
    cd lsw/VapourSynth
