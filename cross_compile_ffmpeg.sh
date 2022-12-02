@@ -989,7 +989,7 @@ build_libpng() {
 }
 
 build_libwebp() {
-  do_git_checkout https://chromium.googlesource.com/webm/libwebp.git
+  do_git_checkout https://chromium.googlesource.com/webm/libwebp.git libwebp_git "origin/main"
   cd libwebp_git
     export LIBPNG_CONFIG="$mingw_w64_x86_64_prefix/bin/libpng-config --static" # LibPNG somehow doesn't get autodetected.
     generic_configure "--disable-wic"
@@ -1757,7 +1757,7 @@ build_libxvid() {
 }
 
 build_libvpx() {
-  do_git_checkout https://chromium.googlesource.com/webm/libvpx.git
+  do_git_checkout https://chromium.googlesource.com/webm/libvpx.git libvpx_git "origin/main"
   cd libvpx_git
      apply_patch file://$patch_dir/vpx_160_semaphore.patch -p1 # perhaps someday can remove this after 1.6.0 or mingw fixes it LOL
     if [[ $compiler_flavors == "native" ]]; then
