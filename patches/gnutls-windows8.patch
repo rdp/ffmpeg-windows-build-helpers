@@ -1,0 +1,13 @@
+diff --git a/lib/gettimeofday.c b/lib/gettimeofday.c
+index 36c7920af..428cc4f30 100644
+--- a/lib/gettimeofday.c
++++ b/lib/gettimeofday.c
+@@ -35,7 +35,7 @@
+ # undef LoadLibrary
+ # define LoadLibrary LoadLibraryA
+
+-# if !(_WIN32_WINNT >= _WIN32_WINNT_WIN8)
++# if (_WIN32_WINNT >= _WIN32_WINNT_WIN8)
+
+ /* Avoid warnings from gcc -Wcast-function-type.  */
+ #  define GetProcAddress \
