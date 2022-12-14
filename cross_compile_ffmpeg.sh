@@ -2042,7 +2042,7 @@ build_lua() {
 }
 
 build_libcurl() {
-  generic_download_and_make_and_install https://curl.haxx.se/download/curl-7.46.0.tar.gz
+  generic_download_and_make_and_install https://curl.haxx.se/download/curl-7.86.0.tar.gz
 }
 
 build_libhdhomerun() {
