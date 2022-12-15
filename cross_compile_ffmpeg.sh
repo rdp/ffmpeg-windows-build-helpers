@@ -2042,7 +2042,11 @@ build_lua() {
 }
 
 build_libcurl() {
-  generic_download_and_make_and_install https://curl.haxx.se/download/curl-7.86.0.tar.gz
+  download_and_unpack_file https://curl.haxx.se/download/curl-7.86.0.tar.gz
+  cd curl-7.86.0
+    generic_configure "--without-ssl" # XXX use --with-gnutls but it needed pkg-config or some odd?
+    do_make_and_make_install
+  cd ..
 }
 
 build_libhdhomerun() {
