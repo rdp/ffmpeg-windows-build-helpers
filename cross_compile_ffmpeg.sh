@@ -1492,7 +1492,8 @@ build_libbs2b() {
   cd libbs2b-3.1.0
     sed -i.bak "s/AC_FUNC_MALLOC//" configure.ac # #270
     export LIBS=-lm # avoid pow failure linux native
-    generic_configure_make_install
+    generic_configure "--build=$host_target"
+    do_make_and_make_install
     unset LIBS
   cd ..
 }
