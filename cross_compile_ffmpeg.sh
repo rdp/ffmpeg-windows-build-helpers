@@ -1161,7 +1161,7 @@ build_gnutls() {
     # --disable-guile is so that if it finds guile installed (cygwin did/does) it won't try and link/build to it and fail...
     # libtasn1 is some dependency, appears provided is an option [see also build_libnettle]
     # pks #11 hopefully we don't need kit
-    apply_patch file://$patch_dir/gnutls-windows8.patch -p1 # bug requiring windows 8?
+    apply_patch file://$patch_dir/gnutls-windows8.patch -p1 # defaults to win 8 kind of, either this or setWINNT_VER :|
     generic_configure "--disable-doc --disable-tools --disable-cxx --disable-tests --disable-gtk-doc-html --disable-libdane --disable-nls --enable-local-libopts --disable-guile --with-included-libtasn1 --without-p11-kit"
     do_make_and_make_install
     if [[ $compiler_flavors != "native"  ]]; then
