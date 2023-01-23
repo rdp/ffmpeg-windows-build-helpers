@@ -1,7 +1,7 @@
 # ffmpeg windows cross compile helper extra script
 
 * This is Patch for Windows WSL Ubuntu
-* FFmpeg 4.4.3 with FDK-AAC(--disable-nonfree=n, --build-ffmpeg-static=y)
+* FFmpeg 4.4.3 for Windows 64-bit with FDK-AAC(--disable-nonfree=n, --build-ffmpeg-static=y)
 * disable Tesseract OCR function
 
 * Environment
@@ -35,18 +35,11 @@ or
 
 # Windows 10 WLS Ubuntu
 bash ./extra/make_win10.sh
+
+* FFmpeg is Win64 (64-bit only).
+  Edit ./extra/build.sh if you want the 32-bit version .
 ```
-3) Input your choice  
-```
-What version of MinGW-w64 would you like to build or update?
-  1. Both Win32 and Win64
-  2. Win32 (32-bit only)
-  3. Win64 (64-bit only)
-  4. Local native
-  5. Exit
-Input your choice [1-5]:
-```
-4) Wait a few hours  
+3) Wait a few hours  
 Take about 1 to few hours depending on machine specs  
 
 |  CPU | WSL Linux | Build Time |
