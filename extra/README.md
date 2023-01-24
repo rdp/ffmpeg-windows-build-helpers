@@ -25,7 +25,7 @@ wsl --install -d Ubuntu
 2) Type following to Build FFmpeg automatically  
 ```
 cd
-git clone https://github.com/FREEWING-JP/ffmpeg-windows-build-helpers
+git clone https://github.com/rdp/ffmpeg-windows-build-helpers
 cd ffmpeg-windows-build-helpers
 
 # Windows 11 WLS Ubuntu
