@@ -2392,7 +2392,10 @@ build_ffmpeg() {
 
     config_options+=" --extra-libs=-lharfbuzz" #  grr...needed for pre x264 build???
     config_options+=" --extra-libs=-lm" # libflite seemed to need this linux native...and have no .pc file huh?
-    config_options+=" --extra-libs=-lshlwapi" # lame needed this, no .pc file?
+
+    if [[ $compiler_flavors != "native" ]]; then
+      config_options+=" --extra-libs=-lshlwapi" # lame needed this, no .pc file?
+    fi
     config_options+=" --extra-libs=-lmpg123" # ditto
     config_options+=" --extra-libs=-lpthread" # for some reason various and sundry needed this linux native
 
