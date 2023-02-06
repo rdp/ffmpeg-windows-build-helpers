@@ -830,7 +830,7 @@ build_amd_amf_headers() {
   # was https://github.com/GPUOpen-LibrariesAndSDKs/AMF.git too big
   # or https://github.com/DeadSix27/AMF smaller
   # but even smaller!
-  do_git_checkout https://github.com/rdp/amf_headers.git amf_headers_git
+  do_git_checkout https://github.com/GPUOpen-LibrariesAndSDKs/AMF.git amf_headers_git
 
   cd amf_headers_git
     if [ ! -f "already_installed" ]; then
@@ -989,7 +989,7 @@ build_libpng() {
 }
 
 build_libwebp() {
-  do_git_checkout https://chromium.googlesource.com/webm/libwebp.git libwebp_git "origin/main"
+  do_git_checkout https://chromium.googlesource.com/webm/libwebp.git libwebp_git v1.2.4
   cd libwebp_git
     export LIBPNG_CONFIG="$mingw_w64_x86_64_prefix/bin/libpng-config --static" # LibPNG somehow doesn't get autodetected.
     generic_configure "--disable-wic"
