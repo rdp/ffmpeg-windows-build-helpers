@@ -1040,6 +1040,7 @@ build_freetype() {
     download_and_unpack_file https://sourceforge.net/projects/freetype/files/freetype2/2.10.4/freetype-2.10.4.tar.xz
     rm -f freetype-2.10.4/already*
     cd freetype-2.10.4
+        apply_patch file://$patch_dir/freetype2-crosscompiled-apinames.diff # src/tools/apinames.c gets crosscompiled and makes the compilation fail
         # harfbuzz autodetect :|
         generic_configure "--with-bzip2 $1"
         do_make_and_make_install
