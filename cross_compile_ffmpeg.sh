@@ -2361,12 +2361,8 @@ build_ffmpeg() {
     fi
     config_options="$init_options --enable-libcaca --enable-gray --enable-libtesseract --enable-fontconfig --enable-gmp --enable-libass --enable-libbluray --enable-libbs2b --enable-libflite --enable-libfreetype --enable-libfribidi --enable-libgme --enable-libgsm --enable-libilbc --enable-libmodplug --enable-libmp3lame --enable-libopencore-amrnb --enable-libopencore-amrwb --enable-libopus --enable-libsnappy --enable-libsoxr --enable-libspeex --enable-libtheora --enable-libtwolame --enable-libvo-amrwbenc --enable-libvorbis --enable-libwebp --enable-libzimg --enable-libzvbi --enable-libmysofa --enable-libopenjpeg  --enable-libopenh264  --enable-libvmaf --enable-libsrt --enable-libxml2 --enable-opengl --enable-libdav1d --enable-cuda-llvm  --enable-gnutls"
 
-    if [[ $build_svt = y ]]; then
-      if [ "$bits_target" != "32" ]; then
-
-        # SVT-VP9 see comments below
-        # git apply "$work_dir/SVT-VP9_git/ffmpeg_plugin/master-0001-Add-ability-for-ffmpeg-to-run-svt-vp9.patch"
-
+    if [[ "$bits_target" != "32" ]]; then
+      if [[ $build_svt_hevc = y ]]; then
         # SVT-HEVC
         # Apply the correct patches based on version. Logic (n4.4 patch for n4.2, n4.3 and n4.4)  based on patch notes here:
         # https://github.com/OpenVisualCloud/SVT-HEVC/commit/b5587b09f44bcae70676f14d3bc482e27f07b773#diff-2b35e92117ba43f8397c2036658784ba2059df128c9b8a2625d42bc527dffea1
@@ -2380,10 +2376,12 @@ build_ffmpeg() {
           git apply "$work_dir/SVT-HEVC_git/ffmpeg_plugin/master-0001-lavc-svt_hevc-add-libsvt-hevc-encoder-wrapper.patch"
         fi
         config_options+=" --enable-libsvthevc"
-        config_options+=" --enable-libsvtav1"
-        # config_options+=" --enable-libsvtvp9" #not currently working but compiles if configured
-      fi # else doesn't work/matter with 32 bit
-    fi
+      fi
+      config_options+=" --enable-libsvtav1"
+      # SVT-VP9 see comments below
+      # git apply "$work_dir/SVT-VP9_git/ffmpeg_plugin/master-0001-Add-ability-for-ffmpeg-to-run-svt-vp9.patch"
+      # config_options+=" --enable-libsvtvp9" # not currently working but compiles if configured
+    fi # else doesn't work/matter with 32 bit
     config_options+=" --enable-libvpx"
     config_options+=" --enable-libaom"
 
@@ -2628,11 +2626,11 @@ build_ffmpeg_dependencies() {
   build_libsamplerate # Needs libsndfile >= 1.0.6 and fftw >= 0.15.0 for tests. Uses dlfcn.
   build_librubberband # Needs libsamplerate, libsndfile, fftw and vamp_plugin. 'configure' will fail otherwise. Eventhough librubberband doesn't necessarily need them (libsndfile only for 'rubberband.exe' and vamp_plugin only for "Vamp audio analysis plugin"). How to use the bundled libraries '-DUSE_SPEEX' and '-DUSE_KISSFFT'?
   build_frei0r # Needs dlfcn. could use opencv...
-  if [[ "$bits_target" != "32" && $build_svt = "y" ]]; then
+  if [[ "$bits_target" != "32" && $build_svt_hevc = "y" ]]; then
     build_svt-hevc
-    build_svt-av1
-    build_svt-vp9
   fi
+  build_svt-av1
+  #build_svt-vp9 # not currently working but compiles if configured
   build_vidstab
   #build_facebooktransform360 # needs modified ffmpeg to use it so not typically useful
   build_libmysofa # Needed for FFmpeg's SOFAlizer filter (https://ffmpeg.org/ffmpeg-filters.html#sofalizer). Uses dlfcn.
@@ -2753,7 +2751,7 @@ enable_gpl=y
 build_x264_with_libav=n # To build x264 with Libavformat.
 ffmpeg_git_checkout="https://github.com/FFmpeg/FFmpeg.git"
 ffmpeg_source_dir=
-build_svt=n
+build_svt_hevc=n
 
 # parse command line parameters, if any
 while true; do
@@ -2778,7 +2776,7 @@ while true; do
       --build-lsw=n [builds L-Smash Works VapourSynth and AviUtl plugins]
       --build-ismindex=n [builds ffmpeg utility ismindex.exe]
       -a 'build all' builds ffmpeg, mplayer, vlc, etc. with all fixings turned on [many disabled from disuse these days]
-      --build-svt=n [builds libsvt-hevc modules within ffmpeg etc.]
+      --build-svt-hevc=n [builds libsvt-hevc modules within ffmpeg etc.]
       --build-dvbtee=n [build dvbtee.exe a DVB profiler]
       --compiler-flavors=[multi,win32,win64,native] [default prompt, or skip if you already have one built, multi is both win32 and win64]
       --cflags=[default is $original_cflags, which works on any cpu, see README for options]
@@ -2814,7 +2812,7 @@ while true; do
     -a         ) compiler_flavors="multi"; build_mplayer=n; build_libmxf=y; build_mp4box=n; build_vlc=y; build_lsw=y;
                  build_ffmpeg_static=y; build_ffmpeg_shared=y; build_lws=y; disable_nonfree=n; git_get_latest=y;
                  sandbox_ok=y; build_amd_amf=y; build_intel_qsv=y; build_dvbtee=y; build_x264_with_libav=y; shift ;;
-    --build-svt=* ) build_svt="${1#*=}"; shift ;;
+    --build-svt-hevc=* ) build_svt_hevc="${1#*=}"; shift ;;
     -d         ) gcc_cpu_count=$cpu_count; disable_nonfree="y"; sandbox_ok="y"; compiler_flavors="win64"; git_get_latest="n"; shift ;;
     --compiler-flavors=* )
          compiler_flavors="${1#*=}";
