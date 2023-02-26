@@ -2626,11 +2626,13 @@ build_ffmpeg_dependencies() {
   build_libsamplerate # Needs libsndfile >= 1.0.6 and fftw >= 0.15.0 for tests. Uses dlfcn.
   build_librubberband # Needs libsamplerate, libsndfile, fftw and vamp_plugin. 'configure' will fail otherwise. Eventhough librubberband doesn't necessarily need them (libsndfile only for 'rubberband.exe' and vamp_plugin only for "Vamp audio analysis plugin"). How to use the bundled libraries '-DUSE_SPEEX' and '-DUSE_KISSFFT'?
   build_frei0r # Needs dlfcn. could use opencv...
-  if [[ "$bits_target" != "32" && $build_svt_hevc = "y" ]]; then
-    build_svt-hevc
+  if [[ "$bits_target" != "32" ]]; then
+    if [[ $build_svt_hevc = y ]]; then
+      build_svt-hevc
+    fi
+    build_svt-av1
+    #build_svt-vp9 # not currently working but compiles if configured
   fi
-  build_svt-av1
-  #build_svt-vp9 # not currently working but compiles if configured
   build_vidstab
   #build_facebooktransform360 # needs modified ffmpeg to use it so not typically useful
   build_libmysofa # Needed for FFmpeg's SOFAlizer filter (https://ffmpeg.org/ffmpeg-filters.html#sofalizer). Uses dlfcn.
