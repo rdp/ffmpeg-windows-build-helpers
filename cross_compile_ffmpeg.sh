@@ -919,7 +919,7 @@ build_glib() {
 
 build_lensfun() {
   build_glib
-  do_git_checkout https://github.com/lensfun/lensfun.git lensfun_git
+  do_git_checkout https://github.com/lensfun/lensfun.git lensfun_git v0.3.3
   cd lensfun_git
     export CMAKE_STATIC_LINKER_FLAGS='-lws2_32 -pthread'
     do_cmake "-DBUILD_STATIC=on -DCMAKE_INSTALL_DATAROOTDIR=$mingw_w64_x86_64_prefix"
