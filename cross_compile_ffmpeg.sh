@@ -1921,7 +1921,6 @@ build_libx264() {
   fi
 
   local x264_profile_guided=n # or y -- haven't gotten this proven yet...TODO
-  checkout_dir="${checkout_dir}_all_bitdepth"
 
   if [[ $prefer_stable = "n" ]]; then
     checkout_dir="${checkout_dir}_unstable"
