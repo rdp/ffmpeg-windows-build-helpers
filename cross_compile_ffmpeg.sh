@@ -1821,7 +1821,7 @@ build_avisynth() {
 }
 
 build_libx265() {
-  local checkout_dir=x265_all_bitdepth
+  local checkout_dir=x265
   local remote="https://bitbucket.org/multicoreware/x265_git"
   if [[ ! -z $x265_git_checkout_version ]]; then
     checkout_dir+="_$x265_git_checkout_version"
@@ -1840,7 +1840,7 @@ build_libx265() {
   local cmake_params="-DENABLE_SHARED=0" # build x265.exe
 
   if [ "$bits_target" = "32" ]; then
-    cmake_params+=" -DWINXP_SUPPORT=1" # enable windows xp/vista compatibility in x86 build
+    cmake_params+=" -DWINXP_SUPPORT=1" # enable windows xp/vista compatibility in x86 build, since it still can I think...
   fi
   mkdir -p 8bit 10bit 12bit
 
@@ -1887,7 +1887,7 @@ SAVE
 END
 EOF
   fi
-  make install # force reinstall in case changed stable -> unstable
+  do_make_install
   cd ../..
 }
 
