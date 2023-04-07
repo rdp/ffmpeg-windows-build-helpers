@@ -2500,18 +2500,17 @@ build_ffmpeg() {
           cd ..
         fi
       else
-        echo "Done! You will find $bits_target-bit $1 binaries in $(pwd)"
+        echo "Done! You will find $bits_target-bit $1 binaries in $(pwd)" `date`
         if [[ ! -f $archive.7z ]]; then
           sed "s/$/\r/" COPYING.GPLv3 > COPYING.GPLv3.txt
-          echo "creating distro zip within same dir..." # XXX opt in?
+          echo "creating distro zip..." # XXX opt in?
           7z a -mx=9 $archive.7z ffmpeg.exe ffplay.exe ffprobe.exe COPYING.GPLv3.txt && rm -f COPYING.GPLv3.txt
         else
           echo "not creating distro zip as one already exists..."
         fi
       fi
-      echo "You will find redistributable archive .7z file in $cur_dir/redist"
+      echo "You will find redistributable archive .7z file in $archive.7z"
     fi
-    echo Created `date`
 
   if [[ -z $ffmpeg_source_dir ]]; then
     cd ..
