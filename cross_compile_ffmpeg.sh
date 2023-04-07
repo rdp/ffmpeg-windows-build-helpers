@@ -1887,7 +1887,7 @@ SAVE
 END
 EOF
   fi
-  do_make_install
+  make install # force reinstall in case you just switched from stable to not :|
   cd ../..
 }
 
