@@ -1717,6 +1717,16 @@ build_libaribb24() {
   cd ..
 }
 
+build_libaribcaption() {
+  do_git_checkout https://github.com/xqq/libaribcaption
+  cd libaribcaption
+  mkdir build
+  cd build
+  do_cmake_from_build_dir .. "-DCMAKE_BUILD_TYPE=Release"
+  do_make_and_make_install
+  cd ../..
+}
+
 build_libxavs() {
   do_svn_checkout https://svn.code.sf.net/p/xavs/code/trunk xavs_svn
   cd xavs_svn
@@ -2409,6 +2419,7 @@ build_ffmpeg() {
     else
       config_options+=" --disable-libmfx"
     fi
+    config_options+=" --enable-libaribcaption" # libaribcatption (MIT licensed)
     if [[ $enable_gpl == 'y' ]]; then
       config_options+=" --enable-gpl --enable-frei0r --enable-librubberband --enable-libvidstab --enable-libx264 --enable-libx265 --enable-avisynth --enable-libaribb24"
       config_options+=" --enable-libxvid --enable-libdavs2"
@@ -2649,6 +2660,7 @@ build_ffmpeg_dependencies() {
 
   build_libxvid # FFmpeg now has native support, but libxvid still provides a better image.
   build_libsrt # requires gnutls, mingw-std-threads
+  build_libaribcaption
   build_libaribb24
   build_libtesseract
   build_lensfun  # requires png, zlib, iconv
