@@ -1617,15 +1617,6 @@ build_svt-av1() {
   cd ../..
 }
 
-build_svt-vp9() {
-  do_git_checkout https://github.com/OpenVisualCloud/SVT-VP9.git
-  cd SVT-VP9_git
-  cd Build
-    do_cmake_from_build_dir .. "-DCMAKE_BUILD_TYPE=Release -DCMAKE_SYSTEM_PROCESSOR=AMD64"
-    do_make_and_make_install
-  cd ../..
-}
-
 build_vidstab() {
   do_git_checkout https://github.com/georgmartius/vid.stab.git vid.stab_git
   cd vid.stab_git
@@ -2387,9 +2378,6 @@ build_ffmpeg() {
         config_options+=" --enable-libsvthevc"
       fi
       config_options+=" --enable-libsvtav1"
-      # SVT-VP9 see comments below
-      # git apply "$work_dir/SVT-VP9_git/ffmpeg_plugin/master-0001-Add-ability-for-ffmpeg-to-run-svt-vp9.patch"
-      # config_options+=" --enable-libsvtvp9" # not currently working but compiles if configured
     fi # else doesn't work/matter with 32 bit
     config_options+=" --enable-libvpx"
     config_options+=" --enable-libaom"
@@ -2643,7 +2631,6 @@ build_ffmpeg_dependencies() {
       build_svt-hevc
     fi
     build_svt-av1
-    #build_svt-vp9 # not currently working but compiles if configured
   fi
   build_vidstab
   #build_facebooktransform360 # needs modified ffmpeg to use it so not typically useful
