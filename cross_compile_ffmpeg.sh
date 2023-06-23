@@ -989,7 +989,7 @@ build_libpng() {
 }
 
 build_libwebp() {
-  do_git_checkout https://chromium.googlesource.com/webm/libwebp.git
+  do_git_checkout https://chromium.googlesource.com/webm/libwebp.git libwebp_git "origin/main"
   cd libwebp_git
     export LIBPNG_CONFIG="$mingw_w64_x86_64_prefix/bin/libpng-config --static" # LibPNG somehow doesn't get autodetected.
     generic_configure "--disable-wic"
