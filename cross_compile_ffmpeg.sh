@@ -2369,7 +2369,49 @@ build_ffmpeg() {
       init_options+=" --disable-schannel"
       # Fix WinXP incompatibility by disabling Microsoft's Secure Channel, because Windows XP doesn't support TLS 1.1 and 1.2, but with GnuTLS or OpenSSL it does.  XP compat!
     fi
-    config_options="$init_options --enable-libcaca --enable-gray --enable-libtesseract --enable-fontconfig --enable-gmp --enable-gnutls --enable-libass --enable-libbluray --enable-libbs2b --enable-libflite --enable-libfreetype --enable-libfribidi --disable-libgme --enable-libgsm --enable-libilbc --enable-libmodplug --enable-libopencore-amrnb --enable-libopencore-amrwb --enable-libopus --enable-libsnappy --enable-libsoxr --enable-libspeex --enable-libtheora --enable-libvo-amrwbenc --enable-libvorbis --enable-libwebp --enable-libzimg --enable-libzvbi --enable-libmysofa --enable-libopenjpeg  --enable-libopenh264 --enable-liblensfun  --enable-libvmaf --enable-libsrt --enable-libxml2 --enable-opengl --enable-libdav1d --enable-cuda-llvm"
+
+    config_options="$init_options
+    --disable-libcaca
+    --disable-libmysofa
+    --enable-gray
+    --enable-libtesseract
+    --enable-fontconfig
+    --enable-gmp
+    --enable-gnutls
+    --enable-libass
+    --enable-libbluray
+    --enable-libbs2b
+    --enable-libflite
+    --enable-libfreetype
+    --enable-libfribidi
+    --disable-libgme
+    --enable-libgsm
+    --enable-libilbc
+    --enable-libmodplug
+    --enable-libopencore-amrnb
+    --enable-libopencore-amrwb
+    --enable-libopus
+    --enable-libsnappy
+    --enable-libsoxr
+    --enable-libspeex
+    --enable-libtheora
+    --enable-libvo-amrwbenc
+    --enable-libvorbis
+    --enable-libwebp
+    --enable-libzimg
+    --enable-libzvbi
+    --enable-libopenjpeg
+    --enable-libopenh264
+    --enable-liblensfun
+    --enable-libvmaf
+    --enable-libsrt
+    --enable-libxml2
+    --enable-opengl
+    --enable-libdav1d
+    --enable-cuda-llvm"
+
+    init_options="$(echo "$init_options" | tr '\n' ' ')"
+
     # config_options="$init_options --enable-libcaca --enable-gray --enable-libtesseract --enable-fontconfig --enable-gmp --enable-gnutls --enable-libass --enable-libbluray --enable-libbs2b --enable-libflite --enable-libfreetype --enable-libfribidi --enable-libgme --enable-libgsm --enable-libilbc --enable-libmodplug --enable-libmp3lame --enable-libopencore-amrnb --enable-libopencore-amrwb --enable-libopus --enable-libsnappy --enable-libsoxr --enable-libspeex --enable-libtheora --enable-libtwolame --enable-libvo-amrwbenc --enable-libvorbis --enable-libwebp --enable-libzimg --enable-libzvbi --enable-libmysofa --enable-libopenjpeg  --enable-libopenh264 --enable-liblensfun  --enable-libvmaf --enable-libsrt --enable-libxml2 --enable-opengl --enable-libdav1d --enable-cuda-llvm"
 
     if [ "$bits_target" != "32" ]; then
@@ -2568,7 +2610,7 @@ build_ffmpeg_dependencies() {
   build_meson_cross
   build_mingw_std_threads
   build_zlib # Zlib in FFmpeg is autodetected.
-  build_libcaca # Uses zlib and dlfcn (on windows).
+  # build_libcaca # Uses zlib and dlfcn (on windows).
   build_bzip2 # Bzlib (bzip2) in FFmpeg is autodetected.
   build_liblzma # Lzma in FFmpeg is autodetected. Uses dlfcn.
   build_iconv # Iconv in FFmpeg is autodetected. Uses dlfcn.
@@ -2633,7 +2675,7 @@ build_ffmpeg_dependencies() {
   fi
   build_vidstab
   #build_facebooktransform360 # needs modified ffmpeg to use it so not typically useful
-  build_libmysofa # Needed for FFmpeg's SOFAlizer filter (https://ffmpeg.org/ffmpeg-filters.html#sofalizer). Uses dlfcn.
+  # build_libmysofa # Needed for FFmpeg's SOFAlizer filter (https://ffmpeg.org/ffmpeg-filters.html#sofalizer). Uses dlfcn.
   if [[ "$non_free" = "y" ]]; then
     build_fdk-aac # Uses dlfcn.
     if [[ $compiler_flavors != "native" ]]; then
