@@ -1629,7 +1629,7 @@ build_vidstab() {
 }
 
 build_libmysofa() {
-  do_git_checkout https://github.com/hoene/libmysofa.git libmysofa_git
+  do_git_checkout https://github.com/hoene/libmysofa.git libmysofa_git "origin/main"
   cd libmysofa_git
     local cmake_params="-DBUILD_TESTS=0"
     if [[ $compiler_flavors == "native" ]]; then
@@ -2628,7 +2628,7 @@ build_ffmpeg_dependencies() {
   build_frei0r # Needs dlfcn. could use opencv...
   if [ "$bits_target" != "32" ]; then
     build_svt-hevc
-    build_svt-av1
+    # build_svt-av1 # TODO: av1 wasn't there at the github URL, maybe moved?
     build_svt-vp9
   fi
   build_vidstab
