@@ -54,7 +54,7 @@
  #endif /* __cplusplus */
  
 +#ifdef _WIN32
-+__inline int ts_utf8_sequence_length(char c0);
++int ts_utf8_sequence_length(char c0);
 +#else
 +int ts_utf8_sequence_length(char c0);
 +#endif
@@ -78,7 +78,7 @@
 -
 -
 +#ifdef _WIN32
-+__inline int ts_utf8_sequence_length(char c0)
++int ts_utf8_sequence_length(char c0)
 +{
 +   /* Get the expected length of UTF8 sequence given its most */
 +   /* significant byte */
