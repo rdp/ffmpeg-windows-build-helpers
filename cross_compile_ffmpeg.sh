@@ -351,7 +351,7 @@ install_cross_compiler() {
       if [[ `uname` =~ "5.1" ]]; then # Avoid using secure API functions for compatibility with msvcrt.dll on Windows XP.
         sed -i "s/ --enable-secure-api//" $zeranoe_script_name
       fi
-      nice ./$zeranoe_script_name $zeranoe_script_options --build-type=win32 || exit 1
+      CFLAGS=-O2 CXXFLAGS=-O2 nice ./$zeranoe_script_name $zeranoe_script_options --build-type=win32 || exit 1
       if [[ ! -f ../$win32_gcc ]]; then
         echo "Failure building 32 bit gcc? Recommend nuke sandbox (rm -rf sandbox) and start over..."
         exit 1
@@ -364,7 +364,7 @@ install_cross_compiler() {
     if [[ ($compiler_flavors == "win64" || $compiler_flavors == "multi") && ! -f ../$win64_gcc ]]; then
       echo "Building win64 x86_64 cross compiler..."
       download_gcc_build_script $zeranoe_script_name
-      nice ./$zeranoe_script_name $zeranoe_script_options --build-type=win64 || exit 1
+      CFLAGS=-O2 CXXFLAGS=-O2 nice ./$zeranoe_script_name $zeranoe_script_options --build-type=win64 || exit 1
       if [[ ! -f ../$win64_gcc ]]; then
         echo "Failure building 64 bit gcc? Recommend nuke sandbox (rm -rf sandbox) and start over..."
         exit 1
@@ -694,7 +694,9 @@ download_and_unpack_file() {
 }
 
 generic_configure() {
+  build_triple="${build_triple:-$(gcc -dumpmachine)}"
   local extra_configure_options="$1"
+  if [[ -n $build_triple ]]; then extra_configure_options+=" --build=$build_triple"; fi
   do_configure "--host=$host_target --prefix=$mingw_w64_x86_64_prefix --disable-shared --enable-static $extra_configure_options"
 }
 
@@ -1617,15 +1619,6 @@ build_svt-av1() {
   cd ../..
 }
 
-build_svt-vp9() {
-  do_git_checkout https://github.com/OpenVisualCloud/SVT-VP9.git
-  cd SVT-VP9_git
-  cd Build
-    do_cmake_from_build_dir .. "-DCMAKE_BUILD_TYPE=Release -DCMAKE_SYSTEM_PROCESSOR=AMD64"
-    do_make_and_make_install
-  cd ../..
-}
-
 build_vidstab() {
   do_git_checkout https://github.com/georgmartius/vid.stab.git vid.stab_git
   cd vid.stab_git
@@ -1715,6 +1708,16 @@ build_libaribb24() {
   cd aribb24
     generic_configure_make_install
   cd ..
+}
+
+build_libaribcaption() {
+  do_git_checkout https://github.com/xqq/libaribcaption
+  cd libaribcaption
+  mkdir build
+  cd build
+  do_cmake_from_build_dir .. "-DCMAKE_BUILD_TYPE=Release"
+  do_make_and_make_install
+  cd ../..
 }
 
 build_libxavs() {
@@ -2377,9 +2380,6 @@ build_ffmpeg() {
         config_options+=" --enable-libsvthevc"
       fi
       config_options+=" --enable-libsvtav1"
-      # SVT-VP9 see comments below
-      # git apply "$work_dir/SVT-VP9_git/ffmpeg_plugin/master-0001-Add-ability-for-ffmpeg-to-run-svt-vp9.patch"
-      # config_options+=" --enable-libsvtvp9" # not currently working but compiles if configured
     fi # else doesn't work/matter with 32 bit
     config_options+=" --enable-libvpx"
     config_options+=" --enable-libaom"
@@ -2409,6 +2409,7 @@ build_ffmpeg() {
     else
       config_options+=" --disable-libmfx"
     fi
+    config_options+=" --enable-libaribcaption" # libaribcatption (MIT licensed)
     if [[ $enable_gpl == 'y' ]]; then
       config_options+=" --enable-gpl --enable-frei0r --enable-librubberband --enable-libvidstab --enable-libx264 --enable-libx265 --enable-avisynth --enable-libaribb24"
       config_options+=" --enable-libxvid --enable-libdavs2"
@@ -2632,7 +2633,6 @@ build_ffmpeg_dependencies() {
       build_svt-hevc
     fi
     build_svt-av1
-    #build_svt-vp9 # not currently working but compiles if configured
   fi
   build_vidstab
   #build_facebooktransform360 # needs modified ffmpeg to use it so not typically useful
@@ -2649,6 +2649,7 @@ build_ffmpeg_dependencies() {
 
   build_libxvid # FFmpeg now has native support, but libxvid still provides a better image.
   build_libsrt # requires gnutls, mingw-std-threads
+  build_libaribcaption
   build_libaribb24
   build_libtesseract
   build_lensfun  # requires png, zlib, iconv
