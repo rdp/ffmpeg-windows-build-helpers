@@ -4,6 +4,10 @@
 # set -x
 
 echo "FFmpeg 4.4.3 for Windows"
+
+echo "Windows WSL patch"
+bash ./extra/wsl_patch_2023_05_for_n4_4_x.sh
+
 echo "Default: --build-ffmpeg-static=y --build-intel-qsv=y --build-amd-amf=y"
 echo "Add Args: --disable-nonfree=n --ffmpeg-git-checkout-version=n4.4.3"
 
