@@ -3,7 +3,7 @@
 # Copyright (C) 2023 FREE WING,Y.Sakamoto, the script is under the GPLv3, but output FFmpeg's executables aren't
 # set -x
 
-echo "FFmpeg 4.4.3 for Windows"
+echo "FFmpeg for Windows 10"
 echo "Make file for WSL Ubuntu"
 
 # WSL Debian
