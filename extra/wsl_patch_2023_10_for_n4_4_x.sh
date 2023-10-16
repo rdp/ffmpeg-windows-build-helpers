@@ -6,7 +6,7 @@
 echo "This is Patch for WSL Ubuntu 2023/10/15"
 
 echo "2023/10/15 Disable libaribcaption --enable-libaribcaption"
-# Because FFmpeg 4.4.x doesn't have this oprion
+# Because FFmpeg 4.4.x doesn't have this option
 # #693 --enable-libaribcaption #694
 # https://github.com/rdp/ffmpeg-windows-build-helpers/pull/694
 # config_options+=" --enable-libaribcaption" # libaribcatption (MIT licensed)
