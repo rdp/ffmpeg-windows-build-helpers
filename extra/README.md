@@ -31,12 +31,9 @@ git clone https://github.com/rdp/ffmpeg-windows-build-helpers
 cd ffmpeg-windows-build-helpers
 
 # Windows 11 WLS Ubuntu
+# Windows 10 WLS Ubuntu
 ./extra/make.sh
 
-or
-
-# Windows 10 WLS Ubuntu
-./extra/make_win10.sh
 
 * FFmpeg is Win64 (64-bit only).
   Edit ./extra/build.sh if you want the 32-bit version .
