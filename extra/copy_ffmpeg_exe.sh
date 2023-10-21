@@ -3,17 +3,26 @@
 # Copyright (C) 2023 FREE WING,Y.Sakamoto, the script is under the GPLv3, but output FFmpeg's executables aren't
 # set -x
 
-echo "Copy FFmpeg execute files to Windows C:\ffmpeg_tmp directory"
+FFMPEG_VER="n4.4.4"
+if [ -n "$1" ]; then
+  FFMPEG_VER="$1"
+fi
 
-ls -l ./sandbox/win64/ffmpeg_git_with_fdk_aac_n4.4.4/ff*.exe
+WIN_FFMPEG_DIR=/mnt/c/ffmpeg_tmp_$FFMPEG_VER
+
+echo "FFmpeg $FFMPEG_VER for Windows"
+
+echo "Copy FFmpeg execute files to Windows C:\ffmpeg_tmp_$FFMPEG_VER directory"
+
+ls -l ./sandbox/win64/ffmpeg_git_with_fdk_aac_$FFMPEG_VER/ff*.exe
 ls -l ./sandbox/win64/x264/x*.exe
 ls -l ./sandbox/win64/x265/8bit/x*.exe
 
-mkdir /mnt/c/ffmpeg_tmp/
-cp ./sandbox/win64/ffmpeg_git_with_fdk_aac_n4.4.4/ff*.exe /mnt/c/ffmpeg_tmp/
-cp ./sandbox/win64/x264/x*.exe /mnt/c/ffmpeg_tmp/
-cp ./sandbox/win64/x265/8bit/x*.exe /mnt/c/ffmpeg_tmp/
-rm /mnt/c/ffmpeg_tmp/ff*_g.exe
+mkdir ${WIN_FFMPEG_DIR}/
+cp ./sandbox/win64/ffmpeg_git_with_fdk_aac_$FFMPEG_VER/ff*.exe ${WIN_FFMPEG_DIR}/
+cp ./sandbox/win64/x264/x*.exe ${WIN_FFMPEG_DIR}/
+cp ./sandbox/win64/x265/8bit/x*.exe ${WIN_FFMPEG_DIR}/
+rm ${WIN_FFMPEG_DIR}/ff*_g.exe
 
-ls -l /mnt/c/ffmpeg_tmp/
+ls -l ${WIN_FFMPEG_DIR}/
 
