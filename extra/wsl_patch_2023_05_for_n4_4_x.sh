@@ -13,5 +13,5 @@ echo "2023/05/05 no member named 'compressed_ten_bit_format'"
 # https://github.com/FFmpeg/FFmpeg/commit/031f1561cd286596cdb374da32f8aa816ce3b135
 # avcodec/libsvtav1: remove compressed_ten_bit_format and simplify allo…
 # patch git cherry-pick 031f156
-sed -i -e "s/  cd \$output_dir/  cd \$output_dir\n  git cherry-pick 031f156/g" cross_compile_ffmpeg.sh
+sed -i -e "s/  cd \$output_dir/  cd \$output_dir\n    git cherry-pick 031f156/g" cross_compile_ffmpeg.sh
 

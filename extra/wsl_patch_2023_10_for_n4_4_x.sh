@@ -9,6 +9,8 @@ echo "2023/10/15 Disable libaribcaption --enable-libaribcaption"
 # Because FFmpeg 4.4.x doesn't have this option
 # #693 --enable-libaribcaption #694
 # https://github.com/rdp/ffmpeg-windows-build-helpers/pull/694
+# lavc/libaribcaption.c: add ARIB caption decoder using libaribcaption
+# https://github.com/FFmpeg/FFmpeg/commit/b6138633cdf2ecae22c4c02029e91245c430c4fe
 # config_options+=" --enable-libaribcaption" # libaribcatption (MIT licensed)
 sed -i -e "s/--enable-libaribcaption//g" cross_compile_ffmpeg.sh
 sed -i -e "s/  build_libaribcaption/  # build_libaribcaption/g" cross_compile_ffmpeg.sh

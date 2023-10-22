@@ -1,9 +1,7 @@
 # ffmpeg windows cross compile helper extra script
 
-* 2023/10/15 FFmpeg 4.4.4
-
 * This is Patch for Windows WSL Ubuntu
-* FFmpeg 4.4.4 for Windows 64-bit with FDK-AAC(--disable-nonfree=n, --build-ffmpeg-static=y)
+* FFmpeg for Windows 64-bit with FDK-AAC(--disable-nonfree=n, --build-ffmpeg-static=y)
 * disable Tesseract OCR function
 
 * Environment
@@ -31,12 +29,23 @@ git clone https://github.com/rdp/ffmpeg-windows-build-helpers
 cd ffmpeg-windows-build-helpers
 
 # Windows 11 WLS Ubuntu
+# Windows 10 WLS Ubuntu
 ./extra/make.sh
 
-or
+# Default Build FFmpeg 4.4.4
+#  If you need other versions. Type as follows
+./extra/make.sh n5.0.3
+./extra/make.sh n5.1.3
+./extra/make.sh n6.0
+./extra/make.sh master
 
-# Windows 10 WLS Ubuntu
-./extra/make_win10.sh
+# You can build each FFmpeg verisons following
+#  The build time from the 2nd time onwards is about 10 minutes
+./extra/make.sh
+./extra/make.sh n5.0.3
+./extra/make.sh n5.1.3
+./extra/make.sh n6.0
+./extra/make.sh master
 
 * FFmpeg is Win64 (64-bit only).
   Edit ./extra/build.sh if you want the 32-bit version .
@@ -54,7 +63,7 @@ Take about 1 to few hours depending on machine specs
 # for more details visit following URL  
 http://www.neko.ne.jp/~freewing/software/windows_compile_ffmpeg_enable_fdk_aac/
 
-# 2023/10/15 FFmpeg 4.4.4 ffmpeg.exe -version
+# 2023/10/21 FFmpeg 4.4.4 ffmpeg.exe -version
 ```
 ffmpeg.exe -version
 ffmpeg version n4.4.4-ffmpeg-windows-build-helpers Copyright (c) 2000-2023 the FFmpeg developers
@@ -69,4 +78,7 @@ libswscale      5.  9.100 /  5.  9.100
 libswresample   3.  9.100 /  3.  9.100
 libpostproc    55.  9.100 / 55.  9.100
 ```
+
+# For other versions
+please see FFmpeg_versions.txt  
 
