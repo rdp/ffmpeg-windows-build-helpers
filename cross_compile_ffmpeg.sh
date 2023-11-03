@@ -847,7 +847,12 @@ build_amd_amf_headers() {
 }
 
 build_nv_headers() {
-  do_git_checkout https://github.com/FFmpeg/nv-codec-headers.git
+  if [[ $ffmpeg_git_checkout_version == *"n6.0"* ]] || [[ $ffmpeg_git_checkout_version == *"n5.1"* ]] || [[ $ffmpeg_git_checkout_version == *"n5.0"* ]] || [[ $ffmpeg_git_checkout_version == *"n4.4"* ]] || [[ $ffmpeg_git_checkout_version == *"n4.3"* ]] || [[ $ffmpeg_git_checkout_version == *"n4.2"* ]] || [[ $ffmpeg_git_checkout_version == *"n4.1"* ]] || [[ $ffmpeg_git_checkout_version == *"n3.4"* ]] || [[ $ffmpeg_git_checkout_version == *"n3.2"* ]] || [[ $ffmpeg_git_checkout_version == *"n2.8"* ]]; then
+    # nv_headers for old versions
+    do_git_checkout https://github.com/FFmpeg/nv-codec-headers.git nv-codec-headers_git n12.0.16.1
+  else
+    do_git_checkout https://github.com/FFmpeg/nv-codec-headers.git
+  fi
   cd nv-codec-headers_git
     do_make_install "PREFIX=$mingw_w64_x86_64_prefix" # just copies in headers
   cd ..
@@ -2419,7 +2424,8 @@ build_ffmpeg() {
       config_options+=" --disable-libmfx"
     fi
     
-    if [[ $ffmpeg_git_checkout_version != *"n6.0"* ]] && [[ $ffmpeg_git_checkout_version != *"n5.1"* ]] && [[ $ffmpeg_git_checkout_version != *"n5.0"* ]] && [[ $ffmpeg_git_checkout_version != *"n4.4"* ]] && [[ $ffmpeg_git_checkout_version != *"n4.3"* ]] && [[ $ffmpeg_git_checkout_version != *"n4.2"* ]] && [[ $ffmpeg_git_checkout_version != *"n4.1"* ]] && [[ $ffmpeg_git_checkout_version != *"n3.4"* ]] && [[ $ffmpeg_git_checkout_version != *"n3.2"* ]] && [[ $ffmpeg_git_checkout_version != *"n2.8"* ]]; then # Disable libaribcatption on old versions
+    if [[ $ffmpeg_git_checkout_version != *"n6.0"* ]] && [[ $ffmpeg_git_checkout_version != *"n5.1"* ]] && [[ $ffmpeg_git_checkout_version != *"n5.0"* ]] && [[ $ffmpeg_git_checkout_version != *"n4.4"* ]] && [[ $ffmpeg_git_checkout_version != *"n4.3"* ]] && [[ $ffmpeg_git_checkout_version != *"n4.2"* ]] && [[ $ffmpeg_git_checkout_version != *"n4.1"* ]] && [[ $ffmpeg_git_checkout_version != *"n3.4"* ]] && [[ $ffmpeg_git_checkout_version != *"n3.2"* ]] && [[ $ffmpeg_git_checkout_version != *"n2.8"* ]]; then
+      # Disable libaribcatption on old versions
       config_options+=" --enable-libaribcaption" # libaribcatption (MIT licensed)
     fi
     
