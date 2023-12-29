@@ -962,7 +962,7 @@ build_libzimg() {
 }
 
 build_libopenjpeg() {
-  do_git_checkout https://github.com/uclouvain/openjpeg.git # basically v2.3+
+  do_git_checkout https://github.com/uclouvain/openjpeg.git openjpeg_git v2.5.0
   cd openjpeg_git
     do_cmake_and_install "-DBUILD_CODEC=0"
   cd ..
