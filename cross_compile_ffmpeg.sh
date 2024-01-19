@@ -498,7 +498,8 @@ do_configure() {
 }
 
 do_make() {
-  local extra_make_options="$1 -j $cpu_count"
+  local extra_make_options="$1"
+  extra_make_options="$extra_make_options -j $cpu_count"
   local cur_dir2=$(pwd)
   local touch_name=$(get_small_touchfile_name already_ran_make "$extra_make_options" )
 
@@ -1173,7 +1174,7 @@ build_gnutls() {
     generic_configure "--disable-doc --disable-tools --disable-cxx --disable-tests --disable-gtk-doc-html --disable-libdane --disable-nls --enable-local-libopts --disable-guile --with-included-libtasn1 --without-p11-kit"
     do_make_and_make_install
     if [[ $compiler_flavors != "native"  ]]; then
-      # libsrt doesn't know how to use its pkg deps :| https://github.com/Haivision/srt/issues/565
+      # libsrt doesn't know how to use its pkg deps, so put them in as non-static deps :| https://github.com/Haivision/srt/issues/565
       sed -i.bak 's/-lgnutls.*/-lgnutls -lcrypt32 -lnettle -lhogweed -lgmp -lidn2 -liconv -lunistring/' "$PKG_CONFIG_PATH/gnutls.pc"
       if [[ $OSTYPE == darwin* ]]; then
         sed -i.bak 's/-lgnutls.*/-lgnutls -framework Security -framework Foundation/' "$PKG_CONFIG_PATH/gnutls.pc"
@@ -1697,9 +1698,7 @@ build_fribidi() {
 }
 
 build_libsrt() {
-  # do_git_checkout https://github.com/Haivision/srt.git
-  #cd srt_git
-  #download_and_unpack_file https://codeload.github.com/Haivision/srt/tar.gz/v1.3.2 srt-1.3.2
+  # do_git_checkout https://github.com/Haivision/srt.git # might be able to use these days...?
   download_and_unpack_file https://github.com/Haivision/srt/archive/v1.4.1.tar.gz srt-1.4.1
   cd srt-1.4.1
     if [[ $compiler_flavors != "native" ]]; then
