@@ -47,52 +47,25 @@
  #define cst_snprintf snprintf
  
  #if defined(__palmos__)
---- lang/cmu_indic_lang/cmu_indic_lang.h.bak	2020-05-11 20:09:14.767028537 +0000
-+++ lang/cmu_indic_lang/cmu_indic_lang.h	2020-05-11 20:09:52.695315800 +0000
-@@ -57,5 +57,11 @@
- } /* extern "C" */
- #endif /* __cplusplus */
+--- ./src/utils/cst_tokenstream.c	2017-10-21 08:01:07.000000000 -0600
++++ ../cst_tokenstream.c	2024-01-20 23:42:18.301601000 -0700
+@@ -267,7 +267,7 @@
+ }
  
-+#ifdef _WIN32
-+int ts_utf8_sequence_length(char c0);
-+#else
-+int ts_utf8_sequence_length(char c0);
-+#endif
-+
+  #ifdef _WIN32
+- __inline int ts_utf8_sequence_length(char c0)
++ int ts_utf8_sequence_length(char c0)
+  #else
+  int ts_utf8_sequence_length(char c0)
+  #endif
+--- ./src/utils/cst_val.c.bak	2024-01-20 23:54:46.864354500 -0700
++++ ./src/utils/cst_val.c	2024-01-20 23:55:00.448412300 -0700
+@@ -476,7 +476,7 @@
+ }
+ 
+ #ifdef _WIN32
+-__inline int utf8_sequence_length(char c0)
++int utf8_sequence_length(char c0)
+ #else
+ int utf8_sequence_length(char c0)
  #endif
- 
---- lang/cmu_indic_lang/cmu_indic_lang.c.bak	2020-05-11 20:09:18.039053308 +0000
-+++ lang/cmu_indic_lang/cmu_indic_lang.c	2020-05-11 20:11:17.127956086 +0000
-@@ -115,23 +115,16 @@
- #include "indic_tam_num_table.h"
- #include "indic_pan_num_table.h"
- 
--
--int ts_utf8_sequence_length(char c0);
--// inline int utf8_sequence_length(char c0)
--// {
--    // Get the expected length of UTF8 sequence given its most
--    // significant byte
--//    return (( 0xE5000000 >> (( c0 >> 3 ) & 0x1E )) & 3 ) + 1;
--// }
--
--
-+#ifdef _WIN32
-+int ts_utf8_sequence_length(char c0)
-+{
-+   /* Get the expected length of UTF8 sequence given its most */
-+   /* significant byte */
-+    return (( 0xE5000000 >> (( c0 >> 3 ) & 0x1E )) & 3 ) + 1;
-+}
-+#else
- int ts_utf8_sequence_length(char c0);
--// inline int utf8_sequence_length(char c0)
--// {
--    // Get the expected length of UTF8 sequence given its most
--    // significant byte
--//    return (( 0xE5000000 >> (( c0 >> 3 ) & 0x1E )) & 3 ) + 1;
--// }
-+#endif
- 
- int indic_digit_to_offset(const char *ind_digit) 
- {
