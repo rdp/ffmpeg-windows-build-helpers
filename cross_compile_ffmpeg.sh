@@ -199,12 +199,12 @@ check_missing_packages () {
   #check if WSL
   # check WSL for interop setting make sure its disabled
   # check WSL for kernel version look for version 4.19.128 current as of 11/01/2020
-  if uname -a | grep  -q -- "-microsoft" ; then
+  if uname -a | grep  -iq -- "-microsoft" ; then
     if cat /proc/sys/fs/binfmt_misc/WSLInterop | grep -q enabled ; then
       echo "windows WSL detected: you must first disable 'binfmt' by running this
       sudo bash -c 'echo 0 > /proc/sys/fs/binfmt_misc/WSLInterop'
       then try again"
-      exit 1
+      #exit 1
     fi
     export MINIMUM_KERNEL_VERSION="4.19.128"
     KERNVER=$(uname -a | awk -F'[ ]' '{ print $3 }' | awk -F- '{ print $1 }')
@@ -216,7 +216,7 @@ check_missing_packages () {
     if [ $(version $KERNVER) -lt $(version $MINIMUM_KERNEL_VERSION) ]; then
       echo "Windows Subsystem for Linux (WSL) detected - kernel not at minumum version required: $MINIMUM_KERNEL_VERSION
       Please update via windows update then try again"
-      exit 1
+      #exit 1
     fi
     echo "for WSL ubuntu 20.04 you need to do an extra step https://github.com/rdp/ffmpeg-windows-build-helpers/issues/452"
   fi
