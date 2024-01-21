@@ -1,19 +1,18 @@
 ffmpeg-windows-build-helpers
 ============================
 
-This helper script lets you cross compile a windows-based 32 or 64-bit version of ffmpeg/mplayer/mp4box.exe, etc,  including their dependencies and libraries that they use.
-Note that I do offer custom builds, price negotiable. Ping me at rogerdpack@gmail.com and I'll do the work for you :) 
+This helper script lets you cross compile a windows-based 32 or 64-bit version of ffmpeg.exe/mplayer/mp4box.exe, etc,  including their dependencies and libraries that they use.
+Note that I do offer custom builds, price negotiable. Ping me at rogerdpack@gmail.com and we can negotiate, I'll do the work for you :) 
 
-The script allows the user to either build on a Linux host (which uses cross compiles to build windows binaries).  Windows users can use windows bash or virtualbox.
-Building on linux takes less time overall. On Windows 10, you can use the bash shell (provided that you've installed the Windows Subsystem for Linux as explained [here](http://www.howtogeek.com/249966/how-to-install-and-use-the-linux-bash-shell-on-windows-10/).  NB if you use WSL Ubuntu 20.04 you need to do an extra step: https://github.com/rdp/ffmpeg-windows-build-helpers/issues/452
-Building in windows takes longer but avoids the need of deploying a  Linux installation for the same purpose.
-I do have some "distribution release builds" of running the script here: https://sourceforge.net/projects/ffmpegwindowsbi/files
+The script allows the user to build using a Linux host (which uses cross compiles to build windows binaries).  Windows users can use wsl or virtualbox (which run linux).
+Building on native linux box might take less time overall.
+NB if you use WSL Ubuntu 20.04 you need to do an extra step: https://github.com/rdp/ffmpeg-windows-build-helpers/issues/452 or look in the "extra" directory for a script to do various builds on WSL.
 
 **Cross-compiling from a Linux environment:**
 
-You can build the project on Linux with a cross compiler toolchain, taking about 2 hours for the "options" build. 
+Takes about 2 hours.
 
-Deploy a Linux VM on the host of your choice (>= 20.04 for Ubuntu), or natively on an extra computer or a dual boot system, and also, you could even create a VM temporarily, on a hosting provider such as Digital Ocean.  Cheapest way: install windows 10 bash shell.  Another option: linux on a virtualbox VM.  Another option, typically fastest: temporarily rent a box (ex: DigitalOcean or vultr or oracle cloud free ).  If you're on a "too old" version of linux you may have luck with building it inside a "docker" see the docker folder.  Else:
+Deploy a Linux VM on the host of your choice (>= 20.04 for Ubuntu), or natively on an extra computer or a dual boot system, or via a hosting provider such as Digital Ocean.  Cheapest way: install windows 10 wsl bash shell.  Another option: linux on a virtualbox VM.  Another option, typically fast: temporarily rent a box (ex: DigitalOcean or vultr).  
 
 Download the script by cloning this repository via git:
 
@@ -25,17 +24,18 @@ Download the script by cloning this repository via git:
     $ ./cross_compile_ffmpeg.sh
 
 Answer the prompts.
-It should end up with a working, statically-built ffmpeg.exe binary within the "`sandbox/*/ffmpeg_git`" director(ies).
+It should end up with a working, statically-built ffmpeg.exe binary within the "`sandbox/*/ffmpeg_git`" director(ies).  You're done!
 
-Another option instead of running `./cross_compile_ffmpeg.sh` is to run 
+If you're on a "too old" version of linux (or a distro besides Ubuntu, which is the most supported) you may have luck with building it inside a "docker" see the docker directory.
+
+Another option which might save time (but doesn't have as many options, just creates an ffmpeg/x264/fdk-aac) instead of running `./cross_compile_ffmpeg.sh` is to run 
 
     $ quick_build/quick_cross_compile_ffmpeg_fdk_aac_and_x264_using_packaged_mingw64.sh
     
 script.
-
 Note the "quick" part here which attempts to use the locally installed `mingw-w64` package from your distribution for the cross compiler, thus skipping the time-intensive cross-compiler toolchain build step.  It's not as well tested as running the normal one, however, which builds gcc from scratch.
 
-For Mac OSX users, simply follow the instructions for Linux above.
+For Mac OSX users, simply follow the instructions for Linux above and built it natively in OS X terminal.
 
 To view additional arguments and options supported by the script, run:
 
@@ -43,12 +43,12 @@ To view additional arguments and options supported by the script, run:
 
 to see all the various options available.
 
-For long running builds, do run them overnight as they take a while.
+For long running builds, do run them overnight as they take a while.  You can just let it go...
 
 If you want to build a "shared" build (there's a command line option for that :) then link it into your MSVC project see https://stackoverflow.com/questions/11701635/use-ffmpeg-in-visual-studio/11701737
 
-Also note that you can also "cross compile" mp4box, mplayer,mencoder and vlc binaries if you pass in the appropriate command line parameters.
-The VLC build is currently broken, send a PM if you'd want it fixed.
+Also note that you can also "cross compile" mp4box, mplayer,mencoder and vlc binaries if you pass in the appropriate command line parameters. And a few others.
+Some of them are currently broken, send a PM if you'd want it fixed.
 
 To enable Intel QuickSync encoders (supported on Windows vista and above), which is optional,  pass the  option `--build-intel-qsv=y` to the cross-compilation script above.
 There is also an LGPL command line option for those that want that.
