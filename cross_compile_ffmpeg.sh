@@ -944,7 +944,7 @@ build_libtesseract() {
   build_libleptonica
   do_git_checkout https://github.com/tesseract-ocr/tesseract.git tesseract_git 4.1.1
   cd tesseract_git
-    sed -i.bak 's/libcurl/libbcurl_disabled/' configure.ac # --disable-curl hard disable, sometimes it's here but they link it wrong so punt...
+    sed -i.bak 's/libcurl/libbcurl_disabled/g' configure.ac # --disable-curl hard disable, sometimes it's here but they link it wrong so punt...
     if [[ $compiler_flavors != "native"  ]]; then
       apply_patch file://$patch_dir/tesseract-4.1.1_mingw-std-threads.patch
       generic_configure "--disable-openmp"
