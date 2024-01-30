@@ -69,3 +69,14 @@
  #else
  int utf8_sequence_length(char c0)
  #endif
+--- main/Makefile.orig	2024-01-29 23:38:42.373755700 -0700
++++ main/Makefile	2024-01-29 23:38:56.806369400 -0700
+@@ -85,7 +85,7 @@
+ shared_libs: nothing
+ endif
+ 
+-.NOTPARALLEL: $(ALL)
++.NOTPARALLEL:
+ 
+ flite_lang_list: 
+ 	rm -f flite_lang_list.c
