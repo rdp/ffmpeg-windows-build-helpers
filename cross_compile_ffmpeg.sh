@@ -1539,8 +1539,8 @@ build_libsnappy() {
 }
 
 build_vamp_plugin() {
-  download_and_unpack_file https://github.com/c4dm/vamp-plugin-sdk/archive/vamp-plugin-sdk-v2.10.tar.gz vamp-plugin-sdk-vamp-plugin-sdk-v2.10
-  cd vamp-plugin-sdk-vamp-plugin-sdk-v2.10
+  download_and_unpack_file https://code.soundsoftware.ac.uk/attachments/download/2691/vamp-plugin-sdk-2.10.0.tar.gz
+  cd vamp-plugin-sdk-2.10.0
     apply_patch file://$patch_dir/vamp-plugin-sdk-2.10_static-lib.diff
     if [[ $compiler_flavors != "native" && ! -f src/vamp-sdk/PluginAdapter.cpp.bak ]]; then
       sed -i.bak "s/#include <mutex>/#include <mingw.mutex.h>/" src/vamp-sdk/PluginAdapter.cpp
