@@ -952,11 +952,11 @@ build_lensfun() {
 build_libtesseract() {
   build_libtiff # no disable configure option for this in tesseract? odd...
   build_libleptonica
-  do_git_checkout https://github.com/tesseract-ocr/tesseract.git tesseract_git 4.1.1
+  do_git_checkout https://github.com/tesseract-ocr/tesseract.git tesseract_git 5.3.4
   cd tesseract_git
     sed -i.bak 's/libcurl/libbcurl_disabled/g' configure.ac # --disable-curl hard disable, sometimes it's here but they link it wrong so punt...
     if [[ $compiler_flavors != "native"  ]]; then
-      apply_patch file://$patch_dir/tesseract-4.1.1_mingw-std-threads.patch
+      #apply_patch file://$patch_dir/tesseract-4.1.1_mingw-std-threads.patch
       generic_configure "--disable-openmp"
       do_make_and_make_install
       sed -i.bak 's/-ltesseract.*$/-ltesseract -lstdc++ -lws2_32 -llept -ltiff -llzma -ljpeg -lz/' $PKG_CONFIG_PATH/tesseract.pc # why does it needs winsock? LOL plus all of libtiff's <sigh>
