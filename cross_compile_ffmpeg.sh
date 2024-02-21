@@ -1539,8 +1539,8 @@ build_libsnappy() {
 }
 
 build_vamp_plugin() {
-  download_and_unpack_file https://github.com/c4dm/vamp-plugin-sdk/archive/vamp-plugin-sdk-v2.10.tar.gz vamp-plugin-sdk-vamp-plugin-sdk-v2.10
-  cd vamp-plugin-sdk-vamp-plugin-sdk-v2.10
+  download_and_unpack_file https://code.soundsoftware.ac.uk/attachments/download/2691/vamp-plugin-sdk-2.10.0.tar.gz
+  cd vamp-plugin-sdk-2.10.0
     apply_patch file://$patch_dir/vamp-plugin-sdk-2.10_static-lib.diff
     if [[ $compiler_flavors != "native" && ! -f src/vamp-sdk/PluginAdapter.cpp.bak ]]; then
       sed -i.bak "s/#include <mutex>/#include <mingw.mutex.h>/" src/vamp-sdk/PluginAdapter.cpp
@@ -1615,6 +1615,15 @@ build_svt-hevc() {
   do_git_checkout https://github.com/OpenVisualCloud/SVT-HEVC.git
   mkdir -p SVT-HEVC_git/release
   cd SVT-HEVC_git/release
+    do_cmake_from_build_dir .. "-DCMAKE_BUILD_TYPE=Release -DCMAKE_SYSTEM_PROCESSOR=AMD64"
+    do_make_and_make_install
+  cd ../..
+}
+
+build_svt-vp9() {
+  do_git_checkout https://github.com/OpenVisualCloud/SVT-VP9.git
+  cd SVT-VP9_git
+  cd Build
     do_cmake_from_build_dir .. "-DCMAKE_BUILD_TYPE=Release -DCMAKE_SYSTEM_PROCESSOR=AMD64"
     do_make_and_make_install
   cd ../..
@@ -2394,6 +2403,22 @@ build_ffmpeg() {
         fi
         config_options+=" --enable-libsvthevc"
       fi
+      if [[ $build_svt_vp9 = y ]]; then
+        # SVT-VP9
+        # Apply the correct patches based on version. Logic (n4.4 patch for n4.2, n4.3 and n4.4)  based on patch notes here:
+        # https://github.com/OpenVisualCloud/SVT-VP9/tree/master/ffmpeg_plugin
+        if [[ $ffmpeg_git_checkout_version == *"n4.3.1"* ]]; then
+          git apply "$work_dir/SVT-VP9_git/ffmpeg_plugin/n4.3.1-0001-Add-ability-for-ffmpeg-to-run-svt-vp9.patch"
+        elif [[ $ffmpeg_git_checkout_version == *"n4.2.3"* ]]; then
+          git apply "$work_dir/SVT-VP9_git/ffmpeg_plugin/n4.2.3-0001-Add-ability-for-ffmpeg-to-run-svt-vp9.patch"
+        elif [[ $ffmpeg_git_checkout_version == *"n4.2.2"* ]]; then
+          git apply "$work_dir/SVT-VP9_git/ffmpeg_plugin/0001-Add-ability-for-ffmpeg-to-run-svt-vp9.patch"
+        else 
+          # newer:
+          git apply "$work_dir/SVT-VP9_git/ffmpeg_plugin/master-0001-Add-ability-for-ffmpeg-to-run-svt-vp9.patch"
+        fi
+		config_options+=" --enable-libsvtvp9"
+      fi
       config_options+=" --enable-libsvtav1"
     fi # else doesn't work/matter with 32 bit
     config_options+=" --enable-libvpx"
@@ -2652,6 +2677,9 @@ build_ffmpeg_dependencies() {
     if [[ $build_svt_hevc = y ]]; then
       build_svt-hevc
     fi
+    if [[ $build_svt_vp9 = y ]]; then
+      build_svt-vp9
+    fi
     build_svt-av1
   fi
   build_vidstab
@@ -2778,6 +2806,7 @@ build_x264_with_libav=n # To build x264 with Libavformat.
 ffmpeg_git_checkout="https://github.com/FFmpeg/FFmpeg.git"
 ffmpeg_source_dir=
 build_svt_hevc=n
+build_svt_vp9=n
 
 # parse command line parameters, if any
 while true; do
@@ -2803,6 +2832,7 @@ while true; do
       --build-ismindex=n [builds ffmpeg utility ismindex.exe]
       -a 'build all' builds ffmpeg, mplayer, vlc, etc. with all fixings turned on [many disabled from disuse these days]
       --build-svt-hevc=n [builds libsvt-hevc modules within ffmpeg etc.]
+      --build-svt-vp9=n [builds libsvt-hevc modules within ffmpeg etc.]
       --build-dvbtee=n [build dvbtee.exe a DVB profiler]
       --compiler-flavors=[multi,win32,win64,native] [default prompt, or skip if you already have one built, multi is both win32 and win64]
       --cflags=[default is $original_cflags, which works on any cpu, see README for options]
@@ -2839,6 +2869,7 @@ while true; do
                  build_ffmpeg_static=y; build_ffmpeg_shared=y; disable_nonfree=n; git_get_latest=y;
                  sandbox_ok=y; build_amd_amf=y; build_intel_qsv=y; build_dvbtee=y; build_x264_with_libav=y; shift ;;
     --build-svt-hevc=* ) build_svt_hevc="${1#*=}"; shift ;;
+    --build-svt-vp9=* ) build_svt_vp9="${1#*=}"; shift ;;
     -d         ) gcc_cpu_count=$cpu_count; disable_nonfree="y"; sandbox_ok="y"; compiler_flavors="win64"; git_get_latest="n"; shift ;;
     --compiler-flavors=* )
          compiler_flavors="${1#*=}";
