@@ -432,7 +432,15 @@ do_git_checkout() {
   # reset will be useless if they didn't git_get_latest but pretty fast so who cares...plus what if they changed branches? :)
   old_git_version=`git rev-parse HEAD`
   if [[ -z $desired_branch ]]; then
-    desired_branch="origin/master"
+	# Check for either "origin/main" or "origin/master".
+	if [ $(git show-ref | grep -e origin\/main$ -c) = 1 ]; then
+		desired_branch="origin/main"
+	elif [ $(git show-ref | grep -e origin\/master$ -c) = 1 ]; then
+		desired_branch="origin/master"
+	else
+		echo "No valid git branch!"
+		exit 1
+	fi
   fi
   echo "doing git checkout $desired_branch"
   git -c 'advice.detachedHead=false' checkout "$desired_branch" || (git_hard_reset && git -c 'advice.detachedHead=false' checkout "$desired_branch") || (git reset --hard "$desired_branch") || exit 1 # can't just use merge -f because might "think" patch files already applied when their changes have been lost, etc...
