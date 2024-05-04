@@ -1874,6 +1874,8 @@ build_libx265() {
 
   local cmake_params="-DENABLE_SHARED=0" # build x265.exe
 
+  git apply "$patch_dir/x265_noasm.patch"
+
   if [ "$bits_target" = "32" ]; then
     cmake_params+=" -DWINXP_SUPPORT=1" # enable windows xp/vista compatibility in x86 build, since it still can I think...
   fi
