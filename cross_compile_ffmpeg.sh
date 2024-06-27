@@ -2785,7 +2785,6 @@ if [ -z "$cpu_count" ]; then
     cpu_count=1 # else default to just 1, instead of blank, which means infinite
   fi
 fi
-original_cpu_count=$cpu_count # save it away for some that revert it temporarily
 
 set_box_memory_size_bytes
 if [[ $box_memory_size_bytes -lt 600000000 ]]; then
@@ -2851,7 +2850,8 @@ while true; do
       --ffmpeg-source-dir=[default empty] specifiy the directory of ffmpeg source code. When specified, git will not be used.
       --x265-git-checkout-version=[master] if you want to build a particular version of x265, ex: --x265-git-checkout-version=Release_3.2 or a specific git hash
       --fdk-aac-git-checkout-version= if you want to build a particular version of fdk-aac, ex: --fdk-aac-git-checkout-version=v2.0.1 or another tag
-      --gcc-cpu-count=[number of cpu cores set it higher than 1 if you have multiple cores and > 1GB RAM, this speeds up initial cross compiler build. FFmpeg build uses number of cores no matter what]
+      --gcc-cpu-count=[cpu_cores_on_box if RAM > 1GB else 1] number of cpu cores this speeds up initial cross compiler build.
+      --build-cpu-count=[cpu_cores_on_box] set to lower than your cpu cores if the background processes eating all your cpu bugs your desktop usage
       --disable-nonfree=y (set to n to include nonfree like libfdk-aac,decklink)
       --build-intel-qsv=y (set to y to include the [non windows xp compat.] qsv library and ffmpeg module. NB this not not hevc_qsv...
       --sandbox-ok=n [skip sandbox prompt if y]
@@ -2877,6 +2877,7 @@ while true; do
        "; exit 0 ;;
     --sandbox-ok=* ) sandbox_ok="${1#*=}"; shift ;;
     --gcc-cpu-count=* ) gcc_cpu_count="${1#*=}"; shift ;;
+    --build-cpu-count=* ) cpu_count="${1#*=}"; shift ;;
     --ffmpeg-git-checkout-version=* ) ffmpeg_git_checkout_version="${1#*=}"; shift ;;
     --ffmpeg-git-checkout=* ) ffmpeg_git_checkout="${1#*=}"; shift ;;
     --ffmpeg-source-dir=* ) ffmpeg_source_dir="${1#*=}"; shift ;;
@@ -2922,6 +2923,7 @@ while true; do
   esac
 done
 
+original_cpu_count=$cpu_count # save it away for some that revert it temporarily
 reset_cflags # also overrides any "native" CFLAGS, which we may need if there are some 'linux only' settings in there
 reset_cppflags # Ensure CPPFLAGS are cleared and set to what is configured
 check_missing_packages # do this first since it's annoying to go through prompts then be rejected
