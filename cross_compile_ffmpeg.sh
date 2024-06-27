@@ -405,6 +405,27 @@ do_svn_checkout() {
   fi
 }
 
+# params: git url, to_dir
+retry_git_or_die() {  # originally from https://stackoverflow.com/a/76012343/32453
+  local RETRIES_NO=5
+  local RETRY_DELAY=3
+  local repo_url=$1
+  local to_dir=$2
+
+  for i in $(seq 1 $RETRIES_NO); do
+   echo "Downloading (via git clone) $to_dir from $repo_url"
+   rm -rf $to_dir.tmp # just in case it was interrupted previously...not sure if necessary...
+   git clone $repo_url $to_dir.tmp --recurse-submodules && break
+   # get here -> failure
+   [[ $i -eq $RETRIES_NO ]] && echo "Failed to execute git cmd $repo_url $to_dir after $RETRIES_NO retries" && exit 1
+   echo "sleeping before retry git"
+   sleep ${RETRY_DELAY}
+  done
+  # prevent partial checkout confusion by renaming it only after success
+  mv $to_dir.tmp $to_dir
+  echo "done git cloning to $to_dir"
+}
+
 do_git_checkout() {
   local repo_url="$1"
   local to_dir="$2"
@@ -413,12 +434,7 @@ do_git_checkout() {
   fi
   local desired_branch="$3"
   if [ ! -d $to_dir ]; then
-    echo "Downloading (via git clone) $to_dir from $repo_url"
-    rm -rf $to_dir.tmp # just in case it was interrupted previously...
-    git clone $repo_url $to_dir.tmp --recurse-submodules || exit 1
-    # prevent partial checkouts by renaming it only after success
-    mv $to_dir.tmp $to_dir
-    echo "done git cloning to $to_dir"
+    retry_git_or_die $repo_url $to_dir
     cd $to_dir
   else
     cd $to_dir
