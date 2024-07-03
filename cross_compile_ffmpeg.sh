@@ -1718,6 +1718,7 @@ build_zvbi() {
       apply_patch file://$patch_dir/zvbi-win32.patch
     fi
     apply_patch file://$patch_dir/zvbi-no-contrib.diff # weird issues with some stuff in contrib...
+    apply_patch file://$patch_dir/zvbi-aarch64.patch
     generic_configure " --disable-dvb --disable-bktr --disable-proxy --disable-nls --without-doxygen --without-libiconv-prefix"
     # Without '--without-libiconv-prefix' 'configure' would otherwise search for and only accept a shared Libiconv library.
     do_make_and_make_install
