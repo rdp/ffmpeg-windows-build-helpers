@@ -513,6 +513,7 @@ do_configure() {
       autoreconf -fiv # a handful of them require this to create ./configure :|
     fi
     rm -f already_* # reset
+    chmod u+x "$configure_name" # In non-windows environments, with devcontainers, the configuration file doesn't have execution permissions
     nice -n 5 "$configure_name" $configure_options || { echo "failed configure $english_name"; exit 1;} # less nicey than make (since single thread, and what if you're running another ffmpeg nice build elsewhere?)
     touch -- "$touch_name"
     echo "doing preventative make clean"
