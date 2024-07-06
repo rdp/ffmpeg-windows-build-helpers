@@ -407,7 +407,7 @@ do_svn_checkout() {
 
 # params: git url, to_dir
 retry_git_or_die() {  # originally from https://stackoverflow.com/a/76012343/32453
-  local RETRIES_NO=5
+  local RETRIES_NO=50
   local RETRY_DELAY=3
   local repo_url=$1
   local to_dir=$2
@@ -1034,7 +1034,7 @@ build_libwebp() {
 
 build_harfbuzz() {
   local new_build=false
-  do_git_checkout https://github.com/harfbuzz/harfbuzz.git harfbuzz_git "origin/main"
+  do_git_checkout https://github.com/harfbuzz/harfbuzz.git harfbuzz_git "tags/8.5.0" # keep old autogen build :)
   if [ ! -f harfbuzz_git/already_done_harf ]; then # Not done or new master, so build
     new_build=true
   fi
