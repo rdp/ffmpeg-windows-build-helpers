@@ -1,0 +1,13 @@
+diff -crB build-aux/config.sub.orig build-aux/config.sub > libbs2b.patch
+*** build-aux/config.sub.orig	2024-07-03 02:18:03.887685830 +0000
+--- build-aux/config.sub	2024-07-03 02:16:45.485027716 +0000
+***************
+*** 242,247 ****
+--- 242,248 ----
+  	| alpha64 | alpha64ev[4-8] | alpha64ev56 | alpha64ev6[78] | alpha64pca5[67] \
+  	| am33_2.0 \
+  	| arc | arm | arm[bl]e | arme[lb] | armv[2345] | armv[345][lb] | avr | avr32 \
++ 	| aarch64 \
+  	| bfin \
+  	| c4x | clipper \
+  	| d10v | d30v | dlx | dsp16xx | dvp \

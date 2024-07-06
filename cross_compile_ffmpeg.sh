@@ -513,6 +513,7 @@ do_configure() {
       autoreconf -fiv # a handful of them require this to create ./configure :|
     fi
     rm -f already_* # reset
+    chmod u+x "$configure_name" # In non-windows environments, with devcontainers, the configuration file doesn't have execution permissions
     nice -n 5 "$configure_name" $configure_options || { echo "failed configure $english_name"; exit 1;} # less nicey than make (since single thread, and what if you're running another ffmpeg nice build elsewhere?)
     touch -- "$touch_name"
     echo "doing preventative make clean"
@@ -1525,6 +1526,7 @@ build_libbluray() {
 build_libbs2b() {
   download_and_unpack_file https://downloads.sourceforge.net/project/bs2b/libbs2b/3.1.0/libbs2b-3.1.0.tar.gz
   cd libbs2b-3.1.0
+    apply_patch file://$patch_dir/libbs2b.patch
     sed -i.bak "s/AC_FUNC_MALLOC//" configure.ac # #270
     export LIBS=-lm # avoid pow failure linux native
     generic_configure_make_install
@@ -1718,6 +1720,7 @@ build_zvbi() {
       apply_patch file://$patch_dir/zvbi-win32.patch
     fi
     apply_patch file://$patch_dir/zvbi-no-contrib.diff # weird issues with some stuff in contrib...
+    apply_patch file://$patch_dir/zvbi-aarch64.patch
     generic_configure " --disable-dvb --disable-bktr --disable-proxy --disable-nls --without-doxygen --without-libiconv-prefix"
     # Without '--without-libiconv-prefix' 'configure' would otherwise search for and only accept a shared Libiconv library.
     do_make_and_make_install
