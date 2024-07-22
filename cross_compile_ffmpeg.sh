@@ -885,7 +885,7 @@ build_nv_headers() {
   cd ..
 }
 
-build_intel_quicksync_mfx() { # i.e. qsv, disableable via command line switch...
+build_intel_qsv_mfx() { # disableable via command line switch...
   do_git_checkout https://github.com/lu-zero/mfx_dispatch.git mfx_dispatch_git 2cd279f # lu-zero?? oh well seems somewhat supported...
   cd mfx_dispatch_git
     if [[ ! -f "configure" ]]; then
@@ -893,7 +893,7 @@ build_intel_quicksync_mfx() { # i.e. qsv, disableable via command line switch...
       automake --add-missing || exit 1
     fi
     if [[ $compiler_flavors == "native" && $OSTYPE != darwin* ]]; then
-      unset PKG_CONFIG_LIBDIR # allow mfx_dispatch to use libva-dev or some odd...not sure for OS X so just disable it :)
+      unset PKG_CONFIG_LIBDIR # allow mfx_dispatch to use libva-dev or some odd on linux...not sure for OS X so just disable it :)
       generic_configure_make_install
       export PKG_CONFIG_LIBDIR=
     else
@@ -2661,7 +2661,7 @@ build_ffmpeg_dependencies() {
     build_amd_amf_headers
   fi
   if [[ $build_intel_qsv = y && $compiler_flavors != "native" ]]; then # Broken for native builds right now: https://github.com/lu-zero/mfx_dispatch/issues/71
-    build_intel_quicksync_mfx
+    build_intel_qsv_mfx
   fi
   build_nv_headers
   build_libzimg # Uses dlfcn.
