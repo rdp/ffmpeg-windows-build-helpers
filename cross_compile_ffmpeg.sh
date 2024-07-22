@@ -1510,6 +1510,8 @@ build_libbluray() {
     if [[ ! -f jni/win32/jni_md.h.bak ]]; then
       sed -i.bak "/JNIEXPORT/s/ __declspec.*//" jni/win32/jni_md.h # Needed for building shared FFmpeg libraries.
     fi
+    # avoid collision with newer ffmpegs, couldn't figure out better glob LOL
+    sed -i.bak "s/dec_init/dec__init/g" src/libbluray/disc/*.{c,h}
     cd contrib/libudfread
       if [[ ! -f src/udfread.c.bak ]]; then
         sed -i.bak "/WIN32$/,+4d" src/udfread.c # Fix WinXP incompatibility.
