@@ -1035,7 +1035,7 @@ build_libwebp() {
 
 build_harfbuzz() {
   local new_build=false
-  do_git_checkout https://github.com/harfbuzz/harfbuzz.git harfbuzz_git "tags/8.5.0" # keep old autogen build :)
+  do_git_checkout https://github.com/harfbuzz/harfbuzz.git harfbuzz_git "93930fb1c49b85" # keep old autogen build :)
   if [ ! -f harfbuzz_git/already_done_harf ]; then # Not done or new master, so build
     new_build=true
   fi
