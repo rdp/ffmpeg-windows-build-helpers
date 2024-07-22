@@ -2860,7 +2860,7 @@ while true; do
       --disable-nonfree=y (set to n to include nonfree like libfdk-aac,decklink)
       --build-intel-qsv=y (set to y to include the [non windows xp compat.] qsv library and ffmpeg module. NB this not not hevc_qsv...
       --sandbox-ok=n [skip sandbox prompt if y]
-      -d [meaning \"defaults\" skip all prompts, just build ffmpeg static with some reasonable defaults like no git updates]
+      -d [meaning \"defaults\" skip all prompts, just build ffmpeg static 64 bit with some defaults for speed like no git updates]
       --build-libmxf=n [builds libMXF, libMXF++, writeavidmxfi.exe and writeaviddv50.exe from the BBC-Ingex project]
       --build-mp4box=n [builds MP4Box.exe from the gpac project]
       --build-mplayer=n [builds mplayer.exe and mencoder.exe]
@@ -2908,7 +2908,7 @@ while true; do
                  sandbox_ok=y; build_amd_amf=y; build_intel_qsv=y; build_dvbtee=y; build_x264_with_libav=y; shift ;;
     --build-svt-hevc=* ) build_svt_hevc="${1#*=}"; shift ;;
     --build-svt-vp9=* ) build_svt_vp9="${1#*=}"; shift ;;
-    -d         ) gcc_cpu_count=$cpu_count; disable_nonfree="y"; sandbox_ok="y"; compiler_flavors="win64"; git_get_latest="n"; shift ;;
+    -d         ) echo "defaults: doing 64 bit only, fast"; gcc_cpu_count=$cpu_count; disable_nonfree="y"; sandbox_ok="y"; compiler_flavors="win64"; git_get_latest="n"; shift ;;
     --compiler-flavors=* )
          compiler_flavors="${1#*=}";
          if [[ $compiler_flavors == "native" && $OSTYPE == darwin* ]]; then
