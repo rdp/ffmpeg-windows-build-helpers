@@ -1756,6 +1756,13 @@ build_libass() {
   do_git_checkout_and_make_install https://github.com/libass/libass.git
 }
 
+build_vulkan() {
+  do_git_checkout https://github.com/KhronosGroup/Vulkan-Headers.git
+  cd Vulkan-Headers_git
+    do_cmake_and_install "-DCMAKE_BUILD_TYPE=Release"
+  cd ..
+}
+
 build_libaribb24() {
   do_git_checkout https://github.com/nkoriyama/aribb24
   cd aribb24
@@ -2459,6 +2466,10 @@ build_ffmpeg() {
     config_options+=" --enable-libdav1d"
     config_options+=" --enable-gnutls"
 
+    if [[ $OSTYPE != darwin* ]]; then
+      config_options+=" --enable-vulkan"
+    fi
+
     if [[ "$bits_target" != "32" ]]; then
       if [[ $build_svt_hevc = y ]]; then
         # SVT-HEVC
@@ -2784,6 +2795,9 @@ build_ffmpeg_dependencies() {
   build_libopenh264
   build_libaom
   build_dav1d
+  if [[ $OSTYPE != darwin* ]]; then
+    build_vulkan
+  fi
   build_avisynth
   build_libx264 # at bottom as it might internally build a copy of ffmpeg (which needs all the above deps...
  }
