@@ -1676,7 +1676,7 @@ build_svt-vp9() {
 }
 
 build_svt-av1() {
-  do_git_checkout https://gitlab.com/AOMediaCodec/SVT-AV1/-/tree/v2.3.0
+  git clone --branch v2.3.0 --depth 1 https://gitlab.com/AOMediaCodec/SVT-AV1.git
   cd SVT-AV1_git
   cd Build
     do_cmake_from_build_dir .. "-DCMAKE_BUILD_TYPE=Release -DCMAKE_SYSTEM_PROCESSOR=AMD64"
