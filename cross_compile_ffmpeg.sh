@@ -3,6 +3,10 @@
 # Copyright (C) 2012 Roger Pack, the script is under the GPLv3, but output FFmpeg's executables aren't
 # set -x
 
+sudo apt update
+sudo apt-get install -y subversion ragel curl texinfo g++ ed libva-dev bison flex cvs yasm automake libtool autoconf gcc cmake git make pkg-config zlib1g-dev unzip pax nasm gperf autogen bzip2 autoconf-archive p7zip-full clang build-essential git-core libass-dev libfreetype6-dev libgnutls28-dev libmp3lame-dev libsdl2-dev libva-dev libvdpau-dev libvorbis-dev libxcb1-dev libxcb-shm0-dev libxcb-xfixes0-dev python-is-python3 meson autotools-dev gettext svn makeinfo patch wget xz realpath
+echo "Startig..."
+
 yes_no_sel () {
   unset user_input
   local question="$1"
@@ -86,7 +90,7 @@ check_missing_packages () {
     echo 'Install the missing packages before running this script.'
     determine_distro
 
-    apt_pkgs='subversion ragel curl texinfo g++ ed bison flex cvs yasm automake libtool autoconf gcc cmake git make pkg-config zlib1g-dev unzip pax nasm gperf autogen bzip2 autoconf-archive p7zip-full meson clang'
+    apt_pkgs='subversion ragel curl texinfo g++ ed libva-dev bison flex cvs yasm automake libtool autoconf gcc cmake git make pkg-config zlib1g-dev unzip pax nasm gperf autogen bzip2 autoconf-archive p7zip-full clang build-essential git-core libass-dev libfreetype6-dev libgnutls28-dev libmp3lame-dev libsdl2-dev libva-dev libvdpau-dev libvorbis-dev libxcb1-dev libxcb-shm0-dev libxcb-xfixes0-dev python-is-python3 meson autotools-dev gettext svn makeinfo patch wget xz realpath'
 
     [[ $DISTRO == "debian" ]] && apt_pkgs="$apt_pkgs libtool-bin ed" # extra for debian
     case "$DISTRO" in
@@ -1378,8 +1382,22 @@ build_libsndfile() {
 build_mpg123() {
   do_svn_checkout svn://scm.orgis.org/mpg123/trunk mpg123_svn r5008 # avoid Think again failure
   cd mpg123_svn
-    generic_configure
-    do_make_and_make_install
+  
+  # Ensure all required tools are installed
+  sudo apt-get install -y libtool autotools-dev automake gettext
+
+  # Run the autotools commands to generate the necessary files
+  libtoolize --force --copy
+  aclocal
+  autoheader
+  autoconf
+  automake --add-missing --copy
+  
+  # Allow undefined macros
+  echo 'm4_pattern_allow([LT_SYS_MODULE_EXT])' >> configure.ac
+
+  generic_configure
+  do_make_and_make_install
   cd ..
 }
 
