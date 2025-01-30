@@ -571,26 +571,26 @@ do_make_install() {
 }
 
 do_cmake() {
-  extra_args="$1"
-  local build_from_dir="$2"
-  if [[ -z $build_from_dir ]]; then
-    build_from_dir="."
-  fi
-  local touch_name=$(get_small_touchfile_name already_ran_cmake "$extra_args")
-
-  if [ ! -f $touch_name ]; then
-    rm -f already_* # reset so that make will run again if option just changed
-    local cur_dir2=$(pwd)
-    echo doing cmake in $cur_dir2 with PATH=$mingw_bin_path:\$PATH with extra_args=$extra_args like this:
-    if [[ $compiler_flavors != "native" ]]; then
-      local command="${build_from_dir} -DENABLE_STATIC_RUNTIME=1 -DBUILD_SHARED_LIBS=0 -DCMAKE_SYSTEM_NAME=Windows -DCMAKE_FIND_ROOT_PATH=$mingw_w64_x86_64_prefix -DCMAKE_FIND_ROOT_PATH_MODE_PROGRAM=NEVER -DCMAKE_FIND_ROOT_PATH_MODE_LIBRARY=ONLY -DCMAKE_FIND_ROOT_PATH_MODE_INCLUDE=ONLY -DCMAKE_RANLIB=${cross_prefix}ranlib -DCMAKE_C_COMPILE=${cross_prefix}gcc -DCMAKE_CXX_COMPILER=${cross_prefix}g++ -DCMAKE_RC_COMPILER=${cross_prefix}windres -DCMAKE_INSTALL_PREFIX=$mingw_w64_x86_64_prefix $extra_args"
-    else
-      local command="${build_from_dir} -DENABLE_STATIC_RUNTIME=1 -DBUILD_SHARED_LIBS=0 -DCMAKE_INSTALL_PREFIX=$mingw_w64_x86_64_prefix $extra_args"
+    extra_args="$1"
+    local build_from_dir="$2"
+    if [[ -z $build_from_dir ]]; then
+        build_from_dir="."
     fi
-    echo "doing ${cmake_command}  -G\"Unix Makefiles\" $command"
-    nice -n 5  ${cmake_command} -G"Unix Makefiles" $command || exit 1
-    touch $touch_name || exit 1
-  fi
+    local touch_name=$(get_small_touchfile_name already_ran_cmake "$extra_args")
+
+    if [ ! -f $touch_name ]; then
+        rm -f already_* # reset so that make will run again if option just changed
+        local cur_dir2=$(pwd)
+        echo doing cmake in $cur_dir2 with PATH=$mingw_bin_path:\$PATH with extra_args=$extra_args like this:
+        if [[ $compiler_flavors != "native" ]]; then
+            local command="${build_from_dir} -DENABLE_STATIC_RUNTIME=1 -DBUILD_SHARED_LIBS=0 -DCMAKE_SYSTEM_NAME=Windows -DCMAKE_FIND_ROOT_PATH=$mingw_w64_x86_64_prefix -DCMAKE_FIND_ROOT_PATH_MODE_PROGRAM=NEVER -DCMAKE_C_COMPILER=$cross_prefix-gcc -DCMAKE_CXX_COMPILER=$cross_prefix-g++ -DCMAKE_AR=$cross_prefix-ar -DCMAKE_RANLIB=$cross_prefix-ranlib -DCMAKE_LINKER=$cross_prefix-gcc $extra_args"
+        else
+            local command="${build_from_dir} -DENABLE_STATIC_RUNTIME=1 -DBUILD_SHARED_LIBS=0 -DCMAKE_INSTALL_PREFIX=$mingw_w64_x86_64_prefix $extra_args"
+        fi
+        echo "doing ${cmake_command}  -G\"Unix Makefiles\" $command"
+        nice -n 5  ${cmake_command} -G"Unix Makefiles" $command || exit 1
+        touch $touch_name || exit 1
+    fi
 }
 
 do_cmake_from_build_dir() { # some sources don't allow it, weird XXX combine with the above :)
