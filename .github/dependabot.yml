@@ -1,54 +1,19 @@
 version: 2
 updates:
-  # Maintain GitHub Actions dependencies
-  - package-ecosystem: "github-actions"
-    directory: "/"
-    schedule:
-      interval: "weekly"
-    
-  # Maintain Docker dependencies
-  - package-ecosystem: "docker"
-    directory: "/docker"
-    schedule:
-      interval: "weekly"
-
-  # Maintain apt dependencies
   - package-ecosystem: "apt"
     directory: "/"
     schedule:
       interval: "weekly"
-    registries:
-      - type: "default"
-
-  # Maintain C/C++ dependencies using CMake
-  - package-ecosystem: "cmake"
+    open-pull-requests-limit: 5
+  
+  - package-ecosystem: "docker"
     directory: "/"
     schedule:
       interval: "weekly"
-
-  # Maintain Java dependencies using Maven
-  - package-ecosystem: "maven"
+    open-pull-requests-limit: 5
+  
+  - package-ecosystem: "npm"
     directory: "/"
     schedule:
       interval: "weekly"
-
-  # Maintain Meson dependencies
-  - package-ecosystem: "meson"
-    directory: "/"
-    schedule:
-      interval: "weekly"
-
-  # Maintain Python dependencies using pip
-  - package-ecosystem: "pip"
-    directory: "/"
-    schedule:
-      interval: "daily"
-      time: '12:01'
-    commit-message:
-      prefix: "[DEPENDABOT]"
-    rebase-strategy: auto
-    labels:
-      - dependencies
-    reviewers:
-      - xdeadboy666x
     open-pull-requests-limit: 5
