@@ -338,7 +338,7 @@ install_cross_compiler() {
   fi
 
   mkdir -p cross_compilers
-  cd cross_compilers
+  cd cross_compilers || exit 
 
     unset CFLAGS # don't want these "windows target" settings used the compiler itself since it creates executables to run on the local box (we have a parameter allowing them to set them for the script "all builds" basically)
     # pthreads version to avoid having to use cvs for it
@@ -3076,7 +3076,7 @@ if [[ $compiler_flavors == "multi" || $compiler_flavors == "win64" ]]; then
   make_prefix_options="CC=${cross_prefix}gcc AR=${cross_prefix}ar PREFIX=$mingw_w64_x86_64_prefix RANLIB=${cross_prefix}ranlib LD=${cross_prefix}ld STRIP=${cross_prefix}strip CXX=${cross_prefix}g++"
   work_dir="$(realpath $cur_dir/win64)"
   mkdir -p "$work_dir"
-  cd "$work_dir"
+  cd "$work_dir" || exit 1
     build_ffmpeg_dependencies
     build_apps
   cd ..
