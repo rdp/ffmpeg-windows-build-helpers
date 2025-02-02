@@ -8,7 +8,7 @@ updates:
     
   # Maintain Docker dependencies
   - package-ecosystem: "docker"
-    directory: "/docker/"
+    directory: "/docker"
     schedule:
       interval: "weekly"
 
