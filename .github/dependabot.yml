@@ -5,7 +5,7 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
-
+    
   # Maintain Docker dependencies
   - package-ecosystem: "docker"
     directory: "/docker/"
@@ -42,4 +42,13 @@ updates:
   - package-ecosystem: "pip"
     directory: "/"
     schedule:
-      interval: "weekly"
+      interval: "daily"
+      time: '12:01'
+    commit-message:
+      prefix: "[DEPENDABOT]"
+    rebase-strategy: auto
+    labels:
+      - dependencies
+    reviewers:
+      - xdeadboy666x
+    open-pull-requests-limit: 5
