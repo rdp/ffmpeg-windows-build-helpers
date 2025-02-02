@@ -22,4 +22,4 @@ jobs:
         with:
           reporter: github-pr-check
           filter_mode: nofilter
-          path: ffmpeg-windows-build-helpers/cross_compile_ffmpeg.sh
+          path: ./cross_compile_ffmpeg.sh
