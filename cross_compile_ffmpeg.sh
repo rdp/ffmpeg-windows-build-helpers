@@ -3,9 +3,6 @@
 # Copyright (C) 2012 Roger Pack, the script is under the GPLv3, but output FFmpeg's executables aren't
 # set -x
 
-sudo apt update
-sudo apt-get install -y subversion ragel curl texinfo g++ ed libva-dev bison flex cvs yasm automake libtool autoconf gcc cmake git make pkg-config zlib1g-dev unzip pax nasm gperf autogen bzip2 autoconf-archive p7zip-full clang build-essential git-core libass-dev libfreetype6-dev libgnutls28-dev libmp3lame-dev libsdl2-dev libvdpau-dev libvorbis-dev libxcb1-dev libxcb-shm0-dev libxcb-xfixes0-dev python-is-python3 meson autotools-dev gettext patch wget xz-utils coreutils cmake-doc gettext-doc libasprintf-dev libgettextpo-dev libglib2.0-doc libxml2-utils gnutls-bin gnutls-doc libsm-doc libunibreak-doc libvdpau-doc libwayland-doc libx11-doc libxcb-doc libxt-doc subversion-tools util-linux-extra util-linux-locales
-
 yes_no_sel () {
   unset user_input
   local question="$1"
