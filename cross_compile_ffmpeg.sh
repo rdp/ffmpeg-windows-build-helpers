@@ -264,7 +264,7 @@ EOL
     echo
   fi
   mkdir -p "$cur_dir"
-  cd "$cur_dir"
+  cd "$cur_dir" || exit
   if [[ $disable_nonfree = "y" ]]; then
     non_free="n"
   else
