@@ -1865,6 +1865,17 @@ build_libaom() {
   cd ../..
 }
 
+build_libqrencode() {
+  do_git_checkout https://github.com/fukuchi/libqrencode.git libqrencode_git
+  cd libqrencode_git
+    if [[ ! -f ./configure ]]; then
+      ./autogen.sh
+    fi
+    do_configure "--prefix=$mingw_w64_x86_64_prefix" LDFLAGS="-L${mingw_w64_x86_64_prefix}/lib"
+    do_make_and_make_install
+  cd ..
+}
+
 build_dav1d() {
   do_git_checkout https://code.videolan.org/videolan/dav1d.git libdav1d
   cd libdav1d
@@ -2472,13 +2483,10 @@ build_ffmpeg() {
     config_options+=" --enable-libsrt"
     config_options+=" --enable-libxml2"
     config_options+=" --enable-opengl"
+    config_options+=" --enable-libqrencode"
     config_options+=" --enable-libdav1d"
     config_options+=" --enable-gnutls"
-    config_options+=" --enable-encoder=qrcode"
-    config_options+=" --enable-filter=tiltshift"
-    config_options+=" --enable-filter=qrencode"
-    config_options+=" --enable-filter=qrencodesrc"
-
+    
     if [[ "$bits_target" != "32" ]]; then
       if [[ $build_svt_hevc = y ]]; then
         # SVT-HEVC
@@ -2803,6 +2811,7 @@ build_ffmpeg_dependencies() {
   build_libx265
   build_libopenh264
   build_libaom
+  build_libqrencode
   build_dav1d
   build_avisynth
   build_libx264 # at bottom as it might internally build a copy of ffmpeg (which needs all the above deps...
