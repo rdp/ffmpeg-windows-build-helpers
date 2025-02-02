@@ -50,6 +50,7 @@ apt_not_installed() {
     fi
   done
   echo "$need_install"
+  echo "$ sudo apt-get install -y frei0r-plugins-dev libchromaprint-dev libgme-dev flite1-dev libcaca-dev libbs2b-dev libopenjp2-7-dev libopencore-amrnb-dev librubberband-dev libopenmpt-dev libshine-dev libsnappy-dev libsoxr-dev libspeex-dev libtheora-dev libtwolame-dev libv4l-dev libvidstab-dev libvo-amrwbenc-dev libxvidcore-dev liblzma-dev libbluray-dev libcdparanoia-dev libcdio-dev libcdio-paranoia-dev ladspa-sdk libgsm1-dev libvpl2 libwebp-dev libzimg-dev libzvbi-dev"
 }
 
 check_missing_packages () {
@@ -139,6 +140,7 @@ check_missing_packages () {
         echo "for RHEL/CentOS: First ensure you have epel repo available, then run $ sudo yum install ragel subversion texinfo libtool autogen gperf nasm patch unzip pax ed gcc-c++ bison flex yasm automake autoconf gcc zlib-devel cvs bzip2 cmake3 -y"
         echo "for fedora: if your distribution comes with a modern version of cmake then use the same as RHEL/CentOS but replace cmake3 with cmake."
         echo "for linux native compiler option: same as <your OS> above, also add libva-dev"
+
         ;;
     esac
     exit 1
