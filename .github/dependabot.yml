@@ -11,3 +11,35 @@ updates:
     directory: "/docker/"
     schedule:
       interval: "weekly"
+
+  # Maintain apt dependencies
+  - package-ecosystem: "apt"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    registries:
+      - type: "default"
+
+  # Maintain C/C++ dependencies using CMake
+  - package-ecosystem: "cmake"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+
+  # Maintain Java dependencies using Maven
+  - package-ecosystem: "maven"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+
+  # Maintain Meson dependencies
+  - package-ecosystem: "meson"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+
+  # Maintain Python dependencies using pip
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: "weekly"
