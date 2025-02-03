@@ -2674,6 +2674,57 @@ build_lsw() {
    cd ../..
 }
 
+# Build libqrencode
+build_libqrencode() {
+  # Clone the libqrencode repository
+  do_git_checkout https://github.com/fukuchi/libqrencode.git libqrencode
+  cd libqrencode
+
+  # Modify PREFIX for cross-compiling if needed
+  sed -i.bak "s/^PREFIX = \/usr\/local/PREFIX = $mingw_w64_x86_64_prefix/" Makefile
+
+  # Set custom CFLAGS for build options, if necessary
+  export CFLAGS="-DQUIRC_MAX_REGIONS=65534 -DQUIRC_FLOAT_TYPE=float"
+
+  # Run autogen if needed (for GitHub source)
+  ./autogen.sh
+
+  # Configure the build for cross-compiling with libqrencode and FFmpeg
+  ./configure --prefix=$mingw_w64_x86_64_prefix \
+              --cross-prefix=$cross_prefix \
+              --enable-static \
+              --disable-shared
+
+  # Build the library
+  do_make
+
+  # Install the library
+  do_make_install
+
+  cd ..
+}
+
+# Build libquirc
+build_libquirc() {
+  # Clone the libquirc repository
+  do_git_checkout https://github.com/evolation/libquirc.git libquirc
+  cd libquirc
+
+  # Modify PREFIX for cross-compiling if needed
+  sed -i.bak "s/^PREFIX = \/usr\/local/PREFIX = $mingw_w64_x86_64_prefix/" Makefile
+
+  # Set custom CFLAGS for build options, if necessary
+  export CFLAGS="-DQUIRC_MAX_REGIONS=65534 -DQUIRC_FLOAT_TYPE=float"
+
+  # Run make with the custom CFLAGS
+  do_make
+
+  # Install the library
+  do_make_install
+
+  cd ..
+}
+
 find_all_build_exes() {
   local found=""
 # NB that we're currently in the sandbox dir...
