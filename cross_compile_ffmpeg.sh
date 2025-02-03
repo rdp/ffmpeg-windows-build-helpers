@@ -2688,24 +2688,6 @@ find_all_build_exes() {
   echo $found # pseudo return value...
 }
 
-build_qrencode() {
-  download_and_unpack_file https://fukuchi.org/works/qrencode/qrencode-4.1.1.tar.gz
-  cd qrencode-4.1.1
-    generic_configure "--enable-static --disable-shared --prefix=$mingw_w64_x86_64_prefix"
-    do_make_and_make_install
-  cd ..
-}
-
-# Add this function to download and build libquirc
-build_libquirc() {
-  do_git_checkout https://github.com/evolation/libquirc.git libquirc
-  cd libquirc
-    sed -i.bak "s/^PREFIX = \/usr\/local/PREFIX = $mingw_w64_x86_64_prefix/" Makefile
-    do_make
-    do_make_install
-  cd ..
-}
-
 # Modify the build_ffmpeg_dependencies function to include qrencode and libquirc
 build_ffmpeg_dependencies() {
   if [[ $build_dependencies = "n" ]]; then
