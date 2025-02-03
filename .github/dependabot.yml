@@ -1,19 +1,27 @@
 version: 2
+
 updates:
-  - package-ecosystem: "apt"
-    directory: "/"
-    schedule:
-      interval: "weekly"
-    open-pull-requests-limit: 5
-  
   - package-ecosystem: "docker"
     directory: "/docker"
     schedule:
-      interval: "weekly"
-    open-pull-requests-limit: 5
-  
-  - package-ecosystem: "npm"
+      interval: "daily"
+    allow:
+      - dependency-type: "all"
+    commit-message:
+      prefix: ":arrow_up:"
+  - package-ecosystem: "pip"
     directory: "/"
     schedule:
-      interval: "weekly"
-    open-pull-requests-limit: 5
+      interval: "daily"
+    allow:
+      - dependency-type: "all"
+    commit-message:
+      prefix: ":arrow_up:"
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "daily"
+    allow:
+      - dependency-type: "all"
+    commit-message:
+      prefix: ":arrow_up:"
