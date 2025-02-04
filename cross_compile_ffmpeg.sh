@@ -25,7 +25,7 @@ yes_no_sel () {
 
 set_box_memory_size_bytes() {
   if [[ $OSTYPE == darwin* ]]; then
-    box_memory_size_bytes=20000000000 # 20G fake it out for now :|
+    box_memory_size_bytes=48000000000 # 20G fake it out for now :|
   else
     local ram_kilobytes=`grep MemTotal /proc/meminfo | awk '{print $2}'`
     local swap_kilobytes=`grep SwapTotal /proc/meminfo | awk '{print $2}'`
@@ -87,7 +87,7 @@ check_missing_packages () {
     echo 'Install the missing packages before running this script.'
     determine_distro
 
-    apt_pkgs='subversion ragel curl texinfo g++ ed libva-dev bison flex cvs yasm automake libtool autoconf gcc cmake git make pkg-config zlib1g-dev unzip pax nasm gperf autogen bzip2 autoconf-archive p7zip-full clang build-essential git-core libass-dev libfreetype6-dev libgnutls28-dev libmp3lame-dev libsdl2-dev libva-dev libvdpau-dev libvorbis-dev libxcb1-dev libxcb-shm0-dev libxcb-xfixes0-dev python-is-python3 meson autotools-dev gettext svn makeinfo patch wget xz realpath'
+    apt_pkgs='subversion ragel curl texinfo g++ ed bison flex cvs libva-dev yasm automake libtool autoconf gcc cmake git make pkg-config zlib1g-dev unzip pax nasm gperf autogen bzip2 autoconf-archive p7zip-full meson clang gettext subversion texinfo patch wget xz-utils coreutils'
 
     [[ $DISTRO == "debian" ]] && apt_pkgs="$apt_pkgs libtool-bin ed" # extra for debian
     case "$DISTRO" in
@@ -102,13 +102,8 @@ check_missing_packages () {
           apt_pkgs="$apt_pkgs python-is-python3" # needed
         fi
         echo "$ sudo apt-get install $apt_pkgs -y"
-        if uname -a | grep -q -- "-microsoft"; then
-            echo "NB if you use WSL Ubuntu 20.04 you need to do an extra step: https://github.com/rdp/ffmpeg-windows-build-helpers/issues/452"
-        fi
-        ;;
-	echo "$ sudo apt-get install $apt_pkgs -y"
         if uname -a | grep  -q -- "-microsoft" ; then
-         echo "NB if you use WSL Ubuntu 20.04 you need to do an extra step: https://github.com/rdp/ffmpeg-windows-build-helpers/issues/452"
+         echo NB if you use WSL Ubuntu 20.04 you need to do an extra step: https://github.com/rdp/ffmpeg-windows-build-helpers/issues/452
 	fi
         ;;
       debian)
@@ -140,15 +135,15 @@ check_missing_packages () {
         echo "$ sudo apt-get install $apt_missing -y"
         ;;
       *)
-        echo "for OS X (homebrew): brew install ragel wget cvs yasm autogen automake autoconf cmake libtool xz pkg-config nasm bzip2 autoconf-archive p7zip coreutils meson llvm" # if edit this edit do[...]
+        echo "for OS X (homebrew): brew install ragel wget cvs yasm autogen automake autoconf cmake libtool xz pkg-config nasm bzip2 autoconf-archive p7zip coreutils meson llvm" # if edit this edit docker/Dockerfile also :|
         echo "   and set llvm to your PATH if on catalina"
-        echo "for RHEL/CentOS: First ensure you have epel repo available, then run $ sudo yum install ragel subversion texinfo libtool autogen gperf nasm patch unzip pax ed gcc-c++ bison flex yasm aut[...]
+        echo "for RHEL/CentOS: First ensure you have epel repo available, then run $ sudo yum install ragel subversion texinfo libtool autogen gperf nasm patch unzip pax ed gcc-c++ bison flex yasm automake autoconf gcc zlib-devel cvs bzip2 cmake3 -y"
         echo "for fedora: if your distribution comes with a modern version of cmake then use the same as RHEL/CentOS but replace cmake3 with cmake."
         echo "for linux native compiler option: same as <your OS> above, also add libva-dev"
         ;;
     esac
     exit 1
-   fi
+  fi
 
   export REQUIRED_CMAKE_VERSION="3.0.0"
   for cmake_binary in 'cmake' 'cmake3'; do
