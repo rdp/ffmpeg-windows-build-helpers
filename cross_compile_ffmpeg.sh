@@ -27,7 +27,8 @@ set_box_memory_size_bytes() {
   if [[ $OSTYPE == darwin* ]]; then
     box_memory_size_bytes=48000000000 # 20G fake it out for now :|
   else
-    local ram_kilobytes=`grep MemTotal /proc/meminfo | awk '{print $2}'`
+    local ram_kilobytes
+    ram_kilobytes=$(grep MemTotal /proc/meminfo | awk '{print $2}')
     local swap_kilobytes=`grep SwapTotal /proc/meminfo | awk '{print $2}'`
     box_memory_size_bytes=$[ram_kilobytes * 1024 + swap_kilobytes * 1024]
   fi
@@ -87,7 +88,7 @@ check_missing_packages () {
     echo 'Install the missing packages before running this script.'
     determine_distro
 
-    apt_pkgs='subversion ragel curl texinfo g++ ed bison flex cvs libva-dev yasm automake libtool autoconf gcc cmake git make pkg-config zlib1g-dev unzip pax nasm gperf autogen bzip2 autoconf-archive p7zip-full meson clang gettext subversion texinfo patch wget xz-utils coreutils'
+    apt_pkgs='subversion ragel curl texinfo g++ ed bison flex cvs libva-dev yasm automake libtool autoconf gcc cmake git make pkg-config zlib1g-dev unzip pax nasm gperf autogen bzip2 autoconf-archive p7zip-full meson clang gettext patch wget xz-utils coreutils'
 
     [[ $DISTRO == "debian" ]] && apt_pkgs="$apt_pkgs libtool-bin ed" # extra for debian
     case "$DISTRO" in
