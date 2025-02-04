@@ -101,6 +101,11 @@ check_missing_packages () {
         if at_least_required_version "20.04" "$ubuntu_ver"; then
           apt_pkgs="$apt_pkgs python-is-python3" # needed
         fi
+	echo "$ sudo apt-get install $apt_pkgs -y"
+        if uname -a | grep -q -- "-microsoft"; then
+            echo "NB if you use WSL Ubuntu 20.04 you need to do an extra step: https://github.com/rdp/ffmpeg-windows-build-helpers/issues/452"
+        fi
+        ;;
         echo "$ sudo apt-get install $apt_pkgs -y"
         if uname -a | grep  -q -- "-microsoft" ; then
          echo NB if you use WSL Ubuntu 20.04 you need to do an extra step: https://github.com/rdp/ffmpeg-windows-build-helpers/issues/452
@@ -2742,7 +2747,7 @@ build_libquirc() {
   ./autogen.sh || { echo "Error: autogen failed"; exit 1; }
 
   # Ensure Makefile exists before modifying
-  if [ -f Makefile]; then
+  if [ -f Makefile ]; then
       sed -i.bak "s|^PREFIX = /usr/local|PREFIX = $mingw_w64_x86_64_prefix|" Makefile
   fi
 
