@@ -2659,7 +2659,7 @@ build_ffmpeg() {
 
 build_lsw() {
    # Build L-Smash-Works, which are AviSynth plugins based on lsmash/ffmpeg
-   #build_ffmpeg static # dependency, assume already built since it builds before this does...
+   #eg static # dependency, assume already built since it builds before this does...
    build_lsmash # dependency
    do_git_checkout https://github.com/VFR-maniac/L-SMASH-Works.git lsw
    cd lsw/VapourSynth
@@ -2688,7 +2688,86 @@ find_all_build_exes() {
   echo $found # pseudo return value...
 }
 
-# Modify the build_ffmpeg_dependencies function to include qrencode and libquirc
+# Modify the eg_dependencies function to include qrencode and libquirc
+build_libqrencode() {
+  # Clone the libqrencode repository
+  do_git_checkout https://github.com/fukuchi/libqrencode.git libqrencode_git
+  cd libqrencode_git
+
+  # Run autoupdate to update old macros
+  autoupdate || echo "Warning: autoupdate failed, continuing..."
+
+  # Run autogen if needed (for GitHub source)
+  ./autogen.sh || { echo "Error: autogen failed"; exit 1; }
+
+  # Ensure Makefile exists before modifying
+  if [ -f Makefile ]; then
+      sed -i.bak "s|^PREFIX = /usr/local|PREFIX = $mingw_w64_x86_64_prefix|" Makefile
+  fi
+
+  # Set custom CFLAGS for build options, if necessary
+  export CFLAGS="-DQUIRC_MAX_REGIONS=65534 -DQUIRC_FLOAT_TYPE=float"
+
+  # Set correct cross-compiler
+  export CC=${cross_prefix}gcc
+  export CXX=${cross_prefix}g++
+
+  # Configure the build for cross-compiling
+  ./configure --host=x86_64-w64-mingw32 --prefix=$mingw_w64_x86_64_prefix \
+              --enable-static \
+              --disable-shared || { echo "Error: configure failed"; exit 1; }
+
+  # Ensure Makefile exists before proceeding
+  if [ ! -f Makefile ]; then
+      echo "Error: Makefile not found. Check configure output."
+      exit 1;
+  fi
+
+  # Build the library
+  do_make || { echo "Error: make failed"; exit 1; }
+
+  # Install the library
+  do_make_install || { echo "Error: make install failed"; exit 1; }
+
+  cd ..
+}
+
+build_libquirc() {
+  do_git_checkout https://github.com/dlbeer/quirc.git libquirc_git
+  cd libquirc_git || { echo "Error: Failed to enter libquirc directory"; exit 1; }
+
+  autoupdate || echo "Warning: autoupdate failed, continuing..."
+
+  # Run autogen if needed (for GitHub source)
+  ./autogen.sh || { echo "Error: autogen failed"; exit 1; }
+
+  # Ensure Makefile exists before modifying
+  if [ -f Makefile]; then
+      sed -i.bak "s|^PREFIX = /usr/local|PREFIX = $mingw_w64_x86_64_prefix|" Makefile
+  fi
+
+  # Set custom CFLAGS for build options
+  export CFLAGS="-DQUIRC_MAX_REGIONS=65534 -DQUIRC_FLOAT_TYPE=float"
+
+  # Ensure the correct cross-compiler is used
+  export CC=${cross_prefix}gcc
+  export CXX=${cross_prefix}g++
+
+  # Check if Makefile exists before running make
+  if [ ! -f Makefile ]; then
+      echo "Error: Makefile not found. Check repository or run autogen/configure if needed."
+      exit 1
+  fi
+
+  # Build the library
+  do_make || { echo "Error: make failed"; exit 1; }
+
+  # Install the library
+  do_make_install || { echo "Error: make install failed"; exit 1; }
+
+  cd ..
+}
+
 build_ffmpeg_dependencies() {
   if [[ $build_dependencies = "n" ]]; then
     echo "Skip build ffmpeg dependency libraries..."
@@ -2758,7 +2837,7 @@ build_ffmpeg_dependencies() {
   build_vamp_plugin # Needs libsndfile for 'vamp-simple-host.exe' [disabled].
   build_fftw # Uses dlfcn.
   build_libsamplerate # Needs libsndfile >= 1.0.6 and fftw >= 0.15.0 for tests. Uses dlfcn.
-  build_librubberband # Needs libsamplerate, libsndfile, fftw and vamp_plugin. 'configure' will fail otherwise. Eventhough librubberband doesn't necessarily need them (libsndfile only for 'rubberband').
+  build_librubberband # Needs libsamplerate, libsndfile, fftw and vamp_plugin. 'configure' will fail otherwise. Eventhough librubberband doesn't necessarily need them (libsndfile only for 'rubberband'[...]
   build_frei0r # Needs dlfcn. could use opencv...
   if [[ "$bits_target" != "32" ]]; then
     if [[ $build_svt_hevc = y ]]; then
@@ -2782,7 +2861,7 @@ build_ffmpeg_dependencies() {
   build_libass # Needs freetype >= 9.10.3 (see https://bugs.launchpad.net/ubuntu/+source/freetype1/+bug/78573 o_O) and fribidi >= 0.19.0. Uses fontconfig >= 2.10.92, iconv and dlfcn.
   build_libxvid # FFmpeg now has native support, but libxvid still provides a better image.
   build_libsrt # requires gnutls, mingw-std-threads
-  if [[ $ffmpeg_git_checkout_version != *"n6.0"* ]] && [[ $ffmpeg_git_checkout_version != *"n5.1"* ]] && [[ $ffmpeg_git_checkout_version != *"n5.0"* ]] && [[ $ffmpeg_git_checkout_version != *"n4.4"* ]]; then
+  if [[ $ffmpeg_git_checkout_version != *"n6.0"* ]] && [[ $ffmpeg_git_checkout_version != *"n5.1"* ]] && [[ $ffmpeg_git_checkout_version != *"n5.0"* ]] && [[ $ffmpeg_git_checkout_version != *"n4.4"* ][...]
     build_libaribcaption
   fi
   build_libaribb24
