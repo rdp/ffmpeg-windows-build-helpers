@@ -20,7 +20,7 @@ yes_no_sel () {
     fi
   done
   # downcase it
-  user_input=$(echo $user_input | tr '[A-Z]' '[a-z]')
+  user_input=$(echo "$user_input" | tr 'A-Z' 'a-z')
 }
 
 set_box_memory_size_bytes() {
@@ -29,16 +29,18 @@ set_box_memory_size_bytes() {
   else
     local ram_kilobytes
     ram_kilobytes=$(grep MemTotal /proc/meminfo | awk '{print $2}')
-    local swap_kilobytes=`grep SwapTotal /proc/meminfo | awk '{print $2}'`
-    box_memory_size_bytes=$[ram_kilobytes * 1024 + swap_kilobytes * 1024]
+    local swap_kilobytes
+    swap_kilobytes=$(grep SwapTotal /proc/meminfo | awk '{print $2}')
+    box_memory_size_bytes=$((ram_kilobytes * 1024 + swap_kilobytes * 1024))
   fi
 }
 
 function sortable_version { echo "$@" | awk -F. '{ printf("%d%03d%03d%03d\n", $1,$2,$3,$4); }'; }
 
 at_least_required_version() { # params: required actual
-  local sortable_required=$(sortable_version $1)
-  sortable_required=$(echo $sortable_required | sed 's/^0*//') # remove preceding zeroes, which bash later interprets as octal or screwy
+  local sortable_required
+  sortable_required=$(sortable_version "$1")
+  sortable_required=${sortable_required##0}
   local sortable_actual=$(sortable_version $2)
   sortable_actual=$(echo $sortable_actual | sed 's/^0*//')
   [[ "$sortable_actual" -ge "$sortable_required" ]]
@@ -82,7 +84,7 @@ check_missing_packages () {
   if [ "${VENDOR}" = "redhat" ] || [ "${VENDOR}" = "centos" ]; then
     if [ -n "$(hash cmake 2>&1)" ] && [ -n "$(hash cmake3 2>&1)" ]; then missing_packages=('cmake' "${missing_packages[@]}"); fi
   fi
-  if [[ -n "${missing_packages[@]}" ]]; then
+  if [[ -n "${missing_packages[*]}" ]]; then
     clear
     echo "Could not find the following execs (svn is actually package subversion, makeinfo is actually package texinfo if you're missing them): ${missing_packages[*]}"
     echo 'Install the missing packages before running this script.'
@@ -104,7 +106,7 @@ check_missing_packages () {
         fi
         echo "$ sudo apt-get install $apt_pkgs -y"
         if uname -a | grep  -q -- "-microsoft" ; then
-         echo NB if you use WSL Ubuntu 20.04 you need to do an extra step: https://github.com/rdp/ffmpeg-windows-build-helpers/issues/452
+         echo "NB: If you use WSL Ubuntu 20.04, you need to do an extra step: https://github.com/rdp/ffmpeg-windows-build-helpers/issues/452"
 	fi
         ;;
       debian)
@@ -154,7 +156,7 @@ check_missing_packages () {
     # the version of cmake required move up to, say, 3.1.0 and the cmake3 package still only pulls in 3.0.0 flat, then the user having manually
     # installed cmake at a higher version wouldn't be detected.
     if hash "${cmake_binary}"  &> /dev/null; then
-      cmake_version="$( "${cmake_binary}" --version | sed -e "s#${cmake_binary}##g" | head -n 1 | tr -cd '[0-9.\n]' )"
+      cmake_version="$( "${cmake_binary}" --version | sed -e "s#${cmake_binary}##g" | head -n 1 | tr -cd '0-9.\n' )"
       if at_least_required_version "${REQUIRED_CMAKE_VERSION}" "${cmake_version}"; then
         export cmake_command="${cmake_binary}"
         break
@@ -186,12 +188,13 @@ check_missing_packages () {
   # because of all the trailing lines of stuff
   export REQUIRED_YASM_VERSION="1.2.0" # export ???
   local yasm_binary=yasm
-  local yasm_version="$( "${yasm_binary}" --version |sed -e "s#${yasm_binary}##g" | head -n 1 | tr -dc '[0-9.\n]' )"
+  local yasm_version="$( "${yasm_binary}" --version |sed -e "s#${yasm_binary}##g" | head -n 1 | tr -dc '0-9.\n' )"
   if ! at_least_required_version "${REQUIRED_YASM_VERSION}" "${yasm_version}"; then
     echo "your yasm version is too old $yasm_version wanted ${REQUIRED_YASM_VERSION}"
     exit 1
   fi
-  local meson_version=`meson --version`
+  local meson_version
+  meson_version=$(meson --version)
   if ! at_least_required_version "0.49.2" "${meson_version}"; then
     echo "your meson version is too old $meson_version wanted 0.49.2"
     exit 1
@@ -202,7 +205,7 @@ check_missing_packages () {
   # check WSL for interop setting make sure its disabled
   # check WSL for kernel version look for version 4.19.128 current as of 11/01/2020
   if uname -a | grep  -iq -- "-microsoft" ; then
-    if cat /proc/sys/fs/binfmt_misc/WSLInterop | grep -q enabled ; then
+    if grep -q enabled /proc/sys/fs/binfmt_misc/WSLInterop; then
       echo "windows WSL detected: you must first disable 'binfmt' by running this
       sudo bash -c 'echo 0 > /proc/sys/fs/binfmt_misc/WSLInterop'
       then try again"
@@ -215,7 +218,7 @@ check_missing_packages () {
       echo "$@" | awk -F. '{ printf("%d%03d%03d%03d\n", $1,$2,$3,$4); }'
     }
 
-    if [ $(version $KERNVER) -lt $(version $MINIMUM_KERNEL_VERSION) ]; then
+    if [ $(version "$KERNVER") -lt $(version "$MINIMUM_KERNEL_VERSION") ]; then
       echo "Windows Subsystem for Linux (WSL) detected - kernel not at minumum version required: $MINIMUM_KERNEL_VERSION
       Please update via windows update then try again"
       #exit 1
@@ -232,7 +235,7 @@ UNAME=$(uname | tr "[:upper:]" "[:lower:]")
 # If Linux, try to determine specific distribution
 if [ "$UNAME" == "linux" ]; then
     # If available, use LSB to identify distribution
-    if [ -f /etc/lsb-release -o -d /etc/lsb-release.d ]; then
+    if [ -f /etc/lsb-release ] || [ -d /etc/lsb-release.d ]; then
         export DISTRO=$(lsb_release -i | cut -d: -f2 | sed s/'^\t'//)
     # Otherwise, use release info file
     else
@@ -256,7 +259,7 @@ intro() {
   the sandbox directory, since it will have some hard coded paths in there.
   You can, of course, rebuild ffmpeg from within it, etc.
 EOL
-  echo `date` # for timestamping super long builds LOL
+  echo $(date) # for timestamping super long builds LOL
   if [[ $sandbox_ok != 'y' && ! -d sandbox ]]; then
     echo
     echo "Building in $PWD/sandbox, will use ~ 12GB space!"
@@ -282,7 +285,7 @@ pick_compiler_flavors() {
   while [[ "$compiler_flavors" != [1-5] ]]; do
     if [[ -n "${unknown_opts[@]}" ]]; then
       echo -n 'Unknown option(s)'
-      for unknown_opt in "${unknown_opts[@]}"; do
+      for opt in "${unknown_opts[@]}"; do
         echo -n " '$unknown_opt'"
       done
       echo ', ignored.'; echo
@@ -296,7 +299,7 @@ What version of MinGW-w64 would you like to build or update?
   5. Exit
 EOF
     echo -n 'Input your choice [1-5]: '
-    read compiler_flavors
+    read -r compiler_flavors
   done
   case "$compiler_flavors" in
   1 ) compiler_flavors=multi ;;
@@ -311,9 +314,9 @@ EOF
 # made into a method so I don't/don't have to download this script every time if only doing just 32 or just6 64 bit builds...
 download_gcc_build_script() {
     local zeranoe_script_name=$1
-    rm -f $zeranoe_script_name || exit 1
-    curl -4 file://$patch_dir/$zeranoe_script_name -O --fail || exit 1
-    chmod u+x $zeranoe_script_name
+    rm -f "$zeranoe_script_name" || exit 1
+    curl -4 "file://$patch_dir/$zeranoe_script_name" -O --fail || exit 1
+    chmod u+x "$zeranoe_script_name"
 }
 
 install_cross_compiler() {
@@ -350,10 +353,10 @@ install_cross_compiler() {
     if [[ ($compiler_flavors == "win32" || $compiler_flavors == "multi") && ! -f ../$win32_gcc ]]; then
       echo "Building win32 cross compiler..."
       download_gcc_build_script $zeranoe_script_name
-      if [[ `uname` =~ "5.1" ]]; then # Avoid using secure API functions for compatibility with msvcrt.dll on Windows XP.
+      if [[ $(uname) =~ 5.1 ]]; then # Avoid using secure API functions for compatibility with msvcrt.dll on Windows XP.
         sed -i "s/ --enable-secure-api//" $zeranoe_script_name
       fi
-      CFLAGS=-O2 CXXFLAGS=-O2 nice ./$zeranoe_script_name $zeranoe_script_options --build-type=win32 || exit 1
+      CFLAGS=-O2 CXXFLAGS=-O2 nice ./$zeranoe_script_name "$zeranoe_script_options" --build-type=win32 || exit 1
       if [[ ! -f ../$win32_gcc ]]; then
         echo "Failure building 32 bit gcc? Recommend nuke sandbox (rm -rf sandbox) and start over..."
         exit 1
@@ -366,7 +369,7 @@ install_cross_compiler() {
     if [[ ($compiler_flavors == "win64" || $compiler_flavors == "multi") && ! -f ../$win64_gcc ]]; then
       echo "Building win64 x86_64 cross compiler..."
       download_gcc_build_script $zeranoe_script_name
-      CFLAGS=-O2 CXXFLAGS=-O2 nice ./$zeranoe_script_name $zeranoe_script_options --build-type=win64 || exit 1
+      CFLAGS=-O2 CXXFLAGS=-O2 nice ./$zeranoe_script_name "$zeranoe_script_options" --build-type=win64 || exit 1
       if [[ ! -f ../$win64_gcc ]]; then
         echo "Failure building 64 bit gcc? Recommend nuke sandbox (rm -rf sandbox) and start over..."
         exit 1
@@ -381,7 +384,7 @@ install_cross_compiler() {
     reset_cflags
   cd ..
   echo "Done building (or already built) MinGW-w64 cross-compiler(s) successfully..."
-  echo `date` # so they can see how long it took :)
+  echo $(date) # so they can see how long it took :)
 }
 
 # helper methods for downloading and building projects that can take generic input
@@ -390,16 +393,16 @@ do_svn_checkout() {
   repo_url="$1"
   to_dir="$2"
   desired_revision="$3"
-  if [ ! -d $to_dir ]; then
+  if [ ! -d "$to_dir" ]; then
     echo "svn checking out to $to_dir"
     if [[ -z "$desired_revision" ]]; then
-      svn checkout $repo_url $to_dir.tmp  --non-interactive --trust-server-cert || exit 1
+      svn checkout "$repo_url" "$to_dir.tmp" --non-interactive --trust-server-cert || exit 1
     else
-      svn checkout -r $desired_revision $repo_url $to_dir.tmp || exit 1
+      svn checkout -r "$desired_revision" "$repo_url" "$to_dir.tmp" || exit 1
     fi
-    mv $to_dir.tmp $to_dir
+    mv "$to_dir.tmp" "$to_dir"
   else
-    cd $to_dir
+    cd "$to_dir" || exit
     echo "not svn Updating $to_dir since usually svn repo's aren't updated frequently enough..."
     # XXX accomodate for desired revision here if I ever uncomment the next line...
     # svn up
