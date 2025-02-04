@@ -86,7 +86,7 @@ check_missing_packages () {
     echo 'Install the missing packages before running this script.'
     determine_distro
 
-    apt_pkgs='subversion ragel curl texinfo g++ ed bison flex cvs yasm automake libtool autoconf gcc cmake git make pkg-config zlib1g-dev unzip pax nasm gperf autogen bzip2 autoconf-archive p7zip-full meson clang'
+    apt_pkgs='subversion ragel curl texinfo g++ ed bison flex cvs libva-dev yasm automake libtool autoconf gcc cmake git make pkg-config zlib1g-dev unzip pax nasm gperf autogen bzip2 autoconf-archive p7zip-full meson clang gettext subversion texinfo patch wget xz-utils coreutils'
 
     [[ $DISTRO == "debian" ]] && apt_pkgs="$apt_pkgs libtool-bin ed" # extra for debian
     case "$DISTRO" in
@@ -261,7 +261,7 @@ EOL
     echo
   fi
   mkdir -p "$cur_dir"
-  cd "$cur_dir"
+  cd "$cur_dir" || exit
   if [[ $disable_nonfree = "y" ]]; then
     non_free="n"
   else
@@ -335,7 +335,7 @@ install_cross_compiler() {
   fi
 
   mkdir -p cross_compilers
-  cd cross_compilers
+  cd cross_compilers || exit 
 
     unset CFLAGS # don't want these "windows target" settings used the compiler itself since it creates executables to run on the local box (we have a parameter allowing them to set them for the script "all builds" basically)
     # pthreads version to avoid having to use cvs for it
@@ -1378,8 +1378,22 @@ build_libsndfile() {
 build_mpg123() {
   do_svn_checkout svn://scm.orgis.org/mpg123/trunk mpg123_svn r5008 # avoid Think again failure
   cd mpg123_svn
-    generic_configure
-    do_make_and_make_install
+  
+  # Ensure all required tools are installed
+  sudo apt-get install -y libtool autotools-dev automake gettext
+
+  # Run the autotools commands to generate the necessary files
+  libtoolize --force --copy
+  aclocal
+  autoheader
+  autoconf
+  automake --add-missing --copy
+  
+  # Allow undefined macros
+  echo 'm4_pattern_allow([LT_SYS_MODULE_EXT])' >> configure.ac
+
+  generic_configure
+  do_make_and_make_install
   cd ..
 }
 
@@ -1658,7 +1672,7 @@ build_svt-vp9() {
 }
 
 build_svt-av1() {
-  do_git_checkout https://gitlab.com/AOMediaCodec/SVT-AV1.git
+  git clone --branch v2.3.0 --depth 1 https://gitlab.com/AOMediaCodec/SVT-AV1.git SVT-AV1_git
   cd SVT-AV1_git
   cd Build
     do_cmake_from_build_dir .. "-DCMAKE_BUILD_TYPE=Release -DCMAKE_SYSTEM_PROCESSOR=AMD64"
@@ -2456,9 +2470,11 @@ build_ffmpeg() {
     config_options+=" --enable-libsrt"
     config_options+=" --enable-libxml2"
     config_options+=" --enable-opengl"
+    config_options+=" --enable-libqrencode"
+    config_options+=" --enable-libquirc"
     config_options+=" --enable-libdav1d"
     config_options+=" --enable-gnutls"
-
+    
     if [[ "$bits_target" != "32" ]]; then
       if [[ $build_svt_hevc = y ]]; then
         # SVT-HEVC
@@ -2641,7 +2657,7 @@ build_ffmpeg() {
 
 build_lsw() {
    # Build L-Smash-Works, which are AviSynth plugins based on lsmash/ffmpeg
-   #build_ffmpeg static # dependency, assume already built since it builds before this does...
+   #eg static # dependency, assume already built since it builds before this does...
    build_lsmash # dependency
    do_git_checkout https://github.com/VFR-maniac/L-SMASH-Works.git lsw
    cd lsw/VapourSynth
@@ -2670,6 +2686,7 @@ find_all_build_exes() {
   echo $found # pseudo return value...
 }
 
+# Modify the eg_dependencies function to include qrencode and libquirc
 build_libqrencode() {
   # Clone the libqrencode repository
   do_git_checkout https://github.com/fukuchi/libqrencode.git libqrencode_git
@@ -2768,31 +2785,24 @@ build_ffmpeg_dependencies() {
   build_libopenjpeg
   build_glew
   build_glfw
-  #build_libjpeg_turbo # mplayer can use this, VLC qt might need it? [replaces libjpeg] (ffmpeg seems to not need it so commented out here)
   build_libpng # Needs zlib >= 1.0.4. Uses dlfcn.
   build_libwebp # Uses dlfcn.
   build_harfbuzz
-  # harf does now include build_freetype # Uses zlib, bzip2, and libpng.
   build_libxml2 # Uses zlib, liblzma, iconv and dlfcn.
   build_libvmaf
   build_fontconfig # Needs freetype and libxml >= 2.6. Uses iconv and dlfcn.
   build_gmp # For rtmp support configure FFmpeg with '--enable-gmp'. Uses dlfcn.
-  #build_librtmfp # mainline ffmpeg doesn't use it yet
   build_libnettle # Needs gmp >= 3.0. Uses dlfcn.
   build_unistring
   build_libidn2 # needs iconv and unistring
   build_gnutls # Needs nettle >= 3.1, hogweed (nettle) >= 3.1. Uses libidn2, unistring, zlib, and dlfcn.
-  #if [[ "$non_free" = "y" ]]; then
-  #  build_openssl-1.0.2 # Nonfree alternative to GnuTLS. 'build_openssl-1.0.2 "dllonly"' to build shared libraries only.
-  #  build_openssl-1.1.1 # Nonfree alternative to GnuTLS. Can't be used with LibRTMP. 'build_openssl-1.1.1 "dllonly"' to build shared libraries only.
-  #fi
   build_libogg # Uses dlfcn.
   build_libvorbis # Needs libogg >= 1.0. Uses dlfcn.
   build_libopus # Uses dlfcn.
   build_libspeexdsp # Needs libogg for examples. Uses dlfcn.
   build_libspeex # Uses libspeexdsp and dlfcn.
   build_libtheora # Needs libogg >= 1.1. Needs libvorbis >= 1.0.1, sdl and libpng for test, programs and examples [disabled]. Uses dlfcn.
-  build_libsndfile "install-libgsm" # Needs libogg >= 1.1.3 and libvorbis >= 1.2.3 for external support [disabled]. Uses dlfcn. 'build_libsndfile "install-libgsm"' to install the included LibGSM 6.10.
+  build_libsndfile "install-libgsm" # Needs libogg >= 1.1.3 and libvorbis >= 1.2.3 for external support [disabled]. Uses dlfcn. 'build_libsndfile "install-libgsm"' to install the included LibGSM.
   build_mpg123
   build_lame # Uses dlfcn, mpg123
   build_twolame # Uses libsndfile >= 1.0.0 and dlfcn.
@@ -2808,7 +2818,7 @@ build_ffmpeg_dependencies() {
   build_vamp_plugin # Needs libsndfile for 'vamp-simple-host.exe' [disabled].
   build_fftw # Uses dlfcn.
   build_libsamplerate # Needs libsndfile >= 1.0.6 and fftw >= 0.15.0 for tests. Uses dlfcn.
-  build_librubberband # Needs libsamplerate, libsndfile, fftw and vamp_plugin. 'configure' will fail otherwise. Eventhough librubberband doesn't necessarily need them (libsndfile only for 'rubberband.exe' and vamp_plugin only for "Vamp audio analysis plugin"). How to use the bundled libraries '-DUSE_SPEEX' and '-DUSE_KISSFFT'?
+  build_librubberband # Needs libsamplerate, libsndfile, fftw and vamp_plugin. 'configure' will fail otherwise. Eventhough librubberband doesn't necessarily need them (libsndfile only for 'rubberband'[...]
   build_frei0r # Needs dlfcn. could use opencv...
   if [[ "$bits_target" != "32" ]]; then
     if [[ $build_svt_hevc = y ]]; then
@@ -2820,7 +2830,6 @@ build_ffmpeg_dependencies() {
     build_svt-av1
   fi
   build_vidstab
-  #build_facebooktransform360 # needs modified ffmpeg to use it so not typically useful
   build_libmysofa # Needed for FFmpeg's SOFAlizer filter (https://ffmpeg.org/ffmpeg-filters.html#sofalizer). Uses dlfcn.
   if [[ "$non_free" = "y" ]]; then
     build_fdk-aac # Uses dlfcn.
@@ -2831,7 +2840,6 @@ build_ffmpeg_dependencies() {
   build_zvbi # Uses iconv, libpng and dlfcn.
   build_fribidi # Uses dlfcn.
   build_libass # Needs freetype >= 9.10.3 (see https://bugs.launchpad.net/ubuntu/+source/freetype1/+bug/78573 o_O) and fribidi >= 0.19.0. Uses fontconfig >= 2.10.92, iconv and dlfcn.
-
   build_libxvid # FFmpeg now has native support, but libxvid still provides a better image.
   build_libsrt # requires gnutls, mingw-std-threads
   if [[ $ffmpeg_git_checkout_version != *"n6.0"* ]] && [[ $ffmpeg_git_checkout_version != *"n5.1"* ]] && [[ $ffmpeg_git_checkout_version != *"n5.0"* ]] && [[ $ffmpeg_git_checkout_version != *"n4.4"* ]] && [[ $ffmpeg_git_checkout_version != *"n4.3"* ]] && [[ $ffmpeg_git_checkout_version != *"n4.2"* ]] && [[ $ffmpeg_git_checkout_version != *"n4.1"* ]] && [[ $ffmpeg_git_checkout_version != *"n3.4"* ]] && [[ $ffmpeg_git_checkout_version != *"n3.2"* ]] && [[ $ffmpeg_git_checkout_version != *"n2.8"* ]]; then
@@ -2840,15 +2848,16 @@ build_ffmpeg_dependencies() {
   build_libaribb24
   build_libtesseract
   build_lensfun  # requires png, zlib, iconv
-  # build_libtensorflow # broken
   build_libvpx
   build_libx265
   build_libopenh264
   build_libaom
+  build_libqrencode # Add this line to build qrencode
+  build_libquirc # Add this line to build libquirc
   build_dav1d
   build_avisynth
   build_libx264 # at bottom as it might internally build a copy of ffmpeg (which needs all the above deps...
- }
+}
 
 build_apps() {
   if [[ $build_dvbtee = "y" ]]; then
@@ -3117,7 +3126,7 @@ if [[ $compiler_flavors == "multi" || $compiler_flavors == "win64" ]]; then
   make_prefix_options="CC=${cross_prefix}gcc AR=${cross_prefix}ar PREFIX=$mingw_w64_x86_64_prefix RANLIB=${cross_prefix}ranlib LD=${cross_prefix}ld STRIP=${cross_prefix}strip CXX=${cross_prefix}g++"
   work_dir="$(realpath $cur_dir/win64)"
   mkdir -p "$work_dir"
-  cd "$work_dir"
+  cd "$work_dir" || exit 1
     build_ffmpeg_dependencies
     build_apps
   cd ..
