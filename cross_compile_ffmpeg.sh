@@ -2,6 +2,7 @@
 # ffmpeg windows cross compile helper/download script, see github repo README
 # Copyright (C) 2012 Roger Pack, the script is under the GPLv3, but output FFmpeg's executables aren't
 # set -x
+
 yes_no_sel () {
   unset user_input
   local question="$1"
@@ -34,6 +35,14 @@ set_box_memory_size_bytes() {
 
 function sortable_version { echo "$@" | awk -F. '{ printf("%d%03d%03d%03d\n", $1,$2,$3,$4); }'; }
 
+at_least_required_version() { # params: required actual
+  local sortable_required=$(sortable_version $1)
+  sortable_required=$(echo $sortable_required | sed 's/^0*//') # remove preceding zeroes, which bash later interprets as octal or screwy
+  local sortable_actual=$(sortable_version $2)
+  sortable_actual=$(echo $sortable_actual | sed 's/^0*//')
+  [[ "$sortable_actual" -ge "$sortable_required" ]]
+}
+
 apt_not_installed() {
   for x in "$@"; do
     if ! dpkg -l "$x" | grep -q '^.i'; then
@@ -41,7 +50,6 @@ apt_not_installed() {
     fi
   done
   echo "$need_install"
-  echo "$ sudo apt-get install -y frei0r-plugins-dev libchromaprint-dev libgme-dev flite1-dev libcaca-dev libbs2b-dev libopenjp2-7-dev libopencore-amrnb-dev librubberband-dev libopenmpt-dev libshine-dev libsnappy-dev libsoxr-dev libspeex-dev libtheora-dev libtwolame-dev libv4l-dev libvidstab-dev libvo-amrwbenc-dev libxvidcore-dev liblzma-dev libbluray-dev libcdparanoia-dev libcdio-dev libcdio-paranoia-dev ladspa-sdk libgsm1-dev libvpl2 libwebp-dev libzimg-dev libzvbi-dev"
 }
 
 check_missing_packages () {
@@ -72,13 +80,13 @@ check_missing_packages () {
   if [ "${VENDOR}" = "redhat" ] || [ "${VENDOR}" = "centos" ]; then
     if [ -n "$(hash cmake 2>&1)" ] && [ -n "$(hash cmake3 2>&1)" ]; then missing_packages=('cmake' "${missing_packages[@]}"); fi
   fi
-  if [[ -n "${missing_packages[*]}" ]]; then
+  if [[ -n "${missing_packages[@]}" ]]; then
     clear
     echo "Could not find the following execs (svn is actually package subversion, makeinfo is actually package texinfo if you're missing them): ${missing_packages[*]}"
     echo 'Install the missing packages before running this script.'
     determine_distro
 
-    apt_pkgs='subversion ragel curl texinfo g++ ed bison flex cvs libva-dev yasm automake libtool autoconf gcc cmake git make pkg-config zlib1g-dev unzip pax nasm gperf autogen bzip2 autoconf-archive p7zip-full meson clang gettext patch wget xz-utils coreutils'
+    apt_pkgs='subversion ragel curl texinfo g++ ed bison flex cvs yasm automake libtool autoconf gcc cmake git make pkg-config zlib1g-dev unzip pax nasm gperf autogen bzip2 autoconf-archive p7zip-full meson clang'
 
     [[ $DISTRO == "debian" ]] && apt_pkgs="$apt_pkgs libtool-bin ed" # extra for debian
     case "$DISTRO" in
@@ -94,7 +102,7 @@ check_missing_packages () {
         fi
         echo "$ sudo apt-get install $apt_pkgs -y"
         if uname -a | grep  -q -- "-microsoft" ; then
-         echo "NB: If you use WSL Ubuntu 20.04, you need to do an extra step: https://github.com/rdp/ffmpeg-windows-build-helpers/issues/452"
+         echo NB if you use WSL Ubuntu 20.04 you need to do an extra step: https://github.com/rdp/ffmpeg-windows-build-helpers/issues/452
 	fi
         ;;
       debian)
@@ -144,7 +152,7 @@ check_missing_packages () {
     # the version of cmake required move up to, say, 3.1.0 and the cmake3 package still only pulls in 3.0.0 flat, then the user having manually
     # installed cmake at a higher version wouldn't be detected.
     if hash "${cmake_binary}"  &> /dev/null; then
-      cmake_version="$( "${cmake_binary}" --version | sed -e "s#${cmake_binary}##g" | head -n 1 | tr -cd '0-9.\n' )"
+      cmake_version="$( "${cmake_binary}" --version | sed -e "s#${cmake_binary}##g" | head -n 1 | tr -cd '[0-9.\n]' )"
       if at_least_required_version "${REQUIRED_CMAKE_VERSION}" "${cmake_version}"; then
         export cmake_command="${cmake_binary}"
         break
@@ -176,13 +184,12 @@ check_missing_packages () {
   # because of all the trailing lines of stuff
   export REQUIRED_YASM_VERSION="1.2.0" # export ???
   local yasm_binary=yasm
-  local yasm_version="$( "${yasm_binary}" --version |sed -e "s#${yasm_binary}##g" | head -n 1 | tr -dc '0-9.\n' )"
+  local yasm_version="$( "${yasm_binary}" --version |sed -e "s#${yasm_binary}##g" | head -n 1 | tr -dc '[0-9.\n]' )"
   if ! at_least_required_version "${REQUIRED_YASM_VERSION}" "${yasm_version}"; then
     echo "your yasm version is too old $yasm_version wanted ${REQUIRED_YASM_VERSION}"
     exit 1
   fi
-  local meson_version
-  meson_version=$(meson --version)
+  local meson_version=`meson --version`
   if ! at_least_required_version "0.49.2" "${meson_version}"; then
     echo "your meson version is too old $meson_version wanted 0.49.2"
     exit 1
@@ -193,7 +200,7 @@ check_missing_packages () {
   # check WSL for interop setting make sure its disabled
   # check WSL for kernel version look for version 4.19.128 current as of 11/01/2020
   if uname -a | grep  -iq -- "-microsoft" ; then
-    if grep -q enabled /proc/sys/fs/binfmt_misc/WSLInterop; then
+    if cat /proc/sys/fs/binfmt_misc/WSLInterop | grep -q enabled ; then
       echo "windows WSL detected: you must first disable 'binfmt' by running this
       sudo bash -c 'echo 0 > /proc/sys/fs/binfmt_misc/WSLInterop'
       then try again"
@@ -206,7 +213,7 @@ check_missing_packages () {
       echo "$@" | awk -F. '{ printf("%d%03d%03d%03d\n", $1,$2,$3,$4); }'
     }
 
-    if [ $(version "$KERNVER") -lt $(version "$MINIMUM_KERNEL_VERSION") ]; then
+    if [ $(version $KERNVER) -lt $(version $MINIMUM_KERNEL_VERSION) ]; then
       echo "Windows Subsystem for Linux (WSL) detected - kernel not at minumum version required: $MINIMUM_KERNEL_VERSION
       Please update via windows update then try again"
       #exit 1
@@ -223,7 +230,7 @@ UNAME=$(uname | tr "[:upper:]" "[:lower:]")
 # If Linux, try to determine specific distribution
 if [ "$UNAME" == "linux" ]; then
     # If available, use LSB to identify distribution
-    if [ -f /etc/lsb-release ] || [ -d /etc/lsb-release.d ]; then
+    if [ -f /etc/lsb-release -o -d /etc/lsb-release.d ]; then
         export DISTRO=$(lsb_release -i | cut -d: -f2 | sed s/'^\t'//)
     # Otherwise, use release info file
     else
@@ -247,14 +254,14 @@ intro() {
   the sandbox directory, since it will have some hard coded paths in there.
   You can, of course, rebuild ffmpeg from within it, etc.
 EOL
-  echo $(date) # for timestamping super long builds LOL
+  echo `date` # for timestamping super long builds LOL
   if [[ $sandbox_ok != 'y' && ! -d sandbox ]]; then
     echo
     echo "Building in $PWD/sandbox, will use ~ 12GB space!"
     echo
   fi
   mkdir -p "$cur_dir"
-  cd "$cur_dir" || exit
+  cd "$cur_dir"
   if [[ $disable_nonfree = "y" ]]; then
     non_free="n"
   else
@@ -273,7 +280,7 @@ pick_compiler_flavors() {
   while [[ "$compiler_flavors" != [1-5] ]]; do
     if [[ -n "${unknown_opts[@]}" ]]; then
       echo -n 'Unknown option(s)'
-      for opt in "${unknown_opts[@]}"; do
+      for unknown_opt in "${unknown_opts[@]}"; do
         echo -n " '$unknown_opt'"
       done
       echo ', ignored.'; echo
@@ -287,7 +294,7 @@ What version of MinGW-w64 would you like to build or update?
   5. Exit
 EOF
     echo -n 'Input your choice [1-5]: '
-    read -r compiler_flavors
+    read compiler_flavors
   done
   case "$compiler_flavors" in
   1 ) compiler_flavors=multi ;;
@@ -302,9 +309,9 @@ EOF
 # made into a method so I don't/don't have to download this script every time if only doing just 32 or just6 64 bit builds...
 download_gcc_build_script() {
     local zeranoe_script_name=$1
-    rm -f "$zeranoe_script_name" || exit 1
-    curl -4 "file://$patch_dir/$zeranoe_script_name" -O --fail || exit 1
-    chmod u+x "$zeranoe_script_name"
+    rm -f $zeranoe_script_name || exit 1
+    curl -4 file://$patch_dir/$zeranoe_script_name -O --fail || exit 1
+    chmod u+x $zeranoe_script_name
 }
 
 install_cross_compiler() {
@@ -328,7 +335,7 @@ install_cross_compiler() {
   fi
 
   mkdir -p cross_compilers
-  cd cross_compilers || exit 
+  cd cross_compilers
 
     unset CFLAGS # don't want these "windows target" settings used the compiler itself since it creates executables to run on the local box (we have a parameter allowing them to set them for the script "all builds" basically)
     # pthreads version to avoid having to use cvs for it
@@ -341,10 +348,10 @@ install_cross_compiler() {
     if [[ ($compiler_flavors == "win32" || $compiler_flavors == "multi") && ! -f ../$win32_gcc ]]; then
       echo "Building win32 cross compiler..."
       download_gcc_build_script $zeranoe_script_name
-      if [[ $(uname) =~ 5.1 ]]; then # Avoid using secure API functions for compatibility with msvcrt.dll on Windows XP.
+      if [[ `uname` =~ "5.1" ]]; then # Avoid using secure API functions for compatibility with msvcrt.dll on Windows XP.
         sed -i "s/ --enable-secure-api//" $zeranoe_script_name
       fi
-      CFLAGS=-O2 CXXFLAGS=-O2 nice ./$zeranoe_script_name "$zeranoe_script_options" --build-type=win32 || exit 1
+      CFLAGS=-O2 CXXFLAGS=-O2 nice ./$zeranoe_script_name $zeranoe_script_options --build-type=win32 || exit 1
       if [[ ! -f ../$win32_gcc ]]; then
         echo "Failure building 32 bit gcc? Recommend nuke sandbox (rm -rf sandbox) and start over..."
         exit 1
@@ -357,7 +364,7 @@ install_cross_compiler() {
     if [[ ($compiler_flavors == "win64" || $compiler_flavors == "multi") && ! -f ../$win64_gcc ]]; then
       echo "Building win64 x86_64 cross compiler..."
       download_gcc_build_script $zeranoe_script_name
-      CFLAGS=-O2 CXXFLAGS=-O2 nice ./$zeranoe_script_name "$zeranoe_script_options" --build-type=win64 || exit 1
+      CFLAGS=-O2 CXXFLAGS=-O2 nice ./$zeranoe_script_name $zeranoe_script_options --build-type=win64 || exit 1
       if [[ ! -f ../$win64_gcc ]]; then
         echo "Failure building 64 bit gcc? Recommend nuke sandbox (rm -rf sandbox) and start over..."
         exit 1
@@ -372,7 +379,7 @@ install_cross_compiler() {
     reset_cflags
   cd ..
   echo "Done building (or already built) MinGW-w64 cross-compiler(s) successfully..."
-  echo $(date) # so they can see how long it took :)
+  echo `date` # so they can see how long it took :)
 }
 
 # helper methods for downloading and building projects that can take generic input
@@ -381,16 +388,16 @@ do_svn_checkout() {
   repo_url="$1"
   to_dir="$2"
   desired_revision="$3"
-  if [ ! -d "$to_dir" ]; then
+  if [ ! -d $to_dir ]; then
     echo "svn checking out to $to_dir"
     if [[ -z "$desired_revision" ]]; then
-      svn checkout "$repo_url" "$to_dir.tmp" --non-interactive --trust-server-cert || exit 1
+      svn checkout $repo_url $to_dir.tmp  --non-interactive --trust-server-cert || exit 1
     else
-      svn checkout -r "$desired_revision" "$repo_url" "$to_dir.tmp" || exit 1
+      svn checkout -r $desired_revision $repo_url $to_dir.tmp || exit 1
     fi
-    mv "$to_dir.tmp" "$to_dir"
+    mv $to_dir.tmp $to_dir
   else
-    cd "$to_dir" || exit
+    cd $to_dir
     echo "not svn Updating $to_dir since usually svn repo's aren't updated frequently enough..."
     # XXX accomodate for desired revision here if I ever uncomment the next line...
     # svn up
@@ -1371,22 +1378,8 @@ build_libsndfile() {
 build_mpg123() {
   do_svn_checkout svn://scm.orgis.org/mpg123/trunk mpg123_svn r5008 # avoid Think again failure
   cd mpg123_svn
-  
-  # Ensure all required tools are installed
-  sudo apt-get install -y libtool autotools-dev automake gettext
-
-  # Run the autotools commands to generate the necessary files
-  libtoolize --force --copy
-  aclocal
-  autoheader
-  autoconf
-  automake --add-missing --copy
-  
-  # Allow undefined macros
-  echo 'm4_pattern_allow([LT_SYS_MODULE_EXT])' >> configure.ac
-
-  generic_configure
-  do_make_and_make_install
+    generic_configure
+    do_make_and_make_install
   cd ..
 }
 
@@ -1665,7 +1658,7 @@ build_svt-vp9() {
 }
 
 build_svt-av1() {
-  git clone --branch v2.3.0 --depth 1 https://gitlab.com/AOMediaCodec/SVT-AV1.git SVT-AV1_git
+  do_git_checkout https://gitlab.com/AOMediaCodec/SVT-AV1.git
   cd SVT-AV1_git
   cd Build
     do_cmake_from_build_dir .. "-DCMAKE_BUILD_TYPE=Release -DCMAKE_SYSTEM_PROCESSOR=AMD64"
@@ -2463,11 +2456,9 @@ build_ffmpeg() {
     config_options+=" --enable-libsrt"
     config_options+=" --enable-libxml2"
     config_options+=" --enable-opengl"
-    config_options+=" --enable-libqrencode"
-    config_options+=" --enable-libquirc"
     config_options+=" --enable-libdav1d"
     config_options+=" --enable-gnutls"
-    
+
     if [[ "$bits_target" != "32" ]]; then
       if [[ $build_svt_hevc = y ]]; then
         # SVT-HEVC
@@ -2650,7 +2641,7 @@ build_ffmpeg() {
 
 build_lsw() {
    # Build L-Smash-Works, which are AviSynth plugins based on lsmash/ffmpeg
-   #eg static # dependency, assume already built since it builds before this does...
+   #build_ffmpeg static # dependency, assume already built since it builds before this does...
    build_lsmash # dependency
    do_git_checkout https://github.com/VFR-maniac/L-SMASH-Works.git lsw
    cd lsw/VapourSynth
@@ -2680,24 +2671,34 @@ find_all_build_exes() {
 }
 
 build_libqrencode() {
+  # Clone the libqrencode repository
   do_git_checkout https://github.com/fukuchi/libqrencode.git libqrencode_git
   cd libqrencode_git
 
+  # Run autoupdate to update old macros
   autoupdate || echo "Warning: autoupdate failed, continuing..."
 
+  # Run autogen if needed (for GitHub source)
   ./autogen.sh || { echo "Error: autogen failed"; exit 1; }
-  
+
+  # Ensure Makefile exists before modifying
   if [ -f Makefile ]; then
       sed -i.bak "s|^PREFIX = /usr/local|PREFIX = $mingw_w64_x86_64_prefix|" Makefile
   fi
-  
+
+  # Set custom CFLAGS for build options, if necessary
+  export CFLAGS="-DQUIRC_MAX_REGIONS=65534 -DQUIRC_FLOAT_TYPE=float"
+
+  # Set correct cross-compiler
   export CC=${cross_prefix}gcc
   export CXX=${cross_prefix}g++
 
+  # Configure the build for cross-compiling
   ./configure --host=x86_64-w64-mingw32 --prefix=$mingw_w64_x86_64_prefix \
               --enable-static \
               --disable-shared || { echo "Error: configure failed"; exit 1; }
 
+  # Ensure Makefile exists before proceeding
   if [ ! -f Makefile ]; then
       echo "Error: Makefile not found. Check configure output."
       exit 1;
@@ -2709,28 +2710,24 @@ build_libqrencode() {
 }
 
 build_libquirc() {
-  sudo apt-get install libsdl1.2-dev
-  # Clone the quirc repository
-  do_git_checkout https://github.com/dlbeer/quirc.git libquirc_git
-  cd libquirc_git
+  if [ -f Makefile ]; then
+      sed -i.bak "s|^PREFIX = /usr/local|PREFIX = $mingw_w64_x86_64_prefix|" Makefile
+  fi
 
   # Set custom CFLAGS for build options
   export CFLAGS="-DQUIRC_MAX_REGIONS=65534 -DQUIRC_FLOAT_TYPE=float"
-  export LDFLAGS="-L${mingw_w64_x86_64_prefix}/lib"
-  
+
   # Ensure the correct cross-compiler is used
   export CC=${cross_prefix}gcc
   export CXX=${cross_prefix}g++
 
-  # Compile the static library
-  do_make libquirc.a || { echo "Error: make failed"; exit 1; }
+  # Check if Makefile exists before running make
+  if [ ! -f Makefile ]; then
+      echo "Error: Makefile not found. Check repository or run autogen/configure if needed."
+      exit 1
+  fi
 
-  # Install the library manually since there's no `make install`
-  mkdir -p $mingw_w64_x86_64_prefix/lib
-  cp libquirc.a $mingw_w64_x86_64_prefix/lib/
-
-  mkdir -p $mingw_w64_x86_64_prefix/include
-  cp quirc.h $mingw_w64_x86_64_prefix/include/
+  do_make_and_make_install
 
   cd ..
 }
@@ -2771,24 +2768,31 @@ build_ffmpeg_dependencies() {
   build_libopenjpeg
   build_glew
   build_glfw
+  #build_libjpeg_turbo # mplayer can use this, VLC qt might need it? [replaces libjpeg] (ffmpeg seems to not need it so commented out here)
   build_libpng # Needs zlib >= 1.0.4. Uses dlfcn.
   build_libwebp # Uses dlfcn.
   build_harfbuzz
+  # harf does now include build_freetype # Uses zlib, bzip2, and libpng.
   build_libxml2 # Uses zlib, liblzma, iconv and dlfcn.
   build_libvmaf
   build_fontconfig # Needs freetype and libxml >= 2.6. Uses iconv and dlfcn.
   build_gmp # For rtmp support configure FFmpeg with '--enable-gmp'. Uses dlfcn.
+  #build_librtmfp # mainline ffmpeg doesn't use it yet
   build_libnettle # Needs gmp >= 3.0. Uses dlfcn.
   build_unistring
   build_libidn2 # needs iconv and unistring
   build_gnutls # Needs nettle >= 3.1, hogweed (nettle) >= 3.1. Uses libidn2, unistring, zlib, and dlfcn.
+  #if [[ "$non_free" = "y" ]]; then
+  #  build_openssl-1.0.2 # Nonfree alternative to GnuTLS. 'build_openssl-1.0.2 "dllonly"' to build shared libraries only.
+  #  build_openssl-1.1.1 # Nonfree alternative to GnuTLS. Can't be used with LibRTMP. 'build_openssl-1.1.1 "dllonly"' to build shared libraries only.
+  #fi
   build_libogg # Uses dlfcn.
   build_libvorbis # Needs libogg >= 1.0. Uses dlfcn.
   build_libopus # Uses dlfcn.
   build_libspeexdsp # Needs libogg for examples. Uses dlfcn.
   build_libspeex # Uses libspeexdsp and dlfcn.
   build_libtheora # Needs libogg >= 1.1. Needs libvorbis >= 1.0.1, sdl and libpng for test, programs and examples [disabled]. Uses dlfcn.
-  build_libsndfile "install-libgsm" # Needs libogg >= 1.1.3 and libvorbis >= 1.2.3 for external support [disabled]. Uses dlfcn. 'build_libsndfile "install-libgsm"' to install the included LibGSM.
+  build_libsndfile "install-libgsm" # Needs libogg >= 1.1.3 and libvorbis >= 1.2.3 for external support [disabled]. Uses dlfcn. 'build_libsndfile "install-libgsm"' to install the included LibGSM 6.10.
   build_mpg123
   build_lame # Uses dlfcn, mpg123
   build_twolame # Uses libsndfile >= 1.0.0 and dlfcn.
@@ -2804,7 +2808,7 @@ build_ffmpeg_dependencies() {
   build_vamp_plugin # Needs libsndfile for 'vamp-simple-host.exe' [disabled].
   build_fftw # Uses dlfcn.
   build_libsamplerate # Needs libsndfile >= 1.0.6 and fftw >= 0.15.0 for tests. Uses dlfcn.
-  build_librubberband # Needs libsamplerate, libsndfile, fftw and vamp_plugin. 'configure' will fail otherwise. Eventhough librubberband doesn't necessarily need them (libsndfile only for 'rubberband'[...]
+  build_librubberband # Needs libsamplerate, libsndfile, fftw and vamp_plugin. 'configure' will fail otherwise. Eventhough librubberband doesn't necessarily need them (libsndfile only for 'rubberband.exe' and vamp_plugin only for "Vamp audio analysis plugin"). How to use the bundled libraries '-DUSE_SPEEX' and '-DUSE_KISSFFT'?
   build_frei0r # Needs dlfcn. could use opencv...
   if [[ "$bits_target" != "32" ]]; then
     if [[ $build_svt_hevc = y ]]; then
@@ -2816,6 +2820,7 @@ build_ffmpeg_dependencies() {
     build_svt-av1
   fi
   build_vidstab
+  #build_facebooktransform360 # needs modified ffmpeg to use it so not typically useful
   build_libmysofa # Needed for FFmpeg's SOFAlizer filter (https://ffmpeg.org/ffmpeg-filters.html#sofalizer). Uses dlfcn.
   if [[ "$non_free" = "y" ]]; then
     build_fdk-aac # Uses dlfcn.
@@ -2826,6 +2831,7 @@ build_ffmpeg_dependencies() {
   build_zvbi # Uses iconv, libpng and dlfcn.
   build_fribidi # Uses dlfcn.
   build_libass # Needs freetype >= 9.10.3 (see https://bugs.launchpad.net/ubuntu/+source/freetype1/+bug/78573 o_O) and fribidi >= 0.19.0. Uses fontconfig >= 2.10.92, iconv and dlfcn.
+
   build_libxvid # FFmpeg now has native support, but libxvid still provides a better image.
   build_libsrt # requires gnutls, mingw-std-threads
   if [[ $ffmpeg_git_checkout_version != *"n6.0"* ]] && [[ $ffmpeg_git_checkout_version != *"n5.1"* ]] && [[ $ffmpeg_git_checkout_version != *"n5.0"* ]] && [[ $ffmpeg_git_checkout_version != *"n4.4"* ]] && [[ $ffmpeg_git_checkout_version != *"n4.3"* ]] && [[ $ffmpeg_git_checkout_version != *"n4.2"* ]] && [[ $ffmpeg_git_checkout_version != *"n4.1"* ]] && [[ $ffmpeg_git_checkout_version != *"n3.4"* ]] && [[ $ffmpeg_git_checkout_version != *"n3.2"* ]] && [[ $ffmpeg_git_checkout_version != *"n2.8"* ]]; then
@@ -2834,16 +2840,15 @@ build_ffmpeg_dependencies() {
   build_libaribb24
   build_libtesseract
   build_lensfun  # requires png, zlib, iconv
+  # build_libtensorflow # broken
   build_libvpx
   build_libx265
   build_libopenh264
   build_libaom
-  build_libqrencode # Add this line to build qrencode
-  build_libquirc # Add this line to build libquirc
   build_dav1d
   build_avisynth
   build_libx264 # at bottom as it might internally build a copy of ffmpeg (which needs all the above deps...
-}
+ }
 
 build_apps() {
   if [[ $build_dvbtee = "y" ]]; then
@@ -3112,7 +3117,7 @@ if [[ $compiler_flavors == "multi" || $compiler_flavors == "win64" ]]; then
   make_prefix_options="CC=${cross_prefix}gcc AR=${cross_prefix}ar PREFIX=$mingw_w64_x86_64_prefix RANLIB=${cross_prefix}ranlib LD=${cross_prefix}ld STRIP=${cross_prefix}strip CXX=${cross_prefix}g++"
   work_dir="$(realpath $cur_dir/win64)"
   mkdir -p "$work_dir"
-  cd "$work_dir" || exit 1
+  cd "$work_dir"
     build_ffmpeg_dependencies
     build_apps
   cd ..
