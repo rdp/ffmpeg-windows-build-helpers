@@ -2732,15 +2732,6 @@ build_libqrencode() {
 }
 
 build_libquirc() {
-  do_git_checkout https://github.com/dlbeer/quirc.git libquirc_git
-  cd libquirc_git || { echo "Error: Failed to enter libquirc directory"; exit 1; }
-
-  autoupdate || echo "Warning: autoupdate failed, continuing..."
-
-  # Run autogen if needed (for GitHub source)
-  ./autogen.sh || { echo "Error: autogen failed"; exit 1; }
-
-  # Ensure Makefile exists before modifying
   if [ -f Makefile ]; then
       sed -i.bak "s|^PREFIX = /usr/local|PREFIX = $mingw_w64_x86_64_prefix|" Makefile
   fi
@@ -2762,7 +2753,7 @@ build_libquirc() {
   do_make || { echo "Error: make failed"; exit 1; }
 
   # Install the library
-  do_make_install || { echo "Error: make install failed"; exit 1; }
+  do_make_and_make_install || { echo "Error: make install failed"; exit 1; }
 
   cd ..
 }
