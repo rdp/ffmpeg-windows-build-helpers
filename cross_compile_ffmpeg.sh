@@ -2728,9 +2728,9 @@ build_libqrencode() {
 }
 
 build_libquirc() {
-  if [ -f Makefile ]; then
-      sed -i.bak "s|^PREFIX = /usr/local|PREFIX = $mingw_w64_x86_64_prefix|" Makefile
-  fi
+  # Clone the quirc repository
+  do_git_checkout https://github.com/dlbeer/quirc.git libquirc_git
+  cd libquirc_git
 
   # Set custom CFLAGS for build options
   export CFLAGS="-DQUIRC_MAX_REGIONS=65534 -DQUIRC_FLOAT_TYPE=float"
@@ -2739,13 +2739,15 @@ build_libquirc() {
   export CC=${cross_prefix}gcc
   export CXX=${cross_prefix}g++
 
-  # Check if Makefile exists before running make
-  if [ ! -f Makefile ]; then
-      echo "Error: Makefile not found. Check repository or run autogen/configure if needed."
-      exit 1
-  fi
+  # Compile the static library
+  do_make libquirc.a || { echo "Error: make failed"; exit 1; }
 
-  do_make_and_make_install
+  # Install the library manually since there's no `make install`
+  mkdir -p $mingw_w64_x86_64_prefix/lib
+  cp libquirc.a $mingw_w64_x86_64_prefix/lib/
+
+  mkdir -p $mingw_w64_x86_64_prefix/include
+  cp quirc.h $mingw_w64_x86_64_prefix/include/
 
   cd ..
 }
