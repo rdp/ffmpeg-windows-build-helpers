@@ -2,7 +2,6 @@
 # ffmpeg windows cross compile helper/download script, see github repo README
 # Copyright (C) 2012 Roger Pack, the script is under the GPLv3, but output FFmpeg's executables aren't
 # set -x
-
 yes_no_sel () {
   unset user_input
   local question="$1"
@@ -20,7 +19,7 @@ yes_no_sel () {
     fi
   done
   # downcase it
-  user_input=$(echo "$user_input" | tr 'A-Z' 'a-z')
+  user_input=$(echo $user_input | tr '[A-Z]' '[a-z]')
 }
 
 set_box_memory_size_bytes() {
@@ -35,13 +34,6 @@ set_box_memory_size_bytes() {
 
 function sortable_version { echo "$@" | awk -F. '{ printf("%d%03d%03d%03d\n", $1,$2,$3,$4); }'; }
 
-at_least_required_version() { # params: required actual
-  local sortable_required=$(sortable_version $1)
-  sortable_required=$(echo $sortable_required | sed 's/^0*//') # remove preceding zeroes, which bash later interprets as octal or screwy
-  local sortable_actual=$(sortable_version $2)
-  sortable_actual=$(echo $sortable_actual | sed 's/^0*//')
-  [[ "$sortable_actual" -ge "$sortable_required" ]]
-}
 apt_not_installed() {
   for x in "$@"; do
     if ! dpkg -l "$x" | grep -q '^.i'; then
