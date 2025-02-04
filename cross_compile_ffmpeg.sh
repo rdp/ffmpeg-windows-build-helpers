@@ -30,7 +30,7 @@ set_box_memory_size_bytes() {
     local ram_kilobytes
     ram_kilobytes=$(grep MemTotal /proc/meminfo | awk '{print $2}')
     local swap_kilobytes
-    swap_kilobytes=$(grep SwapTotal /proc/meminfo | awk '{print $2}')
+    swap_kilobytes=$(grep SwapTotal /proc/meminfo | awk '{print "$2"}')
     box_memory_size_bytes=$((ram_kilobytes * 1024 + swap_kilobytes * 1024))
   fi
 }
@@ -38,9 +38,8 @@ set_box_memory_size_bytes() {
 function sortable_version { echo "$@" | awk -F. '{ printf("%d%03d%03d%03d\n", $1,$2,$3,$4); }'; }
 
 at_least_required_version() { # params: required actual
-  local sortable_required
-  sortable_required=$(sortable_version "$1")
-  sortable_required=${sortable_required##0}
+  local sortable_required=$(sortable_version $1)
+  sortable_required=$(echo $sortable_required | sed 's/^0*//') # remove preceding zeroes, which bash later interprets as octal or screwy
   local sortable_actual=$(sortable_version $2)
   sortable_actual=$(echo $sortable_actual | sed 's/^0*//')
   [[ "$sortable_actual" -ge "$sortable_required" ]]
