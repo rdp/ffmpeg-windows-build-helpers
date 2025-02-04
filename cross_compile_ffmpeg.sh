@@ -101,12 +101,12 @@ check_missing_packages () {
         if at_least_required_version "20.04" "$ubuntu_ver"; then
           apt_pkgs="$apt_pkgs python-is-python3" # needed
         fi
-	echo "$ sudo apt-get install $apt_pkgs -y"
+        echo "$ sudo apt-get install $apt_pkgs -y"
         if uname -a | grep -q -- "-microsoft"; then
             echo "NB if you use WSL Ubuntu 20.04 you need to do an extra step: https://github.com/rdp/ffmpeg-windows-build-helpers/issues/452"
         fi
         ;;
-        echo "$ sudo apt-get install $apt_pkgs -y"
+	echo "$ sudo apt-get install $apt_pkgs -y"
         if uname -a | grep  -q -- "-microsoft" ; then
          echo "NB if you use WSL Ubuntu 20.04 you need to do an extra step: https://github.com/rdp/ffmpeg-windows-build-helpers/issues/452"
 	fi
@@ -140,16 +140,15 @@ check_missing_packages () {
         echo "$ sudo apt-get install $apt_missing -y"
         ;;
       *)
-        echo "for OS X (homebrew): brew install ragel wget cvs yasm autogen automake autoconf cmake libtool xz pkg-config nasm bzip2 autoconf-archive p7zip coreutils meson llvm" # if edit this edit docker/Dockerfile also :|
+        echo "for OS X (homebrew): brew install ragel wget cvs yasm autogen automake autoconf cmake libtool xz pkg-config nasm bzip2 autoconf-archive p7zip coreutils meson llvm" # if edit this edit do[...]
         echo "   and set llvm to your PATH if on catalina"
-        echo "for RHEL/CentOS: First ensure you have epel repo available, then run $ sudo yum install ragel subversion texinfo libtool autogen gperf nasm patch unzip pax ed gcc-c++ bison flex yasm automake autoconf gcc zlib-devel cvs bzip2 cmake3 -y"
+        echo "for RHEL/CentOS: First ensure you have epel repo available, then run $ sudo yum install ragel subversion texinfo libtool autogen gperf nasm patch unzip pax ed gcc-c++ bison flex yasm aut[...]
         echo "for fedora: if your distribution comes with a modern version of cmake then use the same as RHEL/CentOS but replace cmake3 with cmake."
         echo "for linux native compiler option: same as <your OS> above, also add libva-dev"
-
         ;;
     esac
     exit 1
-  fi
+   fi
 
   export REQUIRED_CMAKE_VERSION="3.0.0"
   for cmake_binary in 'cmake' 'cmake3'; do
