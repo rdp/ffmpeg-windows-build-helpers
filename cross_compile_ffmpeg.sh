@@ -2722,11 +2722,7 @@ build_libqrencode() {
       exit 1;
   fi
 
-  # Build the library
-  do_make || { echo "Error: make failed"; exit 1; }
-
-  # Install the library
-  do_make_install || { echo "Error: make install failed"; exit 1; }
+  do_make_and_make_install || { echo "Error: make install failed"; exit 1; }
 
   cd ..
 }
@@ -2749,11 +2745,7 @@ build_libquirc() {
       exit 1
   fi
 
-  # Build the library
-  do_make || { echo "Error: make failed"; exit 1; }
-
-  # Install the library
-  do_make_and_make_install || { echo "Error: make install failed"; exit 1; }
+  do_make_and_make_install
 
   cd ..
 }
