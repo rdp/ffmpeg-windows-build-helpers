@@ -25,13 +25,36 @@ yes_no_sel () {
 
 set_box_memory_size_bytes() {
   if [[ $OSTYPE == darwin* ]]; then
-    box_memory_size_bytes=48000000000 # 20G fake it out for now :|
+    local ram_bytes
+    local swap_bytes
+    ram_bytes=$(sysctl -n hw.memsize)
+    swap_bytes=$(sysctl -n vm.swapusage | awk '{print int($3 * 1024 * 1024)}')
+    box_memory_size_bytes=$((ram_bytes + swap_bytes))
+
+    # Fake a value only if RAM and swap aren't available (unlikely)
+    if [[ -z "$box_memory_size_bytes" || "$box_memory_size_bytes" -lt 17179869184 ]]; then
+      box_memory_size_bytes=48000000000  # Fallback 20GB
+    fi
   else
     local ram_kilobytes
-    ram_kilobytes=$(grep MemTotal /proc/meminfo | awk '{print $2}')
     local swap_kilobytes
-    swap_kilobytes=$(grep SwapTotal /proc/meminfo | awk '{print "$2"}')
+    ram_kilobytes=$(grep MemTotal /proc/meminfo | awk '{print $2}')
+    swap_kilobytes=$(grep SwapTotal /proc/meminfo | awk '{print $2}')
     box_memory_size_bytes=$((ram_kilobytes * 1024 + swap_kilobytes * 1024))
+  fi
+
+  # Check total memory (RAM + swap)
+  if [[ $box_memory_size_bytes -lt 17179869184 ]]; then
+    echo "Error: At least 16GB of RAM and swap combined is required."
+    exit 1
+  fi
+
+  # Check available storage space
+  local storage_bytes
+  storage_bytes=$(df --output=avail "$PWD" | tail -n1 | awk '{print $1 * 1024}')
+  if [[ $storage_bytes -lt 85899345920 ]]; then
+    echo "Error: At least 80GB of available storage is required."
+    exit 1
   fi
 }
 
