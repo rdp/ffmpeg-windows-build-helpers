@@ -2728,6 +2728,14 @@ build_libquirc() {
   export CC=${cross_prefix}gcc
   export CXX=${cross_prefix}g++
 
+  # Install SDL development package if not already installed
+  if ! pkg-config --exists sdl; then
+    sudo apt-get install libsdl1.2-dev
+  fi
+
+  # Add SDL to PKG_CONFIG_PATH
+  export PKG_CONFIG_PATH=$PKG_CONFIG_PATH:/usr/lib/x86_64-linux-gnu/pkgconfig
+
   # Compile the static library
   do_make libquirc.a || { echo "Error: make failed"; exit 1; }
 
