@@ -2686,36 +2686,26 @@ find_all_build_exes() {
   echo $found # pseudo return value...
 }
 
-# Modify the eg_dependencies function to include qrencode and libquirc
 build_libqrencode() {
-  # Clone the libqrencode repository
   do_git_checkout https://github.com/fukuchi/libqrencode.git libqrencode_git
   cd libqrencode_git
 
-  # Run autoupdate to update old macros
   autoupdate || echo "Warning: autoupdate failed, continuing..."
 
-  # Run autogen if needed (for GitHub source)
   ./autogen.sh || { echo "Error: autogen failed"; exit 1; }
 
-  # Ensure Makefile exists before modifying
+
   if [ -f Makefile ]; then
       sed -i.bak "s|^PREFIX = /usr/local|PREFIX = $mingw_w64_x86_64_prefix|" Makefile
   fi
-
-  # Set custom CFLAGS for build options, if necessary
-  export CFLAGS="-DQUIRC_MAX_REGIONS=65534 -DQUIRC_FLOAT_TYPE=float"
-
-  # Set correct cross-compiler
+  
   export CC=${cross_prefix}gcc
   export CXX=${cross_prefix}g++
 
-  # Configure the build for cross-compiling
   ./configure --host=x86_64-w64-mingw32 --prefix=$mingw_w64_x86_64_prefix \
               --enable-static \
               --disable-shared || { echo "Error: configure failed"; exit 1; }
 
-  # Ensure Makefile exists before proceeding
   if [ ! -f Makefile ]; then
       echo "Error: Makefile not found. Check configure output."
       exit 1;
