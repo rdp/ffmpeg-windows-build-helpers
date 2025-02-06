@@ -2453,6 +2453,8 @@ build_ffmpeg() {
     config_options+=" --enable-libopencore-amrnb"
     config_options+=" --enable-libopencore-amrwb"
     config_options+=" --enable-libopus"
+    config_options+=" --enable-libqrencode"
+    config_options+=" --enable-libquirc"
     config_options+=" --enable-libsnappy"
     config_options+=" --enable-libsoxr"
     config_options+=" --enable-libspeex"
@@ -2470,8 +2472,7 @@ build_ffmpeg() {
     config_options+=" --enable-libsrt"
     config_options+=" --enable-libxml2"
     config_options+=" --enable-opengl"
-    config_options+=" --enable-libqrencode"
-    config_options+=" --enable-libquirc"
+
     config_options+=" --enable-libdav1d"
     config_options+=" --enable-gnutls"
     
@@ -2684,69 +2685,6 @@ find_all_build_exes() {
     found="$found $(readlink -f $file)"
   done
   echo $found # pseudo return value...
-}
-
-build_libqrencode() {
-  do_git_checkout https://github.com/fukuchi/libqrencode.git libqrencode_git
-  cd libqrencode_git
-
-  autoupdate || echo "Warning: autoupdate failed, continuing..."
-
-  ./autogen.sh || { echo "Error: autogen failed"; exit 1; }
-
-
-  if [ -f Makefile ]; then
-      sed -i.bak "s|^PREFIX = /usr/local|PREFIX = $mingw_w64_x86_64_prefix|" Makefile
-  fi
-  
-  export CC=${cross_prefix}gcc
-  export CXX=${cross_prefix}g++
-
-  ./configure --host=x86_64-w64-mingw32 --prefix=$mingw_w64_x86_64_prefix \
-              --enable-static \
-              --disable-shared || { echo "Error: configure failed"; exit 1; }
-
-  if [ ! -f Makefile ]; then
-      echo "Error: Makefile not found. Check configure output."
-      exit 1;
-  fi
-
-  do_make_and_make_install || { echo "Error: make install failed"; exit 1; }
-
-  cd ..
-}
-
-build_libquirc() {
-  # Clone the quirc repository
-  do_git_checkout https://github.com/dlbeer/quirc.git libquirc_git
-  cd libquirc_git
-
-  # Set custom CFLAGS for build options
-  export CFLAGS="-DQUIRC_MAX_REGIONS=65534 -DQUIRC_FLOAT_TYPE=float"
-
-  # Ensure the correct cross-compiler is used
-  export CC=${cross_prefix}gcc
-  export CXX=${cross_prefix}g++
-
-  # Install SDL development package if not already installed
-  if ! pkg-config --exists sdl; then
-    sudo apt-get install libsdl1.2-dev
-  fi
-
-  # Add SDL to PKG_CONFIG_PATH
-  export PKG_CONFIG_PATH=$PKG_CONFIG_PATH:/usr/lib/x86_64-linux-gnu/pkgconfig
-
-  # Compile the static library
-  do_make libquirc.a || { echo "Error: make failed"; exit 1; }
-
-  # Install the library manually since there's no `make install`
-  mkdir -p $mingw_w64_x86_64_prefix/lib
-  cp libquirc.a $mingw_w64_x86_64_prefix/lib/
-
-  mkdir -p $mingw_w64_x86_64_prefix/include
-  cp quirc.h $mingw_w64_x86_64_prefix/include/
-
-  cd ..
 }
 
 build_ffmpeg_dependencies() {
