@@ -1380,7 +1380,7 @@ build_mpg123() {
   cd mpg123_svn
   
   # Ensure all required tools are installed
-  sudo apt-get install -y libtool autotools-dev automake gettext
+  sudo apt-get install -y libtool libpng12-dev autotools-dev automake gettext autoconf libtool pkg-config 
 
   # Run the autotools commands to generate the necessary files
   libtoolize --force --copy
@@ -2071,8 +2071,44 @@ build_libdvdnav() {
   cd ..
 }
 
+build_libqrencode() {
+  download_and_unpack_file https://github.com/fukuchi/libqrencode/archive/refs/tags/v4.1.1.tar.gz 
+  cd libqrencode-4.1.1
+    if [[ ! -f ./configure ]]; then
+      ./autogen.sh
+    fi
+    generic_configure_make_install
+    sed -i.bak 's/-lqrencode.*/-lqrencode -lz -lm/' "$PKG_CONFIG_PATH/qrencode.pc"
+  cd ..
+}
+
 build_libdvdcss() {
   generic_download_and_make_and_install https://download.videolan.org/pub/videolan/libdvdcss/1.2.13/libdvdcss-1.2.13.tar.bz2
+}
+
+build_quirc() {
+  # Download and unpack the quirc source code
+  download_and_unpack_file https://github.com/fukuchi/quirc/archive/refs/tags/v0.3.0.tar.gz 
+  cd quirc-0.3.0 || exit 1  # Ensure the directory change is successful
+
+  # Check if the configure script exists; if not, run autogen.sh
+  if [[ ! -f ./configure ]]; then
+    ./autogen.sh
+  fi
+
+  # Run the generic configure, make, and install process
+  generic_configure_make_install
+
+  # Build specific targets
+  make libquirc.a libquirc.so qrtest inspect quirc-scanner quirc-demo
+
+  # Install the library and demos
+  make install
+
+  # Modify the pkg-config file if necessary
+  sed -i.bak 's/-lquirc.*/-lquirc -lz -lm/' "$PKG_CONFIG_PATH/quirc.pc"
+
+  cd .. || exit 1  # Ensure you return to the previous directory successfully
 }
 
 build_libjpeg_turbo() {
@@ -2472,7 +2508,6 @@ build_ffmpeg() {
     config_options+=" --enable-libsrt"
     config_options+=" --enable-libxml2"
     config_options+=" --enable-opengl"
-
     config_options+=" --enable-libdav1d"
     config_options+=" --enable-gnutls"
     
