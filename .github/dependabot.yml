@@ -1,15 +1,5 @@
 version: 2
 
-updates:
-  - package-ecosystem: "docker"
-    directory: "/docker"
-    schedule:
-      interval: "daily"
-    allow:
-      - dependency-type: "all"
-    commit-message:
-      prefix: ":arrow_up:"
-
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
