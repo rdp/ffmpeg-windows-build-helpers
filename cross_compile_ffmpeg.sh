@@ -2952,7 +2952,7 @@ while true; do
       --build-svt-hevc=n [builds libsvt-hevc modules within ffmpeg etc.]
       --build-svt-vp9=n [builds libsvt-hevc modules within ffmpeg etc.]
       --build-dvbtee=n [build dvbtee.exe a DVB profiler]
-      --compiler-flavors=[multi,win32,win64,native] [default prompt, or skip if you already have one built, multi is both win32 and win64]
+      --compiler-flavors=${{ matrix.os }} [default prompt, or skip if you already have one built, multi is both win32 and win64]
       --cflags=[default is $original_cflags, which works on any cpu, see README for options]
       --git-get-latest=y [do a git pull for latest code from repositories like FFmpeg--can force a rebuild if changes are detected]
       --build-x264-with-libav=n build x264.exe with bundled/included "libav" ffmpeg libraries within it
