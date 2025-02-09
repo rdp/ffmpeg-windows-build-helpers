@@ -2072,11 +2072,11 @@ build_libdvdnav() {
 }
 
 build_libqrencode() {
-  git_clone https://github.com/xdeadboy666x/libqrencode.git libqrencode_git
+	sudo apt update && sudo apt-get install -y autoconf automake autotools-dev libsdl2-dev libtool pkg-config libpng-dev 
+	git_clone https://github.com/xdeadboy666x/libqrencode.git libqrencode_git
   cd libqrencode_git
     ./autogen.sh
-    sudo apt update && sudo apt-get install -y autoconf automake autotools-dev libsdl2-dev libtool pkg-config libpng-dev
-    generic_configure "--libdir=$mingw_w64_x86_64_prefix/lib --host=$host_target --prefix=$mingw_w64_x86_64_prefix"
+    ./configure "--libdir=$mingw_w64_x86_64_prefix/lib --host=$host_target --prefix=$mingw_w64_x86_64_prefix"
     do_make "install-static" 
   cd ..
 }
