@@ -19,7 +19,7 @@ yes_no_sel () {
       clear; echo 'Your selection was not vaild, please try again.'; echo
     fi
   done
-  # downcase it
+  # downcase it—
   user_input=$(echo $user_input | tr '[A-Z]' '[a-z]')
 }
 
@@ -2952,7 +2952,7 @@ while true; do
       --build-svt-hevc=n [builds libsvt-hevc modules within ffmpeg etc.]
       --build-svt-vp9=n [builds libsvt-hevc modules within ffmpeg etc.]
       --build-dvbtee=n [build dvbtee.exe a DVB profiler]
-      --compiler-flavors=win64 [default prompt, or skip if you already have one built, multi is both win32 and win64]
+      --compiler-flavors=[multi,win32win64,native] [default prompt, or skip if you already have one built, multi is both win32 and win64]
       --cflags=[default is $original_cflags, which works on any cpu, see README for options]
       --git-get-latest=y [do a git pull for latest code from repositories like FFmpeg--can force a rebuild if changes are detected]
       --build-x264-with-libav=n build x264.exe with bundled/included "libav" ffmpeg libraries within it
