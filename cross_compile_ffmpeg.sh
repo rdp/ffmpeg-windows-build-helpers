@@ -2071,46 +2071,46 @@ build_libdvdnav() {
   cd ..
 }
 
-build_libqrencode() {
-  sudo apt update && sudo apt-get install -y autoconf automake autotools-dev libsdl2-dev libtool pkg-config cmake libpng-dev
-  git_checkout https://github.com/xdeadboy666x/libqrencode.git libqrencode_git
-  cd libqrencode_git
-    if [[ ! -f ./configure ]]; then
-      ./autogen.sh
-    fi
-  ./configure --prefix=$mingw_w64_x86_64_prefix --cross-prefix=$cross_prefix --with-tests
-  do_make_and_make_install
-  cd ..
-}
+#build_libqrencode() {
+#  sudo apt update && sudo apt-get install -y autoconf automake autotools-dev libsdl2-dev libtool pkg-config cmake libpng-dev
+#  git_checkout https://github.com/xdeadboy666x/libqrencode.git libqrencode_git
+#  cd libqrencode_git
+#    if [[ ! -f ./configure ]]; then
+#      ./autogen.sh
+#    fi
+#  ./configure --prefix=$mingw_w64_x86_64_prefix --cross-prefix=$cross_prefix --with-tests
+#  do_make_and_make_install
+#  cd ..
+#}
 
 build_libdvdcss() {
   generic_download_and_make_and_install https://download.videolan.org/pub/videolan/libdvdcss/1.2.13/libdvdcss-1.2.13.tar.bz2
 }
 
-build_quirc() {
-  # Download and unpack the quirc source code
-  download_and_unpack_file https://github.com/fukuchi/quirc/archive/refs/tags/v0.3.0.tar.gz 
-  cd quirc-0.3.0 || exit 1  # Ensure the directory change is successful
+#build_quirc() {
+#  # Download and unpack the quirc source code
+#  download_and_unpack_file https://github.com/fukuchi/quirc/archive/refs/tags/v0.3.0.tar.gz 
+#  cd quirc-0.3.0 || exit 1  # Ensure the directory change is successful
 
   # Check if the configure script exists; if not, run autogen.sh
-  if [[ ! -f ./configure ]]; then
-    ./autogen.sh
-  fi
+#  if [[ ! -f ./configure ]]; then
+#    ./autogen.sh
+#  fi
 
   # Run the generic configure, make, and install process
-  generic_configure_make_install
+# generic_configure_make_install
 
   # Build specific targets
-  make libquirc.a libquirc.so qrtest inspect quirc-scanner quirc-demo
+#  make libquirc.a libquirc.so qrtest inspect quirc-scanner quirc-demo
 
   # Install the library and demos
-  make install
+#  make install
 
   # Modify the pkg-config file if necessary
-  sed -i.bak 's/-lquirc.*/-lquirc -lz -lm/' "$PKG_CONFIG_PATH/quirc.pc"
+#  sed -i.bak 's/-lquirc.*/-lquirc -lz -lm/' "$PKG_CONFIG_PATH/quirc.pc"
 
-  cd .. || exit 1  # Ensure you return to the previous directory successfully
-}
+#  cd .. || exit 1  # Ensure you return to the previous directory successfully
+#}
 
 build_libjpeg_turbo() {
   do_git_checkout https://github.com/libjpeg-turbo/libjpeg-turbo libjpeg-turbo_git "origin/main"
@@ -2490,8 +2490,8 @@ build_ffmpeg() {
     config_options+=" --enable-libopencore-amrnb"
     config_options+=" --enable-libopencore-amrwb"
     config_options+=" --enable-libopus"
-    config_options+=" --enable-libqrencode"
-    config_options+=" --enable-libquirc"
+#    config_options+=" --enable-libqrencode"
+#    config_options+=" --enable-libquirc"
     config_options+=" --enable-libsnappy"
     config_options+=" --enable-libsoxr"
     config_options+=" --enable-libspeex"
@@ -2792,7 +2792,9 @@ build_ffmpeg_dependencies() {
   build_vamp_plugin # Needs libsndfile for 'vamp-simple-host.exe' [disabled].
   build_fftw # Uses dlfcn.
   build_libsamplerate # Needs libsndfile >= 1.0.6 and fftw >= 0.15.0 for tests. Uses dlfcn.
-  build_librubberband # Needs libsamplerate, libsndfile, fftw and vamp_plugin. 'configure' will fail otherwise. Eventhough librubberband doesn't necessarily need them (libsndfile only for 'rubberband'[...]
+  build_librubberband
+#  build_libqrencode # Add this line to build qrencode
+#  build_libquirc # Add this line to build libquirc # Needs libsamplerate, libsndfile, fftw and vamp_plugin. 'configure' will fail otherwise. Eventhough librubberband doesn't necessarily need them (libsndfile only for 'rubberband'[...]
   build_frei0r # Needs dlfcn. could use opencv...
   if [[ "$bits_target" != "32" ]]; then
     if [[ $build_svt_hevc = y ]]; then
@@ -2826,8 +2828,6 @@ build_ffmpeg_dependencies() {
   build_libx265
   build_libopenh264
   build_libaom
-  build_libqrencode # Add this line to build qrencode
-  build_libquirc # Add this line to build libquirc
   build_dav1d
   build_avisynth
   build_libx264 # at bottom as it might internally build a copy of ffmpeg (which needs all the above deps...
