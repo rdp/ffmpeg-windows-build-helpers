@@ -2075,8 +2075,10 @@ build_libqrencode() {
   sudo apt update && sudo apt-get install -y autoconf automake autotools-dev libsdl2-dev libtool pkg-config cmake libpng-dev
   git_checkout https://github.com/xdeadboy666x/libqrencode.git libqrencode_git
   cd libqrencode_git
-  ./autogen.sh
-  ./configure --with-tests
+    if [[ ! -f ./configure ]]; then
+      ./autogen.sh
+    fi
+  ./configure --prefix=$mingw_w64_x86_64_prefix --cross-prefix=$cross_prefix --with-tests
   do_make_and_make_install
   cd ..
 }
