@@ -2065,7 +2065,6 @@ build_libdvdnav() {
   cd libdvdnav-4.2.1
     if [[ ! -f ./configure ]]; then
       ./autogen.sh
-    fi
     generic_configure_make_install
     sed -i.bak 's/-ldvdnav.*/-ldvdnav -ldvdread -ldvdcss -lpsapi/' "$PKG_CONFIG_PATH/dvdnav.pc" # psapi for dlfcn ... [hrm?]
   cd ..
@@ -2077,13 +2076,9 @@ build_libqrencode() {
   cd libqrencode_git
     if [[ ! -f ./configure ]]; then
       ./autogen.sh
-    fi
-  get_small_touchfile_name
-  do_configure "--cross-prefix=$cross_prefix --host=$host_target --prefix=$mingw_w64_x86_64_prefix"
-  do_make_and_make_install
-  mkdir build && cd build
-  do_cmake_and_install
-  cd ..
+      autoupdate
+    do_configure "--host=$host_target --prefix=${mingw_w64_x86_64_prefix} --libdir=${mingw_w64_x86_64_prefix}/lib --with-tests"
+    do_make_and_make_install
   cd ..
 }
 
