@@ -2073,13 +2073,17 @@ build_libdvdnav() {
 
 build_libqrencode() {
   sudo apt update && sudo apt-get install -y autoconf automake autotools-dev libsdl2-dev libtool pkg-config cmake libpng-dev
-  git_checkout https://github.com/xdeadboy666x/libqrencode.git libqrencode_git
+  retry_git_or_die https://github.com/xdeadboy666x/libqrencode.git libqrencode_git
   cd libqrencode_git
     if [[ ! -f ./configure ]]; then
       ./autogen.sh
     fi
-  ./configure --prefix=$mingw_w64_x86_64_prefix --cross-prefix=$cross_prefix --with-tests
+  get_small_touchfile_name
+  do_configure "--cross-prefix=$cross_prefix --host=$host_target --prefix=$mingw_w64_x86_64_prefix"
   do_make_and_make_install
+  mkdir build && cd build
+  do_cmake_and_install
+  cd ..
   cd ..
 }
 
