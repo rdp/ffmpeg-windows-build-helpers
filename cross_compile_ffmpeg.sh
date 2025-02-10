@@ -3,6 +3,26 @@
 # Copyright (C) 2012 Roger Pack, the script is under the GPLv3, but output FFmpeg's executables aren't
 # set -x
 
+set_box_memory_size_bytes() {
+  if [[ $OSTYPE == darwin* ]]; then
+    box_memory_size_bytes=20000000000 # 20G fake it out for now :|
+  else
+    local ram_kilobytes=`grep MemTotal /proc/meminfo | awk '{print $2}'`
+    local swap_kilobytes=`grep SwapTotal /proc/meminfo | awk '{print $2}'`
+    box_memory_size_bytes=$[ram_kilobytes * 1024 + swap_kilobytes * 1024]
+  fi
+}
+
+function sortable_version { echo "$@" | awk -F. '{ printf("%d%03d%03d%03d\n", $1,$2,$3,$4); }'; }
+
+at_least_required_version() { # params: required actual
+  local sortable_required=$(sortable_version $1)
+  sortable_required=$(echo $sortable_required | sed 's/^0*//') # remove preceding zeroes, which bash later interprets as octal or screwy
+  local sortable_actual=$(sortable_version $2)
+  sortable_actual=$(echo $sortable_actual | sed 's/^0*//')
+  [[ "$sortable_actual" -ge "$sortable_required" ]]
+}
+
 # helper methods for downloading and building projects that can take generic input
 
 do_svn_checkout() {
