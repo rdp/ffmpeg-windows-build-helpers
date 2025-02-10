@@ -2077,7 +2077,7 @@ build_libqrencode() {
   cd libqrencode_git
     ./autogen.sh
     autoupdate
-    do_configure "--host={$host_target} --prefix=${mingw_w64_x86_64_prefix} --libdir=${mingw_w64_x86_64_prefix}/lib --with-tests"
+    do_configure "--libdir=${mingw_w64_x86_64_prefix}/lib --with-tests"
     do_make_and_make_install
   cd ..
 }
