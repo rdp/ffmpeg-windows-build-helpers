@@ -2071,21 +2071,21 @@ build_libdvdnav() {
   cd ..
 }
 
-build_libqrencode() {
-  sudo apt update && sudo apt-get install -y autoconf automake autotools-dev libsdl2-dev libtool pkg-config cmake libpng-dev
-  retry_git_or_die https://github.com/xdeadboy666x/libqrencode.git libqrencode_git
-  cd libqrencode_git
-    if [[ ! -f ./configure ]]; then
-      ./autogen.sh
-    fi
-  get_small_touchfile_name
-  do_configure "--cross-prefix=$cross_prefix --host=$host_target --prefix=$mingw_w64_x86_64_prefix"
-  do_make_and_make_install
-  mkdir build && cd build
-  do_cmake_and_install
-  cd ..
-  cd ..
-}
+#build_libqrencode() {
+#  sudo apt update && sudo apt-get install -y autoconf automake autotools-dev libsdl2-dev libtool pkg-config cmake libpng-dev
+#  retry_git_or_die https://github.com/xdeadboy666x/libqrencode.git libqrencode_git
+#  cd libqrencode_git
+#    if [[ ! -f ./configure ]]; then
+#      ./autogen.sh
+#    fi
+#  get_small_touchfile_name
+#  do_configure "--cross-prefix=$cross_prefix --host=$host_target --prefix=$mingw_w64_x86_64_prefix"
+#  do_make_and_make_install
+#  mkdir build && cd build
+#  do_cmake_and_install
+#  cd ..
+#  cd ..
+#}
 
 build_libdvdcss() {
   generic_download_and_make_and_install https://download.videolan.org/pub/videolan/libdvdcss/1.2.13/libdvdcss-1.2.13.tar.bz2
@@ -2494,8 +2494,8 @@ build_ffmpeg() {
     config_options+=" --enable-libopencore-amrnb"
     config_options+=" --enable-libopencore-amrwb"
     config_options+=" --enable-libopus"
-    config_options+=" --enable-libqrencode"
-    config_options+=" --enable-libquirc"
+  #  config_options+=" --enable-libqrencode"
+  #  config_options+=" --enable-libquirc"
     config_options+=" --enable-libsnappy"
     config_options+=" --enable-libsoxr"
     config_options+=" --enable-libspeex"
@@ -2797,8 +2797,8 @@ build_ffmpeg_dependencies() {
   build_fftw # Uses dlfcn.
   build_libsamplerate # Needs libsndfile >= 1.0.6 and fftw >= 0.15.0 for tests. Uses dlfcn.
   build_librubberband
-  build_libqrencode # Add this line to build qrencode
-  build_libquirc # Add this line to build libquirc # Needs libsamplerate, libsndfile, fftw and vamp_plugin. 'configure' will fail otherwise. Eventhough librubberband doesn't necessarily need them (libsndfile only for 'rubberband'[...]
+#  build_libqrencode # Add this line to build qrencode
+#  build_libquirc # Add this line to build libquirc # Needs libsamplerate, libsndfile, fftw and vamp_plugin. 'configure' will fail otherwise. Eventhough librubberband doesn't necessarily need them (libsndfile only for 'rubberband'[...]
   build_frei0r # Needs dlfcn. could use opencv...
   if [[ "$bits_target" != "32" ]]; then
     if [[ $build_svt_hevc = y ]]; then
