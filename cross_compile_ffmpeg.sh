@@ -86,7 +86,7 @@ check_missing_packages () {
     echo 'Install the missing packages before running this script.'
     determine_distro
 
-    apt_pkgs='subversion ragel curl texinfo g++ ed bison flex cvs libva-dev yasm automake libtool autoconf gcc cmake git make pkg-config zlib1g-dev unzip pax nasm gperf autogen bzip2 autoconf-archive p7zip-full meson clang gettext subversion texinfo patch wget xz-utils coreutils'
+    apt_pkgs='subversion ragel curl texinfo g++ ed bison flex cvs libva-dev yasm automake libtool autoconf gcc cmake git make pkg-config zlib1g-dev unzip pax nasm gperf autogen bzip2 autoconf-archive p7zip-full meson clang gettext git-core patch wget xz-utils build-essential coreutils'
 
     [[ $DISTRO == "debian" ]] && apt_pkgs="$apt_pkgs libtool-bin ed" # extra for debian
     case "$DISTRO" in
@@ -2065,6 +2065,7 @@ build_libdvdnav() {
   cd libdvdnav-4.2.1
     if [[ ! -f ./configure ]]; then
       ./autogen.sh
+    fi
     generic_configure_make_install
     sed -i.bak 's/-ldvdnav.*/-ldvdnav -ldvdread -ldvdcss -lpsapi/' "$PKG_CONFIG_PATH/dvdnav.pc" # psapi for dlfcn ... [hrm?]
   cd ..
@@ -2074,10 +2075,9 @@ build_libqrencode() {
   sudo apt update && sudo apt-get install -y autoconf automake autotools-dev libsdl2-dev libtool pkg-config cmake libpng-dev
   retry_git_or_die https://github.com/xdeadboy666x/libqrencode.git libqrencode_git
   cd libqrencode_git
-    if [[ ! -f ./configure ]]; then
-      ./autogen.sh
-      autoupdate
-    do_configure "--host=$host_target --prefix=${mingw_w64_x86_64_prefix} --libdir=${mingw_w64_x86_64_prefix}/lib --with-tests"
+    ./autogen.sh
+    autoupdate
+    do_configure "--host={$host_target} --prefix=${mingw_w64_x86_64_prefix} --libdir=${mingw_w64_x86_64_prefix}/lib --with-tests"
     do_make_and_make_install
   cd ..
 }
@@ -2830,7 +2830,7 @@ build_ffmpeg_dependencies() {
   build_dav1d
   build_avisynth
   build_libx264 # at bottom as it might internally build a copy of ffmpeg (which needs all the above deps...
-}
+ }
 
 build_apps() {
   if [[ $build_dvbtee = "y" ]]; then
@@ -2953,7 +2953,7 @@ while true; do
       --build-svt-hevc=n [builds libsvt-hevc modules within ffmpeg etc.]
       --build-svt-vp9=n [builds libsvt-hevc modules within ffmpeg etc.]
       --build-dvbtee=n [build dvbtee.exe a DVB profiler]
-      --compiler-flavors=[multi,win32win64,native] [default prompt, or skip if you already have one built, multi is both win32 and win64]
+      --compiler-flavors=[multi,win32,win64,native] [default prompt, or skip if you already have one built, multi is both win32 and win64]
       --cflags=[default is $original_cflags, which works on any cpu, see README for options]
       --git-get-latest=y [do a git pull for latest code from repositories like FFmpeg--can force a rebuild if changes are detected]
       --build-x264-with-libav=n build x264.exe with bundled/included "libav" ffmpeg libraries within it
