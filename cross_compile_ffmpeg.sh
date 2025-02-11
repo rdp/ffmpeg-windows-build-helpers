@@ -2078,7 +2078,9 @@ build_libqrencode() {
     ./autogen.sh
     autoupdate
     do_configure "--libdir=${mingw_w64_x86_64_prefix}/lib --with-tests"
-    do_make_and_make_install
+    make check
+    make distcheck
+    make install    
   cd ..
 }
 
