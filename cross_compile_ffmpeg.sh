@@ -2,7 +2,8 @@
 # ffmpeg windows cross compile helper/download script, see github repo README
 # Copyright (C) 2012 Roger Pack, the script is under the GPLv3, but output FFmpeg's executables aren't
 # set -x
-sudo apt-get update && sudo apt-get install -y subversion python-is-python3 libfreetype-dev libgnutls-dev libmp3lame-dev libsdl2-dev \
+sudo apt-get update 
+sudo apt-get install -y subversion python-is-python3 libfreetype-dev libgnutls-dev libmp3lame-dev libsdl2-dev \
 libtool libva-dev libvdpau-dev libvorbis-dev libxcb1-dev libxcb-shm0-dev libxcb-xfixes0-dev ragel build-essential \
 libass-dev autoconf automake curl texinfo libpulse-dev llvm g++ ed bison flex cvs yasm cmake git libqrencode-dev \
 make pkg-config zlib1g-dev unzip pax nasm gperf libunistring-dev libaom-dev libdav1d-dev autogen bzip2 \
@@ -1381,24 +1382,21 @@ build_libsndfile() {
 }
 
 build_mpg123() {
-  do_svn_checkout svn://scm.orgis.org/mpg123/trunk mpg123_svn r5008 # avoid Think again failure
+  do_svn_checkout svn://scm.orgis.org/mpg123/trunk mpg123_svn r5008
   cd mpg123_svn
   
   # Ensure all required tools are installed
-  sudo apt-get install -y libtool libpng12-dev autotools-dev automake gettext autoconf libtool pkg-config 
+    sudo apt-get install -y libtool libpng12-dev autotools-dev automake gettext autoconf libtool pkg-config 
 
-  # Run the autotools commands to generate the necessary files
-  libtoolize --force --copy
-  aclocal
-  autoheader
-  autoconf
-  automake --add-missing --copy
-  
-  # Allow undefined macros
-  echo 'm4_pattern_allow([LT_SYS_MODULE_EXT])' >> configure.ac
+      libtoolize --force --copy
+      aclocal
+      autoheader
+      autoconf
+      automake --add-missing --copy
 
-  generic_configure
-  do_make_and_make_install
+    echo 'm4_pattern_allow([LT_SYS_MODULE_EXT])' >> configure.ac
+      generic_configure
+      do_make_and_make_install
   cd ..
 }
 
