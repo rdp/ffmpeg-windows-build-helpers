@@ -91,8 +91,9 @@ check_missing_packages () {
     echo "Could not find the following execs (svn is actually package subversion, makeinfo is actually package texinfo if you're missing them): ${missing_packages[*]}"
     echo 'Install the missing packages before running this script.'
     determine_distro
-
-    apt_pkgs="subversion python-is-python3 libfreetype-dev libgnutls-dev libmp3lame-dev libsdl2-dev libtool libva-dev libfreetype-dev libgnutls-dev libmp3lame-dev libvdpau-dev libvorbis-dev libxcb1-dev libxcb-shm0-dev libxcb-xfixes0-dev ragel build-essential libxcb-shm0-dev libass-dev autoconf automake curl texinfo libpulse-dev llvm g++ ed bison flex cvs libva-dev yasm automake libtool autoconf gcc cmake git-core make pkg-config zlib1g-dev unzip pax nasm gperf libunistring-dev libaom-dev libdav1d-dev autogen bzip2 autoconf-archive p7zip-full meson clang gettext git-core patch wget xz-utils ninja-build build-essential coreutils"
+    
+    apt_pkgs='subversion ragel curl texinfo g++ ed bison flex cvs yasm automake libtool autoconf gcc cmake git make pkg-config zlib1g-dev unzip pax nasm gperf autogen bzip2 autoconf-archive p7zip-full meson clang'
+    # apt_pkgs="subversion python-is-python3 libfreetype-dev libgnutls-dev libmp3lame-dev libsdl2-dev libtool libva-dev libfreetype-dev libgnutls-dev libmp3lame-dev libvdpau-dev libvorbis-dev libxcb1-dev libxcb-shm0-dev libxcb-xfixes0-dev ragel build-essential libxcb-shm0-dev libass-dev autoconf automake curl texinfo libpulse-dev llvm g++ ed bison flex cvs libva-dev yasm automake libtool autoconf gcc cmake git-core make pkg-config zlib1g-dev unzip pax nasm gperf libunistring-dev libaom-dev libdav1d-dev autogen bzip2 autoconf-archive p7zip-full meson clang gettext git-core patch wget xz-utils ninja-build build-essential coreutils"
 
     [[ $DISTRO == "debian" ]] && apt_pkgs="$apt_pkgs libtool-bin ed" # extra for debian
     case "$DISTRO" in
