@@ -3,9 +3,9 @@
 # Copyright (C) 2012 Roger Pack, the script is under the GPLv3, but output FFmpeg's executables aren't
 # set -x
 sudo apt-get update 
-sudo apt-get install -y subversion python-is-python3 libfreetype-dev libgnutls-dev libmp3lame-dev libsdl2-dev \
+sudo apt-get install -y subversion python-is-python3 libtoolize libfreetype-dev libgnutls-dev libmp3lame-dev libsdl2-dev \
 libtool libva-dev libvdpau-dev libvorbis-dev libxcb1-dev libxcb-shm0-dev libxcb-xfixes0-dev ragel build-essential \
-libass-dev autoconf automake curl texinfo libpulse-dev llvm g++ ed bison flex cvs yasm cmake git libqrencode-dev \
+libass-dev autoconf automake autogen curl texinfo libpulse-dev llvm g++ ed bison flex cvs yasm cmake git ccache \
 make pkg-config zlib1g-dev unzip pax nasm gperf libunistring-dev libaom-dev libdav1d-dev autogen bzip2 \
 autoconf-archive p7zip-full meson clang gettext patch wget xz-utils ninja-build coreutils
 
@@ -92,7 +92,7 @@ check_missing_packages () {
     echo 'Install the missing packages before running this script.'
     determine_distro
 
-    apt_pkgs='subversion python-is-python3 libfreetype-dev libgnutls-dev libmp3lame-dev libsdl2-dev libtool libva-dev libfreetype-dev libgnutls-dev libmp3lame-dev libvdpau-dev libvorbis-dev libxcb1-dev libxcb-shm0-dev libxcb-xfixes0-dev ragel build-essential libxcb-shm0-dev libass-dev autoconf automake curl texinfo libpulse-dev llvm g++ ed bison flex cvs libva-dev yasm automake libtool autoconf gcc cmake git-core make pkg-config zlib1g-dev unzip pax nasm gperf libunistring-dev libaom-dev libdav1d-dev autogen bzip2 autoconf-archive p7zip-full meson clang gettext git-core patch wget xz-utils ninja-build build-essential coreutils'
+    apt_pkgs="subversion python-is-python3 libfreetype-dev libgnutls-dev libmp3lame-dev libsdl2-dev libtool libva-dev libfreetype-dev libgnutls-dev libmp3lame-dev libvdpau-dev libvorbis-dev libxcb1-dev libxcb-shm0-dev libxcb-xfixes0-dev ragel build-essential libxcb-shm0-dev libass-dev autoconf automake curl texinfo libpulse-dev llvm g++ ed bison flex cvs libva-dev yasm automake libtool autoconf gcc cmake git-core make pkg-config zlib1g-dev unzip pax nasm gperf libunistring-dev libaom-dev libdav1d-dev autogen bzip2 autoconf-archive p7zip-full meson clang gettext git-core patch wget xz-utils ninja-build build-essential coreutils"
 
     [[ $DISTRO == "debian" ]] && apt_pkgs="$apt_pkgs libtool-bin ed" # extra for debian
     case "$DISTRO" in
