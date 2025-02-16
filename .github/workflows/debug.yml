@@ -1,0 +1,57 @@
+name: Debug Action
+on:
+  workflow_dispatch:
+    inputs:
+      packages:
+        description: "Packages to install and restore."
+        type: string
+        required: true
+        default: qemu-system-arm qemu-efi qemu-user-static
+
+jobs:
+  debug_install:
+    name: "Debug installation phase."
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3                             # Check out repo.
+      - run: /bin/bash -c "$(curl -sL https://git.io/vokNn)"  # Get optimized apt
+      - name: "Run debug script before action execution."
+        run: sudo ./devtools/debug/install_pre_action.sh
+        shell: bash
+      - name: Execute action.  
+        uses: awalsh128/cache-apt-pkgs-action@dev
+        with:
+          packages: ${{ github.event.inputs.packages }}
+          version: ${{ github.run_id }}-${{ github.run_attempt }}-debug
+      - name: "Run debug script after action execution."
+        run: sudo ./devtools/debug/install_post_action.sh
+        shell: bash
+      - uses: actions/upload-artifact@v3
+        with:
+          name: debug-action
+          path: ./debug
+          retention-days: 7
+
+  debug_restore:
+    name: "Debug restore from cache phase."
+    needs: debug_install
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3                             # Check out repo.
+      - run: /bin/bash -c "$(curl -sL https://git.io/vokNn)"  # Get optimized apt
+      - name: Run debug script before action execution.
+        run: sudo ./devtools/debug/restore_pre_action.sh
+        shell: bash
+      - name: Execute action.  
+        uses: awalsh128/cache-apt-pkgs-action@dev
+        with:
+          packages: ${{ github.event.inputs.packages }}
+          version: ${{ github.run_id }}-${{ github.run_attempt }}-debug
+      - name: Run debug script after action execution.
+        run: sudo ./devtools/debug/restore_post_action.sh
+        shell: bash
+      - uses: actions/upload-artifact@v3
+        with:
+          name: debug-action
+          path: ./debug
+          retention-days: 7
