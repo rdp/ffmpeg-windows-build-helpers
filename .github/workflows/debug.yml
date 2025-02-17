@@ -26,7 +26,7 @@ jobs:
       - name: "Run debug script after action execution."
         run: sudo ./devtools/debug/install_post_action.sh
         shell: bash
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
           name: debug-action
           path: ./debug
@@ -50,7 +50,7 @@ jobs:
       - name: Run debug script after action execution.
         run: sudo ./devtools/debug/restore_post_action.sh
         shell: bash
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
           name: debug-action
           path: ./debug
