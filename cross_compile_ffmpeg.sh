@@ -25,8 +25,8 @@ yes_no_sel () {
       clear; echo 'Your selection was not vaild, please try again.'; echo
     fi
   done
-  # downcase it—
-  user_input=$(echo $user_input | tr 'A-Z' 'a-z')
+  # downcase it
+  user_input=${user_input,,}
 }
 
 set_box_memory_size_bytes() {
@@ -261,7 +261,7 @@ intro() {
   the sandbox directory, since it will have some hard coded paths in there.
   You can, of course, rebuild ffmpeg from within it, etc.
 EOL
-  echo `date` # for timestamping super long builds LOL
+  echo "$(date)" # for timestamping super long builds LOL
   if [[ $sandbox_ok != 'y' && ! -d sandbox ]]; then
     echo
     echo "Building in $PWD/sandbox, will use ~ 12GB space!"
@@ -386,7 +386,7 @@ install_cross_compiler() {
     reset_cflags
   cd ..
   echo "Done building (or already built) MinGW-w64 cross-compiler(s) successfully..."
-  echo "$(date)" # so they can see how long it took :)
+  date # so they can see how long it took :)
 }
 
 # helper methods for downloading and building projects that can take generic input
@@ -1305,7 +1305,7 @@ build_openssl-1.1.1() {
           ${cross_prefix}strip $sharedlib
         done
         sed "s/$/\r/" LICENSE > LICENSE.txt
-        7z a -mx=9 $archive *.dll LICENSE.txt && rm -f LICENSE.txt
+        7z a -mx=9 "$archive" -- ./*.dll LICENSE.txt && rm -f LICENSE.txt
       fi
     else
       do_make_install "" "install_dev"
@@ -2248,7 +2248,7 @@ build_vlc() {
   fi
   export DVDREAD_LIBS='-ldvdread -ldvdcss -lpsapi'
   do_configure "--disable-libgcrypt --disable-a52 --host=$host_target --disable-lua --disable-mad --enable-qt --disable-sdl --disable-mod" # don't have lua mingw yet, etc. [vlc has --disable-sdl [?]] x265 disabled until we care enough... Looks like the bluray problem was related to the BLURAY_LIBS definition. [not sure what's wrong with libmod]
-  rm -f `find . -name *.exe` # try to force a rebuild...though there are tons of .a files we aren't rebuilding as well FWIW...:|
+  find . -name "*.exe" -print0 | xargs -0 rm -f # try to force a rebuild...though there are tons of .a files we aren't rebuilding as well FWIW...:|
   rm -f already_ran_make* # try to force re-link just in case...
   do_make
   # do some gymnastics to avoid building the mozilla plugin for now [couldn't quite get it to work]
