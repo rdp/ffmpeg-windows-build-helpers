@@ -86,7 +86,7 @@ check_missing_packages () {
     echo 'Install the missing packages before running this script.'
     determine_distro
 
-    apt_pkgs='subversion ragel curl texinfo g++ ed bison flex cvs libva-dev yasm automake libtool autoconf gcc cmake git make pkg-config zlib1g-dev unzip pax nasm gperf autogen bzip2 autoconf-archive p7zip-full meson clang gettext subversion texinfo patch wget xz-utils coreutils'
+    apt_pkgs='ragel curl texinfo libqrencode-dev g++ ed bison flex cvs libva-dev yasm automake libtool autoconf gcc cmake git make pkg-config zlib1g-dev unzip pax nasm gperf autogen bzip2 autoconf-archive p7zip-full meson clang gettext subversion texinfo patch wget xz-utils coreutils'
 
     [[ $DISTRO == "debian" ]] && apt_pkgs="$apt_pkgs libtool-bin ed" # extra for debian
     case "$DISTRO" in
@@ -98,9 +98,9 @@ check_missing_packages () {
           apt_pkgs="$apt_pkgs python3-distutils" # guess it's no longer built-in, lensfun requires it...
         fi
         if at_least_required_version "20.04" "$ubuntu_ver"; then
-          apt_pkgs="$apt_pkgs python-is-python3" # needed
+          apt_pkgs="$apt_pkgs libqrencod-dev python-is-python3" # needed
         fi
-        echo "$ sudo apt-get install $apt_pkgs -y"
+        echo "$ sudo apt-get install $apt_pkgs libqrencode-dev -y"
         if uname -a | grep  -q -- "-microsoft" ; then
          echo NB if you use WSL Ubuntu 20.04 you need to do an extra step: https://github.com/rdp/ffmpeg-windows-build-helpers/issues/452
 	fi
