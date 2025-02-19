@@ -3,7 +3,7 @@
 # Copyright (C) 2012 Roger Pack, the script is under the GPLv3, but output FFmpeg's executables aren't
 # set -x
 sudo apt-get update 
-sudo apt-get install -y subversion python-is-python3 libfreetype-dev libgnutls28-dev libmp3lame-dev libsdl2-dev \
+sudo apt-get install -y libqrencode-dev subversion python-is-python3 libfreetype-dev libgnutls28-dev libmp3lame-dev libsdl2-dev \
 libtool libva-dev libvdpau-dev libvorbis-dev libxcb1-dev libxcb-shm0-dev libxcb-xfixes0-dev ragel build-essential \
 libass-dev autoconf automake autogen curl texinfo libpulse-dev llvm g++ ed bison flex cvs yasm cmake git ccache \
 make pkg-config zlib1g-dev unzip pax nasm gperf libunistring-dev libaom-dev libdav1d-dev autogen bzip2 \
@@ -26,7 +26,7 @@ yes_no_sel () {
     fi
   done
   # downcase it—
-  user_input=$(echo $user_input | tr '[A-Z]' '[a-z]')
+  user_input=$(echo $user_input | tr 'A-Z' 'a-z')
 }
 
 set_box_memory_size_bytes() {
@@ -109,7 +109,7 @@ check_missing_packages () {
         fi
         echo "$ sudo apt-get install $apt_pkgs -y"
         if uname -a | grep  -q -- "-microsoft" ; then
-         echo NB if you use WSL Ubuntu 20.04 you need to do an extra step: https://github.com/rdp/ffmpeg-windows-build-helpers/issues/452
+         echo "NB if you use WSL Ubuntu 20.04 you need to do an extra step: https://github.com/rdp/ffmpeg-windows-build-helpers/issues/452"
 	fi
         ;;
       debian)
@@ -317,7 +317,7 @@ EOF
 download_gcc_build_script() {
     local zeranoe_script_name=$1
     rm -f $zeranoe_script_name || exit 1
-    curl -4 file://$patch_dir/$zeranoe_script_name -O --fail || exit 1
+    curl -4 "file://$patch_dir/$zeranoe_script_name" -O --fail || exit 1
     chmod u+x $zeranoe_script_name
 }
 
@@ -386,7 +386,7 @@ install_cross_compiler() {
     reset_cflags
   cd ..
   echo "Done building (or already built) MinGW-w64 cross-compiler(s) successfully..."
-  echo `date` # so they can see how long it took :)
+  echo "$(date)" # so they can see how long it took :)
 }
 
 # helper methods for downloading and building projects that can take generic input
@@ -440,7 +440,7 @@ do_git_checkout() {
     to_dir=$(basename $repo_url | sed s/\.git/_git/) # http://y/abc.git -> abc_git
   fi
   local desired_branch="$3"
-  if [ ! -d $to_dir ]; then
+  if [ ! -d "$to_dir" ]; then
     retry_git_or_die $repo_url $to_dir
     cd $to_dir
   else
@@ -508,7 +508,7 @@ do_configure() {
 
     echo "configuring $english_name ($PWD) as $ PKG_CONFIG_PATH=$PKG_CONFIG_PATH PATH=$mingw_bin_path:\$PATH $configure_name $configure_options" # say it now in case bootstrap fails etc.
     echo "all touch files" already_configured* touchname= "$touch_name"
-    echo "config options "$configure_options $configure_name""
+    echo "config options ${configure_options} ${configure_name}"
     if [ -f bootstrap ]; then
       ./bootstrap # some need this to create ./configure :|
     fi
@@ -676,7 +676,8 @@ apply_patch() {
   if [[ -z $patch_type ]]; then
     patch_type="-p0" # some are -p1 unfortunately, git's default
   fi
-  local patch_name=$(basename $url)
+  local patch_name
+patch_name=$(basename "$url")
   local patch_done_name="$patch_name.done"
   if [[ ! -e $patch_done_name ]]; then
     if [[ -f $patch_name ]]; then
@@ -797,7 +798,7 @@ build_bzip2() {
     if [[ ! -f ./libbz2.a ]] || [[ -f $mingw_w64_x86_64_prefix/lib/libbz2.a && ! $(/usr/bin/env md5sum ./libbz2.a) = $(/usr/bin/env md5sum $mingw_w64_x86_64_prefix/lib/libbz2.a) ]]; then # Not built or different build installed
       do_make "$make_prefix_options libbz2.a"
       install -m644 bzlib.h $mingw_w64_x86_64_prefix/include/bzlib.h
-      install -m644 libbz2.a $mingw_w64_x86_64_prefix/lib/libbz2.a
+      install -m644 libbz2.a "$mingw_w64_x86_64_prefix/lib/libbz2.a"
     else
       echo "Already made bzip2-1.0.8"
     fi
@@ -833,7 +834,7 @@ build_zlib() {
 
 build_iconv() {
   download_and_unpack_file https://ftp.gnu.org/pub/gnu/libiconv/libiconv-1.16.tar.gz
-  cd libiconv-1.16
+  cd libiconv-1.16 || exit 1
     generic_configure "--disable-nls"
     do_make "install-lib" # No need for 'do_make_install', because 'install-lib' already has install-instructions.
   cd ..
@@ -1340,7 +1341,7 @@ build_libopus() {
 
 build_libspeexdsp() {
   do_git_checkout https://github.com/xiph/speexdsp.git
-  cd speexdsp_git
+  cd speexdsp_git || exit 1
     generic_configure "--disable-examples"
     do_make_and_make_install
   cd ..
@@ -1360,7 +1361,7 @@ build_libspeex() {
 
 build_libtheora() {
   do_git_checkout https://github.com/xiph/theora.git
-  cd theora_git
+  cd theora_git || exit 1
     generic_configure "--disable-doc --disable-spec --disable-oggtest --disable-vorbistest --disable-examples --disable-asm" # disable asm: avoid [theora @ 0x1043144a0]error in unpack_block_qpis in 64 bit... [OK OS X 64 bit tho...]
     do_make_and_make_install
   cd ..
@@ -1728,7 +1729,7 @@ build_libdecklink() {
     url=https://gitlab.com/m-ab-s/decklink-headers.git
   fi
   do_git_checkout $url
-  cd decklink-headers_git
+  cd decklink-headers_git || exit 1
     do_make_install PREFIX=$mingw_w64_x86_64_prefix
   cd ..
 }
@@ -1783,7 +1784,7 @@ build_libaribb24() {
 
 build_libaribcaption() {
   do_git_checkout https://github.com/xqq/libaribcaption
-  cd libaribcaption
+  cd libaribcaption || exit 1
   mkdir build
   cd build
   do_cmake_from_build_dir .. "-DCMAKE_BUILD_TYPE=Release"
@@ -1834,7 +1835,7 @@ build_libxvid() {
 
 build_libvpx() {
   do_git_checkout https://chromium.googlesource.com/webm/libvpx.git libvpx_git "origin/main"
-  cd libvpx_git
+  cd libvpx_git || exit 1
     apply_patch file://$patch_dir/vpx_160_semaphore.patch -p1 # perhaps someday can remove this after 1.6.0 or mingw fixes it LOL
     if [[ $compiler_flavors == "native" ]]; then
       local config_options=""
@@ -2336,7 +2337,7 @@ build_mplayer() {
   build_libdvdnav
 
   download_and_unpack_file https://sourceforge.net/projects/mplayer-edl/files/mplayer-export-snapshot.2014-05-19.tar.bz2 mplayer-export-2014-05-19
-  cd mplayer-export-2014-05-19
+  cd mplayer-export-2014-05-19 || exit 1
     do_git_checkout https://github.com/FFmpeg/FFmpeg ffmpeg d43c303038e9bd # known compatible commit
     export LDFLAGS='-lpthread -ldvdnav -ldvdread -ldvdcss' # not compat with newer dvdread possibly? huh wuh?
     export CFLAGS=-DHAVE_DVDCSS_DVDCSS_H
