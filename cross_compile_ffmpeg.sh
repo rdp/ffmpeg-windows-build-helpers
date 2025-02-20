@@ -31,21 +31,24 @@ yes_no_sel () {
 
 set_box_memory_size_bytes() {
   if [[ $OSTYPE == darwin* ]]; then
-    box_memory_size_bytes=20000000000 # 20G fake it out for now :|
+    box_memory_size_bytes=20000000000  # 20G fake it out for now :|
   else
-    local ram_kilobytes=`grep MemTotal /proc/meminfo | awk '{print $2}'`
-    local swap_kilobytes=`grep SwapTotal /proc/meminfo | awk '{print $2}'`
-    box_memory_size_bytes=$[ram_kilobytes * 1024 + swap_kilobytes * 1024]
+    local ram_kilobytes swap_kilobytes
+    ram_kilobytes=$(grep MemTotal /proc/meminfo | awk '{print $2}')
+    swap_kilobytes=$(grep SwapTotal /proc/meminfo | awk '{print $2}')
+    box_memory_size_bytes=$((ram_kilobytes * 1024 + swap_kilobytes * 1024))
   fi
 }
 
 function sortable_version { echo "$@" | awk -F. '{ printf("%d%03d%03d%03d\n", $1,$2,$3,$4); }'; }
 
 at_least_required_version() { # params: required actual
-  local sortable_required=$(sortable_version $1)
-  sortable_required=$(echo $sortable_required | sed 's/^0*//') # remove preceding zeroes, which bash later interprets as octal or screwy
-  local sortable_actual=$(sortable_version $2)
-  sortable_actual=$(echo $sortable_actual | sed 's/^0*//')
+  local sortable_required
+  sortable_required=$(sortable_version "$1")
+  sortable_required="${sortable_required#"${sortable_required%%[!0]*}"}" # Remove leading zeroes
+  local sortable_actual
+  sortable_actual=$(sortable_version "$2")
+  sortable_actual="${sortable_actual#"${sortable_actual%%[!0]*}"}" # Remove leading zeroes
   [[ "$sortable_actual" -ge "$sortable_required" ]]
 }
 
@@ -86,7 +89,7 @@ check_missing_packages () {
   if [ "${VENDOR}" = "redhat" ] || [ "${VENDOR}" = "centos" ]; then
     if [ -n "$(hash cmake 2>&1)" ] && [ -n "$(hash cmake3 2>&1)" ]; then missing_packages=('cmake' "${missing_packages[@]}"); fi
   fi
-  if [[ -n "${missing_packages[@]}" ]]; then
+  if [[ ${#missing_packages[@]} -gt 0 ]]; then
     clear
     echo "Could not find the following execs (svn is actually package subversion, makeinfo is actually package texinfo if you're missing them): ${missing_packages[*]}"
     echo 'Install the missing packages before running this script.'
@@ -159,7 +162,7 @@ check_missing_packages () {
     # the version of cmake required move up to, say, 3.1.0 and the cmake3 package still only pulls in 3.0.0 flat, then the user having manually
     # installed cmake at a higher version wouldn't be detected.
     if hash "${cmake_binary}"  &> /dev/null; then
-      cmake_version="$( "${cmake_binary}" --version | sed -e "s#${cmake_binary}##g" | head -n 1 | tr -cd '[0-9.\n]' )"
+      cmake_version="$( "${cmake_binary}" --version | sed -e "s#${cmake_binary}##g" | head -n 1 | tr -cd '[:digit:].\n' )"
       if at_least_required_version "${REQUIRED_CMAKE_VERSION}" "${cmake_version}"; then
         export cmake_command="${cmake_binary}"
         break
@@ -191,12 +194,14 @@ check_missing_packages () {
   # because of all the trailing lines of stuff
   export REQUIRED_YASM_VERSION="1.2.0" # export ???
   local yasm_binary=yasm
-  local yasm_version="$( "${yasm_binary}" --version |sed -e "s#${yasm_binary}##g" | head -n 1 | tr -dc '[0-9.\n]' )"
+  local yasm_version
+  yasm_version="$( "${yasm_binary}" --version | sed -e "s#${yasm_binary}##g" | head -n 1 | tr -dc '[:digit:].\n' )"
   if ! at_least_required_version "${REQUIRED_YASM_VERSION}" "${yasm_version}"; then
     echo "your yasm version is too old $yasm_version wanted ${REQUIRED_YASM_VERSION}"
     exit 1
   fi
-  local meson_version=`meson --version`
+  local meson_version
+  meson_version=$(meson --version)
   if ! at_least_required_version "0.49.2" "${meson_version}"; then
     echo "your meson version is too old $meson_version wanted 0.49.2"
     exit 1
@@ -207,7 +212,7 @@ check_missing_packages () {
   # check WSL for interop setting make sure its disabled
   # check WSL for kernel version look for version 4.19.128 current as of 11/01/2020
   if uname -a | grep  -iq -- "-microsoft" ; then
-    if cat /proc/sys/fs/binfmt_misc/WSLInterop | grep -q enabled ; then
+    if grep -q enabled /proc/sys/fs/binfmt_misc/WSLInterop; then
       echo "windows WSL detected: you must first disable 'binfmt' by running this
       sudo bash -c 'echo 0 > /proc/sys/fs/binfmt_misc/WSLInterop'
       then try again"
