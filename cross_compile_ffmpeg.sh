@@ -16,7 +16,7 @@ yes_no_sel () {
   local default_answer="$1"
   while [[ "$user_input" != [YyNn] ]]; do
     echo -n "$question"
-    read user_input
+    read -r user_input
     if [[ -z "$user_input" ]]; then
       echo "using default $default_answer"
       user_input=$default_answer
@@ -225,7 +225,7 @@ check_missing_packages () {
       echo "$@" | awk -F. '{ printf("%d%03d%03d%03d\n", $1,$2,$3,$4); }'
     }
 
-    if [ $(version $KERNVER) -lt $(version $MINIMUM_KERNEL_VERSION) ]; then
+    if [ "$(version "$KERNVER")" -lt "$(version "$MINIMUM_KERNEL_VERSION")" ]; then
       echo "Windows Subsystem for Linux (WSL) detected - kernel not at minumum version required: $MINIMUM_KERNEL_VERSION
       Please update via windows update then try again"
       #exit 1
@@ -242,7 +242,7 @@ UNAME=$(uname | tr "[:upper:]" "[:lower:]")
 # If Linux, try to determine specific distribution
 if [ "$UNAME" == "linux" ]; then
     # If available, use LSB to identify distribution
-    if [ -f /etc/lsb-release -o -d /etc/lsb-release.d ]; then
+    if [ -f /etc/lsb-release ] || [ -d /etc/lsb-release.d ]; then
         export DISTRO=$(lsb_release -i | cut -d: -f2 | sed s/'^\t'//)
     # Otherwise, use release info file
     else
