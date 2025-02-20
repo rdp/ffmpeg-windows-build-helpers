@@ -236,24 +236,30 @@ check_missing_packages () {
 }
 
 determine_distro() {
+    # Determine OS platform from https://askubuntu.com/a/459425/20972
+    UNAME=$(uname | tr "[:upper:]" "[:lower:]")
 
-# Determine OS platform from https://askubuntu.com/a/459425/20972
-UNAME=$(uname | tr "[:upper:]" "[:lower:]")
-# If Linux, try to determine specific distribution
-if [ "$UNAME" == "linux" ]; then
-    # If available, use LSB to identify distribution
-    if [ -f /etc/lsb-release ] || [ -d /etc/lsb-release.d ]; then
-        export DISTRO=$(lsb_release -i | cut -d: -f2 | sed s/'^\t'//)
-    # Otherwise, use release info file
-    else
-        export DISTRO=$(grep '^ID' /etc/os-release | sed 's#.*=\(\)#\1#')
+    # If Linux, try to determine specific distribution
+    if [ "$UNAME" == "linux" ]; then
+        # If available, use LSB to identify distribution
+        if [ -f /etc/lsb-release ] || [ -d /etc/lsb-release.d ]; then
+            local DISTRO
+            DISTRO=$(lsb_release -i | cut -d: -f2 | sed 's/^\t//')
+        # Otherwise, use release info file
+        else
+            local DISTRO
+            DISTRO=$(grep '^ID' /etc/os-release | sed 's#.*=.*#\1#')
+        fi
+        # Export the DISTRO value after assignment
+        export DISTRO
     fi
-fi
-# For everything else (or if above failed), just use generic identifier
-[ "$DISTRO" == "" ] && export DISTRO=$UNAME
-unset UNAME
-}
 
+    # For everything else (or if above failed), just use generic identifier
+    [ -z "$DISTRO" ] && export DISTRO=$UNAME
+
+    # Clean up
+    unset UNAME
+}
 
 intro() {
   cat <<EOL
