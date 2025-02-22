@@ -2489,7 +2489,12 @@ build_ffmpeg() {
           # newer:
           git apply "$work_dir/SVT-VP9_git/ffmpeg_plugin/master-0001-Add-ability-for-ffmpeg-to-run-svt-vp9.patch"
         fi
-		config_options+=" --enable-libsvtvp9"
+        config_options+=" --enable-libsvtvp9"
+      fi
+      # SVT-AV1
+      # Apply patch on newer versions
+      if [[ $ffmpeg_git_checkout_version != *"n6"* ]] && [[ $ffmpeg_git_checkout_version != *"n5"* ]] && [[ $ffmpeg_git_checkout_version != *"n4"* ]] && [[ $ffmpeg_git_checkout_version != *"n3"* ]] && [[ $ffmpeg_git_checkout_version != *"n2"* ]]; then
+        git apply "$work_dir/SVT-AV1_git/.gitlab/workflows/linux/ffmpeg_n7_fix.patch"
       fi
       config_options+=" --enable-libsvtav1"
     fi # else doesn't work/matter with 32 bit
