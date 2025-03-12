@@ -2549,8 +2549,6 @@ build_ffmpeg() {
     fi
     # alphabetized :)
     config_options="$init_options"
-    config_options+=" --enable-avx"
-    config_options+=" --enable-avx2"
     config_options+=" --enable-cuda-llvm"
     config_options+=" --enable-fontconfig"
     config_options+=" --enable-gmp"
@@ -2578,6 +2576,7 @@ build_ffmpeg() {
     config_options+=" --enable-libopenjpeg"
     config_options+=" --enable-libopenmpt"
     config_options+=" --enable-libopus"
+    # config_options+=" --enable-librtmfp" # not working openssl fails
     config_options+=" --enable-libsnappy"
     config_options+=" --enable-libsoxr"
     config_options+=" --enable-libspeex"
@@ -2599,7 +2598,6 @@ build_ffmpeg() {
     if [[ $OSTYPE != darwin* ]]; then
       config_options+=" --enable-vulkan"
     fi
-    # config_options+=" --enable-librtmfp" # not working openssl fails
     if [[ "$bits_target" != "32" ]]; then
       if [[ $build_svt_hevc = y ]]; then
         # SVT-HEVC
@@ -2925,7 +2923,7 @@ build_ffmpeg_dependencies() {
   build_libxvid # FFmpeg now has native support, but libxvid still provides a better image.
   build_libsrt # requires gnutls, mingw-std-threads
   if [[ $ffmpeg_git_checkout_version != *"n6.0"* ]] && [[ $ffmpeg_git_checkout_version != *"n5"* ]] && [[ $ffmpeg_git_checkout_version != *"n4"* ]] && [[ $ffmpeg_git_checkout_version != *"n3"* ]] && [[ $ffmpeg_git_checkout_version != *"n2"* ]]; then 
-# Disable libaribcatption on old versions
+    # Disable libaribcatption on old versions
     build_libaribcaption
   fi
   build_libaribb24
@@ -3018,7 +3016,6 @@ disable_nonfree=y # comment out to force user y/n selection
 original_cflags='-mtune=generic -O3 -pipe' # high compatible by default, see #219, some other good options are listed below, or you could use -march=native to target your local box:
 original_cppflags='-U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=3' # Needed for mingw-w64 7 as FORTIFY_SOURCE is now partially implemented, but not actually working
 # if you specify a march it needs to first so x264's configure will use it :| [ is that still the case ?]
-# original_cflags='-mtune=generic -O3'
 # original_cflags='-march=native -mtune=znver2 -O3 -pipe'
 #flags=$(cat /proc/cpuinfo | grep flags)
 #if [[ $flags =~ "ssse3" ]]; then # See https://gcc.gnu.org/onlinedocs/gcc/x86-Options.html, https://gcc.gnu.org/onlinedocs/gcc/Optimize-Options.html and https://stackoverflow.com/questions/19689014/gcc-difference-between-o3-and-os.
