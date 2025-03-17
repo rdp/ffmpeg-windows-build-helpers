@@ -2438,6 +2438,8 @@ build_ffmpeg() {
     config_options+=" --enable-libflite"
     config_options+=" --enable-libfreetype"
     config_options+=" --enable-libfribidi"
+    config_options+=" --enable-libharfbuzz"
+    config_options+=" --enable-filter=drawtext"
     config_options+=" --enable-libgme"
     config_options+=" --enable-libgsm"
     config_options+=" --enable-libilbc"
