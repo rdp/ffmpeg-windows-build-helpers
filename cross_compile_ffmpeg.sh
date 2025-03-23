@@ -1223,7 +1223,7 @@ build_fontconfig() {
   do_git_checkout https://gitlab.freedesktop.org/fontconfig/fontconfig.git fontconfig_git 59e53da82d471c20ba5e43b6aac07a9273303d50 # beyond this commit static broken, mabs patches do not fix 3-21-25
   activate_meson
   cd fontconfig_git
-	local meson_options="setup -Diconv=enabled -Dtests=disabled -Ddoc=disabled -Dxml-backend=libxml2 --wrap-mode=default . build"
+	local meson_options="setup -Diconv=enabled -Dtests=disabled -Ddoc=disabled -Dxml-backend=libxml2 --wrap-mode=default -Dfreetype2:brotli=disabled . build"
     if [[ $compiler_flavors != "native" ]]; then
       # get_local_meson_cross_with_propeties 
       meson_options+=" --cross-file=${top_dir}/meson-cross.mingw.txt"
@@ -2976,7 +2976,6 @@ build_ffmpeg_dependencies() {
   build_libpng # Needs zlib >= 1.0.4. Uses dlfcn.
   build_libwebp # Uses dlfcn.
   build_libxml2 # Uses zlib, liblzma, iconv and dlfcn
-  build_brotli
   build_fontconfig # freetype imported as subproject, uses libpng bzip2 libxml2 and zlib 
   build_harfbuzz # Uses freetype zlib, bzip2, and libpng.
   build_libvmaf
@@ -2986,6 +2985,7 @@ build_ffmpeg_dependencies() {
   build_unistring
   build_libidn2 # needs iconv and unistring
   build_zstd
+  build_brotli
   build_gnutls # Needs nettle >= 3.1, hogweed (nettle) >= 3.1. Uses libidn2, unistring, zlib, and dlfcn.
   build_curl
   #if [[ "$non_free" = "y" ]]; then
