@@ -610,14 +610,14 @@ do_cmake_and_install() {
 
 activate_meson() {
   if [[ ! -e meson_git ]]; then 
-  do_git_checkout https://github.com/mesonbuild/meson.git meson_git 1.7
+    do_git_checkout https://github.com/mesonbuild/meson.git meson_git 1.7
   fi
   cd meson_git # requires python3-full   
-	if [[ ! -e tutorial_env ]]; then 
-	  python3 -m venv tutorial_env 
-	  source tutorial_env/bin/activate
+    if [[ ! -e tutorial_env ]]; then 
+      python3 -m venv tutorial_env 
+      source tutorial_env/bin/activate
       python3 -m pip install meson
-	else source tutorial_env/bin/activate
+    else source tutorial_env/bin/activate
     fi
   cd ..
 }
@@ -1688,9 +1688,9 @@ build_libflite() {
     do_make
     # /usr/bin/install: cannot stat '../bin/flite': No such file or directory; should be looking for /bin/flite.exe etc...
     if [[ ! -f $mingw_w64_x86_64_prefix/lib/libflite.a ]]; then
-	  cp -rf ./build/x86_64-mingw32/lib/libflite* $mingw_w64_x86_64_prefix/lib/ 
-	  cp -rf include $mingw_w64_x86_64_prefix/include/flite 
-	  # cp -rf ./bin/*.exe $mingw_w64_x86_64_prefix/bin # if want .exe's uncomment
+      cp -rf ./build/x86_64-mingw32/lib/libflite* $mingw_w64_x86_64_prefix/lib/ 
+      cp -rf include $mingw_w64_x86_64_prefix/include/flite 
+      # cp -rf ./bin/*.exe $mingw_w64_x86_64_prefix/bin # if want .exe's uncomment
     fi
   cd ..
 }
