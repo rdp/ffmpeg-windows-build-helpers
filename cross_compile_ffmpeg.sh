@@ -1042,11 +1042,10 @@ build_lz4 () {
 
  build_libarchive () {
   build_lz4
-  download_and_unpack_file https://github.com/libarchive/libarchive/releases/download/v3.7.7/libarchive-3.7.7.tar.gz
-  cd libarchive-3.7.7
-    generic_configure "--with-nettle --bindir=$mingw_w64_x86_64_prefix/bin --without-mbedtls --without-iconv" # with-iconv = fail
+  download_and_unpack_file https://github.com/libarchive/libarchive/releases/download/v3.7.8/libarchive-3.7.8.tar.gz
+  cd libarchive-3.7.8
+    generic_configure "--with-nettle --bindir=$mingw_w64_x86_64_prefix/bin --without-openssl --without-iconv --disable-posix-regex-lib"
     do_make_install
-    sed -i.bak 's/Requires.private.*$/Requires.private:/' $PKG_CONFIG_PATH/libarchive.pc
   cd ..
 }
 
