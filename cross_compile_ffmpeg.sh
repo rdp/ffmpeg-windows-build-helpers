@@ -1912,7 +1912,7 @@ build_libxxhash() {
   cd xxHash_git
     do_cmake "-S build/cmake -B build -DCMAKE_BUILD_TYPE=release -GNinja"
     do_ninja_and_ninja_install
-  cd ../..
+  cd ..
 }
 
 build_spirv-cross() {
