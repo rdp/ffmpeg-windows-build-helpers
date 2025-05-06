@@ -1910,9 +1910,9 @@ build_libunwind() {
 build_libxxhash() {
   do_git_checkout https://github.com/Cyan4973/xxHash.git xxHash_git dev
   cd xxHash_git
-    do_cmake "-S cmake_unofficial -B build -DCMAKE_BUILD_TYPE=release -GNinja"
+    do_cmake "-S build/cmake -B build -DCMAKE_BUILD_TYPE=release -GNinja"
     do_ninja_and_ninja_install
-  cd ..
+  cd ../..
 }
 
 build_spirv-cross() {
