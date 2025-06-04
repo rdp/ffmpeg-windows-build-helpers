@@ -1447,8 +1447,8 @@ build_libmodplug() {
 
 build_libgme() {
   # do_git_checkout https://bitbucket.org/mpyne/game-music-emu.git
-  download_and_unpack_file https://bitbucket.org/mpyne/game-music-emu/downloads/game-music-emu-0.6.3.tar.xz
-  cd game-music-emu-0.6.3
+  download_and_unpack_file https://github.com/libgme/game-music-emu/releases/download/0.6.3/libgme-0.6.3-src.tar.gz libgme-0.6.3
+  cd libgme-0.6.3
     do_cmake_and_install "-DENABLE_UBSAN=0"
   cd ..
 }
