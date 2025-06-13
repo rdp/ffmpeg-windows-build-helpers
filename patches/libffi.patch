@@ -1,0 +1,15 @@
+diff --git a/configure b/configure
+# Patch for wsl libffi v3.4.7, harmless to non wsl
+--- a/configure
++++ b/configure
+@@ -3340,7 +3340,7 @@ written by
+       srcdir=`echo "$ax_enable_builddir" |
+               sed -e 's,^\./,,;s,[^/]$,&/,;s,[^/]*/,../,g;s,[/]$,,;'`
+       # going to restart from subdirectory location
+-      test -f $srcdir/config.log   && mv $srcdir/config.log   .
++      test -f $srcdir/config.log   && cp $srcdir/config.log   .
+       test -f $srcdir/confdefs.h   && mv $srcdir/confdefs.h   .
+       test -f $srcdir/conftest.log && mv $srcdir/conftest.log .
+       test -f $srcdir/$cache_file  && mv $srcdir/$cache_file  .
+
+# Tjayz
