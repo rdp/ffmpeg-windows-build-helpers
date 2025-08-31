@@ -191,6 +191,7 @@ build()
     execute "($arch): configuring MinGW-w64 headers" "" \
         "$SRC_PATH/mingw-w64/mingw-w64-headers/configure" --build="$BUILD" \
             --host="$host" --prefix="$prefix/$host" \
+			--with-default-win32-winnt=$WIN32_WINNT \
             --with-default-msvcrt=$LINKED_RUNTIME
 
     execute "($arch): installing MinGW-w64 headers" "" \
