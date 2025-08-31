@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright (C) 2024 Kyle Schwarz <zeranoe@gmail.com>
+# Copyright (C) 2025 Kyle Schwarz <zeranoe@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -367,7 +367,7 @@ while :; do
         --win32-winnt=?*)
             WIN32_WINNT=${1#*=}
             ;;
-        --win32_winnt=)
+        --win32-winnt=)
             arg_error "'--win32-winnt' requires a non-empty option argument"
             ;;
         i586)
