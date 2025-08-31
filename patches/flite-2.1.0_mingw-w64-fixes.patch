@@ -1,14 +1,3 @@
---- configure.bak	2020-05-11 18:30:54.909379626 +0000
-+++ configure	2020-05-11 18:32:22.906040345 +0000
-@@ -4081,7 +4081,7 @@
-                 # http://www.mingw.org
- 		shared=false
-      	        CFLAGS="$CFLAGS -DCST_NO_SOCKETS -DUNDER_WINDOWS -DWIN32 -shared"
--                MINGWPREF="i386-mingw32-"
-+                MINGWPREF="${host_alias}-"
-                 CC="${MINGWPREF}gcc"
-                 RANLIB="${MINGWPREF}ranlib"
-                 AR="${MINGWPREF}ar"
 --- main/Makefile.bak	2020-05-11 20:18:26.039219862 +0000
 +++ main/Makefile	2020-05-11 20:19:09.207549064 +0000
 @@ -133,12 +133,12 @@
@@ -52,7 +41,7 @@
 @@ -267,7 +267,7 @@
  }
  
-  #ifdef _WIN32
+  #if defined _WIN32 && !defined(__GNUC__)
 - __inline int ts_utf8_sequence_length(char c0)
 + int ts_utf8_sequence_length(char c0)
   #else
