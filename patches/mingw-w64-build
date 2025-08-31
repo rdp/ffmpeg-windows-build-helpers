@@ -21,6 +21,7 @@ ROOT_PATH=$(pwd)
 # MINGW_W64_BRANCH="master"
 # BINUTILS_BRANCH="binutils-2_44-branch"
 # GCC_BRANCH="releases/gcc-14"
+WIN32_WINNT="0x0A00"
 
 ENABLE_THREADS="--enable-threads=posix"
 
@@ -51,6 +52,9 @@ Options:
   --gcc-branch <branch>        set GCC branch (default: $GCC_BRANCH)
   --mingw-w64-branch <branch>  set MinGW-w64 branch (default: $MINGW_W64_BRANCH)
   --linked-runtime <runtime>   set MinGW Linked Runtime (default: $LINKED_RUNTIME)
+  --win32-winnt <version>      set default _WIN32_WINNT value (default: $WIN32_WINNT)  
+    For possible _WIN32_WINNT values, see:
+    https://learn.microsoft.com/en-us/cpp/porting/modifying-winver-and-win32-winnt
 EOF
 }
 
@@ -139,7 +143,7 @@ download_sources()
 
     execute "downloading config.guess" "" \
         curl -o config.guess \
-            "https://git.savannah.gnu.org/gitweb/?p=config.git;a=blob_plain;f=config.guess;hb=HEAD"
+            "https://gitweb.git.savannah.gnu.org/gitweb/?p=config.git;a=blob_plain;f=config.guess;hb=HEAD"
 }
 
 build()
@@ -350,6 +354,20 @@ while :; do
             ;;
         --mingw-w64-branch=)
             arg_error "'--mingw-w64-branch' requires a non-empty option argument"
+            ;;
+		        --win32-winnt)
+            if [ "$2" ]; then
+                WIN32_WINNT="$2"
+                shift
+            else
+                arg_error "'--win32-winnt' requires a non-empty option argument"
+            fi
+            ;;
+        --win32-winnt=?*)
+            WIN32_WINNT=${1#*=}
+            ;;
+        --win32_winnt=)
+            arg_error "'--win32-winnt' requires a non-empty option argument"
             ;;
         i586)
             BUILD_I586=1
