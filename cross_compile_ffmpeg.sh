@@ -821,8 +821,8 @@ build_bzip2() {
 }
 
 build_liblzma() {
-  download_and_unpack_file https://sourceforge.net/projects/lzmautils/files/xz-5.6.4.tar.xz
-  cd xz-5.6.4
+  download_and_unpack_file https://sourceforge.net/projects/lzmautils/files/xz-5.8.1.tar.xz
+  cd xz-5.8.1
     generic_configure "--disable-xz --disable-xzdec --disable-lzmadec --disable-lzmainfo --disable-scripts --disable-doc --disable-nls"
     do_make_and_make_install
   cd ..
@@ -858,7 +858,7 @@ build_iconv() {
 build_brotli() {
   do_git_checkout https://github.com/google/brotli.git brotli_git v1.0.9 # v1.1.0 static headache stay away
   cd brotli_git
-    if [ ! -f already* ]; then
+    if [ ! -f "already*" ]; then
       rm configure
     fi
     generic_configure
@@ -990,9 +990,9 @@ build_libtensorflow() {
 }
 
 build_glib() {
-  generic_download_and_make_and_install  https://ftp.gnu.org/pub/gnu/gettext/gettext-0.23.1.tar.gz
-  download_and_unpack_file  https://github.com/libffi/libffi/releases/download/v3.4.7/libffi-3.4.7.tar.gz # also dep
-  cd libffi-3.4.7
+  generic_download_and_make_and_install  https://ftp.gnu.org/pub/gnu/gettext/gettext-0.26.tar.gz
+  download_and_unpack_file  https://github.com/libffi/libffi/releases/download/v3.5.2/libffi-3.5.2.tar.gz # also dep
+  cd libffi-3.5.2
     apply_patch file://$patch_dir/libffi.patch -p1 
     generic_configure_make_install
   cd ..
@@ -1042,8 +1042,8 @@ build_lz4 () {
 
  build_libarchive () {
   build_lz4
-  download_and_unpack_file https://github.com/libarchive/libarchive/releases/download/v3.7.8/libarchive-3.7.8.tar.gz
-  cd libarchive-3.7.8
+  download_and_unpack_file https://github.com/libarchive/libarchive/releases/download/v3.8.1/libarchive-3.8.1.tar.gz
+  cd libarchive-3.8.1
     generic_configure "--with-nettle --bindir=$mingw_w64_x86_64_prefix/bin --without-openssl --without-iconv --disable-posix-regex-lib"
     do_make_install
   cd ..
@@ -1081,8 +1081,8 @@ build_libpsl () {
  
 build_nghttp2 () { 
   export CFLAGS="-DNGHTTP2_STATICLIB"
-  download_and_unpack_file https://github.com/nghttp2/nghttp2/releases/download/v1.65.0/nghttp2-1.65.0.tar.gz
-  cd nghttp2-1.65.0
+  download_and_unpack_file https://github.com/nghttp2/nghttp2/releases/download/v1.66.0/nghttp2-1.66.0.tar.gz
+  cd nghttp2-1.66.0
     do_cmake "-B build -DENABLE_LIB_ONLY=1 -DBUILD_SHARED_LIBS=0 -DBUILD_STATIC_LIBS=1 -GNinja"
     do_ninja_and_ninja_install
   reset_cflags
@@ -1100,7 +1100,7 @@ build_curl () {
     local config_options+="-DGNUTLS_INTERNAL_BUILD" 
   fi  
   export CPPFLAGS+="$CPPFLAGS -DNGHTTP2_STATICLIB -DPSL_STATIC $config_options"
-  do_git_checkout https://github.com/curl/curl.git curl_git curl-8_12_1
+  do_git_checkout https://github.com/curl/curl.git curl_git curl-8_15_0
   cd curl_git 
     if [[ $compiler_flavors != "native" ]]; then
       generic_configure "--with-libssh2 --with-libpsl --with-libidn2 --disable-debug --enable-hsts --with-brotli --enable-versioned-symbols --enable-sspi --with-schannel"
@@ -1291,8 +1291,8 @@ build_librtmfp() {
 }
 
 build_libnettle() {
-  download_and_unpack_file https://ftp.gnu.org/gnu/nettle/nettle-3.10.tar.gz
-  cd nettle-3.10
+  download_and_unpack_file https://ftp.gnu.org/gnu/nettle/nettle-3.10.2.tar.gz
+  cd nettle-3.10.2
     local config_options="--disable-openssl --disable-documentation" # in case we have both gnutls and openssl, just use gnutls [except that gnutls uses this so...huh?
     if [[ $compiler_flavors == "native" ]]; then
       config_options+=" --libdir=${mingw_w64_x86_64_prefix}/lib" # Otherwise native builds install to /lib32 or /lib64 which gnutls doesn't find
@@ -1315,7 +1315,7 @@ build_libidn2() {
 }
 
 build_gnutls() {
-  download_and_unpack_file https://www.gnupg.org/ftp/gcrypt/gnutls/v3.8/gnutls-3.8.9.tar.xz
+  download_and_unpack_file https://www.gnupg.org/ftp/gcrypt/gnutls/v3.8/gnutls-3.8.9.tar.xz # v3.8.10 not found by ffmpeg with identical .pc?
   cd gnutls-3.8.9
     export CFLAGS="-Wno-int-conversion"
     local config_options=""
@@ -1625,36 +1625,21 @@ build_facebooktransform360() {
 }
 
 build_libbluray() {
-  unset JDK_HOME # #268 was causing failure
   do_git_checkout https://code.videolan.org/videolan/libbluray.git
+  activate_meson
   cd libbluray_git
-    if [[ ! -d .git/modules ]]; then
-      git submodule update --init --remote # For UDF support [default=enabled], which strangely enough is in another repository.
+    apply_patch "https://raw.githubusercontent.com/m-ab-s/mabs-patches/master/libbluray/0001-dec-prefix-with-libbluray-for-now.patch" -p1
+    local meson_options="setup -Denable_examples=false -Dbdj_jar=disabled --wrap-mode=default . build"
+    if [[ $compiler_flavors != "native" ]]; then
+      # get_local_meson_cross_with_propeties 
+      meson_options+=" --cross-file=${top_dir}/meson-cross.mingw.txt"
+      do_meson "$meson_options"      
     else
-      local local_git_version=`git --git-dir=.git/modules/contrib/libudfread rev-parse HEAD`
-      local remote_git_version=`git ls-remote -h https://code.videolan.org/videolan/libudfread.git | sed "s/[[:space:]].*//"`
-      if [[ "$local_git_version" != "$remote_git_version" ]]; then
-        echo "detected upstream udfread changed, attempted to update submodules" # XXX use do_git_checkout here instead somehow?
-        git submodule foreach -q 'git clean -fx' # Throw away local changes; 'already_configured_*' and 'udfread.c.bak' in this case.
-        rm -f contrib/libudfread/src/udfread-version.h
-        git submodule update --remote -f # Checkout even if the working tree differs from HEAD.
-      fi
+      generic_meson "$meson_options"
     fi
-    if [[ ! -f jni/win32/jni_md.h.bak ]]; then
-      sed -i.bak "/JNIEXPORT/s/ __declspec.*//" jni/win32/jni_md.h # Needed for building shared FFmpeg libraries.
-    fi
-    # avoid collision with newer ffmpegs, couldn't figure out better glob LOL
-    sed -i.bak "s/dec_init/dec__init/g" src/libbluray/disc/*.{c,h}
-    cd contrib/libudfread
-      if [[ ! -f src/udfread.c.bak ]]; then
-        sed -i.bak "/WIN32$/,+4d" src/udfread.c # Fix WinXP incompatibility.
-      fi
-      if [[ ! -f src/udfread-version.h ]]; then
-        generic_configure # Generate 'udfread-version.h', or building Libbluray fails otherwise.
-      fi
-    cd ../..
-    generic_configure "--disable-examples --disable-bdjava-jar"
-    do_make_and_make_install "CPPFLAGS=\"-Ddec_init=libbr_dec_init\""
+    do_ninja_and_ninja_install # "CPPFLAGS=\"-Ddec_init=libbr_dec_init\""
+      sed -i.bak 's/-lbluray.*/-lbluray -lstdc++ -lssp -lgdi32/' "$PKG_CONFIG_PATH/libbluray.pc"
+  deactivate
   cd ..
 }
 
@@ -1679,13 +1664,12 @@ build_libsoxr() {
 build_libflite() {
   do_git_checkout https://github.com/festvox/flite.git flite_git
   cd flite_git
-    apply_patch "https://raw.githubusercontent.com/m-ab-s/mabs-patches/master/flite/0001-tools-find_sts_main.c-Include-windows.h-before-defin.patch" -p1
+    apply_patch file://$patch_dir/flite-2.1.0_mingw-w64-fixes.patch
     if [[ ! -f main/Makefile.bak ]]; then									
     sed -i.bak "s/cp -pd/cp -p/" main/Makefile # friendlier cp for OS X
     fi
     generic_configure "--bindir=$mingw_w64_x86_64_prefix/bin --with-audio=none" 
     do_make
-    # /usr/bin/install: cannot stat '../bin/flite': No such file or directory; should be looking for /bin/flite.exe etc...
     if [[ ! -f $mingw_w64_x86_64_prefix/lib/libflite.a ]]; then
       cp -rf ./build/x86_64-mingw32/lib/libflite* $mingw_w64_x86_64_prefix/lib/ 
       cp -rf include $mingw_w64_x86_64_prefix/include/flite 
@@ -1746,8 +1730,8 @@ build_librubberband() {
 build_frei0r() {
   #do_git_checkout https://github.com/dyne/frei0r.git
   #cd frei0r_git
-  download_and_unpack_file https://github.com/dyne/frei0r/archive/refs/tags/v2.3.0.tar.gz frei0r-2.3.0
-  cd frei0r-2.3.0
+  download_and_unpack_file https://github.com/dyne/frei0r/archive/refs/tags/v2.3.3.tar.gz frei0r-2.3.3
+  cd frei0r-2.3.3
     sed -i.bak 's/-arch i386//' CMakeLists.txt # OS X https://github.com/dyne/frei0r/issues/64
     do_cmake_and_install "-DWITHOUT_OPENCV=1" # XXX could look at this more...
 
@@ -1885,14 +1869,14 @@ build_libass() {
 }
 
 build_vulkan() {
-  do_git_checkout https://github.com/KhronosGroup/Vulkan-Headers.git Vulkan-Headers_git v1.4.310 
+  do_git_checkout https://github.com/KhronosGroup/Vulkan-Headers.git Vulkan-Headers_git v1.4.321 
   cd Vulkan-Headers_git
     do_cmake_and_install "-DCMAKE_BUILD_TYPE=Release -DVULKAN_HEADERS_ENABLE_MODULE=OFF"
   cd ..
 }
 
 build_vulkan_loader() {
-  do_git_checkout https://github.com/KhronosGroup/Vulkan-Loader.git Vulkan-Loader_git v1.4.310
+  do_git_checkout https://github.com/KhronosGroup/Vulkan-Loader.git Vulkan-Loader_git v1.4.321
   cd Vulkan-Loader_git
     do_cmake_and_install "-DCMAKE_BUILD_TYPE=Release -DUSE_GAS=ON" 
   cd ..
@@ -1916,7 +1900,7 @@ build_libxxhash() {
 }
 
 build_spirv-cross() {
-  do_git_checkout https://github.com/KhronosGroup/SPIRV-Cross.git SPIRV-Cross_git  # 1823c11 # if breaks in future go back to this commit
+  do_git_checkout https://github.com/KhronosGroup/SPIRV-Cross.git SPIRV-Cross_git  vulkan-sdk-1.4.321.0 # 1823c11 # if breaks in future go back to this commit
   cd SPIRV-Cross_git
     do_cmake "-B build -GNinja -DSPIRV_CROSS_STATIC=ON -DSPIRV_CROSS_SHARED=OFF"
     do_ninja_and_ninja_install
@@ -1930,9 +1914,9 @@ build_libdovi() {
     if [[ ! -e $mingw_w64_x86_64_prefix/lib/libdovi.a ]]; then        
       curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y && . "$HOME/.cargo/env" && rustup update && rustup target add x86_64-pc-windows-gnu # rustup self uninstall
       if [[ $compiler_flavors != "native" ]]; then
-        wget https://github.com/quietvoid/dovi_tool/releases/download/2.2.0/dovi_tool-2.2.0-x86_64-pc-windows-msvc.zip
-	unzip -o dovi_tool-2.2.0-x86_64-pc-windows-msvc.zip -d $mingw_w64_x86_64_prefix/bin
-	rm dovi_tool-2.2.0-x86_64-pc-windows-msvc.zip
+        wget https://github.com/quietvoid/dovi_tool/releases/download/2.3.1/dovi_tool-2.3.1-x86_64-pc-windows-msvc.zip
+	unzip -o dovi_tool-2.3.1-x86_64-pc-windows-msvc.zip -d $mingw_w64_x86_64_prefix/bin
+	rm dovi_tool-2.3.1-x86_64-pc-windows-msvc.zip
       fi
 
       unset PKG_CONFIG_PATH	  
@@ -2728,7 +2712,7 @@ build_ffmpeg() {
     config_options+=" --enable-libvmaf"
     config_options+=" --enable-libvo-amrwbenc"
     config_options+=" --enable-libvorbis"
-    config_options+=" --enable-libvvdec" && apply_patch "https://raw.githubusercontent.com/wiki/fraunhoferhhi/vvdec/data/patch/v6-0001-avcodec-add-external-dec-libvvdec-for-H266-VVC.patch" -p1
+    config_options+=" --enable-libvvdec" && apply_patch "https://raw.githubusercontent.com/wiki/fraunhoferhhi/vvdec/data/patch/v7-0001-avcodec-add-external-dec-libvvdec-for-H266-VVC.patch" -p1
     config_options+=" --enable-libvvenc"
     config_options+=" --enable-libwebp"
     config_options+=" --enable-libxml2"
@@ -3005,7 +2989,7 @@ build_ffmpeg_dependencies() {
   build_fontconfig # uses libpng bzip2 libxml2 and zlib
   build_gmp # For rtmp support configure FFmpeg with '--enable-gmp'. Uses dlfcn.
   #build_librtmfp # mainline ffmpeg doesn't use it yet
-  build_libnettle # Needs gmp >= 3.0. Uses dlfcn.
+  build_libnettle # Needs gmp >= 3.0. Uses dlfcn. GCC 15 does not yet detect gmp properly yet
   build_unistring
   build_libidn2 # needs iconv and unistring
   build_zstd
