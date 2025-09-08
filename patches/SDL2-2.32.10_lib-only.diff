@@ -1,0 +1,52 @@
+--- Makefile.in.bak	2020-05-09 01:16:48.374940571 +0000
++++ Makefile.in	2020-05-09 01:19:12.707861205 +0000
+@@ -39,9 +39,6 @@
+ SDLMAIN_TARGET = libSDL2main.la
+ SDLMAIN_OBJECTS = @SDLMAIN_OBJECTS@
+ 
+-SDLTEST_TARGET = libSDL2_test.la
+-SDLTEST_OBJECTS = @SDLTEST_OBJECTS@
+-
+ WAYLAND_SCANNER = @WAYLAND_SCANNER@
+ 
+ INSTALL_SDL2_CONFIG = @INSTALL_SDL2_CONFIG@
+@@ -128,7 +125,7 @@
+ LT_REVISION = @LT_REVISION@
+ LT_LDFLAGS  = -no-undefined -rpath $(libdir) -release $(LT_RELEASE) -version-info $(LT_CURRENT):$(LT_REVISION):$(LT_AGE)
+ 
+-all: $(srcdir)/configure Makefile $(objects)/$(TARGET) $(objects)/$(SDLMAIN_TARGET) $(objects)/$(SDLTEST_TARGET)
++all: $(srcdir)/configure Makefile $(objects)/$(TARGET) $(objects)/$(SDLMAIN_TARGET)
+ 
+ $(srcdir)/configure: $(srcdir)/configure.ac
+ 	@echo "Warning, configure is out of date, please re-run autogen.sh"
+@@ -179,17 +173,9 @@
+ 	$(SHELL) $(auxdir)/mkinstalldirs $(DESTDIR)$(libdir)
+ 	$(LIBTOOL) --mode=install $(INSTALL) $(objects)/$(TARGET) $(DESTDIR)$(libdir)/$(TARGET)
+ 	$(LIBTOOL) --mode=install $(INSTALL) $(objects)/$(SDLMAIN_TARGET) $(DESTDIR)$(libdir)/$(SDLMAIN_TARGET)
+-	$(LIBTOOL) --mode=install $(INSTALL) $(objects)/$(SDLTEST_TARGET) $(DESTDIR)$(libdir)/$(SDLTEST_TARGET)
+ install-data:
+-	$(SHELL) $(auxdir)/mkinstalldirs $(DESTDIR)$(datadir)/aclocal
+-	$(INSTALL) -m 644 $(srcdir)/sdl2.m4 $(DESTDIR)$(datadir)/aclocal/sdl2.m4
+ 	$(SHELL) $(auxdir)/mkinstalldirs $(DESTDIR)$(libdir)/pkgconfig
+ 	$(INSTALL) -m 644 sdl2.pc $(DESTDIR)$(libdir)/pkgconfig
+-ifeq ($(INSTALL_SDL2_CONFIG),TRUE)
+-	$(SHELL) $(auxdir)/mkinstalldirs $(DESTDIR)$(libdir)/cmake/SDL2
+-	$(INSTALL) -m 644 sdl2-config.cmake $(DESTDIR)$(libdir)/cmake/SDL2
+-	$(INSTALL) -m 644 sdl2-config-version.cmake $(DESTDIR)$(libdir)/cmake/SDL2
+-endif
+ 
+ uninstall: uninstall-bin uninstall-hdrs uninstall-lib uninstall-data
+ uninstall-bin:
+@@ -204,12 +190,8 @@
+ uninstall-lib:
+ 	$(LIBTOOL) --mode=uninstall rm -f $(DESTDIR)$(libdir)/$(TARGET)
+ 	rm -f $(DESTDIR)$(libdir)/$(SDLMAIN_TARGET)
+-	rm -f $(DESTDIR)$(libdir)/$(SDLTEST_TARGET)
+ uninstall-data:
+-	rm -f $(DESTDIR)$(datadir)/aclocal/sdl2.m4
+ 	rm -f $(DESTDIR)$(libdir)/pkgconfig/sdl2.pc
+-	rm -f $(DESTDIR)$(libdir)/cmake/SDL2/sdl2-config.cmake
+-	rm -f $(DESTDIR)$(libdir)/cmake/SDL2/sdl2-config-version.cmake
+ 
+ clean:
+ 	rm -rf $(objects)
