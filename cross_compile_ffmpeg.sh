@@ -367,7 +367,7 @@ install_cross_compiler() {
     if [[ ($compiler_flavors == "win64" || $compiler_flavors == "multi") && ! -f ../$win64_gcc ]]; then
       echo "Building win64 x86_64 cross compiler..."
       download_gcc_build_script $zeranoe_script_name
-      CFLAGS='-O2 -pipe' CXXFLAGS='-O2 -pipe' nice ./$zeranoe_script_name $zeranoe_script_options x86_64 || exit 1
+      CFLAGS='-O3 -pipe' CXXFLAGS='-O3 -pipe' nice ./$zeranoe_script_name $zeranoe_script_options x86_64 || exit 1
       if [[ ! -f ../$win64_gcc ]]; then
         echo "Failure building 64 bit gcc? Recommend nuke sandbox (rm -rf sandbox) and start over..."
         exit 1
@@ -610,7 +610,7 @@ do_cmake_and_install() {
 
 activate_meson() {
   if [[ ! -e meson_git ]]; then 
-    do_git_checkout https://github.com/mesonbuild/meson.git meson_git 1.7
+    do_git_checkout https://github.com/mesonbuild/meson.git meson_git 1.9.0
   fi
   cd meson_git # requires python3-full   
     if [[ ! -e tutorial_env ]]; then 
@@ -858,7 +858,7 @@ build_iconv() {
 build_brotli() {
   do_git_checkout https://github.com/google/brotli.git brotli_git v1.0.9 # v1.1.0 static headache stay away
   cd brotli_git
-    if [ ! -f "already*" ]; then
+    if [ ! -f "brotli.exe" ]; then
       rm configure
     fi
     generic_configure
@@ -879,9 +879,9 @@ build_zstd() {
  } 
   
 build_sdl2() {
-  download_and_unpack_file https://www.libsdl.org/release/SDL2-2.0.12.tar.gz
-  cd SDL2-2.0.12
-    apply_patch file://$patch_dir/SDL2-2.0.12_lib-only.diff
+  download_and_unpack_file https://www.libsdl.org/release/SDL2-2.32.10.tar.gz
+  cd SDL2-2.32.10
+    apply_patch file://$patch_dir/SDL2-2.32.10_lib-only.diff
     if [[ ! -f configure.bak ]]; then
       sed -i.bak "s/ -mwindows//" configure # Allow ffmpeg to output anything to console.
     fi
@@ -981,7 +981,7 @@ build_libtensorflow() {
   if [[ ! -e Tensorflow ]]; then
     mkdir Tensorflow
     cd Tensorflow
-      wget https://storage.googleapis.com/tensorflow/versions/2.18.0/libtensorflow-cpu-windows-x86_64.zip # tensorflow.dll required by ffmpeg to run
+      wget https://storage.googleapis.com/tensorflow/versions/2.18.1/libtensorflow-cpu-windows-x86_64.zip # tensorflow.dll required by ffmpeg to run
       unzip -o libtensorflow-cpu-windows-x86_64.zip -d $mingw_w64_x86_64_prefix
       rm libtensorflow-cpu-windows-x86_64.zip
     cd ..
@@ -1059,7 +1059,7 @@ build_flac () {
 
 build_openmpt () {
   build_flac
-  do_git_checkout https://github.com/OpenMPT/openmpt.git openmpt_git OpenMPT-1.30
+  do_git_checkout https://github.com/OpenMPT/openmpt.git openmpt_git # OpenMPT-1.30
   cd openmpt_git
     do_make_and_make_install "PREFIX=$mingw_w64_x86_64_prefix CONFIG=mingw64-win64 EXESUFFIX=.exe SOSUFFIX=.dll SOSUFFIXWINDOWS=1 DYNLINK=0 SHARED_LIB=0 STATIC_LIB=1 
       SHARED_SONAME=0 IS_CROSS=1 NO_ZLIB=0 NO_LTDL=0 NO_DL=0 NO_MPG123=0 NO_OGG=0 NO_VORBIS=0 NO_VORBISFILE=0 NO_PORTAUDIO=1 NO_PORTAUDIOCPP=1 NO_PULSEAUDIO=1 NO_SDL=0 
@@ -1081,8 +1081,8 @@ build_libpsl () {
  
 build_nghttp2 () { 
   export CFLAGS="-DNGHTTP2_STATICLIB"
-  download_and_unpack_file https://github.com/nghttp2/nghttp2/releases/download/v1.66.0/nghttp2-1.66.0.tar.gz
-  cd nghttp2-1.66.0
+  download_and_unpack_file https://github.com/nghttp2/nghttp2/releases/download/v1.67.0/nghttp2-1.67.0.tar.gz
+  cd nghttp2-1.67.0
     do_cmake "-B build -DENABLE_LIB_ONLY=1 -DBUILD_SHARED_LIBS=0 -DBUILD_STATIC_LIBS=1 -GNinja"
     do_ninja_and_ninja_install
   reset_cflags
