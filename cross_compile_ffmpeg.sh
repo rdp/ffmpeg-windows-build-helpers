@@ -260,7 +260,7 @@ EOL
   echo `date` # for timestamping super long builds LOL
   if [[ $sandbox_ok != 'y' && ! -d sandbox ]]; then
     echo
-    echo "Building in $PWD/sandbox, will use ~ 12GB space!"
+    echo "Building in $PWD/sandbox, will use ~ 285GB space!"
     echo
   fi
   mkdir -p "$cur_dir"
@@ -610,7 +610,7 @@ do_cmake_and_install() {
 
 activate_meson() {
   if [[ ! -e meson_git ]]; then 
-    do_git_checkout https://github.com/mesonbuild/meson.git meson_git 1.9.0
+    do_git_checkout https://github.com/mesonbuild/meson.git meson_git 1.9.1
   fi
   cd meson_git # requires python3-full   
     if [[ ! -e tutorial_env ]]; then 
@@ -973,7 +973,7 @@ build_libleptonica() {
 
 build_libtiff() {
   build_libjpeg_turbo # auto uses it?
-  generic_download_and_make_and_install http://download.osgeo.org/libtiff/tiff-4.7.0.tar.gz
+  generic_download_and_make_and_install http://download.osgeo.org/libtiff/tiff-4.7.1.tar.gz
   sed -i.bak 's/-ltiff.*$/-ltiff -llzma -ljpeg -lz/' $PKG_CONFIG_PATH/libtiff-4.pc # static deps
 }
 
@@ -1081,8 +1081,8 @@ build_libpsl () {
  
 build_nghttp2 () { 
   export CFLAGS="-DNGHTTP2_STATICLIB"
-  download_and_unpack_file https://github.com/nghttp2/nghttp2/releases/download/v1.67.0/nghttp2-1.67.0.tar.gz
-  cd nghttp2-1.67.0
+  download_and_unpack_file https://github.com/nghttp2/nghttp2/releases/download/v1.67.1/nghttp2-1.67.1.tar.gz
+  cd nghttp2-1.67.1
     do_cmake "-B build -DENABLE_LIB_ONLY=1 -DBUILD_SHARED_LIBS=0 -DBUILD_STATIC_LIBS=1 -GNinja"
     do_ninja_and_ninja_install
   reset_cflags
@@ -1100,7 +1100,7 @@ build_curl () {
     local config_options+="-DGNUTLS_INTERNAL_BUILD" 
   fi  
   export CPPFLAGS+="$CPPFLAGS -DNGHTTP2_STATICLIB -DPSL_STATIC $config_options"
-  do_git_checkout https://github.com/curl/curl.git curl_git curl-8_15_0
+  do_git_checkout https://github.com/curl/curl.git curl_git curl-8_16_0
   cd curl_git 
     if [[ $compiler_flavors != "native" ]]; then
       generic_configure "--with-libssh2 --with-libpsl --with-libidn2 --disable-debug --enable-hsts --with-brotli --enable-versioned-symbols --enable-sspi --with-schannel"
@@ -1303,7 +1303,7 @@ build_libnettle() {
 }
 
 build_unistring() {
-  generic_download_and_make_and_install https://ftp.gnu.org/gnu/libunistring/libunistring-1.3.tar.gz
+  generic_download_and_make_and_install https://ftp.gnu.org/gnu/libunistring/libunistring-1.4.1.tar.gz
 }
 
 build_libidn2() {
@@ -1820,14 +1820,7 @@ build_libcaca() {
 }
 
 build_libdecklink() {
-  local url=https://notabug.org/RiCON/decklink-headers.git
-  git ls-remote $url
-  if [ $? -ne 0 ]; then
-    # If NotABug.org server is down , Change to use GitLab.com .
-    # https://gitlab.com/m-ab-s/decklink-headers
-    url=https://gitlab.com/m-ab-s/decklink-headers.git
-  fi
-  do_git_checkout $url
+  do_git_checkout https://gitlab.com/m-ab-s/decklink-headers.git decklink-headers_git 47d84f8d272ca6872b5440eae57609e36014f3b6
   cd decklink-headers_git
     do_make_install PREFIX=$mingw_w64_x86_64_prefix
   cd ..
@@ -1869,16 +1862,17 @@ build_libass() {
 }
 
 build_vulkan() {
-  do_git_checkout https://github.com/KhronosGroup/Vulkan-Headers.git Vulkan-Headers_git v1.4.321 
+  do_git_checkout https://github.com/KhronosGroup/Vulkan-Headers.git Vulkan-Headers_git v1.4.326
   cd Vulkan-Headers_git
-    do_cmake_and_install "-DCMAKE_BUILD_TYPE=Release -DVULKAN_HEADERS_ENABLE_MODULE=OFF"
+    do_cmake_and_install "-DCMAKE_BUILD_TYPE=Release -DVULKAN_HEADERS_ENABLE_MODULE=NO -DVULKAN_HEADERS_ENABLE_TESTS=NO -DVULKAN_HEADERS_ENABLE_INSTALL=YES"
   cd ..
 }
 
 build_vulkan_loader() {
-  do_git_checkout https://github.com/KhronosGroup/Vulkan-Loader.git Vulkan-Loader_git v1.4.321
-  cd Vulkan-Loader_git
-    do_cmake_and_install "-DCMAKE_BUILD_TYPE=Release -DUSE_GAS=ON" 
+  do_git_checkout https://github.com/BtbN/Vulkan-Shim-Loader.git Vulkan-Shim-Loader.git  9657ca8e395ef16c79b57c8bd3f4c1aebb319137
+  cd Vulkan-Shim-Loader.git 
+    do_git_checkout https://github.com/KhronosGroup/Vulkan-Headers.git Vulkan-Headers v1.4.326
+    do_cmake_and_install "-DCMAKE_BUILD_TYPE=Release -DVULKAN_SHIM_IMPERSONATE=ON"
   cd ..
 }
 
@@ -1900,9 +1894,9 @@ build_libxxhash() {
 }
 
 build_spirv-cross() {
-  do_git_checkout https://github.com/KhronosGroup/SPIRV-Cross.git SPIRV-Cross_git  vulkan-sdk-1.4.321.0 # 1823c11 # if breaks in future go back to this commit
+  do_git_checkout https://github.com/KhronosGroup/SPIRV-Cross.git SPIRV-Cross_git  b26ac3fa8bcfe76c361b56e3284b5276b23453ce
   cd SPIRV-Cross_git
-    do_cmake "-B build -GNinja -DSPIRV_CROSS_STATIC=ON -DSPIRV_CROSS_SHARED=OFF"
+    do_cmake "-B build -GNinja -DSPIRV_CROSS_STATIC=ON -DSPIRV_CROSS_SHARED=OFF -DCMAKE_BUILD_TYPE=Release -DSPIRV_CROSS_CLI=OFF -DSPIRV_CROSS_ENABLE_TESTS=OFF -DSPIRV_CROSS_FORCE_PIC=ON -DSPIRV_CROSS_ENABLE_CPP=OFF"
     do_ninja_and_ninja_install
     mv $PKG_CONFIG_PATH/spirv-cross-c.pc $PKG_CONFIG_PATH/spirv-cross-c-shared.pc 
   cd ..
@@ -1940,42 +1934,35 @@ build_libdovi() {
 }
 
 build_shaderc() {
-  do_git_checkout https://github.com/google/shaderc.git shaderc_git known-good # 8ce49eb # if breaks in future, go back to this commit
+  do_git_checkout https://github.com/google/shaderc.git shaderc_git 3a44d5d7850da3601aa43d523a3d228f045fb43d
   cd shaderc_git
-    if [[ ! -e src ]]; then
-      ./update_shaderc_sources.py
-    fi
-    cd src  	
-      do_cmake "-B build -DCMAKE_BUILD_TYPE=release -GNinja -DSHADERC_SKIP_EXAMPLES=ON -DSHADERC_SKIP_TESTS=ON -DGLSLANG_TESTS=OFF -DSPIRV_HEADERS_SKIP_EXAMPLES=ON -DSPIRV_SKIP_TESTS=ON -DSKIP_GOOGLETEST_INSTALL=ON" 
-      do_ninja_and_ninja_install
-      cp -r libshaderc_util/include/libshaderc_util $mingw_w64_x86_64_prefix/include
+    ./utils/git-sync-deps  	
+     do_cmake "-B build -DCMAKE_BUILD_TYPE=release -GNinja -DSHADERC_SKIP_EXAMPLES=ON -DSHADERC_SKIP_TESTS=ON -DSPIRV_SKIP_TESTS=ON -DSHADERC_SKIP_COPYRIGHT_CHECK=ON -DENABLE_EXCEPTIONS=ON -DENABLE_GLSLANG_BINARIES=OFF -DSPIRV_SKIP_EXECUTABLES=ON -DSPIRV_TOOLS_BUILD_STATIC=ON -DBUILD_SHARED_LIBS=OFF"
+	do_ninja_and_ninja_install
+     cp build/libshaderc_util/libshaderc_util.a $mingw_w64_x86_64_prefix/lib
       sed -i.bak "s/Libs: .*/& -lstdc++/" "$PKG_CONFIG_PATH/shaderc_combined.pc"
       sed -i.bak "s/Libs: .*/& -lstdc++/" "$PKG_CONFIG_PATH/shaderc_static.pc"
-      sed -i.bak "s/Libs: .*/& -lstdc++/" "$PKG_CONFIG_PATH/shaderc.pc"
-      sed -i.bak "s/Libs: .*/& -lstdc++/" "$PKG_CONFIG_PATH/SPIRV-Tools.pc"
-  cd ../..
+  cd ..
 }
 
 build_libplacebo() { 
-  if [[ $OSTYPE != darwin* ]]; then
-    build_vulkan_loader
-  fi
+  build_vulkan_loader
   do_git_checkout_and_make_install https://github.com/ImageMagick/lcms.git 
   build_libunwind  
   build_libxxhash 
   build_spirv-cross
   build_libdovi
   build_shaderc
-  do_git_checkout https://code.videolan.org/videolan/libplacebo.git libplacebo_git # 51ea4290a6342ebe67daa34cd4483476bed4e03d # if breaks in future, go back to this commit
+  do_git_checkout https://code.videolan.org/videolan/libplacebo.git libplacebo_git 515da9548ad734d923c7d0988398053f87b454d5
   activate_meson
   cd libplacebo_git
-    git submodule update --init
+    git submodule update --init --recursive --depth=1 --filter=blob:none
     local config_options=""
     if [[ $OSTYPE != darwin* ]]; then
       local config_options+=" -Dvulkan-registry=$mingw_w64_x86_64_prefix/share/vulkan/registry/vk.xml" 
     fi		
-    local meson_options="setup -Ddemos=false -Dc_link_args=-static -Dcpp_link_args=-static $config_options . build" # https://mesonbuild.com/Dependencies.html#shaderc trigger use of shaderc_combined 
-    if [[ $compiler_flavors != "native" ]]; then
+    local meson_options="setup -Ddemos=false -Dbench=false -Dfuzz=false -Dvulkan=enabled -Dvk-proc-addr=disabled -Dshaderc=enabled -Dglslang=disabled -Dc_link_args=-static -Dcpp_link_args=-static $config_options . build" # https://mesonbuild.com/Dependencies.html#shaderc trigger use of shaderc_combined 
+   if [[ $compiler_flavors != "native" ]]; then
       # get_local_meson_cross_with_propeties 
       meson_options+=" --cross-file=${top_dir}/meson-cross.mingw.txt"
       do_meson "$meson_options"      
@@ -2651,7 +2638,7 @@ build_ffmpeg() {
       local arch=amd64
     fi
 
-    init_options="--pkg-config=pkg-config --pkg-config-flags=--static --extra-version=ffmpeg-windows-build-helpers --enable-version3 --disable-debug --disable-w32threads"
+    init_options="--pkg-config=pkg-config --pkg-config-flags=--static --enable-version3 --disable-debug --disable-w32threads"
     if [[ $compiler_flavors != "native" ]]; then
       init_options+=" --arch=$arch --target-os=mingw32 --cross-prefix=$cross_prefix"
     else
@@ -2675,7 +2662,8 @@ build_ffmpeg() {
     config_options+=" --enable-gmp"
     config_options+=" --enable-gnutls"	
     config_options+=" --enable-gray"
-    config_options+=" --enable-iconv"		
+    config_options+=" --enable-iconv"
+    config_options+=" --enable-lcms2"		
     config_options+=" --enable-libass"	
     config_options+=" --enable-libbluray"
     config_options+=" --enable-libbs2b"
@@ -2687,6 +2675,7 @@ build_ffmpeg() {
     config_options+=" --enable-libgme"
     config_options+=" --enable-libgsm"	
     config_options+=" --enable-libharfbuzz"
+    config_options+=" --enable-filter=drawtext"
     config_options+=" --enable-libilbc"
     config_options+=" --enable-liblensfun"
     config_options+=" --enable-libmodplug"
@@ -2705,7 +2694,7 @@ build_ffmpeg() {
     config_options+=" --enable-libsoxr"
     config_options+=" --enable-libspeex"
     config_options+=" --enable-libsrt"
-    config_options+=" --enable-libtensorflow"
+    # config_options+=" --enable-libtensorflow"
     config_options+=" --enable-libtesseract"
     config_options+=" --enable-libtheora"
     config_options+=" --enable-libtwolame"
@@ -3068,8 +3057,8 @@ build_ffmpeg_dependencies() {
   build_dav1d
   if [[ $OSTYPE != darwin* ]]; then
     build_vulkan
+    build_libplacebo
   fi
-  build_libplacebo # can use vulkan
   build_avisynth
   build_libvvenc
   build_libvvdec
