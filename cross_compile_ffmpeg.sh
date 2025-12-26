@@ -94,9 +94,6 @@ check_missing_packages () {
         echo "for ubuntu:"
         echo "$ sudo apt-get update"
         ubuntu_ver="$(lsb_release -rs)"
-        if at_least_required_version "18.04" "$ubuntu_ver"; then
-          apt_pkgs="$apt_pkgs python3-distutils" # guess it's no longer built-in, lensfun requires it...
-        fi
         if at_least_required_version "20.04" "$ubuntu_ver"; then
           apt_pkgs="$apt_pkgs python-is-python3" # needed
         fi
