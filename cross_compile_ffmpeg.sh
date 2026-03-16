@@ -1493,8 +1493,10 @@ build_facebooktransform360() {
 
 build_libbluray() {
   unset JDK_HOME # #268 was causing failure
-  do_git_checkout https://code.videolan.org/videolan/libbluray.git
-  cd libbluray_git
+  # do_git_checkout https://code.videolan.org/videolan/libbluray.git
+  # cd libbluray_git
+  download_and_unpack_file https://download.videolan.org/pub/videolan/libbluray/1.3.4/libbluray-1.3.4.tar.bz2
+  cd libbluray-1.3.4
     if [[ ! -d .git/modules ]]; then
       git submodule update --init --remote # For UDF support [default=enabled], which strangely enough is in another repository.
     else
@@ -1517,7 +1519,7 @@ build_libbluray() {
         sed -i.bak "/WIN32$/,+4d" src/udfread.c # Fix WinXP incompatibility.
       fi
       if [[ ! -f src/udfread-version.h ]]; then
-        generic_configure # Generate 'udfread-version.h', or building Libbluray fails otherwise.
+        meson setup builddir --prefix=$mingw_w64_x86_64_prefix --buildtype=release
       fi
     cd ../..
     generic_configure "--disable-examples --disable-bdjava-jar"
@@ -1544,10 +1546,7 @@ build_libsoxr() {
 }
 
 build_libflite() {
-  # download_and_unpack_file http://www.festvox.org/flite/packed/flite-2.1/flite-2.1-release.tar.bz2
-  # original link is not working so using a substitute
-  # from a trusted source
-  download_and_unpack_file http://deb.debian.org/debian/pool/main/f/flite/flite_2.1-release.orig.tar.bz2 flite-2.1-release
+  download_and_unpack_file http://www.festvox.org/flite/packed/flite-2.1/flite-2.1-release.tar.bz2 flite-2.1-release
   cd flite-2.1-release
     apply_patch file://$patch_dir/flite-2.1.0_mingw-w64-fixes.patch
     if [[ ! -f main/Makefile.bak ]]; then
@@ -1703,15 +1702,12 @@ build_libcaca() {
 }
 
 build_libdecklink() {
-  local url=https://notabug.org/RiCON/decklink-headers.git
-  git ls-remote $url
-  if [ $? -ne 0 ]; then
-    # If NotABug.org server is down , Change to use GitLab.com .
-    # https://gitlab.com/m-ab-s/decklink-headers
-    url=https://gitlab.com/m-ab-s/decklink-headers.git
-  fi
-  do_git_checkout $url
+  # local url=https://gitlab.com/m-ab-s/decklink-headers.git
+  # git ls-remote $url
+  # do_git_checkout $url
+  git clone https://github.com/nanake/decklink-headers.git decklink-headers_git
   cd decklink-headers_git
+    git checkout -b SDK-12.9 origin/SDK/12.9
     do_make_install PREFIX=$mingw_w64_x86_64_prefix
   cd ..
 }
