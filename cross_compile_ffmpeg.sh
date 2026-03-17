@@ -2464,6 +2464,7 @@ build_ffmpeg() {
     config_options+=" --enable-opengl"
     config_options+=" --enable-libdav1d"
     config_options+=" --enable-gnutls"
+	config_options+=" --enable-libjxl"
 
     if [[ $OSTYPE != darwin* ]]; then
       config_options+=" --enable-vulkan"
